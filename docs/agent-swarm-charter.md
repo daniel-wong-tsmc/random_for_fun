@@ -51,6 +51,13 @@ guess as a guess.
 **Build & scale** — *how the system stays modular, fixable, and free to explore*
 - Part 18 — Modular agents: assignments, registries, and room to explore
 
+**Run it for real** — *the mechanisms that make it production-grade (each reuses, never rebuilds)*
+- Part 19 — Failure & cost policy
+- Part 20 — Provenance & reproducibility
+- Part 21 — Entity registry & reconciliation
+- Part 22 — Data-source reality: sourcing, licensing, and what's actually fetchable
+- Part 23 — Trust boundary: human-in-the-loop, access, and legal
+
 > A companion visual of the swarm — agents, the data-access tools each needs, each agent's unique
 > abilities, and the universal guidelines — lives at [`app/architecture.html`](../app/architecture.html).
 
@@ -847,6 +854,159 @@ Flexibility is where systems rot, so three rules are non-negotiable: the **fixed
 and sacred**; **every reference goes through a registry** (the one carve-out: a *provisional* item may be
 defined inline, but it can never feed canonical until promoted); and **ad-hoc and provisional work never
 writes the canonical state**. Hold those three and "endlessly flexible" never becomes "endlessly broken."
+
+---
+
+> **About Parts 19–23.** These are the mechanisms that turn the design into something you can run in
+> front of executives. Each one is built mostly from parts we already have — so every part below opens
+> with a **Reuses (don't rebuild)** list naming the exact pieces it stands on, and a short **New here**
+> list for the few genuinely new pieces. If a mechanism already exists, we extend it; we do not build it
+> twice.
+
+## Part 19 — Failure & cost policy
+
+Thirty-four web-facing agents *will* fail and *will* be expensive. The rule: failures and cost limits
+**degrade gracefully and visibly** — the system bends, and the dashboard always states how complete the
+current picture is. **Never a silent partial.**
+
+**Reuses (don't rebuild):**
+- **Part 5 (the chassis)** — cost/token observability, typed-error + backoff, and the **last-known-good
+  fallback** are already the shared chassis. The budget governor and the stale-input fallback are
+  configured on top of these, not written fresh.
+- **Part 18 (assignments)** — the per-run **`budget`** and **`explore.budgetShare`** fields already
+  exist on the assignment. We extend that same object with the caps below; we do not invent a new config.
+- **Part 16 (taxonomy)** — per-category refresh need (TTL) lives on each category's **default
+  assignment**, so "how often to refresh this" is taxonomy data, not new code.
+- **Part 17 (the rating model)** — the market status already carries a **freshness** read; "hold vs.
+  publish" decisions are expressed in that existing status, not a new artifact.
+- **Part 8 / Part 23** — a status flip caused by a market-moving change still goes through the
+  human-in-the-loop gate (defined in Part 23), reusing that one mechanism.
+
+**New here:**
+- **A grader-iteration cap.** The Part 7 Outcome grader gets a hard maximum; on reaching it the agent
+  ships *best-effort, flagged* rather than looping forever.
+- **A per-cycle budget ceiling + load-shedding.** A total cost ceiling per full refresh; when near it,
+  refresh fast-movers (ARR, benchmarks) and let slow-movers (grid, transformers) ride their TTL.
+- **A publish rule (quorum + staleness).** The market status publishes only if a quorum of inputs is
+  fresh and nothing is staler than *N* cycles; otherwise it **holds the prior status and flags exactly
+  what is stale** ("30/34 fresh; energy is 2 cycles old"). A *failed binding category* forces a hold,
+  not a guess.
+
+## Part 20 — Provenance & reproducibility
+
+Sources rot and model output is non-deterministic, yet every number must stay answerable to "how do you
+know that?" years later. The rule: **pin the inputs and snapshot the evidence.**
+
+**Reuses (don't rebuild):**
+- **Part 2 (the Finding)** — the Finding already carries `evidence` (source, url, date, tier). We do
+  **not** create a new record; we add two blocks to the *same* Finding (shown in *New here*).
+- **Part 9 (the canonical store)** — already an **append-only, versioned time-series**. The version
+  stamps and source snapshots live in this store; no new storage layer.
+- **Part 16 + Part 18 (versioning)** — `taxonomyVersion`, registry versions, and assignment `version`
+  already exist. The provenance stamp simply *collects the ids we already mint*, it doesn't define new
+  version schemes.
+- **Part 18, principle 4** ("version everything, stamp it on every output") — this part is the
+  **mechanization** of that principle, not a new principle.
+
+**New here:**
+- **A provenance stamp on every Finding** (extends the Part 2 record):
+  ```json
+  "provenance": { "modelId": "...", "promptVersion": "...", "taxonomyVersion": "...",
+                  "registryVersion": "...", "assignment": "asg.id@version", "runId": "..." }
+  ```
+- **Source snapshots.** On fetch, store the cited excerpt + retrieval timestamp + URL + a content hash
+  in the canonical store, and point the Finding's `evidence` at that snapshot — so the citation survives
+  link rot.
+- **The honest reproducibility bar:** not bit-identical output, but *"every input and source that
+  produced this is recorded, and re-running with the same pinned inputs yields an equivalent result."*
+
+## Part 21 — Entity registry & reconciliation
+
+A company that lives in several categories (NVIDIA in GPUs *and* networking silicon; Microsoft in chips,
+cloud, and apps) must be **counted once**. Part 18 gave this a schema; this part gives it the running
+behavior.
+
+**Reuses (don't rebuild):**
+- **Part 18 (the entity registry)** — `appearsIn` + `primaryCategory` already exist. This part adds the
+  *pass that enforces them*; the data model is done.
+- **Part 9 (the hierarchy reconciles)** — sibling categories are isolated by design, and the **Layer /
+  Main tiers are the ones that see across categories**. Reconciliation runs there — exactly the job Part
+  9 says the hierarchy exists to do. No new tier.
+- **Part 1 (dispersion)** — when two categories' figures for one entity disagree, that conflict is
+  surfaced as **dispersion**, reusing the doctrine's existing mechanism, not a new conflict type.
+- **Part 18 (run modes)** — ad-hoc runs never write canonical, so reconciliation is only ever needed on
+  the canonical side. The run-mode split already contains the modularity risk.
+- **Part 18 / Part 16 (the discovery lane)** — provisional entities are resolved and merged into the
+  registry **on promotion**, reusing that pipeline.
+
+**New here:**
+- **The reconciliation pass.** At Layer/Main, for each multi-category entity: the **whole-entity figure
+  is owned by its `primaryCategory`**, while category-specific *slices* (e.g. NVIDIA's networking-silicon
+  revenue) are owned by the relevant category. The pass checks slices are consistent and non-overlapping.
+- **Entity resolution.** An alias-dedup step (using the registry's `aliases`) so "NVDA / Nvidia / NVIDIA
+  Corp" map to one id before anything is counted.
+
+## Part 22 — Data-source reality: sourcing, licensing, and what's actually fetchable
+
+The doctrine prefers primary sources — but many of the best metrics (Dell'Oro, TrendForce, Gartner) are
+**paywalled**, and the app/neocloud layer runs on single-sourced private estimates. We must not profess
+a sourcing standard we can't meet. The rule: **know what's fetchable, fetch only what we're allowed to,
+and label the rest honestly.**
+
+**Reuses (don't rebuild):**
+- **Part 18 (the metric registry)** — `defaultSourceHint` already exists. The **source inventory is the
+  same registry pattern**, grown with access detail; not a new kind of artifact.
+- **Part 1 rule 5 / Part 8 (source tiering)** — "primary over secondary, mark the tier, let confidence
+  reflect it" is already doctrine. This part adds *acquisition* (how we get it), not a new tiering scheme.
+- **Part 9 ("the tool is the access control")** — the scoped query tool already enforces *read* scope.
+  The **fetch tool enforces the license/ToS allowlist the same way** — same enforcement pattern, applied
+  to the open web.
+- **Part 17 (measured vs. judged)** — a metric we can't source becomes an honest **"estimate" or
+  "unavailable,"** confidence-capped, reusing the rating model's honesty rather than inventing a number.
+- **Part 5 (connectors)** — `web_fetch`, MCP feeds, and vaults are the existing acquisition tools.
+
+**New here:**
+- **A source inventory** (per metric): `{ accessMethod: free-web | filing | licensed-API | MCP | manual,
+  tier, costUsd, license, refresh }`.
+- **Tiered acquisition with degradation:** prefer primary/free; fall back to secondary; if a number only
+  exists behind a paywall we don't license → mark it estimate/unavailable. Never fake a hard figure.
+- **A license/ToS allowlist** enforced by the fetch tool — an agent can only fetch what we're permitted
+  to (this is also the data-license register reused by Part 23).
+- **A business decision surfaced:** which paid feeds are worth licensing is leadership's call — we
+  produce the inventory + cost; until then those categories run *estimate-grade*, and the dashboard says so.
+
+## Part 23 — Trust boundary: human-in-the-loop, access, and legal
+
+This is TSMC-confidential competitive intelligence that drives capacity, capex, pricing, and account
+decisions. The values are scattered through the charter; this part turns them into mechanisms — and
+leans hard on pieces we already built.
+
+**Reuses (don't rebuild):**
+- **Part 18 (the promotion review queue)** — the **same queue** that clears discovery-lane promotions
+  also clears human-in-the-loop confirmations and license exceptions. **One queue, several jobs.**
+- **Part 8 + Part 16 (existing human gates)** — "confirm a market-moving flag" (Part 8) and "approve a
+  new category" (Part 16) are already stated. This part gives them the missing trigger / SLA / pending
+  state; it does not add new gates.
+- **Part 17 (the status)** — the human-in-the-loop **trigger** is a status flip or a high-stakes
+  recommendation; while pending, the dashboard shows the prior status with a **"pending review"** badge.
+- **Part 9 ("the tool is the access control")** — extend that exact pattern from *agent* reads to
+  *human* reads: role-based access over the same scoped tool.
+- **Part 22 (the source inventory)** — the **legal data-license register is the same artifact** as the
+  source inventory; we don't keep two.
+- **Part 10/11 (decision areas)** — the antitrust review boundary attaches to the existing **pricing**
+  decision area, not a new classification.
+- **Parts 10–11 + the map (the product)** — the deliverable (recommendation → status → drill to Findings
+  → sources) is already specified. The product *surface/API* is downstream of the reference agent and is
+  intentionally **not respecced here** — we point at the existing spec.
+
+**New here:**
+- **Human-in-the-loop, made operational:** a defined trigger (status flip / high-stakes rec), a named
+  approver, an SLA, and the "pending review" dashboard state — all running on the Part 18 queue.
+- **Human access control:** role-based visibility (who sees recommendations vs. raw state) and a data
+  classification, layered onto the Part 9 tool.
+- **A legal posture:** the data-license/ToS register (= the Part 22 inventory), explicit handling that
+  this is public/licensed market intelligence (not inside information), and an antitrust review boundary
+  on pricing recommendations. Counsel is engaged early, because it constrains what Part 22 may ingest.
 
 ---
 

@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AI Market State — Agent Swarm Knowledge Graph</title>
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141923; --panel2:#1b212d; --line:#262d3a;
+    --txt:#e8edf4; --mut:#94a0b0; --tsmc:#e4002b;
+    --cat:#4c8dff; --lay:#f5b73d; --main:#e4002b; --shared:#a06bff; --dash:#21c07a; --mech:#5fd0c8;
+    --radius:12px; --shadow:0 6px 24px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);overflow:hidden;
+    font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);
+    background:#0e131b;position:relative;z-index:20}
+  .logo{font-weight:800;letter-spacing:.06em;color:#fff;background:var(--tsmc);padding:4px 8px;border-radius:6px;font-size:13px}
+  .topbar h1{font-size:15px;margin:0;font-weight:650}
+  .topbar .sub{color:var(--mut);font-size:11px}
+  .controls{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#cdd6e2;cursor:pointer;user-select:none}
+  .toggle input{accent-color:var(--tsmc);cursor:pointer}
+  .zoombtns{display:flex;gap:4px}
+  .zoombtns button{background:var(--panel2);border:1px solid var(--line);color:#cdd6e2;border-radius:6px;
+    padding:3px 9px;cursor:pointer;font-size:12px}
+  .zoombtns button:hover{background:#27303f}
+
+  /* doctrine strip */
+  .doctrine{display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid var(--line);
+    background:linear-gradient(90deg,#161a24,#1a1320);position:relative;z-index:20;flex-wrap:wrap}
+  .doctrine b{color:#fff;font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-right:4px}
+  .doctrine .pill{font-size:10.5px;background:#0e131b;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:#cdd6e2}
+
+  /* layout */
+  .stage{position:absolute;top:0;left:0;right:340px;bottom:0;overflow:hidden;cursor:grab}
+  .stage.grabbing{cursor:grabbing}
+  #world{position:absolute;top:0;left:0;transform-origin:0 0}
+  #edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+
+  .band-label{position:absolute;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--mut);font-weight:700;pointer-events:none}
+  .band-label .hint{text-transform:none;letter-spacing:0;color:#6b7787;font-weight:400}
+  .band-bg{position:absolute;border:1px dashed var(--line);border-radius:14px;pointer-events:none;opacity:.5}
+
+  .node{position:absolute;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:8px 11px;cursor:pointer;transition:box-shadow .12s,border-color .12s,opacity .12s;
+    box-shadow:var(--shadow);text-align:center}
+  .node:hover{border-color:#3a455a}
+  .node .t{font-weight:700;font-size:12.5px}
+  .node .c{font-size:10px;color:var(--mut);margin-top:1px}
+  .node.sel{outline:2px solid #fff;outline-offset:1px}
+  .node.dim{opacity:.18}
+
+  .node.dashboard{border-top:3px solid var(--dash);width:240px}
+  .node.main{border-top:3px solid var(--main);width:260px}
+  .node.layer{border-top:3px solid var(--lay);width:170px}
+  .node.cat{border-top:2px solid var(--cat);width:178px;padding:6px 9px}
+  .node.cat .t{font-size:11px;font-weight:600}
+  .node.tk{border-left:3px solid var(--shared);width:290px;text-align:left;background:var(--panel2)}
+  .node.tk .t{font-size:11.5px;color:#dbe3ee}
+  .node.tk ul{margin:6px 0 0;padding-left:15px}
+  .node.tk li{font-size:10.5px;color:#c4cdda;margin:2px 0}
+  .node.tk li code{background:#0e131b;border:1px solid var(--line);border-radius:4px;padding:0 3px;color:#9fc1ff;font-size:10px}
+  .node.chassis{border-left:3px solid var(--shared)}
+  .node.mech{border-top:2px solid var(--mech);width:250px;text-align:left;padding:7px 10px}
+  .node.mech .t{font-size:11px;font-weight:600}
+  .node.mech .c{font-size:9.5px}
+  .badge{position:absolute;top:-9px;right:-9px;background:#0e131b;border:1px solid var(--line);border-radius:20px;
+    font-size:10px;font-weight:700;padding:1px 7px;color:#cdd6e2}
+  .node.cat .badge{font-size:9px;padding:0 5px}
+
+  /* detail panel */
+  .panel{position:absolute;top:0;right:0;bottom:0;width:340px;background:#0e131b;border-left:1px solid var(--line);
+    overflow-y:auto;z-index:15;padding:16px}
+  .panel h2{margin:0 0 2px;font-size:16px}
+  .panel .kind{font-size:11px;color:var(--mut);margin-bottom:2px}
+  .panel .sub{font-size:11.5px;color:#9fc1ff;margin-bottom:12px}
+  .panel h3{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:14px 0 6px;
+    border-bottom:1px solid var(--line);padding-bottom:4px}
+  .panel ul{margin:0;padding-left:16px}
+  .panel li{font-size:12px;margin:4px 0;color:#dde4ee}
+  .panel li code{background:#141923;border:1px solid var(--line);border-radius:4px;padding:0 4px;color:#9fc1ff;font-size:11px}
+  .panel .model{font-size:11px;color:var(--mut);margin-top:12px;background:#141923;border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px}
+  .panel .model b{color:#cdd6e2}
+  .panel .hintbox{font-size:11.5px;color:#aeb8c6;background:#141923;border:1px solid var(--line);
+    border-left:3px solid var(--tsmc);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .legend{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .legend .row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#cdd6e2}
+  .legend .sw{width:22px;height:0;border-top:3px solid;flex:none}
+  .legend .dot{width:12px;height:12px;border-radius:3px;flex:none}
+  .foot{font-size:10px;color:#5b6672;margin-top:16px;border-top:1px solid var(--line);padding-top:8px}
+  .foot code{color:#7b8794}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">TSMC</span>
+  <h1>AI Market State — Agent Swarm Knowledge Graph</h1>
+  <span class="sub">3 tiers · 5 cake layers · 34 category agents · companion to <code style="color:#7b8794">docs/agent-swarm-charter.md</code></span>
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="tReads" checked> Scoped reads</label>
+    <label class="toggle"><input type="checkbox" id="tTools" checked> Tier toolkits</label>
+    <label class="toggle"><input type="checkbox" id="tMech" checked> Production mechanisms (19–36)</label>
+    <div class="zoombtns">
+      <button id="zin">+</button><button id="zout">–</button><button id="zfit">Fit</button>
+    </div>
+  </div>
+</div>
+
+<div class="doctrine">
+  <b>Universal doctrine — binding on every agent, every tier</b>
+  <span class="pill">Every metric has a "why"</span>
+  <span class="pill">Never fabricate a number</span>
+  <span class="pill">State impact + mechanism</span>
+  <span class="pill">Cite provenance · primary &gt; secondary</span>
+  <span class="pill">Label hypotheses + reasoning</span>
+  <span class="pill">Report dispersion</span>
+  <span class="pill">Signal vs. noise · anti-whipsaw</span>
+  <span class="pill">asOf per finding</span>
+  <span class="pill">Write for humans</span>
+  <span class="pill">Pass the pre-commit gate</span>
+</div>
+
+<div class="stage" id="stage">
+  <div id="world">
+    <svg id="edges"></svg>
+  </div>
+</div>
+
+<div class="panel" id="panel"></div>
+
+<script>
+/* ---------------- DATA (faithful to the charter) ---------------- */
+
+const TIERS = {
+  dashboard:{
+    title:"Dashboard / Product surface", kind:"Consumer (Part 35)", color:"--dash",
+    sub:"Leads with the recommendation; drill down to state → Findings → sources",
+    tools:["Reads the published snapshot (read-optimized projection of the canonical store)",
+           "SSO against TSMC identity · role-based access (Part 23/31)",
+           "Push (executive brief) + pull (drill-down dashboard)",
+           "Interactive Q&A entrypoint (the desk on demand, Part 14)"],
+    abilities:["Recommendation → status → layer/category Findings → primary sources, one click apart",
+               "Graceful states: pending review · inputs degraded · track-record maturing · provisional"],
+    guards:["A projection consumer, never writes canonical","Honesty doctrine survives the last mile"],
+    model:"—"
+  },
+  main:{
+    title:"Main / Orchestrator", kind:'"Head of research / CIO" — ×1', color:"--main",
+    sub:"Own the market thesis & its evolution → market state + executive brief + prioritized 'so what'",
+    tools:["Scoped query tool: all 5 layer summaries + own history",
+           "Macro / exogenous feeds — rates, export controls, regulation",
+           "Memory store — house-view notebook + track-record log",
+           "Recommendation Skill (cross-market) + full scenario modeling",
+           "Interactive Q&A entrypoint"],
+    abilities:["Cross-layer synthesis + tension detection (\"chips ready, energy gating\")",
+               "One plain market status + bottleneck + direction — no composite score",
+               "Full scenario modeling — sizes the actual calls",
+               "Red-teams the house thesis; owns the macro overlay",
+               "Owns calibration / track record; serves the desk-on-demand"],
+    guards:["Lead with the recommendation; drill into state",
+            "High-stakes alerts gated for human confirmation",
+            "Confidence floor = min across layers; vintage honesty"],
+    model:"Opus 4.8, high effort — the judgment tier"
+  },
+  layer:{
+    title:"Layer Agent", kind:'"Sector lead" — one per cake layer (×5)', color:"--lay",
+    sub:"Judge if the layer is problematic & how it compares to before → a layer assessment + within-layer call",
+    tools:["Scoped query tool: own categories + own history + adjacent-layer summaries (prior cycle)",
+           "Code execution — deterministic rollup math",
+           "Memory store — analyst notebook + state time-series",
+           "Recommendation Skill (within-layer scope)",
+           "No web, no sandbox"],
+    abilities:["Aggregate scorecards → layer rating (weakest link) + binding bottleneck",
+               "Temporal judgment (trend vs. blip; did my concern materialize?)",
+               "Adversarially challenge its own sector view",
+               "Within-layer call: tailwind / headwind / risk + watchlist",
+               "Per-layer calibration / track record"],
+    guards:["Deterministic math in code; judgment by the model",
+            "Proceed on last-known-good if a category is stale",
+            "Show signal vs. noise; anti-whipsaw"],
+    model:"Sonnet 4.6 / Opus 4.8 for richer briefs"
+  },
+  category:{
+    title:"Category Agent", kind:'"Desk analyst" — one per category (×34)', color:"--cat",
+    sub:"Research & rate one category → a cited scorecard + a one-line implication",
+    tools:["web_search (dynamic filtering) + web_fetch",
+           "Code execution — normalize & compute metrics",
+           "Document ingestion — 10-Ks, transcripts, decks (PDF/Excel)",
+           "Financial-data + alt-data + sentiment feeds (MCP)",
+           "Scoped query tool: own category + own history + market-context brief"],
+    abilities:["The only tier facing the open web — primary research",
+               "First-pass modeling (ratios, normalization)",
+               "Emits doctrine-compliant Findings (the scorecard)",
+               "Detects orphan signals → feeds living-taxonomy",
+               "Quality-gated by an Outcome rubric grader"],
+    guards:["Independence — no sibling reads (uncorrelated)",
+            "Fetched web content = data, not instructions",
+            "Does not recommend — surfaces decision-relevant signals only"],
+    model:"Opus 4.8 (synthesis-heavy) / Haiku 4.5 (simple pulls)"
+  }
+};
+
+// 5 cake layers (ordered Energy→Applications), 34 categories with a short coverage note.
+const CAKE = [
+  {id:"energy", name:"Energy", cats:[
+    ["power-generation","Power generation","Vistra, Constellation, GE Vernova; SMRs: Oklo, Kairos, TerraPower, X-energy"],
+    ["grid-transmission","Grid & transmission","Utilities, ISOs/RTOs, transmission developers — interconnection queues are the gating constraint"],
+    ["onsite-storage","On-site / BTM gen + storage","Bloom Energy, gas turbines, BESS — bypass grid waits"],
+    ["cooling","Cooling","Vertiv, Schneider, Boyd, LiquidStack — liquid cooling ~37% in 2026"],
+    ["procurement","Energy procurement & markets","Hyperscaler energy teams, IPPs — PPAs, $/MWh"],
+    ["electrical-equipment","Electrical equipment","Eaton, Siemens, ABB — transformer/switchgear lead times"],
+    ["efficiency","Efficiency & sustainability","PUE/WUE, carbon intensity, curtailment"]
+  ]},
+  {id:"chips", name:"Chips / Compute", cats:[
+    ["merchant-gpu","Merchant GPUs","NVIDIA (Blackwell B200/GB200), AMD (MI3xx), Intel (Gaudi)"],
+    ["hyperscaler-asic","Hyperscaler custom ASICs","Google TPU, AWS Trainium, MS Maia, Meta MTIA, OpenAI–Broadcom"],
+    ["ai-silicon-startups","AI-silicon startups","Cerebras, Groq, SambaNova, Tenstorrent, Etched"],
+    ["hbm-memory","HBM / memory","SK Hynix, Micron, Samsung — HBM3E/HBM4 ramp"],
+    ["foundry-packaging","Foundry & advanced packaging","TSMC (leading node + CoWoS), Samsung, Intel Foundry — CoWoS bottleneck"],
+    ["networking-silicon","Networking / interconnect silicon","NVIDIA NVLink, Broadcom, Marvell"],
+    ["eda-ip","EDA & IP","Synopsys, Cadence, Arm — export-control sensitive"]
+  ]},
+  {id:"infrastructure", name:"Infrastructure", cats:[
+    ["hyperscale-cloud","Hyperscale cloud","AWS, Azure, Google Cloud, Oracle OCI — the capex engine"],
+    ["neocloud","Neoclouds / GPU-as-a-Service","CoreWeave, Nebius, Crusoe, Lambda, IREN, Together"],
+    ["datacenter-colo","DC developers / colo / REITs","Equinix, Digital Realty, Vantage, QTS, Switch"],
+    ["networking-fabric","Networking fabric","InfiniBand/NVLink/Spectrum-X vs Ethernet/UEC (Broadcom, Arista)"],
+    ["cluster-software","Cluster & orchestration sw","CUDA, Slurm/K8s, Ray, vLLM/TensorRT, SkyPilot"],
+    ["ai-storage","AI storage & data platforms","VAST Data, WEKA, Pure, object stores"]
+  ]},
+  {id:"models", name:"Models", cats:[
+    ["frontier-closed","Frontier closed labs","OpenAI, Anthropic, Google DeepMind, xAI"],
+    ["open-weight","Open-weight models","Llama, Mistral, DeepSeek, Qwen, Z.AI"],
+    ["reasoning-agentic","Reasoning / agentic models","o-series, Claude thinking, Gemini reasoning"],
+    ["multimodal-media","Multimodal / media models","Midjourney, Black Forest Labs, Runway, Veo, ElevenLabs"],
+    ["small-ondevice","Small / on-device models","Phi, Gemma, Llama-small, quantization"],
+    ["embeddings","Embeddings & retrieval","OpenAI, Cohere, Voyage, open embeds — RAG backbone"],
+    ["eval-hub-infra","Eval / benchmark / hub infra","Hugging Face, LMArena, Scale, Artificial Analysis"]
+  ]},
+  {id:"applications", name:"Applications", cats:[
+    ["ai-coding","AI coding","Cursor, Copilot, Claude Code, Devin, Replit, Windsurf"],
+    ["enterprise-copilots","Enterprise copilots / knowledge","M365 Copilot, Glean, Gemini Enterprise"],
+    ["cx-agents","Customer-experience agents","Sierra, Decagon, Intercom Fin"],
+    ["vertical-saas","Vertical AI SaaS","Harvey, Legora; Palantir, Anduril, Shield AI"],
+    ["consumer-ai","Consumer AI","ChatGPT, Gemini, Perplexity, companion AI"],
+    ["creative-media","Creative / media generation","Synthesia, Midjourney, ElevenLabs, Runway"],
+    ["agent-platforms","Agent platforms & dev tooling","LangChain, Pinecone, eval/observability"]
+  ]}
+];
+
+const SHARED = {
+  title:"Shared chassis + cross-cutting", kind:"Spans the whole swarm", color:"--shared",
+  sub:"One chassis, three loop profiles; sophistication concentrated where the risk is",
+  tools:["Versioned config · structured-output + pre-commit schema validation",
+         "Observability — tokens / cost / request_id",
+         "Typed-error + backoff + last-known-good fallback",
+         "Read-prior → write-snapshot state layer",
+         "The scoped query tool IS the access control (data is a tool)"],
+  abilities:["Recommendation Skill — loaded by Layer + Main (not Category)",
+             "Calibration & track record — owned by Main (Brier per tier/decision-area)",
+             "Macro / exogenous overlay — owned by Main",
+             "Interactive path — the standing swarm re-pointed by a question"],
+  guards:["Canonical vs. ad-hoc: experiments never write the official state",
+          "Define each thing once; refer by id (entity / metric / taxonomy registries)"],
+  model:"—"
+};
+
+// Production mechanisms (Parts 19–36) — the "run it for real / stand behind it" layer.
+const MECH = [
+  [19,"Failure & cost policy","Graceful, visible degradation — never a silent partial"],
+  [20,"Provenance & reproducibility","Stamp every Finding; snapshot the evidence (link-rot proof)"],
+  [21,"Entity registry & reconciliation","A company in many categories is counted once"],
+  [22,"Data-source reality","Sourcing, licensing, what's actually fetchable; docs as a source"],
+  [23,"Trust boundary","Human-in-the-loop, access control, legal posture"],
+  [24,"Evaluation & verification","Golden set · prompt-regression gate · grade the grader · backtest"],
+  [25,"Model & prompt lifecycle","Qualify → shadow → re-baseline calibration on a brain swap"],
+  [26,"Adversarial boundary","Fetch privilege-separation · threat model · circular-source detection"],
+  [27,"Cost model & load economics","Unit-cost model · costed tiering · interactive ceiling · pilot-first"],
+  [28,"Orchestration & recovery","Resumable, idempotent cycle DAG · rate-limit governance"],
+  [29,"Source-health monitoring","Extraction canaries · freshness/shape monitors"],
+  [30,"Review queue & HITL system","Anti-fatigue threshold · queue SLOs · named owner"],
+  [31,"Security & data protection","Secrets · encryption/residency · audit log"],
+  [32,"Judgment flow","Fast-break path · escalation over silent override · MNPI tripwire"],
+  [33,"Schema evolution & migration","Versioned contract · read-compat layer · deprecation policy"],
+  [34,"Cold-start & bootstrapping","Seed baseline + backfill via replay; 'track record maturing'"],
+  [35,"Product surface","SSO · push+pull · projection-consumer · graceful states"],
+  [36,"Automated harness optimization","Search the harness as code (Meta-Harness) — reward-gated, offline"]
+];
+
+/* ---------------- LAYOUT ---------------- */
+const W = 1680, colStep = 250, colX0 = 250;
+const layerX = i => colX0 + i*colStep;            // 250,500,750,1000,1250
+const TKX = 1560;                                  // right toolkit column
+const nodes = [];   // {id, x, y, cls, html, badge, tier, detailKey}
+const edges = [];   // {from, to, kind} kind: rollup|tool|read|chassis
+
+function add(n){ nodes.push(n); return n.id; }
+
+// consumer + main + layers
+add({id:"dashboard", x:layerX(2), y:60, cls:"dashboard", t:"Dashboard / Product surface", c:"recommendation-first · Part 35", badge:"out", tier:"dashboard"});
+add({id:"main", x:layerX(2), y:180, cls:"main", t:"Main / Orchestrator", c:'"Head of research / CIO"', badge:"×1", tier:"main"});
+CAKE.forEach((L,i)=>{
+  add({id:"layer-"+L.id, x:layerX(i), y:330, cls:"layer", t:L.name, c:'"Sector lead"', badge:"×1", tier:"layer", layerName:L.name});
+});
+// categories under each layer
+const catTop=460, catStep=46;
+CAKE.forEach((L,i)=>{
+  L.cats.forEach((c,j)=>{
+    add({id:"cat-"+c[0], x:layerX(i), y:catTop+j*catStep, cls:"cat", t:c[1], c:c[0], tier:"category",
+         layerName:L.name, note:c[2]});
+    edges.push({from:"cat-"+c[0], to:"layer-"+L.id, kind:"rollup"});
+  });
+  edges.push({from:"layer-"+L.id, to:"main", kind:"rollup"});
+});
+edges.push({from:"main", to:"dashboard", kind:"rollup"});
+
+// scoped adjacent-layer reads (prior cycle) — between consecutive layers
+for(let i=0;i<CAKE.length-1;i++){
+  edges.push({from:"layer-"+CAKE[i].id, to:"layer-"+CAKE[i+1].id, kind:"read"});
+}
+
+// toolkit cards (one per tier — tools are shared across a tier's instances)
+function tkCard(id, anchorId, y, tier){
+  const T=TIERS[tier];
+  const lis=T.tools.map(t=>"<li>"+esc(t)+"</li>").join("");
+  add({id, x:TKX, y, cls:"tk", tier:"tk_"+tier,
+       rawHtml:"<div class='t'>🔧 "+esc(T.title)+" toolkit</div><ul>"+lis+"</ul>"});
+  edges.push({from:anchorId, to:id, kind:"tool"});
+}
+tkCard("tk-main","main",150,"main");
+tkCard("tk-layer","layer-"+CAKE[4].id,330,"layer");
+tkCard("tk-category","cat-"+CAKE[4].cats[0][0],470,"category");
+
+// shared chassis card
+(function(){
+  const lis=SHARED.tools.slice(0,5).map(t=>"<li>"+esc(t)+"</li>").join("");
+  add({id:"chassis", x:TKX, y:660, cls:"tk chassis", tier:"chassis",
+       rawHtml:"<div class='t'>⚙️ "+esc(SHARED.title)+"</div><ul>"+lis+"</ul>"});
+  edges.push({from:"chassis", to:"main", kind:"chassis"});
+  edges.push({from:"chassis", to:"layer-"+CAKE[2].id, kind:"chassis"});
+  edges.push({from:"chassis", to:"cat-"+CAKE[2].cats[0][0], kind:"chassis"});
+})();
+
+// mechanisms band (Parts 19–36)
+const mechY0=820, mechCols=6, mechStepX=265, mechStepY=78, mechX0=170;
+MECH.forEach((m,k)=>{
+  const r=Math.floor(k/mechCols), col=k%mechCols;
+  add({id:"mech-"+m[0], x:mechX0+col*mechStepX, y:mechY0+r*mechStepY, cls:"mech", tier:"mech",
+       rawHtml:"<div class='t'>Part "+m[0]+" — "+esc(m[1])+"</div><div class='c'>"+esc(m[2])+"</div>"});
+});
+
+const worldH = mechY0 + Math.ceil(MECH.length/mechCols)*mechStepY + 40;
+const worldW = TKX + 200;
+
+/* ---------------- RENDER ---------------- */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+const world=document.getElementById("world"), svg=document.getElementById("edges");
+world.style.width=worldW+"px"; world.style.height=worldH+"px";
+svg.setAttribute("width",worldW); svg.setAttribute("height",worldH);
+
+// band backgrounds + labels
+function bg(x,y,w,h){const d=document.createElement("div");d.className="band-bg";
+  d.style.cssText+=`left:${x}px;top:${y}px;width:${w}px;height:${h}px`;world.appendChild(d);}
+function lab(x,y,html){const d=document.createElement("div");d.className="band-label";
+  d.style.cssText+=`left:${x}px;top:${y}px`;d.innerHTML=html;world.appendChild(d);}
+bg(40,430,1420,330); lab(48,438,"Category tier <span class='hint'>· ×34 desk analysts · one per leaf category · faces the open web</span>");
+bg(40,300,1420,90);  lab(48,305,"Layer tier <span class='hint'>· ×5 sector leads · roll up scorecards by weakest link</span>");
+bg(40,150,1420,90);  lab(48,150,"Main tier <span class='hint'>· ×1 head of research · owns the market thesis & the 'so what'</span>");
+bg(40,30,1420,90);   lab(48,30,"Consumer <span class='hint'>· recommendation-first dashboard & desk-on-demand</span>");
+bg(150,mechY0-26,worldW-300,worldH-mechY0+16);
+lab(158,mechY0-24,"Run it for real <span class='hint'>· Parts 19–36 · production mechanisms — each reuses, never rebuilds — applied across the swarm</span>");
+
+const nodeEls={};
+nodes.forEach(n=>{
+  const el=document.createElement("div");
+  el.className="node "+n.cls;
+  el.style.left=n.x+"px"; el.style.top=n.y+"px";
+  el.innerHTML = n.rawHtml || (`<div class='t'>${esc(n.t)}</div>`+(n.c?`<div class='c'>${esc(n.c)}</div>`:""));
+  if(n.badge){const b=document.createElement("div");b.className="badge";b.textContent=n.badge;el.appendChild(b);}
+  el.addEventListener("click",e=>{e.stopPropagation();select(n.id);});
+  el.addEventListener("mouseenter",()=>highlight(n.id));
+  el.addEventListener("mouseleave",clearHi);
+  world.appendChild(el); nodeEls[n.id]=el; n.el=el;
+});
+
+// edges
+const COLOR={rollup:{cat:"#4c8dff",layer:"#f5b73d",main:"#e4002b"},read:"#a06bff",tool:"#5fd0c8",chassis:"#3a455a"};
+const edgeEls=[];
+function nodeCenter(id){const n=nodes.find(x=>x.id===id);return {x:n.x,y:n.y,el:n.el};}
+edges.forEach(ed=>{
+  const a=nodeCenter(ed.from), b=nodeCenter(ed.to);
+  const p=document.createElementNS("http://www.w3.org/2000/svg","path");
+  let stroke="#3a455a", w=1.4, dash="";
+  if(ed.kind==="rollup"){
+    const src=nodes.find(x=>x.id===ed.from).tier;
+    stroke = src==="category"?COLOR.rollup.cat : src==="layer"?COLOR.rollup.layer : COLOR.rollup.main;
+    w = src==="category"?1.2 : src==="layer"?2.2 : 3;
+  } else if(ed.kind==="read"){stroke=COLOR.read;dash="5 5";w=1.6;}
+  else if(ed.kind==="tool"){stroke=COLOR.tool;dash="2 4";w=1.4;}
+  else if(ed.kind==="chassis"){stroke=COLOR.chassis;dash="1 5";w=1.2;}
+  p.setAttribute("stroke",stroke);p.setAttribute("stroke-width",w);p.setAttribute("fill","none");
+  if(dash)p.setAttribute("stroke-dasharray",dash);
+  p.setAttribute("opacity",.55);
+  svg.appendChild(p);
+  edgeEls.push({p,ed,a,b});
+});
+function routeEdges(){
+  edgeEls.forEach(({p,a,b,ed})=>{
+    const ax=a.el.offsetLeft, ay=a.el.offsetTop, bx=b.el.offsetLeft, by=b.el.offsetTop;
+    // vertical-ish bezier for rollup; straight-ish for others
+    if(ed.kind==="read"){
+      p.setAttribute("d",`M ${ax} ${ay} L ${bx} ${by}`);
+    } else {
+      const my=(ay+by)/2;
+      p.setAttribute("d",`M ${ax} ${ay} C ${ax} ${my}, ${bx} ${my}, ${bx} ${by}`);
+    }
+  });
+}
+routeEdges();
+
+/* ---------------- INTERACTION: highlight, select ---------------- */
+function neighbors(id){const s=new Set([id]);edges.forEach(e=>{if(e.from===id)s.add(e.to);if(e.to===id)s.add(e.from);});return s;}
+function highlight(id){
+  const keep=neighbors(id);
+  nodes.forEach(n=>n.el.classList.toggle("dim",!keep.has(n.id)));
+  edgeEls.forEach(({p,ed})=>p.setAttribute("opacity",(ed.from===id||ed.to===id)?.95:.06));
+}
+function clearHi(){nodes.forEach(n=>n.el.classList.remove("dim"));applyEdgeVis();}
+
+let selId=null;
+function select(id){
+  selId=id;
+  nodes.forEach(n=>n.el.classList.toggle("sel",n.id===id));
+  renderPanel(id);
+}
+
+/* ---------------- DETAIL PANEL ---------------- */
+const panel=document.getElementById("panel");
+function section(h,items){return items&&items.length?`<h3>${esc(h)}</h3><ul>${items.map(i=>"<li>"+i+"</li>").join("")}</ul>`:"";}
+function codeify(s){return esc(s).replace(/`([^`]+)`/g,"<code>$1</code>");}
+
+function tierPanel(T){
+  return `<div class="kind">${esc(T.kind)}</div><h2>${esc(T.title)}</h2><div class="sub">${esc(T.sub)}</div>`
+    + section("Data-access tools", T.tools.map(codeify))
+    + section("Unique abilities", T.abilities.map(esc))
+    + section("Tier guidelines", T.guards.map(esc))
+    + (T.model&&T.model!=="—"?`<div class="model"><b>Model:</b> ${esc(T.model)}</div>`:"");
+}
+
+function renderPanel(id){
+  const n=nodes.find(x=>x.id===id);
+  if(!n){overview();return;}
+  if(n.tier==="dashboard"){panel.innerHTML=tierPanel(TIERS.dashboard);return;}
+  if(n.tier==="main"){panel.innerHTML=tierPanel(TIERS.main);return;}
+  if(n.tier==="layer"){
+    panel.innerHTML=`<div class="hintbox">Layer agent for <b>${esc(n.layerName)}</b> — an instance of the one Layer template (Part 18). Rolls up the categories below it.</div>`+tierPanel(TIERS.layer);
+    return;
+  }
+  if(n.tier==="category"){
+    const T=TIERS.category;
+    panel.innerHTML=`<div class="kind">Category agent (instance) · template: <code>category</code></div>`
+      +`<h2>${esc(n.t)}</h2><div class="sub">Cake layer: ${esc(n.layerName)} · id <code>${esc(n.c)}</code></div>`
+      +section("Covers",[esc(n.note)])
+      +section("Produces",["A <b>scorecard</b>: 6-dimension ratings (momentum · unit economics · competitive structure · moat · bottleneck · strategic risk) + Findings + a one-line implication"])
+      +section("Inherits the Category toolkit",T.tools.map(codeify))
+      +section("Tier guidelines",T.guards.map(esc))
+      +`<div class="model"><b>Model:</b> ${esc(T.model)}</div>`;
+    return;
+  }
+  if(n.tier&&n.tier.startsWith("tk_")){panel.innerHTML=tierPanel(TIERS[n.tier.slice(3)]);return;}
+  if(n.tier==="chassis"){
+    panel.innerHTML=`<div class="kind">${esc(SHARED.kind)}</div><h2>${esc(SHARED.title)}</h2><div class="sub">${esc(SHARED.sub)}</div>`
+      +section("Shared chassis (all tiers)",SHARED.tools.map(codeify))
+      +section("Cross-cutting skills & overlays",SHARED.abilities.map(esc))
+      +section("Discipline",SHARED.guards.map(esc));
+    return;
+  }
+  if(n.tier==="mech"){
+    const m=MECH.find(x=>"mech-"+x[0]===id);
+    panel.innerHTML=`<div class="kind">Production mechanism · "run it for real"</div><h2>Part ${m[0]}</h2>`
+      +`<div class="sub">${esc(m[1])}</div>`+section("What it adds",[esc(m[2])])
+      +`<div class="hintbox">Each of Parts 19–36 opens with <b>Reuses (don't rebuild)</b> + <b>New here</b> — it extends existing machinery rather than adding a parallel system. Full text in <code>docs/agent-swarm-charter.md</code>.</div>`;
+    return;
+  }
+  overview();
+}
+
+function overview(){
+  panel.innerHTML=`
+   <h2>How to read this graph</h2>
+   <div class="sub">Click any node for its mission, tools & guardrails. Hover to isolate its connections.</div>
+   <div class="hintbox">The swarm mirrors a human analyst desk: <b>34 desk analysts</b> (category) roll up into
+     <b>5 sector leads</b> (layer), into <b>1 head of research</b> (main), into the executive dashboard.
+     Demand flows down the cake; constraints flow up; reads are scoped.</div>
+   <h3>Tiers</h3>
+   <div class="legend">
+     <div class="row"><span class="dot" style="background:var(--dash)"></span>Dashboard / product surface (consumer)</div>
+     <div class="row"><span class="dot" style="background:var(--main)"></span>Main / Orchestrator — ×1</div>
+     <div class="row"><span class="dot" style="background:var(--lay)"></span>Layer agents — ×5 (one per cake layer)</div>
+     <div class="row"><span class="dot" style="background:var(--cat)"></span>Category agents — ×34 (one per leaf)</div>
+     <div class="row"><span class="dot" style="background:var(--shared)"></span>Shared chassis & cross-cutting skills</div>
+     <div class="row"><span class="dot" style="background:var(--mech)"></span>Production mechanisms — Parts 19–36</div>
+   </div>
+   <h3>Edges</h3>
+   <div class="legend">
+     <div class="row"><span class="sw" style="border-color:var(--cat)"></span>Roll-up (produces → next tier's only input)</div>
+     <div class="row"><span class="sw" style="border-color:var(--read);border-top-style:dashed"></span>Scoped read — adjacent-layer summary (prior cycle)</div>
+     <div class="row"><span class="sw" style="border-color:var(--mech);border-top-style:dashed"></span>Tier → its toolkit (data-access tools)</div>
+     <div class="row"><span class="sw" style="border-color:#3a455a;border-top-style:dotted"></span>Shared chassis underpins every tier</div>
+   </div>
+   <div class="foot">Source of truth: <code>docs/agent-swarm-charter.md</code> · taxonomy: <code>docs/taxonomy.json</code> ·
+     card view: <code>app/architecture.html</code>. Tools are shown <b>per tier</b> because all instances of a tier
+     share one template (Part 18).</div>`;
+}
+overview();
+
+/* ---------------- TOGGLES ---------------- */
+function applyEdgeVis(){
+  const reads=document.getElementById("tReads").checked;
+  const tools=document.getElementById("tTools").checked;
+  edgeEls.forEach(({p,ed})=>{
+    let vis=true;
+    if(ed.kind==="read"&&!reads)vis=false;
+    if((ed.kind==="tool"||ed.kind==="chassis")&&!tools)vis=false;
+    p.style.display=vis?"":"none";
+    p.setAttribute("opacity", ed.kind==="rollup"?.55:(ed.kind==="read"?.5:.4));
+  });
+}
+function applyNodeVis(){
+  const tools=document.getElementById("tTools").checked;
+  const mech=document.getElementById("tMech").checked;
+  nodes.forEach(n=>{
+    let vis=true;
+    if((n.tier&&(n.tier.startsWith("tk_")||n.tier==="chassis"))&&!tools)vis=false;
+    if(n.tier==="mech"&&!mech)vis=false;
+    n.el.style.display=vis?"":"none";
+  });
+}
+["tReads","tTools","tMech"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{applyEdgeVis();applyNodeVis();}));
+applyEdgeVis();applyNodeVis();
+
+/* ---------------- PAN / ZOOM ---------------- */
+const stage=document.getElementById("stage");
+let scale=1, tx=0, ty=0;
+function apply(){world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;}
+function fit(){
+  const r=stage.getBoundingClientRect();
+  const s=Math.min(r.width/worldW, r.height/worldH)*0.96;
+  scale=s; tx=(r.width-worldW*s)/2; ty=14; apply();
+}
+document.getElementById("zin").onclick=()=>{scale=Math.min(2.5,scale*1.2);apply();};
+document.getElementById("zout").onclick=()=>{scale=Math.max(0.2,scale/1.2);apply();};
+document.getElementById("zfit").onclick=fit;
+stage.addEventListener("click",()=>{selId=null;nodes.forEach(n=>n.el.classList.remove("sel"));overview();});
+let drag=false,sx,sy;
+stage.addEventListener("mousedown",e=>{drag=true;sx=e.clientX-tx;sy=e.clientY-ty;stage.classList.add("grabbing");});
+window.addEventListener("mousemove",e=>{if(drag){tx=e.clientX-sx;ty=e.clientY-sy;apply();}});
+window.addEventListener("mouseup",()=>{drag=false;stage.classList.remove("grabbing");});
+stage.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=stage.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const f=e.deltaY<0?1.1:1/1.1, ns=Math.max(0.2,Math.min(2.5,scale*f));
+  tx=mx-(mx-tx)*(ns/scale); ty=my-(my-ty)*(ns/scale); scale=ns; apply();
+},{passive:false});
+fit();
+window.addEventListener("resize",fit);
+</script>
+</body>
+</html>

@@ -916,7 +916,9 @@ know that?" years later. The rule: **pin the inputs and snapshot the evidence.**
   ```
 - **Source snapshots.** On fetch, store the cited excerpt + retrieval timestamp + URL + a content hash
   in the canonical store, and point the Finding's `evidence` at that snapshot — so the citation survives
-  link rot.
+  link rot. For an **ingested document** (Part 22) the *file itself* is the snapshot (captured + hashed),
+  and the pointer carries the **in-file location** — a page/section for prose, a `sheet!cell` for a table
+  (e.g. `2026Q1.xlsx → Capex!C14`) — so "how do you know that?" resolves to the exact spot in the source.
 - **The honest reproducibility bar:** not bit-identical output, but *"every input and source that
   produced this is recorded, and re-running with the same pinned inputs yields an equivalent result."*
 
@@ -974,6 +976,35 @@ and label the rest honestly.**
   to (this is also the data-license register reused by Part 23).
 - **A business decision surfaced:** which paid feeds are worth licensing is leadership's call — we
   produce the inventory + cost; until then those categories run *estimate-grade*, and the dashboard says so.
+
+### Documents as a source (PDF / Word / Excel)
+
+Filings, transcripts, investor decks, and spreadsheets are often the **best** source we have — primary,
+and frequently higher-tier than any tracker. They are **not a new pipeline**; they are an input adapter
+that feeds the same flow. One split decides how each is handled, and it maps straight onto Part 17:
+
+- **Prose documents** (PDF filings, Word, transcripts, decks) → treated like fetched web text: the agent
+  **reads and judges**, quoting what it uses.
+- **Structured/tabular** (Excel, CSV, tables inside PDFs) → these are real numbers in cells = **measured
+  facts**. The rule: **extract them with code, not the model's eyes** (the Part 5 code-execution tool).
+  Reading a cell programmatically is what preserves "never invent a number" (Rule 2) — the model
+  interprets the extracted figure, it does not eyeball it off a grid.
+
+**Reuses (don't rebuild):**
+- **Part 5** — `document ingestion` and `code execution` are already category-agent tools.
+- **Part 20** — the file *is* the snapshot (captured + hashed), with an in-file pointer (page / `sheet!cell`).
+- **Part 8** — a document can carry prompt-injection too; "content is **data**, not instructions" applies.
+- **Parts 22/23** — a document is just another `accessMethod` (`filing | manual-upload | internal`); an
+  internal spreadsheet is **confidential** and rides the Part 23 access controls + license register.
+- **Part 17 / Part 21** — an extracted number maps to a **registered metric by id**, so it's comparable
+  to the same metric from another source, and a conflict surfaces as dispersion, not a silent pick.
+
+**New here (the only genuinely new bits):**
+- The **prose-vs-structured split** above (code-extract tables).
+- **Format gotchas, handled honestly:** scanned PDFs → OCR, confidence-capped and flagged when OCR is
+  weak; PDF tables → code-extract + a verify step, and quote the raw if confidence is low; Excel formula
+  cells → read the computed value but **expose the model's assumptions** (Part 11); a fixed 10-K needs no
+  versioning, but a changing internal model is versioned with `asOf` + who supplied it.
 
 ## Part 23 — Trust boundary: human-in-the-loop, access, and legal
 

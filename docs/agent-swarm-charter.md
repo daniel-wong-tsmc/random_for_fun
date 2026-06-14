@@ -71,6 +71,7 @@ guess as a guess.
 - Part 33 — Schema evolution & migration
 - Part 34 — Cold-start & bootstrapping
 - Part 35 — The product surface (the last mile to the executive)
+- Part 36 — Automated harness optimization (search the harness, don't hand-build it)
 
 > A companion visual of the swarm — agents, the data-access tools each needs, each agent's unique
 > abilities, and the universal guidelines — lives at [`app/architecture.html`](../app/architecture.html).
@@ -1400,6 +1401,61 @@ surface is specified to the same bar as the swarm — it is how the executive ac
 - **Graceful product states** for the operational realities above: "pending review," "inputs degraded,"
   "track record maturing," and "provisional — not in coverage" each have a defined rendering, so the
   honesty doctrine survives the last mile.
+
+## Part 36 — Automated harness optimization (search the harness, don't hand-build it)
+
+Following **Meta-Harness** (Lee, Nair, Zhang, Lee, Khattab, Finn — arXiv:2603.28052, Mar 2026): the
+**harness** — the code that decides what to *store, retrieve, and present* to the model — drives as much
+of the system's performance as the model itself (they report a 6× swing on one benchmark from the
+harness alone), yet Parts 5/9 still build ours by hand. The rule: **once we have a trustworthy reward,
+we *search* the harness as code instead of hand-tuning it — but a discovered harness earns production
+the same way a human-written one does.** This is an optimization *method*, not a new subsystem.
+
+**How Meta-Harness works (the part we adopt):** an outer-loop search where a **coding-agent proposer**
+reads a filesystem of *all* prior candidates — their source code, execution traces, **and** scores —
+and proposes a new harness (a local edit or a full rewrite, no fixed mutation operators). Each
+candidate is evaluated on a **search set**, all logs are written back, and the loop repeats, keeping a
+**Pareto frontier** over multiple objectives. Its one decisive idea: prior text-optimizers *compress*
+feedback (scalar scores, short summaries); Meta-Harness instead gives the proposer the **full raw
+experience** (~10 MTok/iter vs ~0.02), and richer access to prior diagnostic experience is what wins.
+The **test set is never shown to the proposer.**
+
+**Reuses (don't rebuild):**
+- **Part 9 (append-only, versioned store) + Part 20 (provenance + execution snapshots)** — this is
+  already the *"filesystem of all prior experience"* (code, traces, scores) the proposer queries via
+  `grep`/`cat` rather than ingesting. No new store.
+- **Part 24 (golden set, backtest harness, run-to-run stability, grade-the-grader)** — supplies the
+  **reward** and the held-out evaluation; its regression gate validates whatever the search proposes.
+- **Part 27 (cost-quality)** — the search's multi-objective **Pareto frontier *is* the
+  accuracy-vs-context-cost tradeoff** (Meta-Harness's headline win was +7.7 pts at **4× fewer context
+  tokens**); it runs in the **build-time** budget, never the per-cycle budget.
+- **Part 25 (model lifecycle)** — discovered harnesses are **readable code that transfers across
+  models** (their gain held across 5 held-out models), so a search is re-runnable on a model swap and
+  its output **shadow-run** before promotion.
+- **Part 5 (the chassis)** — the first thing to optimize is the **Tier-1 category harness** (retrieval /
+  context / prompt logic): the heaviest, open-web-facing, and most measurable.
+- **Part 18 (canonical vs. ad-hoc; one template, many instances)** — the search edits the **template**;
+  its output never touches canonical until promoted.
+
+**New here:**
+- **The outer-loop harness search**, run over our own store: propose → evaluate on a search set → log
+  back → repeat, keeping a Pareto frontier over **accuracy, context cost, and run-to-run stability**.
+- **A hard prerequisite — a trustworthy reward.** The search *maximizes* `r`; point it at the
+  unvalidated Outcome grader (Part 5/7) and it will **Goodhart it**, discovering harnesses that game a
+  flawed judge faster than any human could. So **Part 24's grader calibration + golden set is a
+  build-order gate**: no search runs before the reward is trusted.
+- **Scoped to measurable sub-rewards** — extraction accuracy, retrieval quality, doctrine pass-rate,
+  context cost, *resolved*-prediction calibration, stability — **never** the un-resolvable "was this
+  recommendation good" (that signal lags by quarters; Part 12). Optimize what's measurable now.
+- **Temporal held-out only** — search/test are split by **future period and held-out category** (Part 34
+  backtest), never a shuffle-split of a time series; the market is non-stationary and small-N.
+- **Offline and gated** — a search runs occasionally at build time (hours, ~order-10-MTok/iter).
+  Discovered harnesses ship **only** through the Part 24 regression gate, the Part 25 shadow run, and
+  human review before touching canonical, and the proposer's trace access inherits the **Part 31**
+  confidentiality boundary (traces may contain CI).
+
+> **Self-check / build order:** no harness search before the reward is trustworthy (Part 24); discovered
+> code reaches production only through the same gate + shadow + human review as hand-written code.
 
 ---
 

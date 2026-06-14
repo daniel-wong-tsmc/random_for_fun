@@ -53,3 +53,8 @@ map uses the most consistently-cited figure and shows a range.
 > Note: startup ARR/valuation figures move fast and several rely on secondary trackers rather than
 > audited filings. Treat single-sourced private-company numbers as estimates; the future Category
 > Agents should attach a confidence score and prefer primary sources (filings, official posts).
+
+## Method & harness engineering (referenced in the charter)
+- Meta-Harness: End-to-End Optimization of Model Harnesses — Lee, Nair, Zhang, Lee, Khattab, Finn
+  (Stanford / KRAFTON / MIT), arXiv:2603.28052, Mar 2026 — https://arxiv.org/abs/2603.28052
+  (project: https://yoonholee.com/meta-harness/). Basis for charter Part 36.

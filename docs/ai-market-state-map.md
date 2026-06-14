@@ -204,7 +204,9 @@ A three-tier agent swarm, programmed in natural language against the taxonomy ab
 - **Market-State Orchestrator (1).** Rolls the 5 layers into one plain **AI market status**, detects
   cross-layer tensions (e.g., chips ready but energy/grid gating), produces the top-level dashboard.
 
-**Data model:** `layers[] → categories[] → { constituents[], metrics{schema}, scorecard, sources[], asOf }`
+**Data model:** `layers[] → categories[] → { seedConstituents[], metrics{schema}, scorecard, sources[], asOf }`
+(`taxonomy.json` is the durable contract — structure is human-governed; constituents and live metric
+values are swarm-maintained seeds, see charter Part 16.)
 (see [`taxonomy.json`](./taxonomy.json)).
 
 **Refresh model:** **on-demand CLI first** (`refresh <category|layer|all>`), **cron wrapper later**

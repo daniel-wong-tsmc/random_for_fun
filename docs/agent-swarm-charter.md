@@ -578,6 +578,25 @@ parameterized for exactly this:
 - **Capabilities are a registry** (Part 13) — a new agent is provisioned by attaching the abilities it
   needs, and is flagged **under-supported** until any missing ability is built.
 
+### What `taxonomy.json` is — and isn't (so it doesn't become a maintenance bottleneck)
+
+`taxonomy.json` is the **durable contract** — the structure the rollup, the dashboard, and the
+access-control query tool all read from. It is deliberately **thin**, and it splits cleanly into two:
+
+- **Structure (human-governed, versioned, changes rarely):** the 5 layers, the category ids / names /
+  layer membership, the 6 rating dimensions, and the scorecard schema. This is the part that must stay
+  stable, because everything downstream is keyed off it.
+- **Content (swarm-maintained, not authoritative in the file):** each category's **constituents** and
+  its **live metric values**. The `seedConstituents` and metric lists in the file are *starting
+  examples only* — the Category Agents face the web, so they discover, extend, and keep these fresh.
+  A company rising or fading does **not** mean someone hand-edits JSON.
+
+So the human gate (below) is reserved for **structural** changes — adding, retiring, or merging a whole
+category — which are rare and genuinely deserve governance. Day-to-day constituent and metric churn
+flows through the agents and never touches this file or the approval queue. That is what keeps the
+taxonomy a contract, not a chore: the file you maintain by hand stays small and slow-moving, while the
+fast-moving detail maintains itself.
+
 **Lifecycle — detect → propose → approve → provision → integrate (→ prune):**
 
 1. **Detect.** The swarm continuously watches for material signal that **fits no existing category** —

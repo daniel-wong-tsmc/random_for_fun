@@ -73,8 +73,9 @@ guess as a guess.
 - Part 35 — The product surface (the last mile to the executive)
 - Part 36 — Automated harness optimization (search the harness, don't hand-build it)
 
-> A companion visual of the swarm — agents, the data-access tools each needs, each agent's unique
-> abilities, and the universal guidelines — lives at [`app/architecture.html`](../app/architecture.html).
+> A companion visual of the swarm — an interactive, layered knowledge graph of the agents, the
+> data-access tools each tier holds, the roll-up/read edges, and the universal guidelines — lives at
+> [`app/swarm-graph.html`](../app/swarm-graph.html).
 
 ---
 
@@ -1380,7 +1381,7 @@ The swarm's headline value — "vs. prior," "did my concern materialize," calibr
 ## Part 35 — The product surface (the last mile to the executive)
 
 Part 23 deliberately defers the product surface — fine while the reference agent is the focus, but "put it
-into production" *lives here*, and `app/architecture.html` is a mockup, not a product. The rule: **the
+into production" *lives here*, and `app/swarm-graph.html` is a visualization, not a product. The rule: **the
 surface is specified to the same bar as the swarm — it is how the executive actually receives the work.**
 
 **Reuses (don't rebuild):**

@@ -58,6 +58,20 @@ guess as a guess.
 - Part 22 — Data-source reality: sourcing, licensing, and what's actually fetchable
 - Part 23 — Trust boundary: human-in-the-loop, access, and legal
 
+**Stand behind it** — *verification, safety, and operations: what separates a design doc from a system you defend in front of executives*
+- Part 24 — Evaluation & verification (how we know the swarm is any good)
+- Part 25 — Model & prompt lifecycle (changing the brain without losing the memory)
+- Part 26 — The adversarial boundary (injection, manipulation, circular sources)
+- Part 27 — Cost model & load economics
+- Part 28 — Orchestration, scheduling & recovery
+- Part 29 — Input & source-health monitoring
+- Part 30 — The review queue & human-in-the-loop as a system
+- Part 31 — Security & data protection
+- Part 32 — Judgment flow: stability vs. speed, and tier escalation
+- Part 33 — Schema evolution & migration
+- Part 34 — Cold-start & bootstrapping
+- Part 35 — The product surface (the last mile to the executive)
+
 > A companion visual of the swarm — agents, the data-access tools each needs, each agent's unique
 > abilities, and the universal guidelines — lives at [`app/architecture.html`](../app/architecture.html).
 
@@ -1038,6 +1052,354 @@ leans hard on pieces we already built.
 - **A legal posture:** the data-license/ToS register (= the Part 22 inventory), explicit handling that
   this is public/licensed market intelligence (not inside information), and an antitrust review boundary
   on pricing recommendations. Counsel is engaged early, because it constrains what Part 22 may ingest.
+
+---
+
+> **About Parts 24–35.** Parts 1–23 specify *what the swarm is and how it reasons*. These parts specify
+> how we *know it works, keep it safe, and run it* — the layer that turns a brilliant design into a
+> system you can stand behind in front of executives. They keep the same discipline as Parts 19–23:
+> every part opens with **Reuses (don't rebuild)** naming the exact pieces it stands on, and a short
+> **New here** for the few genuinely new pieces. Three are non-negotiable before the first agent ships:
+> the **eval harness (Part 24)**, the **cost model (Part 27)**, and the **injection boundary (Part 26)** —
+> without them, every quality claim above is unverified, the bill is unknown, and the output is steerable.
+
+## Part 24 — Evaluation & verification (how we know the swarm is any good)
+
+The charter enforces explainability **per Finding** (Part 7) and grades **predictions over time** (Part
+12) — but neither tells us whether a prompt change made the swarm *better or worse today*, and the
+quality floor currently rests on an LLM grader nobody has checked. The rule: **quality is measured at
+build/change time against human-anchored ground truth — not asserted, and not graded only by another
+model.**
+
+**Reuses (don't rebuild):**
+- **Part 7 (the pre-commit gate)** — structural/doctrine compliance is already enforced; eval measures
+  *judgment quality above compliance*, not validity again.
+- **Part 5 (the Outcome rubric grader)** — already exists. We do **not** add a grader; we *calibrate the
+  one we have* against humans.
+- **Part 9 (append-only store)** — every past Finding + provenance is retained, so the golden set is
+  curated **from real history**, not synthesised.
+- **Part 12 (calibration)** — the outcome-resolution loop is the long-horizon eval; this part is its
+  fast, build-time complement (same scoring spirit).
+- **Part 18 principle 3 (one template, many instances) + Part 20 (`promptVersion` on every Finding)** —
+  a prompt change is one versioned edit, so an eval keys cleanly to a `promptVersion`.
+
+**New here:**
+- **A golden set.** A human-curated, frozen set of inputs → expected Findings/scorecards **per archetype**
+  (Part 3), with a rubric of what "good" looks like; versioned alongside the templates.
+- **A prompt regression gate.** No `promptVersion` reaches canonical until it scores **≥ the incumbent**
+  on the golden set. The prompt is code; this is its test suite, and a regression blocks the deploy
+  (Part 25).
+- **Grade the grader.** A human periodically scores a sample the Outcome grader passed/failed; we track
+  the grader's agreement with humans (precision/recall on "doctrine satisfied"). A grader that drifts is
+  re-tuned — **the judge is calibrated, never trusted blind.**
+- **Run-to-run consistency.** Headline outputs (layer rating, market status) are sampled N times on
+  identical inputs; the spread is a **published stability metric**. A status that flips run-to-run with no
+  input change is a defect — alerted (Part 29), not shipped. Where instability is inherent, Main uses
+  **self-consistency** (majority over samples) and reports the spread, reusing Part 1's `dispersion`
+  applied to our *own* output.
+- **A backtest harness.** Because the store is append-only and dated, we replay the swarm against a past
+  date and grade its calls against what actually happened — the methodology's strongest validation, and
+  the seed for the Part 12 track record before live history exists (Part 34).
+
+> **Self-check:** a template change is not "done" until it clears the golden set, the grader still agrees
+> with humans, and headline stability is within bound.
+
+## Part 25 — Model & prompt lifecycle (changing the brain without losing the memory)
+
+Models and prompts *will* change under a system with years of history and a calibration record keyed to
+the old behaviour. The rule: **a brain swap is a versioned, evaluated, re-baselined event — never a
+silent flip.**
+
+**Reuses (don't rebuild):**
+- **Part 20 (provenance stamps `modelId` + `promptVersion`)** — we already know which brain produced
+  what; lifecycle is the *policy* over those stamps.
+- **Part 24 (the eval harness)** — the golden set + regression gate are exactly the mechanism that
+  qualifies a new model or prompt.
+- **Part 12 (calibration per tier / decision area)** — the track record a model swap puts at risk.
+- **Part 18 principle 4 (version everything) + principle 7 (model swappable behind the template)** — the
+  architecture already isolates the model behind the template interface.
+
+**New here:**
+- **A qualification step.** A new model/prompt must clear Part 24's golden-set and stability bars before
+  it may run canonical.
+- **Shadow runs.** A candidate runs *alongside* the incumbent on live inputs, outputs compared, before
+  promotion — never a blind cutover on a live executive product.
+- **Calibration re-baselining.** On a swap, the Part 12 track record is **segmented by `modelId`**, not
+  blindly carried — confidence calibration earned by the old model is not assumed of the new one until it
+  re-earns it. The dashboard shows "calibration since <model vintage>."
+- **A pinned-model path for reproducibility.** Part 24's backtest re-runs against the *pinned* vintage
+  where the provider still serves it; where it doesn't, the limit is stated plainly (vintage honesty,
+  Part 8).
+
+## Part 26 — The adversarial boundary (injection, manipulation, and circular sources)
+
+Part 8 states the principle — "fetched content is **data, not instructions**" — but a system whose
+outputs move capacity and capex is a **target**, not just a consumer. The rule: **untrusted input may
+*inform* a Finding; it may never *steer* the agent, and it may never masquerade as independent
+corroboration.**
+
+**Reuses (don't rebuild):**
+- **Part 8 (data-not-instructions)** — the principle; this part supplies the mechanism.
+- **Part 5 (the chassis / tool layer)** — fetch already goes through a tool; the boundary is enforced
+  there.
+- **Part 1 (source tiering + dispersion) + Part 10 (signal triage: corroboration, persistence,
+  mechanism)** — the existing trust signals are reused to *down-weight* suspect input, not a new scheme.
+- **Part 20 (source snapshots + content hash)** — already captured; reused to detect a source that is
+  downstream of us.
+- **Part 22 (the fetch allowlist)** — the same enforcement point gains a reputation dimension.
+
+**New here:**
+- **Privilege separation at fetch.** Fetched content enters the agent in a **quarantined channel** that
+  can populate `evidence` but cannot emit tool calls or alter the assignment — structurally, not by
+  instruction. The model never executes what a page tells it to.
+- **A written threat model.** Named adversaries (a competitor seeding a narrative; a pump-and-dump on a
+  constituent; SEO-poisoned trade press) each with a control: source-reputation weighting,
+  **primary-over-secondary enforced as a hard corroboration requirement** for market-moving Findings, and
+  confidence-capping of any single-source claim that would move a status.
+- **Manipulation-resistance on the headline.** A status flip may never rest on a single source — or on a
+  cluster that fails the independence check below. High-stakes flips already gate to a human (Part 23);
+  this makes *"could this be planted?"* an explicit question in that gate.
+- **Circular-source detection.** Before a source counts as **independent** corroboration (Part 10), its
+  content hash + provenance are checked against our own published outputs and against trackers known to
+  syndicate them — **a source downstream of our dashboard cannot corroborate us.** This closes the Part 7
+  self-reference rule at the *data* layer, not just the citation layer.
+
+## Part 27 — Cost model & load economics (prove it's affordable before building it)
+
+Thirty-four web-facing, multi-step, grader-iterated agents plus an open-ended interactive path can cost
+anywhere from trivial to ruinous. Part 19 *caps* spend; this part *predicts* it, so the architecture is
+chosen with the bill in view. The rule: **no full build before a costed pilot says the unit economics
+work.**
+
+**Reuses (don't rebuild):**
+- **Part 19 (budget ceiling, load-shedding, per-category TTL)** — the controls exist; this part supplies
+  the numbers they're set from.
+- **Part 5 (token/cost observability per request)** — the meter is already in the chassis; the cost model
+  is built from its data.
+- **Part 18 (the assignment's `budget` + `depth`; per-archetype templates)** — model tier and depth are
+  already per-assignment dials.
+- **Part 24 (eval)** — lets us measure **quality-per-dollar**, so tiering is a *measured* trade, not a
+  guess.
+
+**New here:**
+- **A unit-cost model.** $/agent-run by archetype and depth → $/cycle → $/month at the chosen cadence,
+  plus a *separate* interactive-path estimate. Built on paper, then checked against the Part 5 meter after
+  a pilot. If the number is infeasible, the architecture changes **here, cheaply**.
+- **Costed model tiering.** The architecture hint (Haiku for simple pulls / Opus for synthesis) becomes a
+  **policy** — a per-archetype model assignment justified by Part 24's quality-per-dollar measurement, not
+  a footnote.
+- **An interactive-path ceiling.** The on-demand desk (Part 14) gets a per-user / per-period budget, and
+  *answer-from-store-first* is enforced as the cost control it already is — research the gap only when the
+  store is stale.
+- **Pilot-first.** Build and cost **one layer end-to-end** (e.g. Chips, ~7 categories) before
+  instantiating all 34. The pilot's bill is the go/no-go for the full swarm.
+
+## Part 28 — Orchestration, scheduling & recovery (the swarm as a running pipeline)
+
+Part 5 names the driver ("plain orchestration, one level deep") but not how a cycle is scheduled,
+survives a crash, or shares finite rate limits. The rule: **a cycle is a resumable, idempotent DAG that
+degrades per Part 19 — never a fragile all-or-nothing batch.**
+
+**Reuses (don't rebuild):**
+- **Part 5 (the plain driver + last-known-good)** — the orchestration shape and the fallback exist.
+- **Part 9 (append-only, versioned store)** — the substrate for idempotency and resume; a re-run
+  reconciles against what's already written rather than duplicating.
+- **Part 19 (quorum/staleness publish rule, load-shedding)** — the partial-failure *policy* is defined;
+  this part is the *engine* that applies it.
+- **Part 6 (frozen tier contracts)** — the DAG edges *are* the data contracts; the dependency graph is
+  already specified.
+
+**New here:**
+- **The cycle DAG.** 34 category → 5 layer → 1 main as an explicit dependency graph; a layer fires when
+  its categories are **done-or-shed** (Part 19), not on a blind timer.
+- **Resume & idempotency.** Each run is keyed by `assignment@version + asOf + runId`; a crashed cycle
+  resumes from the last committed node, and a re-run of a completed node is a **no-op** against the store —
+  no double-counting (Part 21's reconciliation stays clean).
+- **Concurrency & rate-limit governance.** A shared limiter across all 34 agents for both the LLM API and
+  *each* data source (per-source budgets from the Part 22 inventory), with backoff — so the swarm never
+  DoSes its own providers into 429s or IP bans.
+- **A cycle-time budget.** A measured target wall-clock per full refresh; if the deep-research + grader
+  loop can't fit the intended cadence, the cadence or the `depth` (Part 18) is adjusted — **staleness is
+  chosen, not discovered in production.**
+
+## Part 29 — Input & source-health monitoring (catch the silent garbage)
+
+The pre-commit gate (Part 7) checks that output is *well-formed*; it cannot tell that a scraper started
+returning plausible nonsense after a site relayout. The rule: **monitor the inputs, not just the
+outputs — a well-formed Finding built on a broken source is the most dangerous kind.**
+
+**Reuses (don't rebuild):**
+- **Part 20 (source snapshots + content hash)** — the per-fetch record health checks run over.
+- **Part 22 (source inventory; per-metric `refresh`/access)** — the registry of what each source *should*
+  look like and how often it updates.
+- **Part 5 (observability)** — the same telemetry plane; source health is new metrics on the existing pipe.
+- **Part 24 (run-to-run consistency / anomaly alerting)** — unexplained output swings are already flagged;
+  this part adds the *input-side* cause.
+
+**New here:**
+- **Extraction canaries.** Known-stable values per source (a field that shouldn't change between fetches)
+  that, when they move unexpectedly, signal a broken extractor — **caught before the bad number propagates
+  up the cake.**
+- **Freshness & shape monitors.** Alert when a source stops updating past its expected `refresh`, returns
+  an out-of-range value, or changes structure (column moved, schema drift) — the table-extraction failure
+  modes Part 22 names, now *watched*.
+- **Source-down → graceful degrade.** A failed/suspect source triggers Part 19's last-known-good + flag,
+  never a silent substitution; the dashboard says which inputs are degraded (reusing Part 19's freshness
+  read).
+
+## Part 30 — The review queue & human-in-the-loop as a system (don't let the human become the bottleneck)
+
+Parts 18 and 23 route discovery promotions, market-moving confirmations, and license exceptions through
+"one queue, several jobs" and a named approver. At 34 categories with a generous `explore` budget, that
+queue and that person are a real operational load. The rule: **the human gate is a throughput-managed
+system with an owner — not an unbounded inbox.**
+
+**Reuses (don't rebuild):**
+- **Part 23 (the queue, named approver, SLA, pending-review state)** — the mechanism exists; this part
+  sizes and protects it.
+- **Part 18 (governance proportional to blast radius; provisional never feeds canonical)** — the tiering
+  that decides what *needs* a human at all.
+- **Part 8 + Part 26 (high-stakes flag triggers)** — the source of confirmation items.
+- **Part 12 (calibration)** — used here to tune the flag threshold from outcomes.
+
+**New here:**
+- **Flag-threshold calibration (anti-fatigue).** The bar for "human-gated" is tuned from track record — if
+  confirmations are nearly always rubber-stamped, the threshold was too low and is raised. The goal is
+  **few, real, high-value gates**, so the human stays sharp; alert fatigue is treated as a measured failure
+  mode.
+- **Queue SLOs & overflow policy.** A target clearance time and an explicit breach rule: while a
+  market-moving flag is pending past SLA, the dashboard **holds** the prior status with "pending review"
+  (Part 19/23 states) rather than going stale-silent.
+- **A named operating role + auto-clear for the trivial.** Someone owns the queue; low-blast-radius items
+  (Part 18: new metric/entity) auto-clear into a **post-hoc** review batch, so only structural / high-stakes
+  items demand synchronous attention.
+
+## Part 31 — Security & data protection (this is confidential CI — treat it that way)
+
+Part 23 establishes *role-based human access* to the product, but the system also holds API keys to paid
+feeds, possibly-confidential ingested documents, and a competitive-intelligence store that drives TSMC
+strategy. The rule: **protect the store and the secrets to the standard of the decisions they inform.**
+
+**Reuses (don't rebuild):**
+- **Part 9 ("the tool is the access control") + Part 23 (role-based human access)** — the access pattern
+  exists; this part adds the data-protection layer beneath it.
+- **Part 22 (`accessMethod` incl. internal/confidential; the license register)** — confidential sources
+  are already tagged; this part says how they're *stored*.
+- **Part 20 (provenance / `runId`)** — the spine of the audit trail.
+
+**New here:**
+- **Secrets management.** Paid-feed / MCP credentials in a vault — never in config or prompts — with a
+  rotation policy and per-source scoping.
+- **Encryption & residency.** Encryption at rest for the canonical store and snapshots, and an *explicit*
+  data-residency decision: the SQLite-to-start store will hold material CI — where does it live, under
+  whose jurisdiction?
+- **An audit log.** Every *human* read of recommendations/raw state and every queue action is logged (who
+  saw what, when), reusing the `runId`/provenance spine — required for confidential CI and for the
+  antitrust posture (Part 23).
+- **Confidential-document handling.** Internal / manual-upload documents (Part 22) are access-controlled
+  at the same tier as the recommendations they feed, and anything that looks non-public trips the MNPI
+  escalation (Part 32).
+
+## Part 32 — Judgment flow: stability vs. speed, and tier escalation
+
+Two judgment-flow tensions the charter currently resolves *silently*, both toward **suppression**:
+anti-whipsaw (Part 10) biases the swarm to be **late** on the highest-value events, and the hierarchy
+(Parts 9/21) lets an upper tier **override** a lower one with no record of the disagreement. The rule:
+**stability is the default, but a strong, mechanistic signal must have a fast path up — and an overruled
+sub-signal must leave a trace.**
+
+**Reuses (don't rebuild):**
+- **Part 10 (signal triage: persistence, corroboration, materiality, mechanism)** — the bar a fast-break
+  signal must still clear; we don't lower it, we add a *speed lane* through it.
+- **Part 1 (dispersion)** — reused to record **tier disagreement**, not just source disagreement.
+- **Part 8 + Part 23 (the human gate)** — the confirmation path a fast-break call routes through.
+- **Parts 4/12 (memory + calibration)** — the record that judges, after the fact, whether the fast-break
+  or the hold was right.
+
+**New here:**
+- **The fast-break path.** A signal that is *highly mechanistic and material* but **not yet persistent**
+  (the "DeepSeek moment" shape) may escalate immediately as a **confidence-capped hypothesis** — *not* a
+  status flip — flagged to the human gate. The swarm can **raise its hand early** without whipsawing the
+  headline; the Part 10 bar still governs a *permanent* status change, this only governs *surfacing* the
+  candidate inflection.
+- **Escalation over silent override.** When a layer or Main overrules a strong lower-tier signal, it must
+  record **why**, and the overruled signal is preserved as a visible **watch-item** (Part 4), not buried —
+  the desk analyst who was right is recoverable. Persistent override of a signal that later proves correct
+  is a calibration miss against the **overruling** tier (Part 12).
+- **MNPI / escalation tripwire.** A signal that can't be explained from public/licensed sources, or that
+  traces to a confidential document (Part 31), escalates to **counsel's gate** rather than flowing into a
+  recommendation — protecting the "not inside information" posture (Part 23).
+
+## Part 33 — Schema evolution & migration (the frozen contract will thaw)
+
+Parts 6 and 18 freeze the Finding schema as the inter-tier contract — correct for stability, but "frozen
+forever" is a fiction, and the first forced change to an append-only store with years of history is a
+crisis unless planned. The rule: **the contract is frozen *within* a version and evolves *across*
+versions, with old data always readable.**
+
+**Reuses (don't rebuild):**
+- **Part 18 principle 4/5 (version everything; freeze the seams)** — evolution is *versioning the seam*,
+  not abandoning it.
+- **Part 9 (append-only, versioned store)** — old-version Findings are never mutated; they stay as written.
+- **Part 20 (provenance stamps schema / registry / taxonomy versions)** — every record already declares
+  the version it was written under.
+
+**New here:**
+- **A schema version on the contract**, plus a **read-compat layer**: new code reads old Findings through a
+  declared migration — **additive by default**; a breaking change bumps the major version and ships an
+  up-migration **view**, not an in-place rewrite.
+- **Backfill-on-read for replay.** The Part 24 backtest and Part 14 history queries read old vintages
+  through the compat layer, so reproducibility (Part 20) survives a schema change.
+- **A deprecation policy.** A field is deprecated for ≥ N cycles (still written, marked) before removal, so
+  no consumer breaks on a flag day.
+
+## Part 34 — Cold-start & bootstrapping (the temporal engine is empty on day one)
+
+The swarm's headline value — "vs. prior," "did my concern materialize," calibration (Parts 4, 12) — is
+**inert** until history accrues, and Part 17 itself admits the track record is "thin early on." The rule:
+**bootstrap a credible past so the system is an analyst on day one, not a blank notebook.**
+
+**Reuses (don't rebuild):**
+- **Part 24 (the backtest harness)** — replaying against past dates **manufactures** the missing history,
+  legitimately and labelled.
+- **Part 9 (append-only store)** — backfilled snapshots land in the same store, vintage-stamped.
+- **The June-2026 deep-research seed (`ai-market-state-map.md`)** — an existing, dated baseline to seed the
+  first canonical snapshot.
+- **Part 8 (vintage honesty)** — backfilled history is labelled as such, never presented as observed live.
+
+**New here:**
+- **Seed the baseline** from the deep-research map as the `asOf` 2026-06 canonical snapshot, so "vs. prior"
+  has a prior.
+- **Backfill via replay** over a handful of earlier dates (where sources permit) to give the temporal logic
+  and the calibration record a *starting* series — explicitly flagged as **reconstructed**,
+  confidence-discounted, and superseded by live cycles as they accrue.
+- **A "track record maturing" state** on the dashboard until enough live cycles exist — the system says,
+  plainly, how seasoned its own judgment is (Part 17's honesty rule, applied to itself).
+
+## Part 35 — The product surface (the last mile to the executive)
+
+Part 23 deliberately defers the product surface — fine while the reference agent is the focus, but "put it
+into production" *lives here*, and `app/architecture.html` is a mockup, not a product. The rule: **the
+surface is specified to the same bar as the swarm — it is how the executive actually receives the work.**
+
+**Reuses (don't rebuild):**
+- **Parts 10–11 + the map (recommendation → status → drill to Findings → sources)** — the *content* and
+  information architecture are already specified; this is the *delivery* of that spec.
+- **Part 9 (the published snapshot — the read-optimized projection)** — the surface reads this, never the
+  canonical store directly.
+- **Part 23 (role-based access, pending-review state) + Part 31 (audit)** — the surface inherits the access
+  and audit model, not a new one.
+- **Part 14 (the interactive path)** — the Q&A entrypoint the surface exposes.
+
+**New here:**
+- **Delivery decisions, made explicit:** hosting; **SSO against TSMC identity**; **push** (a periodic
+  executive brief — the Part 3 Main output) *and* **pull** (the drill-down dashboard); and the API contract
+  between the published snapshot and the surface.
+- **The surface is a projection consumer, not a writer** — it never edits canonical (reuses the Part 18
+  canonical/ad-hoc split); the interactive path writes back through the *swarm*, not the UI.
+- **Graceful product states** for the operational realities above: "pending review," "inputs degraded,"
+  "track record maturing," and "provisional — not in coverage" each have a defined rendering, so the
+  honesty doctrine survives the last mile.
 
 ---
 

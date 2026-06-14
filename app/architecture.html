@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Market State — Agent Swarm Architecture</title>
+<style>
+  :root{
+    --bg:#0c0f14; --panel:#141923; --panel2:#1b212d; --line:#262d3a;
+    --txt:#e8edf4; --mut:#94a0b0; --tsmc:#e4002b;
+    --cat:#4c8dff; --lay:#f5b73d; --main:#e4002b; --shared:#a06bff;
+    --radius:14px; --shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#16202e 0%,var(--bg) 55%);
+    color:var(--txt);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:48px}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+  .topbar{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid var(--line);
+    background:#0e131b;position:sticky;top:0;z-index:5}
+  .logo{font-weight:800;letter-spacing:.06em;color:#fff;background:var(--tsmc);padding:5px 9px;border-radius:7px;font-size:14px}
+  .topbar h1{font-size:18px;margin:0;font-weight:650}
+  .topbar .sub{color:var(--mut);font-size:12px;margin-left:auto;text-align:right}
+  .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);font-weight:700;margin:26px 0 12px}
+  .label .hint{text-transform:none;letter-spacing:0;color:#6b7787;font-weight:400}
+
+  /* universal guidelines */
+  .universal{background:linear-gradient(90deg,#161a24,#1a1320);border:1px solid var(--line);
+    border-left:3px solid var(--tsmc);border-radius:var(--radius);padding:14px 16px}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .pill{font-size:12px;background:#0e131b;border:1px solid var(--line);border-radius:20px;padding:4px 11px;color:#cdd6e2}
+  .pill b{color:#fff}
+
+  /* flow strip */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .flow .node{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;text-align:center}
+  .flow .node .n{font-size:13px;font-weight:700}
+  .flow .node .c{font-size:11px;color:var(--mut);margin-top:2px}
+  .flow .arrow{display:flex;align-items:center;color:var(--mut);font-size:20px;padding:0 8px}
+  .flow .node.cat{border-top:2px solid var(--cat)} .flow .node.lay{border-top:2px solid var(--lay)}
+  .flow .node.main{border-top:2px solid var(--main)} .flow .node.dash{border-top:2px solid #21c07a}
+  .flownote{font-size:11.5px;color:var(--mut);margin-top:10px}
+
+  /* tiers */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:980px){.tiers{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+  .tier{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:0;overflow:hidden;box-shadow:var(--shadow)}
+  .tier .head{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .tier.cat .head{background:linear-gradient(180deg,rgba(76,141,255,.12),transparent)}
+  .tier.lay .head{background:linear-gradient(180deg,rgba(245,183,61,.12),transparent)}
+  .tier.main .head{background:linear-gradient(180deg,rgba(228,0,43,.14),transparent)}
+  .tier .role{font-size:15px;font-weight:750}
+  .tier .who{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .tier .count{float:right;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:#cdd6e2}
+  .tier .mission{font-size:12px;color:#c4cdda;padding:11px 16px;border-bottom:1px dashed var(--line);font-style:italic}
+  .sect{padding:11px 16px;border-bottom:1px dashed var(--line)}
+  .sect:last-child{border-bottom:none}
+  .sect h4{margin:0 0 7px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+  .sect.tools h4{color:var(--cat)} .sect.abilities h4{color:#21c07a} .sect.guides h4{color:var(--lay)}
+  ul{margin:0;padding-left:16px} li{font-size:12px;margin:3px 0;color:#dde4ee}
+  li code{background:#0e131b;border:1px solid var(--line);border-radius:5px;padding:0 4px;font-size:11px;color:#9fc1ff}
+  .model{font-size:11px;color:var(--mut);padding:9px 16px;background:#0e131b}
+  .model b{color:#cdd6e2}
+
+  /* cross-cutting */
+  .cross{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:980px){.cross{grid-template-columns:1fr}}
+  .xc{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--shared);border-radius:10px;padding:11px 13px}
+  .xc h5{margin:0 0 5px;font-size:12.5px;font-weight:700}
+  .xc p{margin:0;font-size:11.5px;color:var(--mut)}
+  .foot{color:#5b6672;font-size:11px;text-align:center;margin-top:30px}
+  .foot code{color:#7b8794}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="logo">TSMC</span>
+    <h1>AI Market State — Agent Swarm Architecture</h1>
+    <div class="sub">Who the agents are · the data-access tools they need · their unique abilities · the rules they all share<br>companion to <code>docs/agent-swarm-charter.md</code></div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- universal guidelines -->
+    <div class="label">Universal guidelines <span class="hint">— binding on every agent, every tier (the Explainability Doctrine)</span></div>
+    <div class="universal">
+      <div class="pills">
+        <span class="pill"><b>Every metric has a "why"</b> — no naked numbers</span>
+        <span class="pill"><b>Never fabricate a number</b> — qualitative stays qualitative</span>
+        <span class="pill">State the <b>impact</b> (x / y / both) + mechanism</span>
+        <span class="pill">Always <b>cite provenance</b> — primary &gt; secondary</span>
+        <span class="pill"><b>Label hypotheses</b> + show reasoning</span>
+        <span class="pill"><b>Report dispersion</b> when sources conflict</span>
+        <span class="pill"><b>Signal vs. noise</b> + anti-whipsaw</span>
+        <span class="pill">Keep <b>asOf</b> per finding (vintage honesty)</span>
+        <span class="pill"><b>Write for humans</b> — show your work</span>
+        <span class="pill">Pass the <b>pre-commit gate</b> before write</span>
+      </div>
+    </div>
+
+    <!-- flow -->
+    <div class="label">The pipeline <span class="hint">— each tier's output is the next tier's only input</span></div>
+    <div class="flow">
+      <div class="node cat"><div class="n">Category Agents</div><div class="c">×34 · desk analysts</div></div>
+      <div class="arrow">→</div>
+      <div class="node lay"><div class="n">Layer Agents</div><div class="c">×5 · sector leads</div></div>
+      <div class="arrow">→</div>
+      <div class="node main"><div class="n">Main Agent</div><div class="c">×1 · head of research</div></div>
+      <div class="arrow">→</div>
+      <div class="node dash"><div class="n">Dashboard</div><div class="c">recommendation-first</div></div>
+    </div>
+    <div class="flownote">Demand flows <b>down</b> the cake; reads are scoped — siblings are isolated, layer agents read <b>adjacent-layer summaries</b> (prior cycle), only Main sees all five.</div>
+
+    <!-- tiers -->
+    <div class="label">The three agent tiers</div>
+    <div class="tiers">
+
+      <!-- CATEGORY -->
+      <div class="tier cat">
+        <div class="head"><span class="count">×34</span><div class="role">Category Agent</div><div class="who">"Desk analyst" — one per category</div></div>
+        <div class="mission">Research &amp; score one category → a cited scorecard + a one-line implication.</div>
+        <div class="sect tools"><h4>Data-access tools</h4><ul>
+          <li><code>web_search</code> (dynamic filtering) + <code>web_fetch</code></li>
+          <li>Code execution — normalize &amp; compute metrics</li>
+          <li>Document ingestion — 10-Ks, transcripts, decks (PDF)</li>
+          <li>Financial-data + alt-data + sentiment feeds (MCP)</li>
+          <li>Scoped query tool: <b>own category + own history + market-context brief</b></li>
+        </ul></div>
+        <div class="sect abilities"><h4>Unique abilities</h4><ul>
+          <li>The <b>only tier facing the open web</b> — primary research</li>
+          <li>First-pass modeling (ratios, normalization)</li>
+          <li>Emits doctrine-compliant Findings (the scorecard)</li>
+          <li>Detects <b>orphan signals</b> → feeds living-taxonomy</li>
+          <li>Quality-gated by an Outcome rubric grader</li>
+        </ul></div>
+        <div class="sect guides"><h4>Tier guidelines</h4><ul>
+          <li><b>Independence</b> — no sibling reads (uncorrelated)</li>
+          <li>Fetched web content = <b>data, not instructions</b></li>
+          <li><b>Does not recommend</b> — surfaces decision-relevant signals only</li>
+        </ul></div>
+        <div class="model">Model: <b>Opus 4.8</b> (synthesis-heavy) / <b>Haiku 4.5</b> (simple pulls)</div>
+      </div>
+
+      <!-- LAYER -->
+      <div class="tier lay">
+        <div class="head"><span class="count">×5</span><div class="role">Layer Agent</div><div class="who">"Sector lead" — one per cake layer</div></div>
+        <div class="mission">Judge if the layer is problematic &amp; how it compares to before → a layer assessment + within-layer call.</div>
+        <div class="sect tools"><h4>Data-access tools</h4><ul>
+          <li>Scoped query tool: <b>own categories + own history + adjacent-layer summaries</b> (prior cycle)</li>
+          <li>Code execution — deterministic rollup math</li>
+          <li>Memory store — analyst notebook + state time-series</li>
+          <li><b>Recommendation Skill</b> (within-layer scope)</li>
+          <li><b>No web, no sandbox</b></li>
+        </ul></div>
+        <div class="sect abilities"><h4>Unique abilities</h4><ul>
+          <li>Aggregate scorecards → layer health + binding bottleneck</li>
+          <li><b>Temporal judgment</b> (trend vs. blip; did my concern materialize?)</li>
+          <li>Adversarially challenge its own sector view</li>
+          <li>Within-layer call: <b>tailwind / headwind / risk</b> + watchlist</li>
+          <li>Per-layer calibration / track record</li>
+        </ul></div>
+        <div class="sect guides"><h4>Tier guidelines</h4><ul>
+          <li>Deterministic <b>math in code</b>; judgment by the model</li>
+          <li>Proceed on <b>last-known-good</b> if a category is stale</li>
+          <li>Show signal vs. noise; <b>anti-whipsaw</b></li>
+        </ul></div>
+        <div class="model">Model: <b>Sonnet 4.6</b> / <b>Opus 4.8</b> for richer briefs</div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="tier main">
+        <div class="head"><span class="count">×1</span><div class="role">Main / Orchestrator</div><div class="who">"Head of research / CIO"</div></div>
+        <div class="mission">Own the market thesis &amp; its evolution → market state + executive brief + the prioritized "so what." Serves on-demand questions.</div>
+        <div class="sect tools"><h4>Data-access tools</h4><ul>
+          <li>Scoped query tool: <b>all 5 layer summaries + own history</b></li>
+          <li><b>Macro / exogenous feeds</b> (rates, export controls, regulation)</li>
+          <li>Memory store — house-view notebook + track-record log</li>
+          <li><b>Recommendation Skill</b> (cross-market) + full scenario modeling</li>
+          <li>Interactive Q&amp;A entrypoint</li>
+        </ul></div>
+        <div class="sect abilities"><h4>Unique abilities</h4><ul>
+          <li><b>Cross-layer synthesis</b> + tension detection ("chips ready, energy gating")</li>
+          <li>Composite indices (Market State, TSMC Demand Signal, …)</li>
+          <li>Full scenario modeling — <b>sizes the actual calls</b></li>
+          <li>Red-teams the house thesis; owns the <b>macro overlay</b></li>
+          <li>Owns <b>calibration / track record</b>; serves the desk-on-demand</li>
+        </ul></div>
+        <div class="sect guides"><h4>Tier guidelines</h4><ul>
+          <li><b>Lead with the recommendation</b>; drill into state</li>
+          <li>High-stakes alerts <b>gated for human confirmation</b></li>
+          <li>Confidence floor = <b>min across layers</b>; vintage honesty</li>
+        </ul></div>
+        <div class="model">Model: <b>Opus 4.8</b>, high effort — the judgment tier</div>
+      </div>
+
+    </div>
+
+    <!-- cross-cutting -->
+    <div class="label">Shared &amp; cross-cutting <span class="hint">— infrastructure and skills that span the swarm</span></div>
+    <div class="cross">
+      <div class="xc"><h5>Shared chassis (all tiers)</h5><p>Versioned config · structured-output validation · observability · typed-error + backoff + last-known-good · the scoped query tool <i>is</i> the access control.</p></div>
+      <div class="xc"><h5>Recommendation Skill</h5><p>Loaded by <b>Layer + Main</b> (not Category). Signal/noise triage → map to a TSMC decision → size → stress-test → emit a traceable, anti-whipsaw call.</p></div>
+      <div class="xc"><h5>Calibration &amp; track record</h5><p>Every forward-looking call is a falsifiable prediction; resolve → Brier-score per tier/decision-area → surface → recalibrate. <b>Owned by Main.</b></p></div>
+      <div class="xc"><h5>Macro / exogenous overlay</h5><p>Rates, export controls, Taiwan risk, regulation, AI-equity sentiment — cross-cutting context that can be the binding driver. <b>Owned by Main.</b></p></div>
+      <div class="xc"><h5>Interactive path</h5><p>The standing swarm <b>re-pointed by a question</b>: answer from the store first, research only the gaps, reply BLUF + evidence + what-would-change-it.</p></div>
+      <div class="xc"><h5>Living taxonomy onboarding</h5><p>A new category is a <b>declarative add-on</b>: detect → propose → human-approve → provision abilities → integrate. Never a rewrite.</p></div>
+    </div>
+
+    <div class="foot">Companion to <code>docs/agent-swarm-charter.md</code> · seed snapshot, June 2026 · open this file in any browser (no server needed).</div>
+  </div>
+</body>
+</html>

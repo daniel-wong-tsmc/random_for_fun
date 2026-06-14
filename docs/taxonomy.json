@@ -5,7 +5,7 @@
     "framework": "Jensen Huang 5-layer AI cake (Energy -> Chips -> Infrastructure -> Models -> Applications)",
     "asOf": "2026-06",
     "marketSize": { "total2026Usd": 6.02e11, "total2033Usd": 3.638e12, "cagr": 0.293 },
-    "softwareThreePointZero": "End-state: one research/scoring Category Agent per leaf category, rolling up into Layer Agents and a Market-State Orchestrator."
+    "softwareThreePointZero": "End-state: one research/rating Category Agent per leaf category, rolling up into Layer Agents and a Market-State Orchestrator."
   },
   "scoringRubric": {
     "dimensions": [
@@ -16,17 +16,17 @@
       { "id": "bottleneck", "label": "Bottleneck / supply constraint", "desc": "Is this the gating layer right now? lead times, queues." },
       { "id": "strategicRisk", "label": "Strategic risk", "desc": "Geopolitical / regulatory / capital-intensity / circular-financing exposure." }
     ],
-    "scale": "0-100 per dimension",
-    "rollup": "leaf scorecards -> layer health score -> composite AI Market State Index",
+    "scale": "five-word rating per dimension: Very strong | Strong | Mixed | Weak | Very weak, each with a direction (improving | steady | worsening) and a confidence (low | medium | high) — never an invented 0-100 score (Part 17)",
+    "rollup": "category ratings -> layer rating (by weakest link) -> one plain market status word (see layerFlags); no composite number on the cover, just the status + bottleneck + direction + reason (Part 17)",
     "layerFlags": ["Accelerating", "Healthy", "Constrained", "Frothy", "At-risk"]
   },
   "scorecardSchema": {
     "categoryId": "string",
     "asOf": "YYYY-MM",
-    "metrics": "object keyed by metric id -> { value, unit, trend, source }",
-    "dimensionScores": "object keyed by rubric dimension id -> 0-100",
+    "metrics": "object keyed by metric id -> { value, unit, trend, source } (measured facts, reported as-is)",
+    "dimensionRatings": "object keyed by rubric dimension id -> { rating: Very strong | Strong | Mixed | Weak | Very weak, direction: improving | steady | worsening, confidence: low | medium | high, findingIds: string[], rationale: string }",
     "narrative": "string (short, cited)",
-    "confidence": "0-1",
+    "confidence": "low | medium | high (with a basis)",
     "sources": "string[] (prefer primary: filings, official posts)"
   },
   "layers": [

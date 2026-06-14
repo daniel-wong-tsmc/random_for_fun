@@ -9,16 +9,16 @@
 
 Each layer of the AI stack is decomposed into MECE sub-categories. Every sub-category has:
 - a **constituent set** — the companies/technologies that live in it, and
-- an **evaluation rubric** — quantitative + qualitative metrics that let us score "how is this category doing."
+- an **evaluation rubric** — quantitative + qualitative metrics that let us rate "how is this category doing."
 
 **Software 3.0 framing (Karpathy):** 1.0 = code, 2.0 = neural-net weights, 3.0 =
-natural-language-programmed LLM agents. The end-state is **one research/scoring agent per leaf
+natural-language-programmed LLM agents. The end-state is **one research/rating agent per leaf
 category**, rolling up into layer-agents, rolling up into a market-state orchestrator.
 
 > **Overall market frame:** Global AI market ~**$602B (2026) → ~$3.64T (2033), ~29% CAGR**.
 > The thesis behind the cake: every layer must scale *together* — "the largest infrastructure
-> buildout in human history." So a market-state index should weight each layer's *bottleneck
-> severity*, not just its growth.
+> buildout in human history." So the market's status should be driven by the **worst bottleneck**
+> (the weakest link), not just headline growth.
 
 ---
 
@@ -45,9 +45,9 @@ from Findings is specified in `agent-swarm-charter.md`.)
 
 ---
 
-## The common scoring rubric (applies to every leaf category)
+## The common rating rubric (applies to every leaf category)
 
-Each category is scored on 6 reusable dimensions so layers are comparable:
+Each category is rated on 6 reusable dimensions so layers are comparable:
 
 1. **Momentum** — growth rate of the category's core quantity (revenue, GW, capacity, share).
 2. **Unit economics** — margin / cost-per-unit trajectory ($/MWh, $/token, $/GPU-hr, NRR).
@@ -56,8 +56,11 @@ Each category is scored on 6 reusable dimensions so layers are comparable:
 5. **Bottleneck / supply constraint** — is this the gating layer right now? (lead times, queues).
 6. **Strategic risk** — geopolitical / regulatory / capital-intensity / circular-financing exposure.
 
-Roll-up: leaf scores → **layer health score** → a composite **AI Market State Index**, with
-each layer flagged as *Accelerating / Healthy / Constrained / Frothy / At-risk*.
+Each dimension gets a plain **rating** (Very strong / Strong / Mixed / Weak / Very weak) with a
+direction and a confidence — not a 0–100 score (see charter Part 17). Roll-up: category ratings →
+**layer rating** (by weakest link) → one plain **AI market status** (*Accelerating / Healthy /
+Constrained / Frothy / At-risk*), reported with the bottleneck, the direction, and the one-line
+reason. No composite number on the cover.
 
 ---
 
@@ -177,7 +180,7 @@ conversion; valuation/ARR multiple; funding & valuation; **defensibility vs mode
 "wrapper risk"** *(qual)*; distribution advantage *(qual)*; workflow lock-in / switching cost *(qual)*;
 data network effects *(qual)*; regulatory exposure *(qual)*.
 
-> **App-layer reality check (the signal the index must capture):** this is the frothiest, least-durable
+> **App-layer reality check (the signal the market status must capture):** this is the frothiest, least-durable
 > layer. AI-native median **GRR ~40%** (vs ~63% for B2B SaaS); pricing tier predicts survival —
 > **sub-$50/mo ≈ 23% GRR vs $250+/mo ≈ 70%**. EV/Revenue multiples have compressed to **~12.5x** (from
 > 15–20x in 2024), and analysts forecast **~80% of AI app startups fail by 2027** on compute cost +
@@ -196,9 +199,9 @@ A three-tier agent swarm, programmed in natural language against the taxonomy ab
   Dell'Oro, Artificial Analysis, LMArena, funding trackers, energy/grid data), (2) run a scoped
   deep-research sweep for qualitative dimensions, (3) emit a **scorecard** (the 6-dimension rubric)
   as structured JSON + a short cited narrative + confidence.
-- **Layer Agent (5).** Aggregates its leaf scorecards → layer health score, flags the binding
-  bottleneck, writes the layer brief.
-- **Market-State Orchestrator (1).** Rolls the 5 layers into the **AI Market State Index**, detects
+- **Layer Agent (5).** Aggregates its leaf scorecards → a **layer rating** (by weakest link), flags the
+  binding bottleneck, writes the layer brief.
+- **Market-State Orchestrator (1).** Rolls the 5 layers into one plain **AI market status**, detects
   cross-layer tensions (e.g., chips ready but energy/grid gating), produces the top-level dashboard.
 
 **Data model:** `layers[] → categories[] → { constituents[], metrics{schema}, scorecard, sources[], asOf }`
@@ -216,7 +219,7 @@ Future passes, in order:
 1. Encode `taxonomy.json` as the machine-readable contract.
 2. Build the on-demand **Category Agent** (one reference agent end-to-end) + the scorecard schema.
 3. Fan out agents to all ~40 leaf categories; add the Layer + Orchestrator roll-ups.
-4. Dashboard to visualize the 5-layer cake + AI Market State Index.
+4. Dashboard to visualize the 5-layer cake + AI market status.
 5. GitHub Actions cron to keep state fresh.
 
 Sources for every seeded figure are in [`sources.md`](./sources.md).

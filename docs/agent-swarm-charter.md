@@ -182,16 +182,17 @@ Every kind requires `statement`, `why`, `impact`, `confidence`, `asOf`.
 
 | Org role | Tier | Mission | Consumes | Produces |
 |---|---|---|---|---|
-| **Desk analyst** | Category (×34) | Research & score one category | the web + its prior scorecard | a **scorecard** (a set of Findings + 6 dimension scores) |
+| **Desk analyst** | Category (×34) | Research & rate one category | the web + its prior scorecard | a **scorecard** (a set of Findings + 6 dimension ratings) |
 | **Sector lead** | Layer (×5) | Judge whether a layer is problematic and how it compares to before | its category scorecards + its own history | a **layer assessment** (Findings + a stance) |
 | **Head of research** | Main (×1) | Own the market thesis and track how it evolved | the 5 layer assessments + its own history | the **market state** (`market-state.json`) + executive brief |
 
 Every tier's output is **Findings all the way down** — so the doctrine (Part 1) holds at every level.
-A dimension score on a scorecard, a layer's "deteriorating" stance, the market index — each must cite
+A dimension rating on a scorecard, a layer's "deteriorating" stance, the market status — each must cite
 the Findings that justify it. No conclusion is allowed to float free of its evidence.
 
-**Scorecard** = `{ categoryId, findings[], dimensionScores{ momentum, unitEconomics, competitiveStructure, moat, bottleneck, strategicRisk }, narrative, confidence, asOf }`,
-where **each dimension score names the Finding IDs that drove it** plus a one-line rationale.
+**Scorecard** = `{ categoryId, findings[], dimensionRatings{ momentum, unitEconomics, competitiveStructure, moat, bottleneck, strategicRisk }, narrative, confidence, asOf }`,
+where each dimension is a **rating** (the five-word scale + direction + confidence, per Part 17) and
+**names the Finding IDs that drove it** plus a one-line rationale.
 
 ---
 
@@ -207,10 +208,10 @@ Each tier keeps two stores:
 
 Each cycle, a tier: ingests fresh inputs → pulls its history + notebook → **interrogates the change**
 (trend vs. blip, inflection vs. noise, *did my prior concern materialize?*) → forms a stance →
-updates the notebook. The output is temporal by construction: not "Index = 78" but "78, up from 74;
-the binding constraint has migrated from CoWoS to grid interconnection over two cycles; my Q1
-app-froth warning is now visible in retention data." Prior calls are revisited so confidence stays
-calibrated.
+updates the notebook. The output is temporal by construction: not a bare "Constrained" but "Constrained,
+and worse than last quarter; the bottleneck has migrated from CoWoS to grid interconnection over two
+cycles; my Q1 app-froth warning is now visible in retention data." Prior calls are revisited so confidence
+stays calibrated.
 
 ---
 
@@ -226,18 +227,19 @@ calibrated.
   `web_fetch`/code, MCP feeds, vaults; multi-step loop; an **Outcome rubric grader** that iterates
   until the doctrine is satisfied. Heaviest harness, because it faces the open web.
 - **Tiers 2 & 3 — Layer / Main (memory-backed analyst agents):** no web, no sandbox; a multi-step
-  **judgment loop** over the tier-below's Findings + their own memory. The numeric rollups/deltas
-  are computed deterministically in code and handed up as a **briefing book** — the agent
-  *interprets* it, it does not do the arithmetic.
+  **judgment loop** over the tier-below's Findings + their own memory. The **measured-metric** rollups
+  and deltas (real numbers and their change vs. prior — never invented scores) are computed
+  deterministically in code and handed up as a **briefing book** — the agent *interprets* it and forms
+  the ratings, it does not do the arithmetic.
 
 ---
 
 ## Part 6 — Data contracts (each inherits the doctrine)
 
 ```
-Category Agent ─► scorecard (findings[] + justified dimension scores) ─► Layer Agent
+Category Agent ─► scorecard (findings[] + justified dimension ratings) ─► Layer Agent
 Layer Agent    ─► layer assessment (findings[] + stance + vs-prior + prior-call check) ─► Main Agent
-Main Agent     ─► market-state.json (indices + alerts + enriched layers, each a Finding) ─► dashboard
+Main Agent     ─► market-state.json (market status + measured metrics + alerts + enriched layers, each a Finding) ─► dashboard
 ```
 
 The output schema is frozen at each boundary and is the next tier's only input. Because every node is
@@ -258,7 +260,7 @@ code; a failure means re-run, not commit):
 - [ ] Every Finding has provenance (`evidence`) **or**, if a hypothesis, `reasoning`.
 - [ ] Every hypothesis is labeled `kind: "hypothesis"` and capped at `confidence ≤ medium`.
 - [ ] Conflicting sources are surfaced as `dispersion`, not silently resolved.
-- [ ] Every dimension score / stance / index names the Finding IDs that justify it.
+- [ ] Every dimension rating / stance / market status names the Finding IDs that justify it.
 - [ ] No Finding cites the dashboard's own prior output as a source (no self-reference).
 
 ---
@@ -274,7 +276,7 @@ code; a failure means re-run, not commit):
 - **Vintage honesty** — keep `asOf` per Finding; never blend mismatched dates into one conclusion.
 - **Accountability** — revisit prior calls each cycle; track whether confidence has been calibrated.
 - **Human-in-the-loop on high-stakes flags** — a market-moving alert ("demand decelerating") is
-  confirmed before it flips the headline index.
+  confirmed before it flips the headline status.
 
 ---
 
@@ -445,7 +447,7 @@ operationalizes Part 10 (the Recommendation record + the signal/noise triage) in
 8. **Anti-whipsaw check.** Compare to the prior recommendation; if this reverses it, the new signal
    must clear the same persistence/corroboration bar — else hold and note the tension.
 9. **Emit Recommendation record(s)** (Part 10 schema), **showing the filter** (signals acted on vs.
-   noise discarded). Prioritize by materiality × confidence.
+   noise discarded). Prioritize by how much it matters and how sure we are (Part 17).
 10. **Gate.** Flag market-moving calls for human confirmation before they change the headline.
 
 **Output:** one or more ranked Recommendation records (Part 10 schema).

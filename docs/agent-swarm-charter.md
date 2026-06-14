@@ -48,6 +48,9 @@ guess as a guess.
 **Method & voice** — *how judgments are rated and written*
 - Part 17 — How we rate things (without making up numbers)
 
+**Build & scale** — *how the system stays modular, fixable, and free to explore*
+- Part 18 — Modular agents: assignments, registries, and room to explore
+
 > A companion visual of the swarm — agents, the data-access tools each needs, each agent's unique
 > abilities, and the universal guidelines — lives at [`app/architecture.html`](../app/architecture.html).
 
@@ -720,6 +723,130 @@ Everything the platform shows a person must be readable by a smart person who do
 genuinely technical and unavoidable (CoWoS, inference, gigawatt) — those are fine, and we explain them
 once. But we don't hide behind jargon, and we don't use a long word where a short one works. A rating
 no one understands is worth nothing, no matter how right it is.
+
+---
+
+## Part 18 — Modular agents: assignments, registries, and room to explore
+
+We do **not** hand-build 34 different agents. We build **one template per tier** and point each copy at
+a different **assignment** — a small config that says what to focus on. Adding coverage, or re-pointing
+an agent at exactly the companies / metrics / topic you care about, is then a config change, not a code
+change. This is what keeps the system scalable (coverage grows by adding data) and easy to fix (a bug
+fixed in the template is fixed everywhere at once).
+
+### What's fixed vs. what plugs in
+
+The single most important rule for a system that lasts: keep a **small, sacred contract** that never
+changes lightly, and let everything else plug into it.
+
+- **Fixed contract — never overridable by an assignment:** the 6 rating dimensions, the Finding schema,
+  the rating scale, and the rollup rules (all Part 17). This is what keeps every agent's output
+  comparable. If this were pluggable, nothing could be compared to anything.
+- **Pluggable scope — the "pick and pull" layer:** which companies, which metrics, which topic lens,
+  which sources, how much budget, how deep. This is where all the flexibility lives.
+
+### Define each thing once — three registries
+
+Nothing is defined twice. Metrics, companies, and structure each live in **one** place, and everything
+else refers to them **by id**. Define-once-refer-by-id is the biggest "easy to fix" lever there is: fix
+a definition in one place and every agent using it is fixed, with no drift.
+
+- **Entity registry** — *who*. Each company once, with the categories it shows up in and which one
+  "owns" it for the rollup (so a company in two categories is still **counted once**):
+  ```json
+  { "id": "nvidia", "name": "NVIDIA", "aliases": ["NVDA"],
+    "appearsIn": ["chips.merchant-gpu", "chips.networking-silicon"],
+    "primaryCategory": "chips.merchant-gpu" }
+  ```
+- **Metric registry** — *what to measure*. Each metric once, with a real definition so two agents can't
+  quietly mean different things by the same word:
+  ```json
+  { "id": "cowos-wafers-per-month", "label": "CoWoS wafers per month", "kind": "measured",
+    "unit": "wafers/month", "definition": "Advanced-packaging output, wafers started per month.",
+    "comparability": "capacity, not utilization — don't compare to units shipped",
+    "defaultSourceHint": ["TSMC filings", "trade press"] }
+  ```
+- **Taxonomy** (`taxonomy.json`, Part 16) — the *structure*: layers, categories, and each category's
+  **default assignment**. It refers to entities and metrics by id.
+
+### The assignment — the "pick and pull" object
+
+An agent run is a **template + an assignment**. A standing category agent is just an assignment whose
+scope is the taxonomy default; a one-off question is an assignment with a custom scope.
+
+```json
+{ "id": "asg.chips.merchant-gpu", "template": "category",
+  "mode": "canonical | adhoc",
+  "scope": { "entities": ["nvidia", "amd"], "metrics": ["market-share-pct"],
+             "topicLens": null, "sources": null },
+  "explore": { "enabled": true, "budgetShare": 0.2 },
+  "budget": { "maxFetches": 40 }, "depth": "standard | deep",
+  "version": "1.3", "asOf": "2026-06" }
+```
+
+### Two run modes — keep the trusted core separate from experiments
+
+- **Canonical** — taxonomy-driven, non-overlapping, comparable. **The only thing that feeds the official
+  market status.**
+- **Ad-hoc** — your custom assignments (a hand-picked company set, a cross-cutting topic). These produce
+  **views and answers**, never edits to the official state.
+
+This split is what lets you point an agent at anything you like without ever corrupting the one number
+leadership trusts. (The interactive desk-on-demand in Part 14 is exactly an ad-hoc assignment.)
+
+### Room to explore — the discovery lane
+
+A good analyst has a coverage list **and** is expected to notice the thing that's off-list. So agents
+get a fenced amount of freedom to look beyond their defined scope:
+
+- **A budgeted mandate.** Every assignment carries an `explore` allowance — a slice of each run spent on
+  "what am I missing?" It's a dial: turn it up for more freedom, down for more focus.
+- **Provisional outputs.** An agent may surface a company, metric, or theme that isn't in the registries
+  yet. It defines it inline and tags it **provisional** — but it still obeys the doctrine (say what it is,
+  why it matters, cite evidence). A candidate, not a rumour.
+- **Provisional never feeds canonical.** Discovered items show on the dashboard flagged
+  *"provisional — not yet in coverage,"* confidence-capped, and stay out of the official status until
+  promoted. Freedom around the edges; a clean core in the middle.
+- **A promotion pipeline** (this generalises Part 16 from "new categories" to entities, metrics, and
+  themes too): provisional → if it **persists and is corroborated** across cycles (the Part 10 signal
+  test) → proposed as a registry entry → reviewed → promoted to **registered**. Pruning is the reverse.
+
+**Governance proportional to blast radius** — and, for the initial build, deliberately **loose**:
+
+| What's being added | Blast radius | Gate (initial build) |
+|---|---|---|
+| A new **category** (restructures the tree) | large | **human approval, before it lands** (Part 16) |
+| A new **metric** or **entity** | small, reversible | **auto-propose into a review queue**, cleared by a human *after the fact* |
+
+Starting loose — a generous `explore` budget and auto-proposed metrics/entities — gets us coverage and
+learning fast; the quarantine (provisional never touches canonical) is what makes that safe. We can
+tighten the dials later without changing the architecture.
+
+### The principles this commits us to (binding)
+
+These are the rules that keep the system scalable and fixable for years. Each earns its place by a
+concrete payoff:
+
+1. **One small contract; everything else plugs in.** → Adding coverage is a data edit, not a deploy.
+2. **Define each thing once; refer to it by id.** → Fix it in one place, it's fixed everywhere.
+3. **One template, many instances.** → A bug fixed in the template is fixed for all copies.
+4. **Version everything, and stamp it on every output.** → Change safely, roll back, reproduce any past
+   result; old data stays readable.
+5. **Freeze the seams between tiers** (the Finding schema). → Rework one tier without breaking the others.
+6. **Keep the trusted core separate from experiments** (canonical vs. ad-hoc; registered vs. provisional).
+   → Explore freely; never corrupt the official state.
+7. **Make every part swappable behind an interface** (sources behind the metric registry, storage behind
+   the query tool, the model behind the template). → Swap a data provider or the database without touching
+   an agent.
+8. **Bend, don't break** (missing ability → flagged *under-supported* + confidence-capped; failed fetch →
+   last-known-good). → One broken piece degrades gracefully instead of failing the whole cycle.
+
+### The discipline that keeps freedom from sprawling
+
+Flexibility is where systems rot, so three rules are non-negotiable: the **fixed contract stays small
+and sacred**; **every reference goes through a registry** (the one carve-out: a *provisional* item may be
+defined inline, but it can never feed canonical until promoted); and **ad-hoc and provisional work never
+writes the canonical state**. Hold those three and "endlessly flexible" never becomes "endlessly broken."
 
 ---
 

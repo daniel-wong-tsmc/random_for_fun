@@ -29,6 +29,31 @@
     "confidence": "low | medium | high (with a basis)",
     "sources": "string[] (prefer primary: filings, official posts)"
   },
+  "modularity": {
+    "note": "Part 18: agents are one template + an assignment. The schemas below are the durable contract; the registries are seeded thin and swarm-maintained (Part 16). Registered items are referenced by id; a provisional item may be defined inline by an agent but never feeds canonical state until promoted.",
+    "assignmentSchema": {
+      "id": "string",
+      "template": "category | layer | main",
+      "mode": "canonical (taxonomy-driven, MECE, feeds official status) | adhoc (custom scope, views/answers only)",
+      "scope": "{ entities: entityId[], metrics: metricId[], topicLens: string|null, sources: string[]|null }",
+      "explore": "{ enabled: bool, budgetShare: 0..1 } (room to look beyond scope and surface provisional items)",
+      "budget": "{ maxFetches: int, ... }",
+      "depth": "standard | deep",
+      "version": "string",
+      "asOf": "YYYY-MM"
+    },
+    "entitySchema": { "id": "string", "name": "string", "aliases": "string[]", "appearsIn": "categoryId[]", "primaryCategory": "categoryId (owns it for rollup so it is counted once)" },
+    "metricSchema": { "id": "string", "label": "string", "kind": "measured | qualitative", "unit": "string", "definition": "string", "comparability": "string (what it is/isn't comparable to)", "defaultSourceHint": "string[]" },
+    "promotion": "provisional -> persists & corroborated (Part 10 signal test) -> proposed -> reviewed -> registered (prune is the reverse). Initial build = LOOSE: new category needs human approval before landing (Part 16); new metric/entity auto-proposes into a review queue cleared after the fact.",
+    "seedEntities": [
+      { "id": "nvidia", "name": "NVIDIA", "aliases": ["NVDA"], "appearsIn": ["chips.merchant-gpu", "chips.networking-silicon"], "primaryCategory": "chips.merchant-gpu" },
+      { "id": "tsmc", "name": "TSMC", "aliases": ["Taiwan Semiconductor"], "appearsIn": ["chips.foundry-packaging"], "primaryCategory": "chips.foundry-packaging" }
+    ],
+    "seedMetrics": [
+      { "id": "cowos-wafers-per-month", "label": "CoWoS wafers per month", "kind": "measured", "unit": "wafers/month", "definition": "Advanced-packaging (CoWoS) output, wafers started per month.", "comparability": "capacity, not utilization; don't compare to units shipped", "defaultSourceHint": ["TSMC filings", "trade press"] },
+      { "id": "market-share-pct", "label": "Market share", "kind": "measured", "unit": "% of segment revenue", "definition": "A constituent's share of its category's revenue in a stated period.", "comparability": "revenue share; state the segment and period; not unit share", "defaultSourceHint": ["filings", "TrendForce", "IDC"] }
+    ]
+  },
   "layers": [
     {
       "id": "energy",

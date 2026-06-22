@@ -1,0 +1,7 @@
+{
+  "id": "asg.chips.merchant-gpu", "template": "category", "mode": "canonical",
+  "entities": ["nvidia", "amd", "intel"],
+  "metrics": ["D2", "D6", "S9", "S10", "market-share-pct", "perfPerWatt", "flopsPerDollar", "grossMargin"],
+  "weights": {"D2": 0.10, "D6": 0.12, "S9": 0.04, "S10": 0.08},
+  "version": "1.0", "asOf": "2026-06"
+}

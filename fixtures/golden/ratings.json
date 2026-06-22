@@ -1,0 +1,8 @@
+{
+  "momentum": {"rating": "Strong", "direction": "worsening", "confidence": {"level": "high", "basis": "D2 slope"}, "findingIds": ["f-nvda-d2"], "rationale": "growing but flattening"},
+  "competitiveStructure": {"rating": "Mixed", "direction": "worsening", "confidence": {"level": "medium", "basis": "share erosion"}, "findingIds": ["f-amd-s9"], "rationale": "share eroding to ~75%"},
+  "moat": {"rating": "Strong", "direction": "steady", "confidence": {"level": "high", "basis": "CUDA"}, "findingIds": ["f-nvda-moat"], "rationale": "CUDA intact"},
+  "bottleneck": {"rating": "Strong", "direction": "steady", "confidence": {"level": "medium", "basis": "upstream packaging"}, "findingIds": ["f-amd-s9"], "rationale": "gated upstream by CoWoS"},
+  "strategicRisk": {"rating": "Mixed", "direction": "worsening", "confidence": {"level": "medium", "basis": "substitution"}, "findingIds": ["f-amd-s9", "f-intc-s10"], "rationale": "substitution + inventory"},
+  "unitEconomics": {"rating": "Very strong", "direction": "steady", "confidence": {"level": "high", "basis": "margins"}, "findingIds": ["f-nvda-d2"], "rationale": "~70%+ gross margin"}
+}

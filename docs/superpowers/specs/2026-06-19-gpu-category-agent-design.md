@@ -203,9 +203,25 @@ re-invent the schema/scoring and conflict on merge.
 
 - **Python 3.11+**, **Pydantic** (schema + validation), **pytest** (TDD).
 - **Append-only JSON files** as the canonical-store stub (git-friendly, diffable; SQLite deferred).
-- **Claude API** for the extraction + judgment modules, with schema-constrained JSON output. Model
-  tier (cheap relevance filter vs. stronger extraction/judgment) is chosen **when those modules are
-  built**, via the `claude-api` skill — the core MVP needs no API key.
+- **LLM access goes through an `LLMClient` port** — the extraction + judgment modules depend on the
+  port, never on an SDK directly (charter Part 18 #7: model swappable behind an interface). Two
+  interchangeable backends:
+  - **`ClaudeCodeClient` (default — runs via Claude Code):** drives Claude through the Claude Agent
+    SDK (`claude-agent-sdk`) / headless `claude`, authenticated with a **subscription token**
+    (`CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token`) so calls bill against the **Claude Code
+    subscription credit pool**, not a metered key.
+  - **`AnthropicAPIClient` (alternate):** the `anthropic` SDK + `ANTHROPIC_API_KEY`, for
+    high-volume/production where the subscription credit pool is too small.
+  Both wrap the **same validate-and-retry loop** (§9): the Claude Code path lacks the raw API's
+  strict `output_config.format` enforcement, so instruct-JSON + Pydantic-validate + retry is
+  load-bearing there. Model tiering (Haiku filter / Sonnet or Opus extraction / Opus judgment) is set
+  when those modules are built.
+- **The deterministic core (this plan) needs no LLM and no credential of any kind.** The Claude Code /
+  subscription-token wiring lives entirely in the follow-on adapter plan.
+- **Prerequisite for the adapter phase (not the core):** `pip install claude-agent-sdk` and a Claude
+  Code CLI authenticated on the host (interactive login, or `CLAUDE_CODE_OAUTH_TOKEN` for
+  unattended/scheduled runs). Ensure `ANTHROPIC_API_KEY` is **unset** when using the subscription
+  backend — it overrides the subscription token.
 
 ---
 

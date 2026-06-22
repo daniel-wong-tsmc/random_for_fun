@@ -53,3 +53,9 @@ def check_scorecard(sc: Scorecard) -> list[str]:
             if e.source == "AI Market State dashboard" or "market-state.json" in e.url:
                 errors.append(f"{f.id}: evidence self-references the dashboard output")
     return errors
+
+
+class GateError(Exception):
+    def __init__(self, violations: list[str]):
+        self.violations = violations
+        super().__init__("; ".join(violations))

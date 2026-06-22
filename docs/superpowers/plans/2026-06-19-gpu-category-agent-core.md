@@ -560,7 +560,7 @@ git commit -m "feat: add scorecard gate (citations, anchor-consistency, self-ref
 
 **Interfaces:**
 - Consumes: `gpu_agent.schema.scorecard` (`Scorecard`).
-- Produces: `gpu_agent.store.JsonStore(root: pathlib.Path)` with `append(sc: Scorecard) -> pathlib.Path` (writes `<root>/<categoryId>/<asOf>-v<N>.json`, N = next integer, never overwriting) and `versions(category_id: str, as_of: str) -> list[pathlib.Path]` (sorted).
+- Produces: `gpu_agent.store.Store` — a `typing.Protocol` with `append(sc: Scorecard) -> pathlib.Path` and `versions(category_id: str, as_of: str) -> list[pathlib.Path]` (the seam that lets JSON be swapped for SQLite later, spec §13.2) — plus `gpu_agent.store.JsonStore(root: pathlib.Path)`, which implements it (writes `<root>/<categoryId>/<asOf>-v<N>.json`, N = next integer, never overwriting; `versions` returns the sorted list).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -596,7 +596,13 @@ Create `gpu_agent/store.py`:
 ```python
 from __future__ import annotations
 import pathlib
+from typing import Protocol
 from gpu_agent.schema.scorecard import Scorecard
+
+class Store(Protocol):
+    """Pluggable persistence seam (spec §13.2) — swap JsonStore for SQLite later."""
+    def append(self, sc: Scorecard) -> pathlib.Path: ...
+    def versions(self, category_id: str, as_of: str) -> list[pathlib.Path]: ...
 
 class JsonStore:
     def __init__(self, root: pathlib.Path):
@@ -717,7 +723,7 @@ git commit -m "feat: add assignment loader + merchant-gpu assignment fixture"
 
 **Interfaces:**
 - Consumes: `assignment.Assignment`, `scoring.dmi_smi_contribution`, `gate.check_scorecard`, `schema.scorecard.Scorecard`, `store.JsonStore`.
-- Produces: `gpu_agent.pipeline.build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating], anchors: dict[str, float], assignment: Assignment, narrative: str, confidence: Confidence) -> Scorecard` — computes DMI/SMI via `dmi_smi_contribution(findings, assignment.weights)`, assembles the Scorecard, runs `check_scorecard`, and raises `GateError` (new, in `gate.py`) listing violations if any. `gpu_agent.cli.main(argv) -> int`.
+- Produces: `gpu_agent.pipeline.build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating], anchors: dict[str, float], assignment: Assignment, narrative: str, confidence: Confidence) -> Scorecard` — computes DMI/SMI via `dmi_smi_contribution(findings, assignment.weights)`, assembles the Scorecard, runs `check_scorecard`, and raises `GateError` (new, in `gate.py`) listing violations if any. `gpu_agent.cli.main(argv) -> int` — an **argparse subcommand** CLI: `run` (build scorecard → write to the store) and `score` (build → print DMI/SMI, no write), demonstrating "run any process independently" (spec §13.5). The `ingest`/`extract`/`judge` subcommands register later in the adapter plan.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -811,26 +817,37 @@ from gpu_agent.pipeline import build_scorecard
 from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore
 
-def main(argv=None) -> int:
-    p = argparse.ArgumentParser(prog="gpu-agent")
-    p.add_argument("--assignment", required=True)
-    p.add_argument("--fixtures", required=True, help="dir with findings.json, ratings.json, anchors.json")
-    p.add_argument("--out", default="store")
-    args = p.parse_args(argv)
+def _build(args):
     a = load_assignment(args.assignment)
     fx = pathlib.Path(args.fixtures)
     findings = [Finding.model_validate(d) for d in json.loads((fx / "findings.json").read_text("utf-8"))]
     ratings = {k: DimensionRating.model_validate(v)
                for k, v in json.loads((fx / "ratings.json").read_text("utf-8")).items()}
     anchors = json.loads((fx / "anchors.json").read_text("utf-8"))
+    return build_scorecard(findings, ratings, anchors, a, "MVP scorecard.",
+                           Confidence(level="medium", basis="fixture run"))
+
+def main(argv=None) -> int:
+    p = argparse.ArgumentParser(prog="gpu-agent")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    for name in ("run", "score"):           # ingest/extract/judge register in the adapter plan (spec §13.5)
+        sp = sub.add_parser(name)
+        sp.add_argument("--assignment", required=True)
+        sp.add_argument("--fixtures", required=True, help="dir with findings.json, ratings.json, anchors.json")
+        if name == "run":
+            sp.add_argument("--out", default="store")
+    args = p.parse_args(argv)
     try:
-        sc = build_scorecard(findings, ratings, anchors, a, "MVP scorecard.",
-                             Confidence(level="medium", basis="fixture run"))
+        sc = _build(args)
     except GateError as e:
         print("GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
         return 1
+    summary = f"DMI={sc.demandSupply.dmiContribution:.3f} SMI={sc.demandSupply.smiContribution:.3f}"
+    if args.cmd == "score":                 # run a process in isolation: compute, print, don't persist
+        print(summary)
+        return 0
     path = JsonStore(pathlib.Path(args.out)).append(sc)
-    print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} SMI={sc.demandSupply.smiContribution:.3f}")
+    print(f"wrote {path}  {summary}")
     return 0
 
 if __name__ == "__main__":
@@ -872,7 +889,7 @@ import json, pathlib
 from gpu_agent.cli import main
 
 def test_cli_produces_golden_scorecard(tmp_path):
-    rc = main(["--assignment", "fixtures/asg.chips.merchant-gpu.json",
+    rc = main(["run", "--assignment", "fixtures/asg.chips.merchant-gpu.json",
                "--fixtures", "fixtures/golden", "--out", str(tmp_path)])
     assert rc == 0
     written = sorted((tmp_path / "chips.merchant-gpu").glob("*.json"))[0]
@@ -968,8 +985,10 @@ Expected: PASS (1 passed). If the float mismatches, reconcile `scorecard.json` t
 
 Run: `.venv/Scripts/python -m pytest -v`
 Expected: all tests pass (Tasks 1–9).
-Run: `.venv/Scripts/python -m gpu_agent.cli --assignment fixtures/asg.chips.merchant-gpu.json --fixtures fixtures/golden --out store`
+Run: `.venv/Scripts/python -m gpu_agent.cli run --assignment fixtures/asg.chips.merchant-gpu.json --fixtures fixtures/golden --out store`
 Expected: prints `wrote store/chips.merchant-gpu/2026-06-v1.json  DMI=0.040 SMI=0.053`.
+Run (score-only, no write): `.venv/Scripts/python -m gpu_agent.cli score --assignment fixtures/asg.chips.merchant-gpu.json --fixtures fixtures/golden`
+Expected: prints `DMI=0.040 SMI=0.053`.
 
 - [ ] **Step 6: Commit**
 

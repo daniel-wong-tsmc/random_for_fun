@@ -225,11 +225,11 @@ re-invent the schema/scoring and conflict on merge.
 
 ---
 
-## 11. Charter changes required (tracked follow-up — must land before code merges)
+## 11. Charter changes required — ✅ DONE (reconciled into the charter)
 
 The design uses concepts that **extend** the charter; these additive edits (charter Part 33: additive,
-version-bumped, old data still readable) are tracked as **Task #9** and must land before the GPU code
-merges, so the charter stays the single source of truth:
+version-bumped, old data still readable) have now **landed in `docs/agent-swarm-charter.md`** (Finding
+schema v1.1), so the charter is the single source of truth before any code is written:
 
 1. **Part 2 (Finding):** add `polarityDemand`, `polaritySupply`, `side`, `magnitude`, and the
    `observedAt`/`capturedAt` split. Bump the Finding `schemaVersion`.

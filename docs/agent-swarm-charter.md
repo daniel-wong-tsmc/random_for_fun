@@ -132,7 +132,18 @@ Scorecards, layer assessments, and the market state are all just **collections o
   "reasoning": "REQUIRED for hypothesis: the inference chain (evidence is indirect, so explain it)",
   "confidence": { "level": "low | medium | high", "basis": "why this level" },
   "dispersion": "if sources conflict: the range + a note; else null",
-  "asOf": "YYYY-MM"
+  "asOf": "YYYY-MM",
+
+  // ── demand/supply early-warning extension (schema v1.1; additive — Part 33) ──
+  "indicatorId": "registered metric id (e.g. D1…X5 or a metric-registry id)",  // Part 18 registry
+  "side": "demand | supply | price | structural",   // which momentum track this feeds
+  "polarityDemand": "-1 | 0 | 1",   // effect on Demand Momentum (DMI)
+  "polaritySupply": "-1 | 0 | 1",   // effect on Supply Momentum (SMI); a Finding may move BOTH
+  "magnitude": "1 | 2 | 3",         // slight | significant | severe
+  "entity": "registry entity id (Part 21), e.g. nvidia",
+  "observedAt": "YYYY-MM (when the fact occurred)",
+  "capturedAt": "ISO-8601 (when WE ingested it — look-ahead-free backtest, Part 24)",
+  "schemaVersion": "1.1"
 }
 ```
 
@@ -145,6 +156,26 @@ Scorecards, layer assessments, and the market state are all just **collections o
 | **hypothesis** (inferred / predicted) | `null` | optional (supporting/indirect) | **required** | medium |
 
 Every kind requires `statement`, `why`, `impact`, `confidence`, `asOf`.
+
+### Demand/supply extension (schema v1.1 — additive, Part 33)
+
+A Finding also carries a **demand/supply read**, so the same evidence base can be rolled up into a
+demand track and a supply track (Part 17). These fields are **additive**: a v1.0 Finding stays valid
+and reads as "untagged"; canonical Findings written under v1.1 set them.
+
+- **`side`** — `demand | supply | price | structural`: which track the Finding primarily feeds.
+- **`polarityDemand` / `polaritySupply`** — each `-1 | 0 | 1`: the direction the Finding pushes each
+  momentum track. **Dual-polarity is deliberate** — one observation can move both at once (e.g. *HBM
+  price +435%* is supply tightness **and** downstream cost pressure), so the two are recorded
+  separately. At least one must be non-zero.
+- **`magnitude`** — `1 | 2 | 3` (slight / significant / severe).
+- **`observedAt` vs `capturedAt`** — when the fact *occurred* vs. when we *ingested* it. Backtests
+  (Part 24) replay on `capturedAt` so the past cannot see the future (no look-ahead bias).
+- **`indicatorId` / `entity`** — references into the metric and entity registries (Parts 18, 21),
+  counted once per entity at roll-up.
+
+Findings tagged `side: price | structural` are confirmation / overlay signals and do **not** feed
+DMI/SMI directly (Part 17).
 
 ### Worked examples (these encode the doctrine)
 
@@ -272,6 +303,11 @@ The output schema is frozen at each boundary and is the next tier's only input. 
 a Finding, the dashboard can, for any number on screen, surface its **why / impact / source /
 confidence** on demand — the explainability travels with the data.
 
+Because each Finding now carries a demand/supply polarity (Part 2 v1.1), the code-computed rollups
+handed up at each boundary include the **demand (DMI) and supply (SMI) momentum tracks** and their gap
+(**SDGI**), alongside the single-track measured rollups — so "which side of the market is moving"
+travels up the contract too (Part 17).
+
 ---
 
 ## Part 7 — The pre-commit explainability gate
@@ -288,6 +324,11 @@ code; a failure means re-run, not commit):
 - [ ] Conflicting sources are surfaced as `dispersion`, not silently resolved.
 - [ ] Every dimension rating / stance / market status names the Finding IDs that justify it.
 - [ ] No Finding cites the dashboard's own prior output as a source (no self-reference).
+- [ ] Every canonical Finding declares its **demand/supply polarity** — `side` set, with at least one
+      of `polarityDemand` / `polaritySupply` non-zero (schema v1.1; affects neither track ⇒ rejected).
+- [ ] No dimension rating **contradicts its cited measured anchor** — e.g. a "Very strong" rating
+      against a deeply negative z-score is rejected. Code does not *set* the rating; it *bounds* it
+      (the bias guardrail — grounds judgment in the data without averaging it, Part 17).
 
 ---
 
@@ -706,6 +747,25 @@ and push back on it. Nobody can push back on "65."
 Alongside that one word we always say three things: **which part is the bottleneck right now**,
 **which way it's heading**, and **the one-line reason.** There is no single made-up number on the
 cover page — the status word, the bottleneck, and the reason *are* the headline.
+
+### The demand/supply view (a dual-track companion to the weakest link)
+
+The weakest-link rating answers *"is this layer in trouble?"* — but not *which side* of the market the
+trouble is on. A **shortage forming** (supply can't keep up) and a **reversal forming** (demand rolling
+over) can look the same on a single scale yet call for opposite responses. So alongside the rating we
+compute, from the same Findings' demand/supply polarity (Part 2 v1.1), two plain momentum tracks and
+their gap:
+
+- **Demand Momentum (DMI)** — the weighted push of the demand-tagged Findings.
+- **Supply Momentum (SMI)** — the weighted push of the supply-tagged Findings.
+- **Supply-Demand Gap (SDGI) = DMI − SMI** — positive = demand outrunning supply (shortage forming);
+  negative = supply outrunning demand (glut forming); near zero = balanced. Watch the gap's *momentum*,
+  not just its level — the level often still looks healthy after the direction has already turned.
+
+These are **measured rollups computed in code** (Part 5), aggregating the real polarity and magnitude
+of sourced Findings — **not invented scores.** They sit *beside* the weakest-link headline and never
+replace it: the layer rating still says *how bad*, the SDGI says *which side, and which direction.*
+Price- and structural-family Findings stay out of DMI/SMI and act as a confirmation / overlay layer.
 
 ### How we decide what TSMC should do
 

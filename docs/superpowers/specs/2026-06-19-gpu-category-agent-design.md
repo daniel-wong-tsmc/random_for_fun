@@ -248,3 +248,60 @@ ratings-are-judgments (Part 17); self-consistency sampling (Part 24); vintage/lo
 
 None blocking. Model-tier selection for the LLM modules is intentionally deferred to build time
 (§10). The charter reconciliation (§11) is sequenced as a tracked follow-up per the chosen plan.
+
+---
+
+## 13. Modularity & extensibility contract
+
+Two things must stay effortless: **adding a tool/source** and **running any process in isolation**.
+Each gets a dedicated seam, and neither ever requires editing the core (charter Part 18 #1: one small
+sacred contract, everything else plugs in).
+
+### 13.1 The small frozen contract (rarely changes)
+The Finding/Scorecard schema, the gate rules, the six dimensions, and the rollup. Everything else is
+pluggable. If this were pluggable, nothing could be compared to anything (Part 18).
+
+### 13.2 Ports — everything pluggable sits behind a `typing.Protocol`
+A new implementation drops in without touching callers (Part 18 #7, swappable behind an interface):
+
+| Port | Method(s) | "Add a …" |
+|---|---|---|
+| `Connector` | `id`, `fetch(scope) -> list[RawDocument]` | new data source = new class + registry entry |
+| `LLMClient` | `complete_json(prompt, system, schema, model) -> BaseModel` | new backend (Claude Code / API) — §10 |
+| `Store` | `append`, `versions`, `get` | swap JSON → SQLite with no caller change |
+
+**Agent tools** (the live-web research loop) are not Python classes — they're declared **per-assignment**
+as `allowed_tools` (`WebSearch`, `WebFetch`, `Bash`, or a named MCP server). Adding a web capability is
+one line in an assignment file, not code.
+
+### 13.3 Registries — define once, refer by id
+Metrics (indicators D1…X5), entities (NVIDIA/AMD/Intel…), connectors, and sources each live in **one**
+place; everything else references them by id. Adding an indicator, entity, or source is a **data edit**,
+not a code change (charter Part 18 registries).
+
+### 13.4 Assignment-driven runs
+An agent run is `template + assignment`. The assignment is config — entities, metrics, sources,
+`allowed_tools`, budget, depth. New coverage (another category, a custom company set) is a **new
+assignment file**, never a new agent class (charter Part 16).
+
+### 13.5 Each process runs independently (CLI subcommands over the shared store)
+Every stage reads and writes the append-only store, so any stage runs alone, re-runs idempotently, and
+exposes its intermediate artifact for inspection:
+
+```
+gpu-agent ingest   --assignment X   # connectors → RawDocuments
+gpu-agent extract  --assignment X   # RawDocuments → Findings (gated)
+gpu-agent score    --assignment X   # Findings → briefing book + DMI/SMI
+gpu-agent judge    --assignment X   # ratings + narrative
+gpu-agent run      --assignment X   # the whole pipeline end-to-end
+```
+
+### 13.6 Plan impact (small, still TDD)
+- **Task 6 (store):** define a `Store` Protocol; `JsonStore` implements it.
+- **Task 8 (CLI):** build it as **argparse subcommands** (`run` now; `score` reads fixtures);
+  `ingest`/`extract`/`judge` register in the follow-on adapter plan.
+- **New (adapter plan):** the `Connector` protocol + a thin connector registry.
+- The deterministic core (schema/gate/scoring/store) is untouched — it stays the frozen contract.
+
+> **YAGNI guard:** we build only the connectors/tools we actually need now. The registries + ports exist
+> so adding the *next* one is trivial — not so we pre-build every source up front.

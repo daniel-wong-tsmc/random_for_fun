@@ -11,6 +11,7 @@ from gpu_agent.llm.factory import make_client
 from gpu_agent.pipeline import build_scorecard
 from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore
+from gpu_agent.judgment.judge import judge_findings
 
 def _build(args):
     a = load_assignment(args.assignment)
@@ -19,8 +20,13 @@ def _build(args):
     ratings = {k: DimensionRating.model_validate(v)
                for k, v in json.loads((fx / "ratings.json").read_text("utf-8")).items()}
     anchors = json.loads((fx / "anchors.json").read_text("utf-8"))
-    return build_scorecard(findings, ratings, anchors, a, "MVP scorecard.",
-                           Confidence(level="medium", basis="fixture run"))
+    narrative, confidence = "MVP scorecard.", Confidence(level="medium", basis="fixture run")
+    npath = fx / "narrative.json"
+    if npath.exists():
+        nd = json.loads(npath.read_text("utf-8"))
+        narrative = nd["narrative"]
+        confidence = Confidence.model_validate(nd["confidence"])
+    return build_scorecard(findings, ratings, anchors, a, narrative, confidence)
 
 def _extract(args) -> int:
     docs = [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -46,6 +52,25 @@ def _extract(args) -> int:
         print(f"DROPPED {d.id}: {'; '.join(d.violations)}", file=sys.stderr)
     return 0
 
+def _judge(args) -> int:
+    findings = [Finding.model_validate(d)
+                for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    if args.recorded:
+        client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
+    else:
+        client = make_client(args.backend)
+    bundle = judge_findings(findings, client, samples=args.samples, model=args.model)
+    out = pathlib.Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "ratings.json").write_text(
+        json.dumps({k: v.model_dump() for k, v in bundle.ratings.items()}, indent=2), "utf-8")
+    (out / "anchors.json").write_text(json.dumps(bundle.anchors, indent=2), "utf-8")
+    (out / "narrative.json").write_text(
+        json.dumps({"narrative": bundle.narrative, "confidence": bundle.confidence.model_dump()},
+                   indent=2), "utf-8")
+    print(f"judged {len(bundle.ratings)} dimensions -> {out}")
+    return 0
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -63,9 +88,18 @@ def main(argv=None) -> int:
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
     ex.add_argument("--backend", default="claude_code")
     ex.add_argument("--recorded", default=None, help="JSON array of recorded responses (offline)")
+    jg = sub.add_parser("judge")
+    jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
+    jg.add_argument("--out", required=True, help="dir for ratings/anchors/narrative.json")
+    jg.add_argument("--samples", type=int, default=3)
+    jg.add_argument("--model", default="claude-opus-4-8")
+    jg.add_argument("--backend", default="claude_code")
+    jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     args = p.parse_args(argv)
     if args.cmd == "extract":
         return _extract(args)
+    if args.cmd == "judge":
+        return _judge(args)
     try:
         sc = _build(args)
     except GateError as e:

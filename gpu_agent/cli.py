@@ -71,6 +71,30 @@ def _judge(args) -> int:
     print(f"judged {len(bundle.ratings)} dimensions -> {out}")
     return 0
 
+def _pipeline(args) -> int:
+    docs = [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
+            for p in sorted(pathlib.Path(args.docs).glob("*.json"))]
+    if args.recorded_extract:
+        ext_client = RecordedClient(json.loads(pathlib.Path(args.recorded_extract).read_text("utf-8")))
+    else:
+        ext_client = make_client(args.backend)
+    captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()
+    findings = []
+    for doc in docs:
+        findings.extend(extract_findings(doc, ext_client, as_of=args.as_of, captured_at=captured_at,
+                                         extraction_model=args.model, model=args.model).findings)
+    if args.recorded_judge:
+        jdg_client = RecordedClient(json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8")))
+    else:
+        jdg_client = make_client(args.backend)
+    bundle = judge_findings(findings, jdg_client, samples=args.samples, model=args.model)
+    a = load_assignment(args.assignment)
+    sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence)
+    path = JsonStore(pathlib.Path(args.out)).append(sc)
+    print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
+          f"SMI={sc.demandSupply.smiContribution:.3f}")
+    return 0
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -95,11 +119,24 @@ def main(argv=None) -> int:
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
+    pl = sub.add_parser("pipeline")
+    pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
+    pl.add_argument("--assignment", required=True)
+    pl.add_argument("--out", default="store")
+    pl.add_argument("--as-of", required=True)
+    pl.add_argument("--samples", type=int, default=3)
+    pl.add_argument("--model", default="claude-opus-4-8")
+    pl.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
+    pl.add_argument("--backend", default="claude_code")
+    pl.add_argument("--recorded-extract", default=None)
+    pl.add_argument("--recorded-judge", default=None)
     args = p.parse_args(argv)
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":
         return _judge(args)
+    if args.cmd == "pipeline":
+        return _pipeline(args)
     try:
         sc = _build(args)
     except GateError as e:

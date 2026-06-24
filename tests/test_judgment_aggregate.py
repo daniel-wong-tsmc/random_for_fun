@@ -31,3 +31,12 @@ def test_aggregate_unanimous_keeps_high_confidence():
     bundle = aggregate([_result("Strong", "narr-0"), _result("Strong", "x")], b)
     assert bundle.ratings["momentum"].confidence.level == "high"
     assert bundle.narrative == "narr-0"             # narrative from the first (representative) sample
+
+def test_aggregate_narrative_comes_from_majority_representative_sample():
+    # results[0] is the minority ("Mixed"); majority winner is "Strong".
+    # narrative must come from a sample that agrees with the majority, not results[0].
+    b = Briefing(findings=[], anchors={}, grouped={})
+    bundle = aggregate(
+        [_result("Mixed", "n0"), _result("Strong", "n1"), _result("Strong", "n2")], b)
+    assert bundle.ratings["momentum"].rating == "Strong"
+    assert bundle.narrative == "n1"   # earliest majority-agreeing sample, not "n0"

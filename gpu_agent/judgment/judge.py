@@ -43,13 +43,25 @@ def _majority(ratings: list[str]) -> tuple[str, str]:
     basis = ", ".join(f"{c}/{n} {r}" for r, c in ordered)
     return winner, basis
 
+def _representative_index(results: list[JudgmentResult], winners: dict[str, str]) -> int:
+    """Index of the sample whose ratings agree with the most majority winners; earliest on tie."""
+    best_i, best_score = 0, -1
+    for i, r in enumerate(results):
+        score = sum(1 for d, w in winners.items()
+                    if d in r.dimensions and r.dimensions[d].rating == w)
+        if score > best_score:
+            best_score, best_i = score, i
+    return best_i
+
 def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBundle:
     dims = {d for r in results for d in r.dimensions}
     ratings: dict[str, DimensionRating] = {}
+    winners: dict[str, str] = {}
     all_unanimous = True
     for d in sorted(dims):
         votes = [r.dimensions[d].rating for r in results if d in r.dimensions]
         winner, basis = _majority(votes)
+        winners[d] = winner
         unanimous = len(set(votes)) == 1
         all_unanimous = all_unanimous and unanimous
         rep = next(r.dimensions[d] for r in results
@@ -62,7 +74,8 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBund
         level="high" if all_unanimous else "medium",
         basis=f"self-consistency over {len(results)} samples")
     return JudgmentBundle(ratings=ratings, anchors=dict(briefing.anchors),
-                          narrative=results[0].narrative, confidence=confidence)
+                          narrative=results[_representative_index(results, winners)].narrative,
+                          confidence=confidence)
 
 
 def _conflicts(bundle: JudgmentBundle) -> list[str]:

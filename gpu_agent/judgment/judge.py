@@ -2,9 +2,12 @@ from __future__ import annotations
 from collections import Counter
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
-from gpu_agent.schema.finding import Confidence
-from gpu_agent.schema.scorecard import DimensionRating
-from gpu_agent.judgment.briefing import Briefing
+from gpu_agent.schema.finding import Confidence, Finding
+from gpu_agent.schema.scorecard import DimensionRating, Scorecard, DemandSupply
+from gpu_agent.judgment.briefing import Briefing, build_briefing
+from gpu_agent.judgment.prompt import SYSTEM, build_user_prompt
+from gpu_agent.gate import _rating_consistent_with_anchor, check_scorecard
+from gpu_agent.llm.client import LLMClient
 
 RATING_ORDER = ["Very weak", "Weak", "Mixed", "Strong", "Very strong"]
 
@@ -60,3 +63,37 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBund
         basis=f"self-consistency over {len(results)} samples")
     return JudgmentBundle(ratings=ratings, anchors=dict(briefing.anchors),
                           narrative=results[0].narrative, confidence=confidence)
+
+
+def _conflicts(bundle: JudgmentBundle) -> list[str]:
+    bad: list[str] = []
+    for d, r in bundle.ratings.items():
+        a = bundle.anchors.get(d)
+        if a is not None and not _rating_consistent_with_anchor(r.rating, a):
+            bad.append(f"{d}: rating {r.rating} contradicts anchor {a:.2f}")
+    return bad
+
+def _gate_backstop(bundle: JudgmentBundle, findings: list[Finding]) -> None:
+    sc = Scorecard(
+        categoryId="_judge_check", asOf=findings[0].asOf if findings else "",
+        findings=findings, dimensionRatings=bundle.ratings,
+        demandSupply=DemandSupply(dmiContribution=0.0, smiContribution=0.0, anchors=bundle.anchors),
+        narrative=bundle.narrative, confidence=bundle.confidence)
+    violations = check_scorecard(sc)
+    if violations:
+        raise JudgmentError(violations)
+
+def judge_findings(findings: list[Finding], client: LLMClient, *, samples: int = 3,
+                   resample_budget: int = 2, model: str = "claude-opus-4-8") -> JudgmentBundle:
+    briefing = build_briefing(findings)
+    prompt = build_user_prompt(briefing)
+    last_conflicts: list[str] = []
+    for _ in range(1 + resample_budget):
+        results = [client.complete_json(prompt, SYSTEM, JudgmentResult, model)
+                   for _ in range(samples)]
+        bundle = aggregate(results, briefing)
+        last_conflicts = _conflicts(bundle)
+        if not last_conflicts:
+            _gate_backstop(bundle, findings)   # raises JudgmentError on any gate violation
+            return bundle
+    raise JudgmentError(last_conflicts)

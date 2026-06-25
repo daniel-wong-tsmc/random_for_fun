@@ -16,6 +16,9 @@ Rules (binding):
 - Every draft needs a why and an impact, and must affect at least one track
   (polarityDemand or polaritySupply non-zero).
 - A hypothesis needs reasoning and confidence at most medium.
+- A Finding whose only supporting evidence is secondary (tier=secondary, i.e. open-web rather than
+  an authoritative filing) must set confidence at most medium; only primary (filing) evidence may
+  support high confidence.
 - Cite evidence drawn from the document only; do not cite the analyst dashboard's own output.
 - Output JSON only, no prose, no code fences.
 

@@ -12,6 +12,38 @@ from gpu_agent.pipeline import build_scorecard
 from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore
 from gpu_agent.judgment.judge import judge_findings
+from gpu_agent.gathering.ingest import normalize_documents
+
+def _ingest(args) -> int:
+    payload = json.loads(pathlib.Path(args.blobs).read_text("utf-8"))
+    if isinstance(payload, list):
+        blobs, rounds, skipped = payload, 0, []
+    else:
+        blobs = payload.get("blobs", [])
+        rounds = payload.get("rounds", 0)
+        skipped = payload.get("skipped", [])
+    primary_sources = [s.strip() for s in args.primary_sources.split(",") if s.strip()]
+    outcome = normalize_documents(blobs, primary_sources=primary_sources)
+    out = pathlib.Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    for doc in outcome.documents:
+        (out / f"{doc.id}.json").write_text(json.dumps(doc.model_dump(), indent=2), "utf-8")
+    n_primary = sum(1 for d in outcome.documents if d.tier == "primary")
+    log = {
+        "rounds": rounds,
+        "documents": len(outcome.documents),
+        "primary": n_primary,
+        "secondary": len(outcome.documents) - n_primary,
+        "duplicates": outcome.duplicates,
+        "dropped": [d.model_dump() for d in outcome.dropped],
+        "skipped": skipped,
+    }
+    (out / "gather-log.json").write_text(json.dumps(log, indent=2), "utf-8")
+    for d in outcome.dropped:
+        print(f"DROPPED [{d.index}] {d.url}: {d.reason}", file=sys.stderr)
+    print(f"ingested {len(outcome.documents)} docs "
+          f"({outcome.duplicates} dup, {len(outcome.dropped)} dropped) -> {out}")
+    return 0
 
 def _build(args):
     a = load_assignment(args.assignment)
@@ -112,6 +144,11 @@ def main(argv=None) -> int:
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
     ex.add_argument("--backend", default="claude_code")
     ex.add_argument("--recorded", default=None, help="JSON array of recorded responses (offline)")
+    ig = sub.add_parser("ingest")
+    ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
+    ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
+    ig.add_argument("--primary-sources", default="sec.gov",
+                    help="comma-separated authoritative-source host allowlist")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
     jg.add_argument("--out", required=True, help="dir for ratings/anchors/narrative.json")
@@ -131,6 +168,8 @@ def main(argv=None) -> int:
     pl.add_argument("--recorded-extract", default=None)
     pl.add_argument("--recorded-judge", default=None)
     args = p.parse_args(argv)
+    if args.cmd == "ingest":
+        return _ingest(args)
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":

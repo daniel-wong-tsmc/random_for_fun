@@ -14,6 +14,11 @@ from gpu_agent.store import JsonStore
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.gathering.ingest import normalize_documents
 
+def _load_docs(docs_dir: str) -> list[RawDocument]:
+    return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
+            for p in sorted(pathlib.Path(docs_dir).glob("*.json"))
+            if p.name != "gather-log.json"]
+
 def _ingest(args) -> int:
     payload = json.loads(pathlib.Path(args.blobs).read_text("utf-8"))
     if isinstance(payload, list):
@@ -61,8 +66,7 @@ def _build(args):
     return build_scorecard(findings, ratings, anchors, a, narrative, confidence)
 
 def _extract(args) -> int:
-    docs = [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
-            for p in sorted(pathlib.Path(args.docs).glob("*.json"))]
+    docs = _load_docs(args.docs)
     if args.recorded:
         client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
     else:
@@ -104,9 +108,7 @@ def _judge(args) -> int:
     return 0
 
 def _pipeline(args) -> int:
-    docs = [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
-            for p in sorted(pathlib.Path(args.docs).glob("*.json"))
-            if p.name != "gather-log.json"]
+    docs = _load_docs(args.docs)
     if args.recorded_extract:
         ext_client = RecordedClient(json.loads(pathlib.Path(args.recorded_extract).read_text("utf-8")))
     else:

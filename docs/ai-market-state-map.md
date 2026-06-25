@@ -194,7 +194,7 @@ data network effects *(qual)*; regulatory exposure *(qual)*.
 
 A three-tier agent swarm, programmed in natural language against the taxonomy above:
 
-- **Leaf "Category Agent" (one per sub-category, ~40 total).** Inputs: this category's metric
+- **Leaf "Category Agent" (one per sub-category, 34 total).** Inputs: this category's metric
   schema. Does: (1) pull quantitative metrics from data sources / APIs (earnings, TrendForce,
   Dell'Oro, Artificial Analysis, LMArena, funding trackers, energy/grid data), (2) run a scoped
   deep-research sweep for qualitative dimensions, (3) emit a **scorecard** (the 6-dimension rubric)
@@ -220,7 +220,7 @@ This document is the *brainstorming / taxonomy* pass — **no application code, 
 Future passes, in order:
 1. Encode `taxonomy.json` as the machine-readable contract.
 2. Build the on-demand **Category Agent** (one reference agent end-to-end) + the scorecard schema.
-3. Fan out agents to all ~40 leaf categories; add the Layer + Orchestrator roll-ups.
+3. Fan out agents to all 34 leaf categories; add the Layer + Orchestrator roll-ups.
 4. Dashboard to visualize the 5-layer cake + AI market status.
 5. GitHub Actions cron to keep state fresh.
 

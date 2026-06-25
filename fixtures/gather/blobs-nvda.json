@@ -1,0 +1,13 @@
+{
+  "rounds": 1,
+  "skipped": ["lead 'amd-roadmap-blog' not chased: maxDocuments cap reached"],
+  "blobs": [
+    {
+      "source": "NVIDIA 10-Q",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar/nvda-10q-2026q1",
+      "date": "2026-05",
+      "entity": "nvidia",
+      "content": "Data center revenue grew about 8% sequentially, a slower pace than prior quarters as the Blackwell ramp digested. Management cited broad demand but a flattening growth slope."
+    }
+  ]
+}

@@ -105,7 +105,8 @@ def _judge(args) -> int:
 
 def _pipeline(args) -> int:
     docs = [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
-            for p in sorted(pathlib.Path(args.docs).glob("*.json"))]
+            for p in sorted(pathlib.Path(args.docs).glob("*.json"))
+            if p.name != "gather-log.json"]
     if args.recorded_extract:
         ext_client = RecordedClient(json.loads(pathlib.Path(args.recorded_extract).read_text("utf-8")))
     else:

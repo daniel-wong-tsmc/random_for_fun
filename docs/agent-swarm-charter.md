@@ -72,6 +72,7 @@ guess as a guess.
 - Part 34 — Cold-start & bootstrapping
 - Part 35 — The product surface (the last mile to the executive)
 - Part 36 — Automated harness optimization (search the harness, don't hand-build it)
+- Part 37 — The gathering swarm (how a category agent actually fetches the open web)
 
 > A companion visual of the swarm — an interactive, layered knowledge graph of the agents, the
 > data-access tools each tier holds, the roll-up/read edges, and the universal guidelines — lives at
@@ -1517,6 +1518,67 @@ The **test set is never shown to the proposer.**
 
 > **Self-check / build order:** no harness search before the reward is trustworthy (Part 24); discovered
 > code reaches production only through the same gate + shadow + human review as hand-written code.
+
+---
+
+## Part 37 — The gathering swarm (how a category agent actually fetches the open web)
+
+Part 5 says the Category agent "faces the open web" with search + fetch; this Part is the **concrete
+operating doctrine for how it does the fetching** in this build. A category run does **not** read one
+hand-placed document — it sends out a **swarm of gatherer subagents** that fan across the web, follow the
+trail of leads, and bring back raw material for the one frozen brain to grade.
+
+**The two halves and the single handoff.** The work splits cleanly, and the split is what keeps it honest:
+- **Gathering layer (coordination):** a coordinator (the invoked session) turns the **assignment**
+  (Part 18: entities × metrics) into seed searches, **spawns parallel gatherer subagents**, follows new
+  leads with more subagents, and writes a **saved document snapshot** — a folder of `RawDocument`s.
+- **The brain (frozen):** the existing extract → judge → score path (Parts 2, 7, 17) runs on that folder.
+- **The handoff is raw material only.** Gatherers return *documents + candidate leads*, never Findings or
+  ratings. All fact-pulling and grading happen **once**, in the frozen brain, under the no-invented-numbers
+  gate (Part 7). Dozens of helpers each doing their own judgment would shatter the single trustworthy
+  checkpoint — so they don't.
+
+**The follow-the-trail loop, with brakes.** Gathering runs in rounds: search → fetch → return docs + leads
+→ dedupe leads by URL → keep only on-topic leads → spawn the next round. It **stops when a round finds
+nothing new (dry)** or when a cap trips. Four per-run dials bound it: **max rounds** (trail depth), **max
+documents** (hard ceiling), **max fan-out per round**, and an **on-topic filter** (a lead is chased only if
+it bears on the assigned entities/metrics). A cap that truncates the run is **logged with what it skipped**
+— silent truncation is a doctrine violation, because "we covered it" must never be implied when we didn't.
+
+**Trust, not just retrieval (the open web lies).** The gate guarantees we never *invent* a number, but it
+cannot tell whether a number printed on a page is *true*. So gathered material carries a **trust tier**,
+stamped deterministically at ingest: authoritative filings (official domains) → **primary**; open-web
+pages → **secondary** (Part 1 rule 5). The tier rides into each Finding's `evidence[].tier`, every number
+keeps its **receipt** (url + source + date — enforced by the gate, Part 7), and a **secondary-only finding
+is confidence-capped** so junk cannot drive a strong rating on its own. Hard multi-source **corroboration**
+("did ≥2 independent sources agree?") is the next increment, not v1.
+
+**Reuses (don't rebuild):**
+- **Part 8 / Part 26 (adversarial boundary)** — fetched page text is **data, not instructions**, at both
+  the gatherer and the extractor; nothing on a page can redirect the agent.
+- **Part 2 / Part 7 (Finding + gate)** — the snapshot feeds the frozen schema and pre-commit gate unchanged;
+  receipts and "no orphan/invented numbers" are already enforced there.
+- **Part 18 (assignment; fixed contract)** — the swarm is driven by the assignment's scope; the six
+  dimensions, schema, and rollup are never touched by gathering.
+- **Part 20 (provenance & reproducibility)** — the run is a **point-in-time snapshot**: the document folder
+  + a gather-log are saved artifacts, so the brain re-runs on them deterministically, for free, and the
+  whole chain is auditable. The live web's unpredictability is walled off behind the saved folder.
+
+**New here:**
+- **The gatherer-subagent swarm and its follow-the-trail loop** (the concrete realization of Part 5's
+  open-web Category harness), bounded by the four caps and the dedupe/on-topic filter.
+- **The ingest seam** — one small, pure, fully-tested unit that turns raw blobs into validated,
+  de-duplicated, tier-stamped `RawDocument`s. The single new contract between the messy swarm and the clean
+  brain; a standalone built-in fetcher can later drop in behind it without touching the core.
+
+**Not yet (deferred, by decision):** hard corroboration + a hard secondary-confidence cap; **unattended
+scheduling** (Part 28 — v1 is **manually invoked** from an open session); and a standalone non-session web
+fetcher. None require a redesign — scheduling is "run this same action on a timer."
+
+> **Self-check / build order:** gatherers return raw material only; every number keeps its dated receipt and
+> trust tier; page text is data, never instructions; caps are logged, never silent; and the frozen brain is
+> never edited to accommodate the swarm. A gather run that can't be replayed from its saved snapshot did not
+> happen.
 
 ---
 

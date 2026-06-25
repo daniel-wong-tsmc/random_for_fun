@@ -283,7 +283,9 @@ stays calibrated.
   agents — coordinator delegation is one level deep).
 - **Tier 1 — Category (research agent):** Managed-Agents session — hosted sandbox + `web_search`/
   `web_fetch`/code, MCP feeds, vaults; multi-step loop; an **Outcome rubric grader** that iterates
-  until the doctrine is satisfied. Heaviest harness, because it faces the open web.
+  until the doctrine is satisfied. Heaviest harness, because it faces the open web. (It **may fan its
+  fetching out to a one-level-deep gatherer swarm — Part 37** — rather than fetch single-threaded; the
+  gatherers hold the web tools and return raw material only.)
 - **Tiers 2 & 3 — Layer / Main (memory-backed analyst agents):** no web, no sandbox; a multi-step
   **judgment loop** over the tier-below's Findings + their own memory. The **measured-metric** rollups
   and deltas (real numbers and their change vs. prior — never invented scores) are computed
@@ -1551,9 +1553,16 @@ stamped deterministically at ingest: authoritative filings (official domains) �
 pages → **secondary** (Part 1 rule 5). The tier rides into each Finding's `evidence[].tier`, every number
 keeps its **receipt** (url + source + date — enforced by the gate, Part 7), and a **secondary-only finding
 is confidence-capped** so junk cannot drive a strong rating on its own. Hard multi-source **corroboration**
-("did ≥2 independent sources agree?") is the next increment, not v1.
+("did ≥2 independent sources agree?") is the next increment, not v1 — so **until it lands, gathered
+open-web findings stay confidence-capped and may not move the headline status.** This is a *staged* path
+to Part 26's hard-corroboration requirement, not a softening of it; in the meantime the standing Part 8/23
+guarantee ("no status flip on a single source; high-stakes flips gate to a human") is what holds the line.
 
 **Reuses (don't rebuild):**
+- **Part 5 (the category harness; one-level-deep delegation)** — the coordinator **is** Part 5's category
+  agent, and the gatherer subagents are its *one-level-deep* delegation, which Part 5 expressly permits: the
+  gatherers hold the `web_search`/`web_fetch` tools and never sub-spawn. This Part refines *how* that harness
+  fetches the open web; it adds no tier and stays inside the "delegation one level deep" rule.
 - **Part 8 / Part 26 (adversarial boundary)** — fetched page text is **data, not instructions**, at both
   the gatherer and the extractor; nothing on a page can redirect the agent.
 - **Part 2 / Part 7 (Finding + gate)** — the snapshot feeds the frozen schema and pre-commit gate unchanged;

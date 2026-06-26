@@ -13,11 +13,22 @@ from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.gathering.ingest import normalize_documents
+from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
+from gpu_agent.registry.structure import Taxonomy
+from gpu_agent.registry.validate import validate_assignment
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
             for p in sorted(pathlib.Path(docs_dir).glob("*.json"))
             if p.name != "gather-log.json"]
+
+def _load_registry():
+    return (IndicatorRegistry.load("registry/indicators.json"), Taxonomy.load("docs/taxonomy.json"))
+
+def _gate_assignment(a, registry, taxonomy):
+    violations = validate_assignment(a, registry, taxonomy)
+    if violations:
+        raise RegistryError(violations)
 
 def _ingest(args) -> int:
     payload = json.loads(pathlib.Path(args.blobs).read_text("utf-8"))
@@ -63,7 +74,8 @@ def _build(args):
         nd = json.loads(npath.read_text("utf-8"))
         narrative = nd["narrative"]
         confidence = Confidence.model_validate(nd["confidence"])
-    return build_scorecard(findings, ratings, anchors, a, narrative, confidence)
+    registry, _ = _load_registry()
+    return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry)
 
 def _extract(args) -> int:
     docs = _load_docs(args.docs)
@@ -95,7 +107,8 @@ def _judge(args) -> int:
         client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
     else:
         client = make_client(args.backend)
-    bundle = judge_findings(findings, client, samples=args.samples, model=args.model)
+    registry, _ = _load_registry()
+    bundle = judge_findings(findings, client, registry, args.category, samples=args.samples, model=args.model)
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "ratings.json").write_text(
@@ -122,9 +135,11 @@ def _pipeline(args) -> int:
         jdg_client = RecordedClient(json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8")))
     else:
         jdg_client = make_client(args.backend)
-    bundle = judge_findings(findings, jdg_client, samples=args.samples, model=args.model)
     a = load_assignment(args.assignment)
-    sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence)
+    registry, taxonomy = _load_registry()
+    _gate_assignment(a, registry, taxonomy)
+    bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)
+    sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry)
     path = JsonStore(pathlib.Path(args.out)).append(sc)
     print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
           f"SMI={sc.demandSupply.smiContribution:.3f}")
@@ -159,6 +174,7 @@ def main(argv=None) -> int:
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
+    jg.add_argument("--category", default="chips.merchant-gpu", help="indicator category id")
     pl = sub.add_parser("pipeline")
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)
@@ -176,13 +192,24 @@ def main(argv=None) -> int:
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":
-        return _judge(args)
+        try:
+            return _judge(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
     if args.cmd == "pipeline":
-        return _pipeline(args)
+        try:
+            return _pipeline(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
     try:
         sc = _build(args)
     except GateError as e:
         print("GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+        return 1
+    except RegistryError as e:
+        print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
         return 1
     summary = f"DMI={sc.demandSupply.dmiContribution:.3f} SMI={sc.demandSupply.smiContribution:.3f}"
     if args.cmd == "score":                 # run a process in isolation: compute, print, don't persist

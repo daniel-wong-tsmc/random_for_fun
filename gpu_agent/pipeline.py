@@ -7,8 +7,8 @@ from gpu_agent.gate import check_scorecard, GateError
 
 def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating],
                     anchors: dict[str, float], assignment: Assignment,
-                    narrative: str, confidence: Confidence) -> Scorecard:
-    dmi, smi = dmi_smi_contribution(findings, assignment.weights)
+                    narrative: str, confidence: Confidence, registry) -> Scorecard:
+    dmi, smi = dmi_smi_contribution(findings, registry, assignment.category, assignment.weights)
     sc = Scorecard(
         categoryId=assignment.category, asOf=assignment.asOf, findings=findings,
         dimensionRatings=ratings,

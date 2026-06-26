@@ -6,6 +6,7 @@ from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import DimensionRating
 from gpu_agent.assignment import load_assignment
 from gpu_agent.pipeline import build_scorecard
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 def test_level_c_recorded_extract_feeds_core(tmp_path):
     out = tmp_path / "findings.json"
@@ -23,8 +24,9 @@ def test_level_c_recorded_extract_feeds_core(tmp_path):
     a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
     ratings = {"momentum": DimensionRating(rating="Strong", direction="worsening",
         confidence=Confidence(level="high", basis="D2"), findingIds=[findings[0].id], rationale="r")}
+    reg = IndicatorRegistry.load("registry/indicators.json")
     sc = build_scorecard(findings, ratings, {"momentum": 0.4}, a, "MVP via extraction.",
-                         Confidence(level="medium", basis="level-c run"))
+                         Confidence(level="medium", basis="level-c run"), reg)
     assert sc.dimensionRatings["momentum"].rating == "Strong"
 
 @pytest.mark.skipif(os.environ.get("GPU_AGENT_LIVE_LLM") != "1",

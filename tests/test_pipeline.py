@@ -4,6 +4,7 @@ from gpu_agent.gate import GateError
 from gpu_agent.assignment import load_assignment
 from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import DimensionRating
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 def _finding():
     return Finding.model_validate({
@@ -20,15 +21,17 @@ def _rating(fids):
 
 def test_build_scorecard_computes_dmi_and_passes_gate():
     a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
+    reg = IndicatorRegistry.load("registry/indicators.json")
     sc = build_scorecard([_finding()], {"momentum": _rating(["f-001"])}, {"momentum": 0.4},
-                         a, "Strong but softening.", Confidence(level="medium", basis="b"))
+                         a, "Strong but softening.", Confidence(level="medium", basis="b"), reg)
     assert sc.demandSupply.dmiContribution == pytest.approx(0.10 * 1 * 3 / 3)  # 0.10
     assert sc.dimensionRatings["momentum"].rating == "Strong"
 
 def test_build_scorecard_raises_on_anchor_contradiction():
     a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
+    reg = IndicatorRegistry.load("registry/indicators.json")
     bad = DimensionRating(rating="Very strong", direction="steady",
         confidence=Confidence(level="high", basis="b"), findingIds=["f-001"], rationale="r")
     with pytest.raises(GateError):
         build_scorecard([_finding()], {"momentum": bad}, {"momentum": -1.8},
-                        a, "n", Confidence(level="low", basis="b"))
+                        a, "n", Confidence(level="low", basis="b"), reg)

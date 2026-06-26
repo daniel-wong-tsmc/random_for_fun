@@ -5,7 +5,8 @@
     "framework": "Jensen Huang 5-layer AI cake (Energy -> Chips -> Infrastructure -> Models -> Applications)",
     "asOf": "2026-06",
     "softwareThreePointZero": "End-state: one research/rating Category Agent per leaf category, rolling up into Layer Agents and a Market-State Orchestrator.",
-    "maintenanceModel": "This file is the DURABLE CONTRACT (structure), not a data store. Human-governed + versioned: the 5 layers, category ids/names/membership, the 6 rating dimensions, and the scorecard schema. Swarm-maintained, NOT authoritative here: each category's constituents and live metric values — 'seedConstituents' and the metric lists below are only starting examples the Category Agents discover, extend, and keep fresh. Only STRUCTURAL changes (add / retire / merge a category) go through the Part 16 human gate; day-to-day constituent and metric churn never touches this file."
+    "maintenanceModel": "This file is the DURABLE CONTRACT (structure), not a data store. Human-governed + versioned: the 5 layers, category ids/names/membership, the 6 rating dimensions, and the scorecard schema. Swarm-maintained, NOT authoritative here: each category's constituents and live metric values — 'seedConstituents' and the metric lists below are only starting examples the Category Agents discover, extend, and keep fresh. Only STRUCTURAL changes (add / retire / merge a category) go through the Part 16 human gate; day-to-day constituent and metric churn never touches this file.",
+    "metricsAuthority": "registry/indicators.json is the authoritative source for indicator/metric scoring metadata; this file is structure only."
   },
   "scoringRubric": {
     "dimensions": [
@@ -48,10 +49,6 @@
     "seedEntities": [
       { "id": "nvidia", "name": "NVIDIA", "aliases": ["NVDA"], "appearsIn": ["chips.merchant-gpu", "chips.networking-silicon"], "primaryCategory": "chips.merchant-gpu" },
       { "id": "tsmc", "name": "TSMC", "aliases": ["Taiwan Semiconductor"], "appearsIn": ["chips.foundry-packaging"], "primaryCategory": "chips.foundry-packaging" }
-    ],
-    "seedMetrics": [
-      { "id": "cowos-wafers-per-month", "label": "CoWoS wafers per month", "kind": "measured", "unit": "wafers/month", "definition": "Advanced-packaging (CoWoS) output, wafers started per month.", "comparability": "capacity, not utilization; don't compare to units shipped", "defaultSourceHint": ["TSMC filings", "trade press"] },
-      { "id": "market-share-pct", "label": "Market share", "kind": "measured", "unit": "% of segment revenue", "definition": "A constituent's share of its category's revenue in a stated period.", "comparability": "revenue share; state the segment and period; not unit share", "defaultSourceHint": ["filings", "TrendForce", "IDC"] }
     ]
   },
   "layers": [
@@ -60,13 +57,13 @@
       "name": "Energy",
       "order": 1,
       "categories": [
-        { "id": "power-generation", "name": "Power generation (gas, nuclear/SMR, renewables+storage)", "seedConstituents": ["Vistra", "Constellation", "GE Vernova", "Oklo", "Kairos", "TerraPower", "X-energy"], "quantMetrics": ["gwAddedPerYr", "gwUnderContract", "nuclearMwContracted"], "qualMetrics": ["permittingRisk", "buildTimeRisk"] },
-        { "id": "grid-transmission", "name": "Grid & transmission / interconnection", "seedConstituents": ["Utilities", "ISOs/RTOs", "transmission developers"], "quantMetrics": ["interconnectionQueueWaitMonths", "transmissionUpgradeBacklog"], "qualMetrics": ["timeToPower", "regulatoryRisk"] },
-        { "id": "onsite-storage", "name": "On-site / behind-the-meter gen + storage", "seedConstituents": ["Bloom Energy", "gas turbines", "BESS"], "quantMetrics": ["onsiteMwDeployed", "storageMwh"], "qualMetrics": ["supplyChainRisk"] },
-        { "id": "cooling", "name": "Cooling (air, direct-to-chip liquid, immersion)", "seedConstituents": ["Vertiv", "Schneider", "Boyd", "LiquidStack"], "quantMetrics": ["pctLiquidCooled", "pue", "wue"], "qualMetrics": ["techMaturity"] },
-        { "id": "procurement", "name": "Energy procurement & markets (PPAs, $/MWh)", "seedConstituents": ["Hyperscaler energy teams", "IPPs"], "quantMetrics": ["usdPerMwh", "ppaPriceTrend"], "qualMetrics": ["priceVolatility"] },
-        { "id": "electrical-equipment", "name": "Electrical equipment supply chain", "seedConstituents": ["Eaton", "Siemens", "ABB"], "quantMetrics": ["transformerLeadTimeMonths"], "qualMetrics": ["supplyChainConcentration"] },
-        { "id": "efficiency", "name": "Efficiency & sustainability (PUE/WUE, carbon)", "seedConstituents": ["All operators"], "quantMetrics": ["fleetPue", "carbonIntensity"], "qualMetrics": ["regulatoryExposure"] }
+        { "id": "power-generation", "name": "Power generation (gas, nuclear/SMR, renewables+storage)", "seedConstituents": ["Vistra", "Constellation", "GE Vernova", "Oklo", "Kairos", "TerraPower", "X-energy"] },
+        { "id": "grid-transmission", "name": "Grid & transmission / interconnection", "seedConstituents": ["Utilities", "ISOs/RTOs", "transmission developers"] },
+        { "id": "onsite-storage", "name": "On-site / behind-the-meter gen + storage", "seedConstituents": ["Bloom Energy", "gas turbines", "BESS"] },
+        { "id": "cooling", "name": "Cooling (air, direct-to-chip liquid, immersion)", "seedConstituents": ["Vertiv", "Schneider", "Boyd", "LiquidStack"] },
+        { "id": "procurement", "name": "Energy procurement & markets (PPAs, $/MWh)", "seedConstituents": ["Hyperscaler energy teams", "IPPs"] },
+        { "id": "electrical-equipment", "name": "Electrical equipment supply chain", "seedConstituents": ["Eaton", "Siemens", "ABB"] },
+        { "id": "efficiency", "name": "Efficiency & sustainability (PUE/WUE, carbon)", "seedConstituents": ["All operators"] }
       ]
     },
     {
@@ -74,13 +71,13 @@
       "name": "Chips / Compute",
       "order": 2,
       "categories": [
-        { "id": "merchant-gpu", "name": "Merchant GPUs", "seedConstituents": ["NVIDIA", "AMD", "Intel"], "quantMetrics": ["marketSharePct", "perfPerWatt", "flopsPerDollar", "grossMargin"], "qualMetrics": ["cudaLockIn", "designWinDurability"] },
-        { "id": "hyperscaler-asic", "name": "Hyperscaler custom ASICs", "seedConstituents": ["Google TPU", "AWS Trainium/Inferentia", "Microsoft Maia", "Meta MTIA", "OpenAI-Broadcom"], "quantMetrics": ["tcoAdvantage", "internalDeploymentShare"], "qualMetrics": ["verticalIntegration", "nvidiaDependenceReduction"] },
-        { "id": "ai-silicon-startups", "name": "AI-silicon startups", "seedConstituents": ["Cerebras", "Groq", "SambaNova", "Tenstorrent", "Etched"], "quantMetrics": ["inferenceTokensPerSec", "funding"], "qualMetrics": ["designWinDurability"] },
-        { "id": "hbm-memory", "name": "HBM / memory", "seedConstituents": ["SK Hynix", "Micron", "Samsung"], "quantMetrics": ["marketSharePct", "bitGrowth", "hbm4Status"], "qualMetrics": ["supplyTightness"] },
-        { "id": "foundry-packaging", "name": "Foundry & advanced packaging", "seedConstituents": ["TSMC", "Samsung", "Intel Foundry"], "quantMetrics": ["cowosWafersPerMonth", "leadingNodeShare"], "qualMetrics": ["taiwanConcentrationRisk", "geopoliticalRisk"] },
-        { "id": "networking-silicon", "name": "Networking / interconnect silicon", "seedConstituents": ["NVIDIA (NVLink)", "Broadcom", "Marvell"], "quantMetrics": ["aiRevenue", "backlogUsd", "customAsicShare"], "qualMetrics": ["standardsPosition"] },
-        { "id": "eda-ip", "name": "EDA & IP", "seedConstituents": ["Synopsys", "Cadence", "Arm"], "quantMetrics": ["revenueGrowth"], "qualMetrics": ["exportControlExposure"] }
+        { "id": "merchant-gpu", "name": "Merchant GPUs", "seedConstituents": ["NVIDIA", "AMD", "Intel"] },
+        { "id": "hyperscaler-asic", "name": "Hyperscaler custom ASICs", "seedConstituents": ["Google TPU", "AWS Trainium/Inferentia", "Microsoft Maia", "Meta MTIA", "OpenAI-Broadcom"] },
+        { "id": "ai-silicon-startups", "name": "AI-silicon startups", "seedConstituents": ["Cerebras", "Groq", "SambaNova", "Tenstorrent", "Etched"] },
+        { "id": "hbm-memory", "name": "HBM / memory", "seedConstituents": ["SK Hynix", "Micron", "Samsung"] },
+        { "id": "foundry-packaging", "name": "Foundry & advanced packaging", "seedConstituents": ["TSMC", "Samsung", "Intel Foundry"] },
+        { "id": "networking-silicon", "name": "Networking / interconnect silicon", "seedConstituents": ["NVIDIA (NVLink)", "Broadcom", "Marvell"] },
+        { "id": "eda-ip", "name": "EDA & IP", "seedConstituents": ["Synopsys", "Cadence", "Arm"] }
       ]
     },
     {
@@ -88,12 +85,12 @@
       "name": "Infrastructure",
       "order": 3,
       "categories": [
-        { "id": "hyperscale-cloud", "name": "Hyperscale cloud", "seedConstituents": ["AWS", "Microsoft Azure", "Google Cloud", "Oracle OCI"], "quantMetrics": ["capexUsd", "aiRevenueBacklog", "utilizationPct"], "qualMetrics": ["customerConcentration"] },
-        { "id": "neocloud", "name": "Neoclouds / GPU-as-a-Service", "seedConstituents": ["CoreWeave", "Nebius", "Crusoe", "Lambda", "IREN", "Together"], "quantMetrics": ["revenue", "backlogUsd", "gpuFleetSize", "capexUsd"], "qualMetrics": ["circularFinancingRisk", "customerConcentration"] },
-        { "id": "datacenter-colo", "name": "Data-center developers / colo / REITs", "seedConstituents": ["Equinix", "Digital Realty", "Vantage", "QTS", "Switch"], "quantMetrics": ["gwUnderConstruction", "leaseDurationYrs"], "qualMetrics": ["timeToPower", "capitalIntensity"] },
-        { "id": "networking-fabric", "name": "Networking fabric", "seedConstituents": ["NVIDIA InfiniBand/NVLink/Spectrum-X", "Ethernet/UEC", "Broadcom", "Arista"], "quantMetrics": ["fabricMixIbVsEthernet", "switchSalesShare"], "qualMetrics": ["standardsMomentum"] },
-        { "id": "cluster-software", "name": "Cluster & orchestration software", "seedConstituents": ["CUDA", "Slurm/Kubernetes", "Ray", "vLLM/TensorRT", "SkyPilot"], "quantMetrics": ["adoptionShare"], "qualMetrics": ["softwareLockIn", "switchingCost"] },
-        { "id": "ai-storage", "name": "AI storage & data platforms", "seedConstituents": ["VAST Data", "WEKA", "Pure", "object stores"], "quantMetrics": ["throughputGbps", "revenueGrowth"], "qualMetrics": ["lockIn"] }
+        { "id": "hyperscale-cloud", "name": "Hyperscale cloud", "seedConstituents": ["AWS", "Microsoft Azure", "Google Cloud", "Oracle OCI"] },
+        { "id": "neocloud", "name": "Neoclouds / GPU-as-a-Service", "seedConstituents": ["CoreWeave", "Nebius", "Crusoe", "Lambda", "IREN", "Together"] },
+        { "id": "datacenter-colo", "name": "Data-center developers / colo / REITs", "seedConstituents": ["Equinix", "Digital Realty", "Vantage", "QTS", "Switch"] },
+        { "id": "networking-fabric", "name": "Networking fabric", "seedConstituents": ["NVIDIA InfiniBand/NVLink/Spectrum-X", "Ethernet/UEC", "Broadcom", "Arista"] },
+        { "id": "cluster-software", "name": "Cluster & orchestration software", "seedConstituents": ["CUDA", "Slurm/Kubernetes", "Ray", "vLLM/TensorRT", "SkyPilot"] },
+        { "id": "ai-storage", "name": "AI storage & data platforms", "seedConstituents": ["VAST Data", "WEKA", "Pure", "object stores"] }
       ]
     },
     {
@@ -101,13 +98,13 @@
       "name": "Models",
       "order": 4,
       "categories": [
-        { "id": "frontier-closed", "name": "Frontier closed labs", "seedConstituents": ["OpenAI", "Anthropic", "Google DeepMind", "xAI"], "quantMetrics": ["benchmarkScores", "apiArr", "releaseCadence", "tokensPerSec"], "qualMetrics": ["capabilityFrontierLeadership", "safetyPosture", "developerEcosystem", "dataMoat"] },
-        { "id": "open-weight", "name": "Open-weight models", "seedConstituents": ["Meta Llama", "Mistral", "DeepSeek", "Alibaba Qwen", "Z.AI GLM"], "quantMetrics": ["downloads", "benchmarkGapToFrontier"], "qualMetrics": ["communityMomentum"] },
-        { "id": "reasoning-agentic", "name": "Reasoning / agentic models", "seedConstituents": ["o-series", "Claude thinking", "Gemini reasoning"], "quantMetrics": ["agenticBenchmarks", "costPerTask"], "qualMetrics": ["reliability"] },
-        { "id": "multimodal-media", "name": "Multimodal / media models", "seedConstituents": ["Midjourney", "Black Forest Labs", "Runway", "Google Veo", "ElevenLabs"], "quantMetrics": ["qualityElo", "pricing"], "qualMetrics": ["distribution", "commoditizationRisk"] },
-        { "id": "small-ondevice", "name": "Small / on-device models", "seedConstituents": ["Phi", "Gemma", "Llama-small", "llama.cpp"], "quantMetrics": ["paramsB", "latencyMs"], "qualMetrics": ["edgeFit"] },
-        { "id": "embeddings", "name": "Embeddings & retrieval models", "seedConstituents": ["OpenAI", "Cohere", "Voyage", "open embeds"], "quantMetrics": ["retrievalAccuracy", "pricing"], "qualMetrics": ["stickiness"] },
-        { "id": "eval-hub-infra", "name": "Eval / benchmark / model-hub infra", "seedConstituents": ["Hugging Face", "LMArena", "Scale", "Artificial Analysis"], "quantMetrics": ["coverage"], "qualMetrics": ["neutrality"], "note": "Primary data sources for this platform's own agents." }
+        { "id": "frontier-closed", "name": "Frontier closed labs", "seedConstituents": ["OpenAI", "Anthropic", "Google DeepMind", "xAI"] },
+        { "id": "open-weight", "name": "Open-weight models", "seedConstituents": ["Meta Llama", "Mistral", "DeepSeek", "Alibaba Qwen", "Z.AI GLM"] },
+        { "id": "reasoning-agentic", "name": "Reasoning / agentic models", "seedConstituents": ["o-series", "Claude thinking", "Gemini reasoning"] },
+        { "id": "multimodal-media", "name": "Multimodal / media models", "seedConstituents": ["Midjourney", "Black Forest Labs", "Runway", "Google Veo", "ElevenLabs"] },
+        { "id": "small-ondevice", "name": "Small / on-device models", "seedConstituents": ["Phi", "Gemma", "Llama-small", "llama.cpp"] },
+        { "id": "embeddings", "name": "Embeddings & retrieval models", "seedConstituents": ["OpenAI", "Cohere", "Voyage", "open embeds"] },
+        { "id": "eval-hub-infra", "name": "Eval / benchmark / model-hub infra", "seedConstituents": ["Hugging Face", "LMArena", "Scale", "Artificial Analysis"], "note": "Primary data sources for this platform's own agents." }
       ]
     },
     {
@@ -115,13 +112,13 @@
       "name": "Applications",
       "order": 5,
       "categories": [
-        { "id": "ai-coding", "name": "AI coding", "seedConstituents": ["Cursor/Anysphere", "GitHub Copilot", "Claude Code", "Cognition/Devin", "Replit", "Windsurf"], "quantMetrics": ["arr", "growthRate", "valuationArrMultiple"], "qualMetrics": ["workflowLockIn", "wrapperRisk"] },
-        { "id": "enterprise-copilots", "name": "Horizontal enterprise copilots / knowledge", "seedConstituents": ["M365 Copilot", "Glean", "Gemini Enterprise"], "quantMetrics": ["seats", "weeklyUsagePct", "arr"], "qualMetrics": ["distributionAdvantage"] },
-        { "id": "cx-agents", "name": "Customer-experience agents", "seedConstituents": ["Sierra", "Decagon", "Intercom Fin"], "quantMetrics": ["arr", "valuationArrMultiple", "nrr"], "qualMetrics": ["outcomePricingDurability"] },
-        { "id": "vertical-saas", "name": "Vertical AI SaaS", "seedConstituents": ["Harvey", "Legora", "Palantir", "Anduril", "Shield AI"], "quantMetrics": ["arr", "valuation", "customers"], "qualMetrics": ["dataMoat", "regulatoryExposure"] },
-        { "id": "consumer-ai", "name": "Consumer AI", "seedConstituents": ["ChatGPT", "Gemini", "Perplexity", "companion AI"], "quantMetrics": ["mau", "dauMauRatio", "arr", "webShare"], "qualMetrics": ["brand", "stickiness"] },
-        { "id": "creative-media", "name": "Creative / media generation", "seedConstituents": ["Synthesia", "Midjourney", "ElevenLabs", "Runway"], "quantMetrics": ["arr", "growthRate"], "qualMetrics": ["wrapperRisk"] },
-        { "id": "agent-platforms", "name": "Agent platforms & dev tooling", "seedConstituents": ["LangChain", "vector DBs (Pinecone)", "eval/observability"], "quantMetrics": ["arr", "adoption"], "qualMetrics": ["commoditizationRisk"] }
+        { "id": "ai-coding", "name": "AI coding", "seedConstituents": ["Cursor/Anysphere", "GitHub Copilot", "Claude Code", "Cognition/Devin", "Replit", "Windsurf"] },
+        { "id": "enterprise-copilots", "name": "Horizontal enterprise copilots / knowledge", "seedConstituents": ["M365 Copilot", "Glean", "Gemini Enterprise"] },
+        { "id": "cx-agents", "name": "Customer-experience agents", "seedConstituents": ["Sierra", "Decagon", "Intercom Fin"] },
+        { "id": "vertical-saas", "name": "Vertical AI SaaS", "seedConstituents": ["Harvey", "Legora", "Palantir", "Anduril", "Shield AI"] },
+        { "id": "consumer-ai", "name": "Consumer AI", "seedConstituents": ["ChatGPT", "Gemini", "Perplexity", "companion AI"] },
+        { "id": "creative-media", "name": "Creative / media generation", "seedConstituents": ["Synthesia", "Midjourney", "ElevenLabs", "Runway"] },
+        { "id": "agent-platforms", "name": "Agent platforms & dev tooling", "seedConstituents": ["LangChain", "vector DBs (Pinecone)", "eval/observability"] }
       ]
     }
   ]

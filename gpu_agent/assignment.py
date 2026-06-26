@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 class Assignment(BaseModel):
     id: str
+    category: str
     template: str
     mode: str
     entities: list[str]

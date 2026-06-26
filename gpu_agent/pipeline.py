@@ -10,7 +10,7 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
                     narrative: str, confidence: Confidence) -> Scorecard:
     dmi, smi = dmi_smi_contribution(findings, assignment.weights)
     sc = Scorecard(
-        categoryId="chips.merchant-gpu", asOf=assignment.asOf, findings=findings,
+        categoryId=assignment.category, asOf=assignment.asOf, findings=findings,
         dimensionRatings=ratings,
         demandSupply=DemandSupply(dmiContribution=dmi, smiContribution=smi, anchors=anchors),
         narrative=narrative, confidence=confidence,

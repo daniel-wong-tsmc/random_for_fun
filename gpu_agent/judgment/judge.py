@@ -96,9 +96,10 @@ def _gate_backstop(bundle: JudgmentBundle, findings: list[Finding]) -> None:
     if violations:
         raise JudgmentError(violations)
 
-def judge_findings(findings: list[Finding], client: LLMClient, *, samples: int = 3,
+def judge_findings(findings: list[Finding], client: LLMClient, registry, category_id: str,
+                   *, samples: int = 3,
                    resample_budget: int = 2, model: str = "claude-opus-4-8") -> JudgmentBundle:
-    briefing = build_briefing(findings)
+    briefing = build_briefing(findings, registry, category_id)
     prompt = build_user_prompt(briefing)
     last_conflicts: list[str] = []
     for _ in range(1 + resample_budget):

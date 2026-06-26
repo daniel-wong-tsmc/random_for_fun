@@ -1,5 +1,6 @@
 import json
 import pytest
+from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.schema.finding import Finding, Confidence, Impact
 from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.judgment.judge import judge_findings, JudgmentError
@@ -19,8 +20,9 @@ def _judgment(rating, find_ids=("real-1",)):
 
 def test_clean_judgment_produces_gate_valid_bundle():
     # D2(+1,m=2) -> momentum anchor +0.67; "Strong" is consistent.
+    reg = IndicatorRegistry.load("registry/indicators.json")
     client = RecordedClient([_judgment("Strong")] * 3)
-    bundle = judge_findings([_f()], client, samples=3)
+    bundle = judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3)
     assert bundle.ratings["momentum"].rating == "Strong"
     assert bundle.anchors["momentum"] == pytest.approx(2 / 3)
     assert bundle.narrative == "n"
@@ -28,19 +30,22 @@ def test_clean_judgment_produces_gate_valid_bundle():
 def test_anchor_conflict_resamples_then_resolves():
     # negative anchor: D6(-1,m=3) -> momentum -1.0. First 3 say "Strong" (conflict),
     # the resample round says "Weak" (consistent) -> resolves on round 2.
+    reg = IndicatorRegistry.load("registry/indicators.json")
     findings = [_f(indicator="D6", pD=-1, mag=3)]
     client = RecordedClient([_judgment("Strong")] * 3 + [_judgment("Weak")] * 3)
-    bundle = judge_findings(findings, client, samples=3, resample_budget=2)
+    bundle = judge_findings(findings, client, reg, "chips.merchant-gpu", samples=3, resample_budget=2)
     assert bundle.ratings["momentum"].rating == "Weak"
 
 def test_anchor_conflict_exhausts_budget_then_raises():
+    reg = IndicatorRegistry.load("registry/indicators.json")
     findings = [_f(indicator="D6", pD=-1, mag=3)]            # anchor -1.0
     client = RecordedClient([_judgment("Strong")] * 9)       # always conflicts
     with pytest.raises(JudgmentError):
-        judge_findings(findings, client, samples=3, resample_budget=2)
+        judge_findings(findings, client, reg, "chips.merchant-gpu", samples=3, resample_budget=2)
 
 def test_gate_backstop_rejects_unknown_finding_id():
     # No anchor conflict (Strong vs +0.67), but cites a finding that does not exist.
+    reg = IndicatorRegistry.load("registry/indicators.json")
     client = RecordedClient([_judgment("Strong", find_ids=("ghost-1",))] * 3)
     with pytest.raises(JudgmentError):
-        judge_findings([_f()], client, samples=3)
+        judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3)

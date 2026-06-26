@@ -8,7 +8,9 @@
     "S9": { "label": "Alternative supply", "dimension": "competitiveStructure", "polarityTrack": "supply", "side": "supply", "weight": 0.04, "unit": "mixed", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.4, "scoring": true },
     "S10": { "label": "Whole-chain inventory", "dimension": "bottleneck", "polarityTrack": "supply", "side": "supply", "weight": 0.08, "unit": "USD_B", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.4, "scoring": true },
     "perfPerWatt": { "label": "Performance per watt", "dimension": null, "scoring": false, "kind": "measured", "unit": "perf_per_W" },
-    "flopsPerDollar": { "label": "FLOPs per dollar", "dimension": null, "scoring": false, "kind": "measured", "unit": "flops_per_USD" }
+    "flopsPerDollar": { "label": "FLOPs per dollar", "dimension": null, "scoring": false, "kind": "measured", "unit": "flops_per_USD" },
+    "apiArr": { "label": "API ARR", "dimension": "momentum", "polarityTrack": "demand", "side": "demand", "weight": 0.20, "unit": "USD_B", "kind": "measured", "readsLevelOrSlope": "slope", "decayLambda": 0.4, "scoring": true },
+    "releaseCadence": { "label": "Model release cadence", "dimension": "competitiveStructure", "polarityTrack": "demand", "side": "demand", "weight": 0.10, "unit": "releases_per_yr", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.4, "scoring": true }
   },
   "overrides": {
     "chips.hbm-memory": { "market-share-pct": { "weight": 0.04 } }

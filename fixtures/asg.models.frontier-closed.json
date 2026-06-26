@@ -1,0 +1,8 @@
+{
+  "id": "asg.models.frontier-closed",
+  "category": "models.frontier-closed",
+  "template": "category", "mode": "canonical",
+  "entities": ["openai", "anthropic", "google-deepmind"],
+  "metrics": ["apiArr", "releaseCadence", "market-share-pct", "grossMargin"],
+  "weights": {}, "version": "1.0", "asOf": "2026-06"
+}

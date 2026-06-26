@@ -1,6 +1,7 @@
 import math
 from gpu_agent.scoring import zscore, dmi_smi_contribution
 from gpu_agent.schema.finding import Finding
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 def test_zscore_basic():
     assert zscore(12.0, [10.0, 10.0, 10.0, 10.0]) == 0.0  # stdev 0 -> 0.0
@@ -23,6 +24,7 @@ def _f(ind, pd, ps, mag):
 def test_dmi_smi_contribution():
     findings = [_f("D2", 1, 0, 3), _f("S9", -1, 1, 3)]
     weights = {"D2": 0.10, "S9": 0.04}
-    dmi, smi = dmi_smi_contribution(findings, weights)
-    assert math.isclose(dmi, 0.10 * 1 * 1.0 + 0.04 * -1 * 1.0)  # 0.06
-    assert math.isclose(smi, 0.04 * 1 * 1.0)                    # 0.04
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu", weights)
+    assert math.isclose(dmi, 0.10 * 1 * 1.0 + 0.04 * -1 * 1.0)  # 0.06   (unchanged)
+    assert math.isclose(smi, 0.04 * 1 * 1.0)                    # 0.04   (unchanged)

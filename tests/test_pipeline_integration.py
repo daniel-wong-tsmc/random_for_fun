@@ -24,8 +24,10 @@ def test_live_smoke_judge_real_backend():
     from gpu_agent.schema.finding import Finding
     from gpu_agent.judgment.judge import judge_findings
     from gpu_agent.llm.factory import make_client
+    from gpu_agent.registry.indicators import IndicatorRegistry
     findings = [Finding.model_validate(d) for d in json.loads(
         pathlib.Path("fixtures/golden/findings.json").read_text("utf-8"))]
     client = make_client(os.environ.get("GPU_AGENT_LLM_BACKEND", "claude_code"))
-    bundle = judge_findings(findings, client, samples=1, model="claude-opus-4-8")
+    registry = IndicatorRegistry.load("registry/indicators.json")
+    bundle = judge_findings(findings, client, registry, "chips.merchant-gpu", samples=1, model="claude-opus-4-8")
     assert bundle.ratings  # produced at least one gate-valid rating

@@ -1,4 +1,4 @@
-import json, pathlib
+import pathlib
 from gpu_agent.assignment import load_assignment
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.registry.structure import Taxonomy

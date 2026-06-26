@@ -23,7 +23,10 @@ def _load_docs(docs_dir: str) -> list[RawDocument]:
             if p.name != "gather-log.json"]
 
 def _load_registry():
-    return (IndicatorRegistry.load("registry/indicators.json"), Taxonomy.load("docs/taxonomy.json"))
+    registry = IndicatorRegistry.load("registry/indicators.json")
+    taxonomy = Taxonomy.load("docs/taxonomy.json")
+    registry.validate_against(taxonomy)
+    return (registry, taxonomy)
 
 def _gate_assignment(a, registry, taxonomy):
     violations = validate_assignment(a, registry, taxonomy)

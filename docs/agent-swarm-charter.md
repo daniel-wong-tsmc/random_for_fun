@@ -73,6 +73,7 @@ guess as a guess.
 - Part 35 — The product surface (the last mile to the executive)
 - Part 36 — Automated harness optimization (search the harness, don't hand-build it)
 - Part 37 — The gathering swarm (how a category agent actually fetches the open web)
+- Part 38 — Running the swarm in Claude Code (the harness, concretely)
 
 > A companion visual of the swarm — an interactive, layered knowledge graph of the agents, the
 > data-access tools each tier holds, the roll-up/read edges, and the universal guidelines — lives at
@@ -281,11 +282,12 @@ stays calibrated.
   validation**; read-prior → write-snapshot state layer; observability (tokens/cost/`request_id`);
   typed-error + backoff + last-known-good fallback; orchestration in a plain driver (not nested
   agents — coordinator delegation is one level deep).
-- **Tier 1 — Category (research agent):** Managed-Agents session — hosted sandbox + `web_search`/
-  `web_fetch`/code, MCP feeds, vaults; multi-step loop; an **Outcome rubric grader** that iterates
-  until the doctrine is satisfied. Heaviest harness, because it faces the open web. (It **may fan its
-  fetching out to a one-level-deep gatherer swarm — Part 37** — rather than fetch single-threaded; the
-  gatherers hold the web tools and return raw material only.)
+- **Tier 1 — Category (research agent):** runs on the **Claude Code harness (Part 38)** — the session is
+  the coordinator, with `web_search`/`web_fetch`/code, MCP feeds, and vaults available; multi-step loop;
+  an **Outcome rubric grader** that iterates until the doctrine is satisfied. Heaviest harness, because it
+  faces the open web. A hosted Managed-Agents session is **one optional backend, not the definition.** (It
+  **may fan its fetching out to a one-level-deep gatherer swarm — Part 37** — rather than fetch
+  single-threaded; the gatherers hold the web tools and return raw material only.)
 - **Tiers 2 & 3 — Layer / Main (memory-backed analyst agents):** no web, no sandbox; a multi-step
   **judgment loop** over the tier-below's Findings + their own memory. The **measured-metric** rollups
   and deltas (real numbers and their change vs. prior — never invented scores) are computed
@@ -591,9 +593,13 @@ into the executive's actual call. A recommendation missing a required capability
 
 The swarm has **two modes**, both bound by the same doctrine:
 
-- **Standing** — the scheduled pipeline (cron) that keeps the dashboard fresh, bottom-up.
+- **Standing** — the scheduled pipeline that keeps the dashboard fresh, bottom-up — the unattended target;
+  **v1 runs as the manual Claude Code cycle (Part 38)**, scheduling deferred.
 - **On-demand** — an executive asks a question (*"what's the read-through of the DeepSeek moment for
   TSMC?"*) and gets a synthesized, cited answer. This is the most "replace-the-analyst" capability.
+
+> Both modes run on the **Claude Code harness (Part 38)**; the on-demand path is a session/skill that
+> re-points the standing swarm, detailed in its own later increment.
 
 **How a question is served** (Main acts as the research head):
 1. **Decompose** the question into the relevant categories/layers and decision areas.
@@ -1265,6 +1271,12 @@ Part 5 names the driver ("plain orchestration, one level deep") but not how a cy
 survives a crash, or shares finite rate limits. The rule: **a cycle is a resumable, idempotent DAG that
 degrades per Part 19 — never a fragile all-or-nothing batch.**
 
+> **v1 status (Part 38):** the swarm runs today as a **manual, single-command Claude Code cycle** with a
+> **scope selector** (a specific category, a layer and all its categories, or the whole market). The
+> scheduled/unattended DAG described below — cron timing, cross-agent rate-limit governance, resume — is
+> the **deferred standing-pipeline target**; in Claude Code, "scheduled" becomes scheduled cloud agents or
+> a headless `claude` invocation of the same trigger, not cron.
+
 **Reuses (don't rebuild):**
 - **Part 5 (the plain driver + last-known-good)** — the orchestration shape and the fallback exist.
 - **Part 9 (append-only, versioned store)** — the substrate for idempotency and resume; a re-run
@@ -1588,6 +1600,110 @@ fetcher. None require a redesign — scheduling is "run this same action on a ti
 > trust tier; page text is data, never instructions; caps are logged, never silent; and the frozen brain is
 > never edited to accommodate the swarm. A gather run that can't be replayed from its saved snapshot did not
 > happen.
+
+---
+
+## Part 38 — Running the swarm in Claude Code (the harness, concretely)
+
+Part 5 names the runtime abstractly ("a plain driver, one level deep"); Part 37 made the **Category** tier's
+fetching concrete *inside an open session*. This Part names the **canonical runtime for this build —
+Claude Code** — and, more importantly, pins the **modular seams** that let the three tiers, parallelism,
+the store, the model backend, and scheduling each be **swapped behind a named interface** without touching
+anything else. The rule: **the session orchestrates, code computes + gates + stores, and every moving part
+is a swappable module behind a named interface** (Part 18, principle 7).
+
+### Claude Code *is* a swarm harness (the mapping)
+
+| Charter concept | Claude Code primitive |
+|---|---|
+| Part 5 "plain driver, one level deep" | the **session** (main loop) as coordinator |
+| the agents at each tier / Part 37 gatherers | **subagents**, one level deep |
+| the Recommendation skill, per-tier procedures | **skills** (`gather-category` already is one) |
+| the frozen brain: rollups, gate, scoring, store | the **deterministic CLI** (`gpu_agent`) — Parts 2/7/17 unchanged |
+| Part 9 scoped query tool (`get_findings`, …) | a CLI subcommand / local MCP the agents call |
+| Part 28 cycle DAG; Part 28 scheduling | a plain driver / the Workflow tool; later, scheduled cloud agents or headless `claude` |
+
+The doctrine that survives intact: **agents reason; code computes, gates, and stores** — Claude Code changes
+*who runs the loop*, never *who may invent a number*. Delegation stays **one level deep** (session →
+gatherers/workers). The contracts (the Finding schema, the six dimensions, the gate, the rating model) stay
+frozen.
+
+### The trigger (v1 — manual, scope-selected)
+
+A single command from an open session is the whole trigger. It takes a **scope selector** with three modes
+and runs the built tiers over the resolved set:
+
+| You run | Selector | v1 behavior |
+|---|---|---|
+| a specific category | `category:<id>` | runs that one Category agent → scorecard |
+| a layer | `layer:<id>` | resolves **all** category ids under that layer from `taxonomy.json`, runs each Category agent underneath, then the **(deferred)** Layer-assessment stage |
+| the whole market | `all` / `market` | all 5 layers → all their categories, then **(deferred)** 5 Layer assessments → **(deferred)** Main |
+
+v1 executes the **Category** tier; **Layer and Main are explicit *deferred* stages** that report their status
+("deferred — not yet built") so the selector's full shape is visible from day one. Unattended scheduling is
+deferred — exactly parallel to Part 37's "v1 is manually invoked from an open session."
+
+### The modular seams (the heart of this Part)
+
+The orchestrator is a **plain driver** that composes **one uniform tier interface** with a few **swappable
+providers**; it special-cases no tier and no backend.
+
+- **Uniform tier interface** — Category / Layer / Main each conform to the *same* contract,
+  `run(scope, store) → { findings[], assessment }`. The driver runs a *list* of tier-stages. This is what
+  lets the deferred Layer/Main stubs **become real tiers with zero orchestrator change** — they drop in
+  behind the interface.
+- **Swappable providers**, each one purpose + interface + the swap it enables later:
+  - **Scope resolver** — `taxonomy → categories_in_layer / all_categories`; the single source of structure
+    (define-once); new categories simply appear.
+  - **Assignment provider** — `category_id → Assignment | None`; file fixtures now → a taxonomy-default
+    generator later. A selected category with **no assignment is logged as skipped**, never silently dropped
+    (no-silent-truncation, Parts 19/37).
+  - **Category coordinator** — `assignment, asOf → scorecard + run-log`; the existing gather→ingest→brain
+    path (Part 37), untouched.
+  - **Model backend** — the existing `LLMClient` port; recorded / in-session ↔ metered, already swappable.
+  - **Store + read seam** — `write_scorecard` / `get_category_scorecards(layer)`; `JsonStore` now →
+    canonical store + scoped query tool (Part 9) later.
+  - **Execution driver** — "run these category coordinators"; **sequential** now → **Workflow** parallel
+    fan-out later, coordinators unchanged.
+  - **Trigger** — `scope → run plan`; the manual skill now → a scheduler calling the same resolver+driver later.
+- **Define-once sources:** `taxonomy.json` = structure, `registry/indicators.json` = indicator definitions,
+  the assignment = scope. Nothing is defined twice.
+
+So every deferred piece in the build order — real tiers, parallelism, the canonical store, a metered backend,
+scheduling — is a **drop-in behind a seam that already exists in this design, never a rewrite.** That is the
+concrete meaning of "as modular as possible" for the runtime.
+
+### A cycle is auditable
+
+A run writes a **cycle log** (the scope, categories run vs. skipped-and-why, scorecard paths, and each
+tier-stage's status) — the orchestration analogue of Part 37's `gather-log.json`, so a cycle is replayable
+and a coverage gap is visible, never implied away.
+
+**Reuses (don't rebuild):**
+- **Part 5** — the plain driver and the one-level-deep delegation rule; this Part names *what* the driver is
+  in this build.
+- **Part 37** — the Category leg (the gatherer swarm + saved snapshot) *is* the category coordinator; this
+  Part wraps it in a scope-selecting cycle.
+- **Part 18** — assignment-driven scope and "make every part swappable behind an interface" (principle 7)
+  are the design language of the seams above.
+- **Parts 2 / 7 / 17** — the frozen brain (schema, gate, rating model) the CLI already enforces.
+- **Part 9** — the store and (coming) scoped query tool the read seam points at.
+- The **`LLMClient` port** and the **registry/taxonomy** (Increment A) — already swappable seams reused as-is.
+
+**New here:**
+- The **named canonical runtime** (Claude Code) for all three tiers.
+- The **uniform tier interface** + the **provider seams** that make tiers, execution, store, backend, and
+  trigger independently swappable.
+- The **scope-selecting `/run-cycle` trigger** (category / layer / whole-market).
+
+**Not yet (deferred, by decision):** the **Layer** and **Main** tiers; the **canonical store + scoped query
+tool** (Part 9); **parallel** category fan-out (the Workflow tool); **unattended scheduling** and the
+**interactive path** (Parts 28 / 14). None require a redesign — each is a drop-in behind a seam named above.
+
+> **Self-check / build order:** the session orchestrates and the code computes + gates + stores; delegation
+> stays one level deep; every tier conforms to the uniform interface; every deferred piece is a swap behind
+> a named seam, never a rewrite; and a selected category with no assignment is logged, never silently
+> dropped. A cycle that can't be replayed from its saved run-log did not happen.
 
 ---
 

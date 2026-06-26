@@ -16,6 +16,7 @@ from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.structure import Taxonomy
 from gpu_agent.registry.validate import validate_assignment
+from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -148,6 +149,19 @@ def _pipeline(args) -> int:
           f"SMI={sc.demandSupply.smiContribution:.3f}")
     return 0
 
+def _cycle_plan(args) -> int:
+    taxonomy = Taxonomy.load(args.taxonomy)
+    provider = AssignmentProvider(args.assignments)
+    plan = build_cycle_plan(args.scope, taxonomy, provider)   # raises ValueError on bad scope
+    payload = plan.model_dump_json(indent=2)
+    if args.out:
+        pathlib.Path(args.out).write_text(payload, encoding="utf-8")
+    print(payload)
+    for e in plan.entries:
+        if e.status != "ready":
+            print(f"SKIPPED {e.category_id}: {e.status}", file=sys.stderr)
+    return 0
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -189,6 +203,13 @@ def main(argv=None) -> int:
     pl.add_argument("--backend", default="claude_code")
     pl.add_argument("--recorded-extract", default=None)
     pl.add_argument("--recorded-judge", default=None)
+    cp = sub.add_parser("cycle-plan")
+    cp.add_argument("--scope", required=True,
+                    help="category:<id> | layer:<id> | all")
+    cp.add_argument("--assignments", default="fixtures",
+                    help="dir of asg.<category>.json files")
+    cp.add_argument("--taxonomy", default="docs/taxonomy.json")
+    cp.add_argument("--out", default=None, help="write the cycle plan JSON here (initial cycle log)")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -205,6 +226,12 @@ def main(argv=None) -> int:
             return _pipeline(args)
         except RegistryError as e:
             print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+    if args.cmd == "cycle-plan":
+        try:
+            return _cycle_plan(args)
+        except ValueError as e:
+            print("CYCLE SCOPE ERROR:", e, file=sys.stderr)
             return 1
     try:
         sc = _build(args)

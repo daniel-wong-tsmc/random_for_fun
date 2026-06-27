@@ -1,0 +1,101 @@
+"""Unit tests for gpu_agent/report.py — deterministic scorecard renderer.
+
+All tests use committed fixture scorecards; no LLM call, no network.
+
+Fixtures (committed under fixtures/report/ — store/** is gitignored, never read):
+  - CURRENT  = legacy-current.json : rich PRE-B scorecard, 4/6 dims rated
+               (missing bottleneck + strategicRisk); dmi=0.100, smi=0.027
+               → sdgi=0.073; NO dimensionStatus / categoryStatus.
+  - PRIOR    = legacy-prior.json   : PRE-B prior cycle, 5/6 dims rated
+               (missing strategicRisk); dmi=0.140, smi=0.267 → sdgi=−0.127.
+  - POSTB    = postb-scorecard.json: POST-B scorecard with all-6 dimensionStatus
+               (momentum grounded, 5 under-supported), categoryStatus present,
+               demandSupply.sdgi=0.0667 "demand-led".
+
+Sub-project B has MERGED, so the post-B fields are real model fields and the
+post-B tests below assert against the committed POSTB fixture (no xfail).
+"""
+from __future__ import annotations
+import json
+from pathlib import Path
+import pytest
+from gpu_agent.schema.scorecard import Scorecard
+
+FIX = Path("fixtures/report")
+CURRENT = FIX / "legacy-current.json"
+PRIOR = FIX / "legacy-prior.json"
+POSTB = FIX / "postb-scorecard.json"
+
+
+def _load(p: Path) -> Scorecard:
+    from gpu_agent.report import load_scorecard
+    return load_scorecard(p)
+
+
+# ── compute_sdgi ────────────────────────────────────────────────────────────
+
+def test_compute_sdgi_from_dmi_smi():
+    """sdgi = dmi - smi when no stored sdgi field (legacy fixture)."""
+    from gpu_agent.report import compute_sdgi
+    sc = _load(CURRENT)
+    result = compute_sdgi(sc)
+    expected = sc.demandSupply.dmiContribution - sc.demandSupply.smiContribution
+    assert abs(result - expected) < 1e-9
+
+
+def test_compute_sdgi_uses_stored_field_when_present():
+    """If demandSupply.sdgi is set (B's field), use it without recomputing."""
+    from gpu_agent.report import compute_sdgi
+    sc = _load(CURRENT)
+    # dmi-smi for the legacy fixture is ~0.073, so 0.25 can only come from the
+    # stored field — proves compute_sdgi prefers it over recomputing.
+    sc.demandSupply.sdgi = 0.25
+    result = compute_sdgi(sc)
+    assert result == pytest.approx(0.25)
+
+
+def test_compute_sdgi_reads_postb_stored_field():
+    """POST-B fixture carries demandSupply.sdgi=0.0667; compute_sdgi returns it."""
+    from gpu_agent.report import compute_sdgi
+    sc = _load(POSTB)
+    assert compute_sdgi(sc) == pytest.approx(0.06666666666666667)
+
+
+# ── find_prior ───────────────────────────────────────────────────────────────
+
+def test_find_prior_discovers_v2_when_v3_is_current(tmp_path):
+    """Given v3 as the most recent, find_prior returns the v2 path."""
+    from gpu_agent.report import find_prior
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v2.json").write_text(PRIOR.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-06-v3.json").write_text(CURRENT.read_text("utf-8"), "utf-8")
+    sc = _load(CURRENT)
+    prior_path = find_prior(tmp_path, sc)
+    assert prior_path is not None
+    assert prior_path.name == "2026-06-v2.json"
+
+
+def test_find_prior_returns_none_when_only_one_version(tmp_path):
+    """If only one JSON file exists in the category dir, no prior → None."""
+    from gpu_agent.report import find_prior
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v3.json").write_text(CURRENT.read_text("utf-8"), "utf-8")
+    sc = _load(CURRENT)
+    assert find_prior(tmp_path, sc) is None
+
+
+def test_load_scorecard_parses_pydantic_model():
+    """load_scorecard returns a typed Scorecard, not a raw dict."""
+    sc = _load(CURRENT)
+    assert sc.categoryId == "chips.merchant-gpu"
+    assert sc.asOf == "2026-06"
+    assert len(sc.findings) > 0
+
+
+def test_load_scorecard_raises_on_missing_file():
+    """load_scorecard raises (ValueError/FileNotFoundError) on missing path."""
+    from gpu_agent.report import load_scorecard
+    with pytest.raises((ValueError, FileNotFoundError)):
+        load_scorecard(Path("fixtures/report/nonexistent.json"))

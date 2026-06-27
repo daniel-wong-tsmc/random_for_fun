@@ -395,3 +395,89 @@ def render_evidence_quality(sc: Scorecard, registry: IndicatorRegistry) -> str:
         f"(primary: {total_primary}, secondary: {total_secondary})"
     )
     return "\n".join(lines)
+
+
+def render_sources(sc: Scorecard) -> str:
+    """Render SOURCES — deduplicated evidence list, primary first then date descending.
+
+    Derives source metadata from sc.findings[].evidence[], deduplicating by URL.
+    For a repeated URL the highest tier (primary wins) and the latest date are kept.
+    """
+    # Collect unique sources keyed by URL; keep latest date and highest tier.
+    seen: dict[str, dict] = {}
+    for f in sc.findings:
+        for ev in f.evidence:
+            url = ev.url
+            if url not in seen:
+                seen[url] = {"source": ev.source, "url": url,
+                             "date": ev.date, "tier": ev.tier}
+            else:
+                if ev.tier == "primary":
+                    seen[url]["tier"] = "primary"
+                if ev.date > seen[url]["date"]:
+                    seen[url]["date"] = ev.date
+
+    # Sort: primary group first then secondary; within each group by date desc,
+    # then by URL for a fully deterministic ordering.
+    final = sorted(
+        seen.values(),
+        key=lambda s: (0 if s["tier"] == "primary" else 1,
+                       _neg_date_key(s["date"]), s["url"]),
+    )
+
+    n = len(final)
+    lines = [f"SOURCES  ({n} unique; primary first, then by date descending)"]
+    for s in final:
+        domain = s["url"].split("/")[2] if s["url"].startswith("http") else s["url"][:30]
+        lines.append(
+            f"  [{s['tier']:<9}]  {domain:<30}  {s['date']}   {s['source'][:60]}"
+        )
+    return "\n".join(lines)
+
+
+def _neg_date_key(date_str: str) -> tuple:
+    """Sort key that orders ISO-8601 date strings descending (latest first).
+
+    Inverts each character's ordinal so a plain ascending sort yields a
+    descending-by-date result, without parsing partial/malformed dates.
+    """
+    return tuple(-ord(c) for c in date_str)
+
+
+def render_coverage_gaps(sc: Scorecard) -> str:
+    """Render COVERAGE / SKIP GAPS — under-supported dims + orphan source refs.
+
+    Until sub-project C ships a coverage manifest, reports only:
+    - Dimensions that are under-supported this cycle (evidenceStatus from
+      dimensionStatus when present, else absence from dimensionRatings).
+    - Entries in sc.sources not referenced by any finding's evidence. (sc.sources
+      holds source *names*, so orphan detection matches against evidence source
+      names, not URLs — adapted from the brief, which assumed URL-valued sources.)
+    """
+    evidence_source_names: set[str] = set()
+    for f in sc.findings:
+        for ev in f.evidence:
+            evidence_source_names.add(ev.source)
+
+    lines = ["COVERAGE / SKIP GAPS"]
+    gap_found = False
+    for dim in DIMENSIONS:
+        ev_status, _fc, _cap, _note = _dim_evidence_status(sc, dim)
+        is_grounded = (ev_status == "grounded") and (dim in sc.dimensionRatings)
+        if not is_grounded:
+            lines.append(
+                f"  {dim:<22}  — 0 findings this cycle; dimension under-supported"
+            )
+            gap_found = True
+
+    # Orphan source refs: sc.sources entries not referenced by any evidence.
+    orphan_sources = [s for s in sc.sources if s not in evidence_source_names]
+    if orphan_sources:
+        for s in orphan_sources:
+            lines.append(f"  (orphan source ref)  {s}")
+    else:
+        lines.append("  (No orphan source references detected)")
+
+    if not gap_found and not orphan_sources:
+        lines.append("  All 6 dimensions grounded; no coverage gaps this cycle.")
+    return "\n".join(lines)

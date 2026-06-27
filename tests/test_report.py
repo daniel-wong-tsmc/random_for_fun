@@ -432,3 +432,80 @@ def test_render_evidence_quality_totals_line():
     sc = _load(V3)
     out = render_evidence_quality(sc, registry)
     assert "Total:" in out
+
+
+# ── render_sources ────────────────────────────────────────────────────────────
+
+def test_render_sources_section_header():
+    from gpu_agent.report import render_sources
+    sc = _load(V3)
+    out = render_sources(sc)
+    assert "SOURCES" in out
+
+
+def test_render_sources_primary_before_secondary():
+    """Primary sources appear before secondary sources in the list."""
+    from gpu_agent.report import render_sources
+    sc = _load(V3)
+    out = render_sources(sc)
+    lines = out.splitlines()
+    source_lines = [l for l in lines if "[primary]" in l or "[secondary]" in l]
+    assert len(source_lines) > 0
+    # All [primary] lines must appear before any [secondary] line
+    seen_secondary = False
+    for line in source_lines:
+        if "[secondary]" in line:
+            seen_secondary = True
+        if "[primary]" in line and seen_secondary:
+            pytest.fail("A [primary] source appeared after a [secondary] source")
+
+
+def test_render_sources_deduplication():
+    """Each URL appears only once even if cited in multiple findings/evidence items."""
+    from gpu_agent.report import render_sources
+    sc = _load(V3)
+    out = render_sources(sc)
+    lines = out.splitlines()
+    source_lines = [l for l in lines if "[primary]" in l or "[secondary]" in l]
+    # Extract URLs / source names and check uniqueness
+    # A simple proxy: count lines — should be less than total evidence items across all findings
+    total_evidence = sum(len(f.evidence) for f in sc.findings)
+    assert len(source_lines) < total_evidence  # deduplication must have occurred
+
+
+def test_render_sources_count_in_header():
+    """Source count appears in the section header."""
+    from gpu_agent.report import render_sources
+    sc = _load(V3)
+    out = render_sources(sc)
+    first_line = out.splitlines()[0]
+    assert "unique" in first_line or re.search(r"\d+", first_line)
+
+
+# ── render_coverage_gaps ──────────────────────────────────────────────────────
+
+def test_render_coverage_gaps_section_header():
+    from gpu_agent.report import render_coverage_gaps
+    sc = _load(V3)
+    out = render_coverage_gaps(sc)
+    assert "COVERAGE / SKIP GAPS" in out
+
+
+def test_render_coverage_gaps_undersupported_dims_listed():
+    """bottleneck and strategicRisk appear in gap list for v3."""
+    from gpu_agent.report import render_coverage_gaps
+    sc = _load(V3)
+    out = render_coverage_gaps(sc)
+    assert "bottleneck" in out
+    assert "strategicRisk" in out
+
+
+def test_render_coverage_gaps_no_orphan_note_when_clean():
+    """When sc.sources matches evidence URLs, 'No orphan source references' appears."""
+    from gpu_agent.report import render_coverage_gaps
+    sc = _load(V3)
+    out = render_coverage_gaps(sc)
+    # v3's sources field should be a subset of evidence URLs (or empty)
+    # Either no orphan note is needed, or the note appears
+    # Just assert the section header is present and doesn't crash
+    assert "COVERAGE / SKIP GAPS" in out

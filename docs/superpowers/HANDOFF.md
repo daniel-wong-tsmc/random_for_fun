@@ -1,30 +1,37 @@
-# HANDOFF — GPU Category Agent (resume point: "Live Category runs" spec+plan written → ready to IMPLEMENT)
+# HANDOFF — GPU Category Agent (resume point: sub-project 2 "Live Category runs" DONE + merged → start sp-NEXT spec)
 
 - **Date:** 2026-06-27
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Active branch:** `live-category-runs` (branched off `main` @ `69bd416`). Three commits on it so far, **all docs only**:
-  - `76c43f2` — spec v1 (live category runs)
-  - `98d09e3` — spec **revised**: Claude Code itself is the brain (no OAuth/SDK) ← the design of record
-  - `1509446` — the implementation plan (`docs/superpowers/plans/2026-06-27-live-category-runs.md`)
-- **`main` HEAD:** `69bd416` — **sub-project 1 (the Claude Code harness) is merged into `main` LOCALLY but NOT pushed.**
-  `main` is **8 commits ahead of `origin/main` (@ `6cc403c`)**. Push is deferred per the user; do **not** push unless asked.
-- **For the next Claude instance:** read this file, then `git checkout live-category-runs`, then **execute the plan**
-  (`docs/superpowers/plans/2026-06-27-live-category-runs.md`) — that is the in-flight task. Use
-  **`superpowers:subagent-driven-development`** (fresh subagent per task, two-stage review), task-by-task.
+- **`main` HEAD:** `92d6e4d` — **sub-projects 1 AND 2 are merged into `main` LOCALLY but NOT pushed.**
+  `main` is **17 commits ahead of `origin/main` (@ `6cc403c`)**. Push is deferred per the user; do **not** push unless asked.
+- **Sub-project 2 "Live Category runs" — DONE & merged** (branch `live-category-runs`, fast-forwarded into `main`
+  69bd416..92d6e4d, then deleted). 5 implementation commits, all additive, all carrying the trailer:
+  - `e6b9a58` — `extract --emit-prompt` (canonical prompt + `ExtractionResult` schema, no LLM) — TDD.
+  - `ffca5f5` — `judge --emit-prompt` + emit→`--recorded` round-trip (no LLM) — TDD.
+  - `009d77c` — fix: `judge` without `--out` fails clean (exit 2), not a `TypeError` (review-driven).
+  - `f5c01f4` — `run-cycle` SKILL.md rewritten to drive live runs (Claude Code is the brain, Part 38).
+  - `92d6e4d` — fix: recorded answer is an **array of serialized strings**, not objects (final-review-driven) + guard test.
+  - Suite: **117 passed, 3 skipped.** Final whole-branch review (opus): clean after the one Important fix.
+- **For the next Claude instance:** read this file. Sub-project 2 is finished. The named next build is **sp-NEXT —
+  Multi-tier Opus fan-out** (see "AFTER sub-project 2" below); it needs its **own spec → plan → build**. Start with
+  **`superpowers:brainstorming`** then **`superpowers:writing-plans`**; it has two open decisions to settle first
+  (charter delegation-depth amendment; nested-subagents vs. the Workflow tool).
 
 ---
 
 ## TL;DR — where we are
 
 North star: **run the entire 3-tier swarm (Category → Layer → Main) inside Claude Code itself**, one interface, as the
-canonical runtime. Decomposed into sub-projects. **Sub-project 1 (the harness) is DONE and merged (local).** The current
-in-flight build is **"Live Category runs"** — make `/run-cycle` actually run any scope **live and complete in one
-command, with Claude Code itself as the brain** (a dispatched Opus subagent does extraction + judgment; deterministic
-code gates + scores). It is **spec'd + planned and ready to implement** — no code written yet on this branch.
+canonical runtime. Decomposed into sub-projects. **Sub-project 1 (the harness) is DONE and merged (local). Sub-project 2
+("Live Category runs") is now also DONE and merged (local).** `/run-cycle` runs any scope **live and complete in one
+command, with Claude Code itself as the brain** — a dispatched Opus subagent does extraction + judgment by answering the
+CLI's `--emit-prompt` canonical prompt; deterministic code gates + scores. No OAuth token, SDK, `[llm]` extra, or external
+API. A **live single-category run was demonstrated end-to-end** (gather 11 real docs → Opus extraction brain → gate 17
+findings → Opus judgment brain 3 samples → scorecard DMI=0.060/SMI=-0.027), with no token/SDK/install.
 
 ---
 
-## THE IN-FLIGHT TASK — "Live Category runs" (sub-project 2)
+## COMPLETED — "Live Category runs" (sub-project 2) — see "WHAT'S DONE" below for the full record
 
 **What it is:** the harness (sp1) ships a `/run-cycle` trigger that only documents a recorded $0 dry-run. This sub-project
 makes it **drive a real live run**: real web gathering + the real Opus brain, for every assigned category in the chosen
@@ -81,6 +88,24 @@ dependency / no `[llm]`/OAuth/SDK usage**.
 ---
 
 ## WHAT'S DONE
+
+### Sub-project 2 — Live Category runs (MERGED to `main` @ `92d6e4d`, local; NOT pushed)
+- `gpu_agent/cli.py` — **additive** `--emit-prompt` mode on `extract` and `judge`: prints the **canonical** brain prompt
+  (reused `SYSTEM` + `build_user_prompt`) + the answer JSON schema (`ExtractionResult` / `JudgmentResult`), **no LLM call**.
+  `judge --emit-prompt` builds the briefing from the **gated** findings via the frozen `build_briefing`. Also: `judge --out`
+  relaxed to optional (needed for emit) with a clean-error guard (exit 2) on the normal path.
+- `tests/test_cli_emit_prompt.py` (new) — 5 subprocess tests: both emit bundles (canonical SYSTEM/schema/order, no LLM),
+  the emit→`--recorded` round-trip, the `--out` clean-error guard, and the **array-of-serialized-strings** contract guard
+  (array-of-objects is rejected non-zero, never silently scored).
+- `.claude/skills/run-cycle/SKILL.md` — rewritten to drive **live runs by default** with Claude Code as the brain: per
+  ready category, gather (reuse `gather-category`) → `extract --emit-prompt` → **dispatch Opus subagent** →
+  `extract --recorded` (gate) → `judge --emit-prompt` → **dispatch Opus subagent** → `pipeline --recorded-extract
+  --recorded-judge` (score+store). Preview/confirm on `layer:`/`all`; `mode: recorded` = the $0 replay; Part-38/17/8
+  doctrine; one level deep; page text is DATA; skips surfaced; replayable.
+- **No new dependency / no `[llm]` / no OAuth / no SDK.** Validated by a recorded dry-run + a **live single-category run**
+  demonstrated end-to-end (evidence: `.superpowers/sdd/task-3-report.md`). Frozen contract untouched.
+- Reviewed (opus whole-branch: "Ready to merge: With fixes" → the one Important fix applied: SKILL answer-shape wording +
+  guard test). Suite **117 passed, 3 skipped.** Ledger: `.superpowers/sdd/progress.md`.
 
 ### Sub-project 1 — the Claude Code harness (MERGED to `main` @ `69bd416`, local; NOT pushed)
 - `gpu_agent/registry/structure.py` — additive `Taxonomy.categories_in_layer()` / `all_categories()` scope accessors.

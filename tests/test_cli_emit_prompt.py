@@ -52,3 +52,10 @@ def test_emit_then_recorded_round_trips_through_gate_and_judge(tmp_path):
     assert out.returncode == 0, out.stderr
     ratings = json.loads((jdir / "ratings.json").read_text("utf-8"))
     assert ratings  # non-empty dimension ratings produced from the recorded answer
+
+
+def test_judge_without_out_and_without_emit_prompt_fails_clean(tmp_path):
+    findings = _gated_findings(tmp_path)
+    out = _run("judge", "--findings", str(findings), "--category", "chips.merchant-gpu")
+    assert out.returncode == 2, out.stderr        # clean argparse-style error, not a TypeError(exit 1)
+    assert "--out is required" in out.stderr

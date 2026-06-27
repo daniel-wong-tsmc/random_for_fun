@@ -145,6 +145,9 @@ def _emit_judge_prompt(args) -> int:
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
+    if args.out is None:
+        print("gpu-agent judge: error: --out is required", file=sys.stderr)
+        return 2
     findings = [Finding.model_validate(d)
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
     if args.recorded:

@@ -272,10 +272,12 @@ def _fmt_delta(current: float, prior_val: Optional[float]) -> str:
 
 
 def _momentum_word(value: float) -> str:
+    # Honest direction only — no invented magnitude qualifier (the contribution
+    # has no fixed 0..1 scale, so "slight"/"strong" would be unearned). Part 17.
     if value > 0:
-        return "slight positive"
+        return "positive"
     if value < 0:
-        return "slight negative"
+        return "negative"
     return "flat"
 
 

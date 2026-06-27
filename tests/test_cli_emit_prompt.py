@@ -59,3 +59,26 @@ def test_judge_without_out_and_without_emit_prompt_fails_clean(tmp_path):
     out = _run("judge", "--findings", str(findings), "--category", "chips.merchant-gpu")
     assert out.returncode == 2, out.stderr        # clean argparse-style error, not a TypeError(exit 1)
     assert "--out is required" in out.stderr
+
+
+def test_recorded_answer_must_be_array_of_serialized_strings(tmp_path):
+    # Guards the emit->answer->recorded contract the run-cycle SKILL documents: the brain's answer
+    # (and the committed fixtures) is a JSON array of STRINGS, each a serialized result object — the
+    # shape RecordedClient replays. An array of bare OBJECTS (the wrong shape) must NOT be silently
+    # accepted/scored; it is rejected non-zero. This is exactly what the live run produced and what the
+    # SKILL's dispatch wording must instruct.
+    import pathlib
+    fixture = json.loads(pathlib.Path("fixtures/recorded/extract-nvda.json").read_text("utf-8"))
+    assert all(isinstance(x, str) for x in fixture)   # the committed answer shape is array-of-strings
+
+    good = tmp_path / "good.json"                      # correct shape -> gates cleanly
+    good.write_text(json.dumps(fixture), "utf-8")
+    ok = _run("extract", "--recorded", str(good), "--docs", "fixtures/raw", "--as-of", "2026-06",
+              "--captured-at", "2026-06-12T00:00:00Z", "--out", str(tmp_path / "f_good.json"))
+    assert ok.returncode == 0, ok.stderr
+
+    bad = tmp_path / "bad.json"                        # array-of-objects -> rejected, never silently scored
+    bad.write_text(json.dumps([json.loads(s) for s in fixture]), "utf-8")
+    nok = _run("extract", "--recorded", str(bad), "--docs", "fixtures/raw", "--as-of", "2026-06",
+               "--captured-at", "2026-06-12T00:00:00Z", "--out", str(tmp_path / "f_bad.json"))
+    assert nok.returncode != 0, "array-of-objects must not be accepted as a recorded answer"

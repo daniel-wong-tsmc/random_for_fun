@@ -21,3 +21,10 @@ def test_user_prompt_shows_anchor_sign_and_finding_id():
 def test_system_states_injection_boundary_and_rubric():
     assert "untrusted DATA" in SYSTEM
     assert "JUDGMENT bounded by the anchor" in SYSTEM
+
+def test_system_prompt_requests_all_six_and_overall_status():
+    low = SYSTEM.lower()
+    assert "categorystatus" in low
+    assert "bottleneck" in low
+    # instructs omission of ungroundable dimensions rather than inventing
+    assert "omit" in low

@@ -338,11 +338,13 @@ def render_entity_panel(sc: Scorecard) -> str:
 
 
 def render_evidence_quality(sc: Scorecard, registry: IndicatorRegistry) -> str:
-    """Render EVIDENCE QUALITY — per-dimension evidence counts by source tier.
+    """Render EVIDENCE QUALITY — per-dimension distinct-finding counts + tiers.
 
     Uses registry.indicators to map indicatorId → dimension. Findings whose
     indicatorId is unregistered or dimension-less go to (unattributed). Each
-    finding's evidence items are tallied by tier (primary/secondary).
+    line reports the DISTINCT finding count for the dimension plus the
+    primary/secondary EVIDENCE-item split (two different quantities, each
+    labelled as exactly what it counts).
     """
     from collections import defaultdict
 
@@ -352,14 +354,21 @@ def render_evidence_quality(sc: Scorecard, registry: IndicatorRegistry) -> str:
         for ind_id, spec in registry.indicators.items()
     }
 
-    # Bucket evidence items: dimension → {primary: int, secondary: int}
-    counts: dict[str, dict[str, int]] = defaultdict(lambda: {"primary": 0, "secondary": 0})
+    # Per bucket: distinct FINDING count + primary/secondary EVIDENCE-item counts.
+    # These are different quantities and are each labelled as exactly what they
+    # count (A renders, never invents: never report more findings than exist).
+    counts: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"findings": 0, "primary": 0, "secondary": 0}
+    )
+    total_findings = 0
     total_primary = 0
     total_secondary = 0
 
     for f in sc.findings:
         dim = ind_to_dim.get(f.indicatorId)  # None if unregistered OR dimension-less
         bucket = dim if dim else "(unattributed)"
+        counts[bucket]["findings"] += 1
+        total_findings += 1
         for ev in f.evidence:
             counts[bucket][ev.tier] = counts[bucket].get(ev.tier, 0) + 1
             if ev.tier == "primary":
@@ -367,32 +376,29 @@ def render_evidence_quality(sc: Scorecard, registry: IndicatorRegistry) -> str:
             else:
                 total_secondary += 1
 
+    empty = {"findings": 0, "primary": 0, "secondary": 0}
+
+    def _fmt_bucket(label: str, c: dict[str, int], status: bool = True) -> str:
+        n = c.get("findings", 0)
+        p, s = c.get("primary", 0), c.get("secondary", 0)
+        if n == 0:
+            return f"  {label:<22}   0 findings  ——  [under-supported]"
+        plural = "s" if n != 1 else " "
+        body = (f"  {label:<22}  {n:>3} finding{plural}  "
+                f"(primary/secondary evidence: {p}/{s})")
+        return body + "  [grounded]" if status else body
+
     lines = ["EVIDENCE QUALITY  (per dimension)"]
     for dim in DIMENSIONS:
-        c = counts.get(dim, {"primary": 0, "secondary": 0})
-        total = c.get("primary", 0) + c.get("secondary", 0)
-        ev_status = "grounded" if total > 0 else "under-supported"
-        if total == 0:
-            lines.append(f"  {dim:<22}   0 findings  ——  [{ev_status}]")
-        else:
-            lines.append(
-                f"  {dim:<22}  {total:>3} findings  "
-                f"(primary: {c.get('primary', 0)}, secondary: {c.get('secondary', 0)})  "
-                f"[{ev_status}]"
-            )
+        lines.append(_fmt_bucket(dim, counts.get(dim, empty)))
     # Unattributed bucket (non-scoring / unregistered indicators)
-    uc = counts.get("(unattributed)", {"primary": 0, "secondary": 0})
-    utotal = uc.get("primary", 0) + uc.get("secondary", 0)
-    if utotal > 0:
-        lines.append(
-            f"  {'(unattributed)':<22}  {utotal:>3} findings  "
-            f"(primary: {uc.get('primary', 0)}, secondary: {uc.get('secondary', 0)})"
-        )
-    total_all = total_primary + total_secondary
+    uc = counts.get("(unattributed)", empty)
+    if uc.get("findings", 0) > 0:
+        lines.append(_fmt_bucket("(unattributed)", uc, status=False))
     lines.append("")
     lines.append(
-        f"  Total: {total_all} findings  "
-        f"(primary: {total_primary}, secondary: {total_secondary})"
+        f"  Total: {total_findings} findings  "
+        f"(primary/secondary evidence: {total_primary}/{total_secondary})"
     )
     return "\n".join(lines)
 
@@ -429,8 +435,9 @@ def render_sources(sc: Scorecard) -> str:
     lines = [f"SOURCES  ({n} unique; primary first, then by date descending)"]
     for s in final:
         domain = s["url"].split("/")[2] if s["url"].startswith("http") else s["url"][:30]
+        tag = f"[{s['tier']}]"  # e.g. "[primary]" / "[secondary]" — no inner padding
         lines.append(
-            f"  [{s['tier']:<9}]  {domain:<30}  {s['date']}   {s['source'][:60]}"
+            f"  {tag:<12}  {domain:<30}  {s['date']}   {s['source'][:60]}"
         )
     return "\n".join(lines)
 

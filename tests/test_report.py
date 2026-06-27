@@ -449,14 +449,18 @@ def test_render_sources_primary_before_secondary():
     sc = _load(V3)
     out = render_sources(sc)
     lines = out.splitlines()
-    source_lines = [l for l in lines if "[primary]" in l or "[secondary]" in l]
+    # Match without trailing-pad sensitivity so BOTH tiers are actually inspected.
+    source_lines = [l for l in lines if "[primary" in l or "[secondary" in l]
     assert len(source_lines) > 0
+    # The fixture has both tiers — the ordering check must really exercise primary.
+    assert any("[primary" in l for l in source_lines)
+    assert any("[secondary" in l for l in source_lines)
     # All [primary] lines must appear before any [secondary] line
     seen_secondary = False
     for line in source_lines:
-        if "[secondary]" in line:
+        if "[secondary" in line:
             seen_secondary = True
-        if "[primary]" in line and seen_secondary:
+        if "[primary" in line and seen_secondary:
             pytest.fail("A [primary] source appeared after a [secondary] source")
 
 
@@ -466,7 +470,7 @@ def test_render_sources_deduplication():
     sc = _load(V3)
     out = render_sources(sc)
     lines = out.splitlines()
-    source_lines = [l for l in lines if "[primary]" in l or "[secondary]" in l]
+    source_lines = [l for l in lines if "[primary" in l or "[secondary" in l]
     # Extract URLs / source names and check uniqueness
     # A simple proxy: count lines — should be less than total evidence items across all findings
     total_evidence = sum(len(f.evidence) for f in sc.findings)
@@ -562,3 +566,41 @@ def test_render_report_with_v3_and_v2_prior_no_crash():
     prior = _load(V2)
     out = render_report(sc, prior, registry, render_ts="2026-06-27T00:00:00Z")
     assert len(out) > 500  # substantive output
+
+
+def test_render_evidence_quality_counts_findings_not_evidence_items():
+    """Headline must be DISTINCT-finding count, not evidence-item count.
+
+    Give one momentum finding a SECOND evidence item: the finding count must
+    stay the same while the primary/secondary evidence split gains one item.
+    Guards against inflating reported finding quantity (A renders, never invents).
+    """
+    from gpu_agent.report import render_evidence_quality
+    from gpu_agent.schema.scorecard import Scorecard
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    raw = json.loads(V3.read_text("utf-8"))
+
+    # Baseline momentum finding count + evidence count from the registry mapping.
+    ind_to_dim = {k: v.get("dimension") for k, v in registry.indicators.items()}
+    momentum_findings = [f for f in raw["findings"]
+                         if ind_to_dim.get(f["indicatorId"]) == "momentum"]
+    n_findings = len(momentum_findings)
+    base_ev = sum(len(f.get("evidence", [])) for f in momentum_findings)
+
+    # Duplicate the first evidence item of the first momentum finding.
+    target = momentum_findings[0]
+    target["evidence"].append(dict(target["evidence"][0]))
+
+    sc = Scorecard.model_validate(raw)
+    out = render_evidence_quality(sc, registry)
+    momentum_line = next(l for l in out.splitlines() if l.strip().startswith("momentum"))
+
+    # Headline counts findings (unchanged), not evidence items (now base_ev + 1).
+    m = re.search(r"(\d+) findings?", momentum_line)
+    assert m and int(m.group(1)) == n_findings
+    assert n_findings != base_ev + 1  # the two numbers genuinely differ
+    # The evidence split must reflect the added item.
+    ev_nums = re.findall(r"evidence:\s*(\d+)/(\d+)", momentum_line)
+    assert ev_nums, f"no evidence split in: {momentum_line!r}"
+    p, s = int(ev_nums[0][0]), int(ev_nums[0][1])
+    assert p + s == base_ev + 1

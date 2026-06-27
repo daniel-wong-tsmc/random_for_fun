@@ -114,7 +114,8 @@ class WikiStore:
 
     def window(self, page_id, n) -> WindowView:
         page, body = self._read(page_id)
-        recent = self.observations(page_id)[-n:]
+        all_obs = self.observations(page_id)
+        recent = all_obs[-n:] if n > 0 else []
         resolved = [ResolvedObservation(asOf=o.asOf, finding=self.findings.get(o.findingId))
                     for o in recent]
         return WindowView(page=page, body=body, observations=resolved)

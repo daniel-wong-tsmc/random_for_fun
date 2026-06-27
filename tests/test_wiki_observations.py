@@ -1,6 +1,6 @@
 import pytest
 from gpu_agent.store import FindingStore
-from gpu_agent.wiki.store import WikiStore, FindingNotGated
+from gpu_agent.wiki.store import WikiStore, FindingNotGated, PageNotFound
 from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence
 
 
@@ -62,5 +62,15 @@ def test_window_resolves_last_n_findings(tmp_path):
 
 def test_observations_on_missing_page_raises(tmp_path):
     ws, fs = _store(tmp_path)
-    with pytest.raises(Exception):
+    with pytest.raises(PageNotFound):
         ws.observations("theme:nope")
+
+
+def test_window_zero_returns_empty(tmp_path):
+    ws, fs = _store(tmp_path)
+    fs.append(_finding("f-1"))
+    ws.create_page("theme:cowos", "theme", "CoWoS", as_of="2026-06-26")
+    ws.append_observation("theme:cowos", "f-1", as_of="2026-06-26")
+    win = ws.window("theme:cowos", 0)
+    assert win.observations == []
+    assert win.page.id == "theme:cowos"

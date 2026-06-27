@@ -16,5 +16,199 @@
   },
   "overrides": {
     "chips.hbm-memory": { "market-share-pct": { "weight": 0.04 } }
+  },
+  "sourceInventory": {
+    "market-share-pct": [
+      {
+        "name": "TrendForce GPU market share tracker",
+        "accessMethod": "licensed-api",
+        "tier": "secondary",
+        "costUsd": 5000,
+        "license": "licensed",
+        "refresh": "quarterly"
+      },
+      {
+        "name": "Open-web trade press (Tom's Hardware, AnandTech, SemiAnalysis)",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "grossMargin": [
+      {
+        "name": "Company 10-Q / 10-K (GAAP gross margin line)",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      }
+    ],
+    "D2": [
+      {
+        "name": "Company 10-Q Data Center / AI segment revenue",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      },
+      {
+        "name": "Trade press (DigiTimes, Reuters, Bloomberg) — secondary confirmation",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "D6": [
+      {
+        "name": "Lambda Labs GPU cloud pricing (public)",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      },
+      {
+        "name": "CoreWeave / RunPod / Vast.ai pricing pages",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "S9": [
+      {
+        "name": "Company filings mentioning custom silicon / ASIC programs",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      },
+      {
+        "name": "Open-web: Google TPU blog, AWS Trainium announcements, Meta MTIA",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "S10": [
+      {
+        "name": "Company 10-Q inventory line (finished goods + WIP)",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      },
+      {
+        "name": "Channel checks: lead-time reporting (DigiTimes, Tom's Hardware)",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "perfPerWatt": [
+      {
+        "name": "Official benchmark whitepapers / MLPerf results",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "on-demand"
+      }
+    ],
+    "flopsPerDollar": [
+      {
+        "name": "Derived: official TFLOPS spec / current list price (company IR + pricing pages)",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "on-demand"
+      }
+    ],
+    "apiArr": [
+      {
+        "name": "Company earnings call / investor letter (ARR or revenue run-rate cited)",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      }
+    ],
+    "releaseCadence": [
+      {
+        "name": "Official product announcements / press releases",
+        "accessMethod": "free-web",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "on-demand"
+      }
+    ],
+    "exportControlExposure": [
+      {
+        "name": "BIS export control notices and Federal Register",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "on-demand"
+      },
+      {
+        "name": "Company 10-K risk factors section (export control / China exposure)",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "annual"
+      },
+      {
+        "name": "Open-web: Reuters, Bloomberg, POLITICO on export control developments",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ],
+    "customerConcentration": [
+      {
+        "name": "Company 10-K / 10-Q customer concentration disclosures (Note re: major customers)",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "quarterly"
+      },
+      {
+        "name": "Company 10-K supplier concentration / sole-source dependency disclosures",
+        "accessMethod": "filing",
+        "tier": "primary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "annual"
+      },
+      {
+        "name": "Open-web: supply-chain reporting (Reuters, DigiTimes) on TSMC dependency",
+        "accessMethod": "free-web",
+        "tier": "secondary",
+        "costUsd": 0,
+        "license": "public",
+        "refresh": "weekly"
+      }
+    ]
   }
 }

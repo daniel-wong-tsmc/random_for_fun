@@ -22,6 +22,7 @@ from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.structure import Taxonomy
 from gpu_agent.registry.validate import validate_assignment
 from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
+from gpu_agent.report import load_scorecard, find_prior, render_report
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -213,6 +214,50 @@ def _cycle_plan(args) -> int:
             print(f"SKIPPED {e.category_id}: {e.status}", file=sys.stderr)
     return 0
 
+def _report(args) -> int:
+    """Handler for `gpu-agent report`: load scorecard + optional prior → render."""
+    try:
+        sc = load_scorecard(pathlib.Path(args.scorecard))
+    except (ValueError, FileNotFoundError) as e:
+        print(f"gpu-agent report: error: {e}", file=sys.stderr)
+        return 1
+
+    prior = None
+    if not args.no_prior:
+        if args.prior:
+            # Explicit prior path supplied — load it directly.
+            try:
+                prior = load_scorecard(pathlib.Path(args.prior))
+            except (ValueError, FileNotFoundError) as e:
+                print(
+                    f"gpu-agent report: warning: could not load prior: {e}",
+                    file=sys.stderr,
+                )
+        else:
+            # Auto-discover: pass current_path so find_prior excludes the
+            # current scorecard by (asOf, version) and picks the highest
+            # version strictly below it.  This is correct even when the
+            # current scorecard is not the newest file in the store.
+            prior_path = find_prior(
+                pathlib.Path(args.store), sc,
+                current_path=pathlib.Path(args.scorecard),
+            )
+            if prior_path is not None:
+                try:
+                    prior = load_scorecard(prior_path)
+                except (ValueError, FileNotFoundError):
+                    pass  # silently skip unreadable prior
+
+    registry = IndicatorRegistry.load(args.registry)
+    text = render_report(sc, prior, registry)
+    if args.out:
+        pathlib.Path(args.out).write_text(text, "utf-8")
+        print(f"wrote {args.out}")
+    else:
+        print(text)
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -265,6 +310,16 @@ def main(argv=None) -> int:
                     help="dir of asg.<category>.json files")
     cp.add_argument("--taxonomy", default="docs/taxonomy.json")
     cp.add_argument("--out", default=None, help="write the cycle plan JSON here (initial cycle log)")
+    rp = sub.add_parser("report")
+    rp.add_argument("--scorecard", required=True, help="path to the scorecard JSON file")
+    rp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")
+    rp.add_argument("--store", default="store",
+                    help="store root dir for auto-discovery of prior (default: 'store')")
+    rp.add_argument("--out", default=None, help="write report to file instead of stdout")
+    rp.add_argument("--registry", default="registry/indicators.json",
+                    help="indicator registry path (default: 'registry/indicators.json')")
+    rp.add_argument("--no-prior", action="store_true",
+                    help="suppress prior-cycle lookup; Δ columns show —")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -288,6 +343,8 @@ def main(argv=None) -> int:
         except ValueError as e:
             print("CYCLE SCOPE ERROR:", e, file=sys.stderr)
             return 1
+    if args.cmd == "report":
+        return _report(args)
     try:
         sc = _build(args)
     except GateError as e:

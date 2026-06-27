@@ -47,12 +47,27 @@ def load_scorecard(path: Path) -> Scorecard:
         raise ValueError(f"Failed to load scorecard from {path}: {exc}") from exc
 
 
-def find_prior(store_dir: Path, sc: Scorecard) -> Optional[Path]:
+def find_prior(
+    store_dir: Path,
+    sc: Scorecard,
+    current_path: Optional[Path] = None,
+) -> Optional[Path]:
     """Return the most-recent previous scorecard for sc.categoryId in store_dir, or None.
 
     Scans store_dir/<categoryId>/*.json, parses <asOf>-v<N>.json filenames,
-    sorts by (asOf, N) descending, and returns the second entry (index 1).
-    The most-recent entry (index 0) is assumed to be the current scorecard.
+    sorts by (asOf, N) descending.
+
+    When *current_path* is provided the function identifies the current
+    scorecard's (asOf, version) from its filename, excludes it from the
+    candidate list, and returns the candidate with the highest (asOf, version)
+    that is strictly less than the current.  This correctly handles rendering
+    an older version (e.g. v2 → prior=v1, not v3) and is the mode used by the
+    CLI ``report`` subcommand.
+
+    When *current_path* is None (legacy/backward-compatible mode) the function
+    assumes the newest file in the directory is the current scorecard and
+    returns the second-newest entry (index 1).  Existing callers and tests
+    that rely on this behaviour remain green.
     """
     cat_dir = store_dir / sc.categoryId
     if not cat_dir.is_dir():
@@ -63,6 +78,26 @@ def find_prior(store_dir: Path, sc: Scorecard) -> Optional[Path]:
         if m:
             candidates.append((m.group(1), int(m.group(2)), p))
     candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
+
+    if current_path is not None:
+        # Identify the current scorecard by (asOf, version) from its filename.
+        cur_name = Path(current_path).name
+        cur_m = _VERSION_RE.match(cur_name)
+        if cur_m:
+            cur_key = (cur_m.group(1), int(cur_m.group(2)))
+            below = [
+                (asof, v, p) for asof, v, p in candidates if (asof, v) < cur_key
+            ]
+        else:
+            # Filename doesn't match pattern — fall back to resolved-path exclusion.
+            cur_resolved = Path(current_path).resolve()
+            below = [
+                (asof, v, p) for asof, v, p in candidates
+                if p.resolve() != cur_resolved
+            ]
+        return below[0][2] if below else None
+
+    # Legacy mode: second-newest entry is assumed to be the prior.
     if len(candidates) < 2:
         return None
     return candidates[1][2]

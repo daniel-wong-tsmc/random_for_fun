@@ -6,6 +6,8 @@ from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import DimensionRating
 from gpu_agent.schema.raw_document import RawDocument
 from gpu_agent.extraction.extractor import extract_findings
+from gpu_agent.extraction.extractor import ExtractionResult
+from gpu_agent.extraction.prompt import SYSTEM as EXTRACT_SYSTEM, build_user_prompt as build_extract_user_prompt
 from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.llm.factory import make_client
 from gpu_agent.pipeline import build_scorecard
@@ -81,7 +83,22 @@ def _build(args):
     registry, _ = _load_registry()
     return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry)
 
+def _emit_extract_prompt(args) -> int:
+    """Print the canonical extraction prompt + answer schema (no LLM call) so a Claude Code
+    subagent can answer it; the answer feeds `extract --recorded`. Part 38: code emits the
+    uniform prompt, the agent reasons, code gates the result."""
+    docs = _load_docs(args.docs)
+    bundle = {
+        "system": EXTRACT_SYSTEM,
+        "schema": ExtractionResult.model_json_schema(),
+        "docs": [{"id": doc.id, "user": build_extract_user_prompt(doc)} for doc in docs],
+    }
+    print(json.dumps(bundle, indent=2))
+    return 0
+
 def _extract(args) -> int:
+    if args.emit_prompt:
+        return _emit_extract_prompt(args)
     docs = _load_docs(args.docs)
     if args.recorded:
         client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
@@ -179,6 +196,8 @@ def main(argv=None) -> int:
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
     ex.add_argument("--backend", default="claude_code")
     ex.add_argument("--recorded", default=None, help="JSON array of recorded responses (offline)")
+    ex.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical extraction prompt + schema (no LLM) and exit")
     ig = sub.add_parser("ingest")
     ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")

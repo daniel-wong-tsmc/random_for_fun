@@ -7,10 +7,12 @@ Same scorecard + prior → byte-identical report. The only injected time input i
 from __future__ import annotations
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -273,4 +275,63 @@ def render_dmi_smi_sdgi(sc: Scorecard, prior: Optional[Scorecard]) -> str:
         f"  SDGI  {sdgi:.3f}   Δ {_fmt_delta(sdgi, prior_sdgi)}"
         f"   {_sdgi_interpretation(sdgi)}"
     )
+    return "\n".join(lines)
+
+
+def _signal_label(score: float) -> str:
+    """Convert a normalized polarity×magnitude score to a plain label."""
+    if score > 1.5:
+        return "+strong"
+    if score > 0.5:
+        return "+moderate"
+    if score > 0.1:
+        return "+slight"
+    if score >= -0.1:
+        return "neutral"
+    if score >= -0.5:
+        return "−slight"
+    if score >= -1.5:
+        return "−moderate"
+    return "−strong"
+
+
+def render_entity_panel(sc: Scorecard) -> str:
+    """Render ENTITY PANEL — one sub-panel per entity found in findings.
+
+    Entities are sorted by finding count (descending) then alphabetically.
+    Each sub-panel shows: count, demand/supply signal level, up to 3 key signals.
+    Findings with an empty entity string are excluded.
+    """
+    from collections import defaultdict
+    entity_findings: dict[str, list] = defaultdict(list)
+    for f in sc.findings:
+        if f.entity:  # skip empty entity
+            entity_findings[f.entity].append(f)
+
+    # Sort: most findings first, then alphabetically
+    sorted_entities = sorted(
+        entity_findings.keys(),
+        key=lambda e: (-len(entity_findings[e]), e),
+    )
+
+    lines = ["ENTITY PANEL"]
+    SIDE_ORDER = {"demand": 0, "supply": 1, "structural": 2, "price": 3}
+    for entity in sorted_entities:
+        findings = entity_findings[entity]
+        n = len(findings)
+        # Demand signal: sum(polarityDemand * magnitude) / n
+        demand_score = sum(f.polarityDemand * f.magnitude for f in findings) / n
+        supply_score = sum(f.polaritySupply * f.magnitude for f in findings) / n
+        lines.append(f"  {entity}  ({n} finding{'s' if n != 1 else ''})")
+        lines.append(f"    Demand signal: {_signal_label(demand_score)}"
+                     f"   Supply signal: {_signal_label(supply_score)}")
+        # Top 3 findings by magnitude (desc), then side priority, then id for stable order
+        top = sorted(
+            findings,
+            key=lambda f: (-f.magnitude, SIDE_ORDER.get(f.side, 9), f.id),
+        )[:3]
+        lines.append("    Key signals:")
+        for f in top:
+            stmt = f.statement[:100] + "..." if len(f.statement) > 100 else f.statement
+            lines.append(f"      [{f.side}/{f.kind.value}]  {stmt}")
     return "\n".join(lines)

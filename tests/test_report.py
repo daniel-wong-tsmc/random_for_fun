@@ -17,14 +17,23 @@ post-B tests below assert against the committed POSTB fixture (no xfail).
 """
 from __future__ import annotations
 import json
+import re
 from pathlib import Path
 import pytest
 from gpu_agent.schema.scorecard import Scorecard
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 FIX = Path("fixtures/report")
 CURRENT = FIX / "legacy-current.json"
 PRIOR = FIX / "legacy-prior.json"
 POSTB = FIX / "postb-scorecard.json"
+
+# Aliases for Tasks 5-8 brief (committed fixtures replace gitignored store/** paths):
+#   V3 (brief's 2026-06-v3.json) -> legacy-current.json (rich: 35 findings, amd/intel/nvidia)
+#   V2 (brief's 2026-06-v2.json) -> legacy-prior.json   (prior cycle, 18 findings)
+V3 = CURRENT
+V2 = PRIOR
+REGISTRY_PATH = Path("registry/indicators.json")
 
 
 def _load(p: Path) -> Scorecard:
@@ -299,3 +308,59 @@ def test_render_dmi_smi_sdgi_negative_interpretation_postb_balanced():
     b = render_dmi_smi_sdgi(sc, prior=None)
     assert a == b  # determinism
     assert "Demand outrunning supply" in a
+
+
+# ── render_entity_panel ───────────────────────────────────────────────────────
+
+def test_render_entity_panel_section_header():
+    from gpu_agent.report import render_entity_panel
+    sc = _load(V3)
+    out = render_entity_panel(sc)
+    assert "ENTITY PANEL" in out
+
+
+def test_render_entity_panel_known_entities_appear():
+    """v3 has findings for nvidia, amd, intel — all three panels must appear."""
+    from gpu_agent.report import render_entity_panel
+    sc = _load(V3)
+    out = render_entity_panel(sc)
+    assert "nvidia" in out
+    assert "amd" in out
+    assert "intel" in out
+
+
+def test_render_entity_panel_finding_count():
+    """Each entity panel shows a finding count > 0."""
+    from gpu_agent.report import render_entity_panel
+    sc = _load(V3)
+    out = render_entity_panel(sc)
+    import re
+    # e.g. "nvidia  (12 findings)"
+    counts = re.findall(r"\((\d+) findings?\)", out)
+    assert len(counts) == 3  # one per entity
+    assert all(int(c) > 0 for c in counts)
+
+
+def test_render_entity_panel_empty_entity_excluded():
+    """Findings with empty entity string do not create a panel."""
+    from gpu_agent.report import render_entity_panel
+    from gpu_agent.schema.scorecard import Scorecard
+    raw = json.loads(V3.read_text("utf-8"))
+    # Inject a finding with empty entity
+    raw["findings"][0]["entity"] = ""
+    sc = Scorecard.model_validate(raw)
+    out = render_entity_panel(sc)
+    # Should still have exactly 3 entity panels (nvidia, amd, intel)
+    import re
+    counts = re.findall(r"\((\d+) findings?\)", out)
+    assert len(counts) == 3
+
+
+def test_render_entity_panel_key_signals_listed():
+    """Each entity sub-panel lists at least one key signal."""
+    from gpu_agent.report import render_entity_panel
+    sc = _load(V3)
+    out = render_entity_panel(sc)
+    assert "Key signals:" in out
+    # Signal lines are prefixed with [side/kind]
+    assert "[demand/" in out or "[supply/" in out

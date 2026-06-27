@@ -75,6 +75,9 @@ guess as a guess.
 - Part 37 — The gathering swarm (how a category agent actually fetches the open web)
 - Part 38 — Running the swarm in Claude Code (the harness, concretely)
 
+**The daily monitor** — *sub-project 4: from quarterly scorecard to daily demand/supply intelligence*
+- Part 39 — The daily demand/supply monitor (sub-project 4): decomposition & deferred pieces
+
 > A companion visual of the swarm — an interactive, layered knowledge graph of the agents, the
 > data-access tools each tier holds, the roll-up/read edges, and the universal guidelines — lives at
 > [`app/swarm-graph.html`](../app/swarm-graph.html).
@@ -1704,6 +1707,48 @@ tool** (Part 9); **parallel** category fan-out (the Workflow tool); **unattended
 > stays one level deep; every tier conforms to the uniform interface; every deferred piece is a swap behind
 > a named seam, never a rewrite; and a selected category with no assignment is logged, never silently
 > dropped. A cycle that can't be replayed from its saved run-log did not happen.
+
+---
+
+## Part 39 — The daily demand/supply monitor (sub-project 4): decomposition & deferred pieces
+
+Sub-projects 1–3 built the harness, the live-run brain, and a **complete + legible quarterly scorecard**
+(all six dimensions, an executive report, a coverage manifest). **Sub-project 4** turns that quarterly
+scorecard into a **daily demand/supply monitor**: it tracks data that changes daily, follows **events as
+evolving threads** (Karpathy's "LLM-wiki" model — threads = wiki pages that accrete dated, cited findings and
+carry a state + trajectory), splits **trailing Momentum from forward Outlook**, filters the day's noise to
+**what changed and whether it matters**, and renders a **market-state brief** that answers *"what is demand/
+supply doing, and where is it heading."* Built **additively on B/A/C** (Part 33 — reuse, don't rebuild). The
+umbrella design is [`docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md`].
+
+**The decomposition (5 pieces, dependency-ordered, each merged before the next):**
+
+| # | Piece | Status |
+|---|---|---|
+| **4-1** | **Temporal store + LLM-wiki thread model** (the keystone): persist scorecards + wiki pages (entity/theme threads) + `index` + `log`; full cited finding history per page; markdown-with-frontmatter pages (code-owned header + brain-curated body); a standalone append-only **`FindingStore`** (every gated finding stored once, referenced by id — finishing Part 9's "append-only time-series of *every Finding*"); `create_page` / `append_observation` / `get_page` / `window` / `index` / `log_append` / `diff(asOf, prevAsOf)`. **Pure code + diff only.** | **active build** |
+| **4-2** | **Leading + daily indicators**: forward & daily-cadence signals (capex guidance, RPO/backlog, GPU spot/secondary prices, lead times, CoWoS/HBM capacity, news-event indicators); each tagged **cadence (daily\|weekly\|quarterly) × horizon (leading\|coincident\|lagging)** as registry DATA (the C-3 top-level-map pattern); source inventory + manifest coverage. | **this effort (next)** |
+| **4-3** | **Two indices**: trailing **Momentum** (lagging+coincident; today's dmi/smi generalize to it) and forward **Outlook** (leading), each split demand/supply with its own SDGI; computed in code; additive Scorecard fields; the **Momentum-strong-while-Outlook-turns** divergence surfaced. | **this effort (next)** |
+| **4-4** | **Daily gather + relevance/lint engine + the brain-driven wiki ingest**: recent-news + live-price daily sweep; dedup vs the store; the **richer multi-factor materiality model** (the wiki `lint`: new-thread \| thread-state-change \| contradicts-thesis[highest] \| moves-indicator∝magnitude; weighted by tier+recency; decays as a thread goes quiet); salience-decay computation; every drop **logged, never silent** (Part 29). **Includes the brain-ingest seam** (`--emit-prompt` + a wiki-ingest skill step that routes a finding to its page(s), writes the prose body, flags contradictions) — **deliberately deferred out of 4-1** (see below). | **DEFERRED — tracked future sub-project** |
+| **4-5** | **Market-State brief + daily diff**: the report renders **both views** (a two-column demand/supply signal board *and* the causal driver/constraint tree naming the specific binding constraint), **leading with "what moved today"** + thread trajectories + per-signal recency; extends A's `report.py`. | **DEFERRED — tracked future sub-project** |
+
+**Why the brain-driven wiki ingest is deferred from 4-1 into 4-4 (a decision, recorded):** routing a finding
+to the right page, synthesizing the prose body, and flagging contradictions is **the same reasoning as scoring
+materiality**, and it needs the daily sweep's findings to operate on. 4-1 stays a **small, fully-deterministic
+keystone** — schema + store primitives + `diff()`, unit-tested with committed fixtures (the A pattern) — and
+ships the store primitives as *exactly* the contract the 4-4 brain will call. Pulling a half-built ingest into
+4-1 would only be reworked once 4-4's materiality engine exists; deferring it **removes** rework and keeps the
+keystone green-by-pytest. The brain curates the wiki; **code computes + gates + stores; numbers come only from
+gated findings** (Part 17) — true in both pieces.
+
+**Out of scope for sub-project 4 (deferred follow-ons, by decision):** the **unattended daily scheduler**
+(Part 28 — the monitor is *designed* to run daily, but auto-scheduling is a separate follow-on); the Layer/Main
+tiers and the multi-tier Opus fan-out (still deferred per Part 38); a *quantitative* regression demand/supply
+model (Part 17 forbids invented precision — we structure drivers/constraints, we do not fit a curve).
+
+> **Self-check:** every sub-project-4 piece is **additive on B/A/C** behind a named seam (Part 33/38); the
+> frozen contract (`gate.py`, `scoring.py`, the `Finding` schema, the 6 dimensions, the rating scale, the
+> Part-7 gate) stays byte-unchanged; every number is **gated** (none invented by the agent); and the day is
+> **replayable** from the wiki `log` + the gated findings (Part 20).
 
 ---
 

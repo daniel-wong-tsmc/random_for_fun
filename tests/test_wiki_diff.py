@@ -68,3 +68,16 @@ def test_diff_cold_start_is_empty(tmp_path):
     ws, fs = _store(tmp_path)
     d = ws.diff("2026-06-27", "2026-06-26")
     assert d.new_pages == [] and d.changed_pages == [] and d.quiet_pages == [] and d.index_moves == []
+
+
+def test_diff_salience_only_change_is_index_move_without_state_transition(tmp_path):
+    ws, fs = _store(tmp_path)
+    ws.create_page("theme:cowos", "theme", "CoWoS", as_of="2026-06-26")
+    ws.record_state("theme:cowos", as_of="2026-06-26", state="slipping", trajectory="t", salience=0.4)
+    # Day 2: same state label + trajectory, higher salience
+    ws.record_state("theme:cowos", as_of="2026-06-27", state="slipping", trajectory="t", salience=0.9)
+    d = ws.diff("2026-06-27", "2026-06-26")
+    assert [m.id for m in d.index_moves] == ["theme:cowos"]
+    assert d.index_moves[0].oldSalience == 0.4 and d.index_moves[0].newSalience == 0.9
+    move_page = next(p for p in d.changed_pages if p.id == "theme:cowos")
+    assert move_page.stateTransition is None

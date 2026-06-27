@@ -242,3 +242,60 @@ def test_render_dimensions_rating_arrows():
     sc = _load(CURRENT)
     out = render_dimensions(sc, prior=None)
     assert any(arrow in out for arrow in ["↑", "→", "↓"])
+
+
+# ── render_dmi_smi_sdgi ──────────────────────────────────────────────────────
+
+def test_render_dmi_smi_sdgi_contains_section_header():
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(CURRENT)
+    out = render_dmi_smi_sdgi(sc, prior=None)
+    assert "DEMAND / SUPPLY MOMENTUM" in out
+
+
+def test_render_dmi_smi_sdgi_no_prior_shows_dash():
+    """When no prior, Δ column shows — for all three values."""
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(CURRENT)
+    out = render_dmi_smi_sdgi(sc, prior=None)
+    lines = [l for l in out.splitlines() if any(t in l for t in ("DMI", "SMI", "SDGI"))]
+    assert len(lines) == 3
+    for line in lines:
+        assert "—" in line  # em dash for missing delta
+
+
+def test_render_dmi_smi_sdgi_with_prior_shows_arithmetic_delta():
+    """Delta = current - prior; CURRENT DMI=0.100, PRIOR DMI=0.140 → Δ = −0.040."""
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(CURRENT)
+    prior = _load(PRIOR)
+    out = render_dmi_smi_sdgi(sc, prior=prior)
+    dmi_line = next(l for l in out.splitlines() if "DMI" in l)
+    assert "-0.04" in dmi_line or "−0.04" in dmi_line
+
+
+def test_render_dmi_smi_sdgi_interpretation_positive_sdgi():
+    """SDGI > 0.05 → 'Demand outrunning supply' in output."""
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(CURRENT)  # sdgi = 0.100 - 0.027 = 0.073 > 0.05
+    out = render_dmi_smi_sdgi(sc, prior=None)
+    assert "Demand outrunning supply" in out
+
+
+def test_render_dmi_smi_sdgi_shows_dmi_smi_values():
+    """DMI and SMI values from the scorecard appear in output."""
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(CURRENT)
+    out = render_dmi_smi_sdgi(sc, prior=None)
+    assert "0.100" in out  # DMI
+    assert "0.027" in out  # SMI
+
+
+def test_render_dmi_smi_sdgi_negative_interpretation_postb_balanced():
+    """POSTB sdgi=0.0667 (>0.05) → demand-outrunning interpretation, deterministic."""
+    from gpu_agent.report import render_dmi_smi_sdgi
+    sc = _load(POSTB)
+    a = render_dmi_smi_sdgi(sc, prior=None)
+    b = render_dmi_smi_sdgi(sc, prior=None)
+    assert a == b  # determinism
+    assert "Demand outrunning supply" in a

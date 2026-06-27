@@ -219,3 +219,58 @@ def render_dimensions(sc: Scorecard, prior: Optional[Scorecard]) -> str:
         f"{under_count} under-supported"
     )
     return "\n".join(lines)
+
+
+def _sdgi_interpretation(sdgi: float) -> str:
+    for threshold, label in SDGI_INTERP_RULES:
+        if sdgi > threshold:
+            return label
+    return SDGI_INTERP_RULES[-1][1]
+
+
+def _fmt_delta(current: float, prior_val: Optional[float]) -> str:
+    """Format arithmetic delta; em-dash when prior is absent."""
+    if prior_val is None:
+        return "—"
+    diff = current - prior_val
+    sign = "+" if diff >= 0 else "−"
+    return f"{sign}{abs(diff):.3f}"
+
+
+def _momentum_word(value: float) -> str:
+    if value > 0:
+        return "slight positive"
+    if value < 0:
+        return "slight negative"
+    return "flat"
+
+
+def render_dmi_smi_sdgi(sc: Scorecard, prior: Optional[Scorecard]) -> str:
+    """Render DEMAND / SUPPLY MOMENTUM section with DMI, SMI, SDGI + Δ vs prior."""
+    dmi = sc.demandSupply.dmiContribution
+    smi = sc.demandSupply.smiContribution
+    sdgi = compute_sdgi(sc)
+
+    prior_dmi: Optional[float] = None
+    prior_smi: Optional[float] = None
+    prior_sdgi: Optional[float] = None
+    if prior is not None:
+        prior_dmi = prior.demandSupply.dmiContribution
+        prior_smi = prior.demandSupply.smiContribution
+        prior_sdgi = compute_sdgi(prior)
+
+    delta_label = f"(Δ vs prior cycle: {prior.asOf})" if prior else ""
+    lines = [f"DEMAND / SUPPLY MOMENTUM  {delta_label}".rstrip()]
+    lines.append(
+        f"  DMI   {dmi:.3f}   Δ {_fmt_delta(dmi, prior_dmi)}"
+        f"   Demand momentum: {_momentum_word(dmi)}"
+    )
+    lines.append(
+        f"  SMI   {smi:.3f}   Δ {_fmt_delta(smi, prior_smi)}"
+        f"   Supply momentum: {_momentum_word(smi)}"
+    )
+    lines.append(
+        f"  SDGI  {sdgi:.3f}   Δ {_fmt_delta(sdgi, prior_sdgi)}"
+        f"   {_sdgi_interpretation(sdgi)}"
+    )
+    return "\n".join(lines)

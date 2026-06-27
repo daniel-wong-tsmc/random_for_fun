@@ -262,3 +262,19 @@ def test_report_handler_does_not_crash_on_cp1252_stdout(monkeypatch):
     # The handler forced UTF-8, so the bytes decode as UTF-8 with the report.
     decoded = written.decode("utf-8")
     assert "CATEGORY REPORT" in decoded
+
+
+def test_report_render_ts_is_byte_reproducible(tmp_path):
+    """`--render-ts` pins the header time so two CLI runs are byte-identical (Part 20 replay)."""
+    import subprocess, sys, os
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    def _run():
+        return subprocess.run(
+            [sys.executable, "-m", "gpu_agent.cli", "report",
+             "--scorecard", "fixtures/report/postb-scorecard.json",
+             "--no-prior", "--render-ts", "2026-06-27T00:00:00Z"],
+            capture_output=True, text=True, encoding="utf-8", env=env)
+    a, b = _run(), _run()
+    assert a.returncode == 0 and b.returncode == 0, (a.stderr, b.stderr)
+    assert a.stdout == b.stdout and a.stdout.strip()        # byte-identical, non-empty
+    assert "2026-06-27T00:00:00Z" in a.stdout               # the fixed ts appears in the header

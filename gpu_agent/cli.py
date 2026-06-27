@@ -249,7 +249,7 @@ def _report(args) -> int:
                     pass  # silently skip unreadable prior
 
     registry = IndicatorRegistry.load(args.registry)
-    text = render_report(sc, prior, registry)
+    text = render_report(sc, prior, registry, render_ts=getattr(args, "render_ts", None))
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -322,6 +322,9 @@ def main(argv=None) -> int:
     rp.add_argument("--out", default=None, help="write report to file instead of stdout")
     rp.add_argument("--registry", default="registry/indicators.json",
                     help="indicator registry path (default: 'registry/indicators.json')")
+    rp.add_argument("--render-ts", default=None,
+                    help="fix the report's render timestamp (ISO-8601) for byte-reproducible output; "
+                         "default: current UTC time")
     # --prior and --no-prior are mutually exclusive: passing both is a usage error.
     grp = rp.add_mutually_exclusive_group()
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")

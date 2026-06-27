@@ -105,6 +105,20 @@ scores, and writes the scorecard:
 ```
 Expected: `wrote store/<id>/<asOf>-v<n>.json  DMI=... SMI=...`. Record the path + DMI/SMI.
 
+**(e) Render the executive report (deterministic — no LLM).** After the scorecard is written, render and
+surface the board-ready report:
+```
+.venv/Scripts/python -m gpu_agent.cli report \
+  --scorecard store/<id>/<asOf>-v<n>.json \
+  --store store
+```
+This prints the full board-ready report to the session — the overall category status, all six dimensions
+(with any `under-supported` dimension shown, never dropped — Part 18 #8), DMI/SMI/**SDGI** with a plain-language
+read and **Δ vs the prior cycle**, the per-entity panel, evidence quality per dimension, the sources list, and
+the coverage/skip gaps. Surface the report text alongside the scorecard path in the cycle log. It is a pure
+projection of the saved scorecard (`report` never edits canonical state — Part 35), so it replays for $0.
+*(If `gpu-agent report` is unavailable in an older checkout, skip this step and log it as deferred.)*
+
 If the gate or judgment rejects the answer (non-zero exit / `JudgmentError`), **re-dispatch** the relevant
 brain subagent with the error once or twice; if it still fails, mark this category **failed (logged)** in the
 cycle log and continue to the next — never commit a partial as complete.

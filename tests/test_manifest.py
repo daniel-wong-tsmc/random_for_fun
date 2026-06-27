@@ -161,6 +161,19 @@ def test_paywalled_source_becomes_gap_immediately():
     assert paywalled.type == "source"
 
 
+def test_real_manifest_indicator_ids_all_resolve_in_registry():
+    """Seam guard: every expectedIndicator.indicatorId in the shipped manifest
+    must resolve to a real registry indicator. strategicRisk is a DIMENSION,
+    not an indicator id; the real ids are exportControlExposure and
+    customerConcentration."""
+    from gpu_agent.registry.indicators import IndicatorRegistry
+
+    manifest = load_manifest("manifests/chips.merchant-gpu.json")
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    for entry in manifest.expectedIndicators:
+        reg.resolve(entry.indicatorId)  # must not raise
+
+
 def test_required_vs_preferred_gap_priority():
     manifest_data = {
         **MINIMAL_MANIFEST,

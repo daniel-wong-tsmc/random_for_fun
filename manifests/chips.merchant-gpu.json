@@ -41,10 +41,16 @@
       "sourceIds": ["nvda-earnings", "channel-checks"]
     },
     {
-      "indicatorId": "strategicRisk",
+      "indicatorId": "exportControlExposure",
       "dimension": "strategicRisk",
       "priority": "required",
       "sourceIds": ["bis-export-controls", "nvda-10k-risk-factors"]
+    },
+    {
+      "indicatorId": "customerConcentration",
+      "dimension": "strategicRisk",
+      "priority": "required",
+      "sourceIds": ["nvda-10k-risk-factors"]
     }
   ],
   "expectedSources": [

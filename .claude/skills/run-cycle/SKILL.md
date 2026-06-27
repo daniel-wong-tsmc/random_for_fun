@@ -1,6 +1,6 @@
 ---
 name: run-cycle
-description: Use to run the GPU Category Agent swarm for a chosen scope — a specific category, a whole layer (all its categories), or the entire market. Manual-trigger; the session is the coordinator (charter Part 38). Runs LIVE by default with Claude Code itself as the brain (a dispatched Opus subagent does extraction + judgment; deterministic code gates + scores). v1 runs the Category tier; Layer and Main are deferred stages.
+description: Run the GPU Category Agent swarm LIVE for a chosen scope. Use whenever the user asks to run / kick off / execute a category, layer, or whole-market agent / cycle / run — e.g. "run my merchant-gpu agent" (→ category:chips.merchant-gpu), "run my frontier-closed agent" (→ category:models.frontier-closed), "run the chips layer" / "run a layer" (→ layer:<id>), "run the entire AI market" / "run the whole market" (→ all). Manual-trigger; the session is the coordinator (charter Part 38). Runs LIVE by default with Claude Code itself as the brain (a dispatched Opus subagent does extraction + judgment; deterministic code gates + scores). v1 runs the Category tier; Layer and Main are deferred stages.
 ---
 
 # Run Cycle (the Claude Code harness — charter Part 38)
@@ -30,6 +30,16 @@ are deferred** stages you report, not run.
 - `asOf` (e.g. `2026-06`).
 - `mode` — `live` (default: real gather + Opus brain subagents) or `recorded` (a $0 replay against committed
   fixtures, for a dry-run/CI).
+
+### Resolving a natural-language request to a `scope`
+The user usually speaks plainly; map their words to a `scope`, confirm only if ambiguous:
+- "run my **merchant-gpu** agent" / "the GPU agent" → `category:chips.merchant-gpu`
+- "run my **frontier**(-closed) agent" → `category:models.frontier-closed`
+- "run **a/the layer**" / "run the **chips** layer" → `layer:<id>` (ask which layer if unnamed)
+- "run the **entire/whole AI market**" / "run **everything**" → `all`
+- If `asOf` is unstated, use the current analysis month (e.g. `2026-06`); if `mode` is unstated, default `live`.
+Only `chips.merchant-gpu` and `models.frontier-closed` have assignments today, so `layer:`/`all` run those and
+report the rest `skipped-no-assignment` (surfaced, never dropped).
 
 ## Procedure
 

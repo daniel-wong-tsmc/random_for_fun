@@ -1,90 +1,105 @@
-# HANDOFF — GPU Category Agent (resume point: Claude Code harness spec+plan written → ready to IMPLEMENT)
+# HANDOFF — GPU Category Agent (resume point: "Live Category runs" spec+plan written → ready to IMPLEMENT)
 
-- **Date:** 2026-06-26
+- **Date:** 2026-06-27
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Active branch:** `claude-code-harness` (branched off `main` @ `6cc403c`). Two commits on it so far, both **docs only**:
-  - `18cbbfc` — charter amendment: **Part 38 "Running the swarm in Claude Code"** (+ pointer-edits to Parts 5/28/14)
-  - `7badf4e` — implementation plan (`docs/superpowers/plans/2026-06-26-claude-code-harness.md`)
-- **`main` HEAD:** `6cc403c` — **Increment A (indicator registry) is merged AND pushed to origin.** The branch is *ahead of main by docs only* — **no harness code written yet.**
-- **For the next Claude instance:** read this file, then `git checkout claude-code-harness`, then **execute the plan**
-  (`docs/superpowers/plans/2026-06-26-claude-code-harness.md`) — that is the in-flight task. Use
-  **`superpowers:subagent-driven-development`** (recommended; fresh subagent per task, two-stage review), task-by-task.
+- **Active branch:** `live-category-runs` (branched off `main` @ `69bd416`). Three commits on it so far, **all docs only**:
+  - `76c43f2` — spec v1 (live category runs)
+  - `98d09e3` — spec **revised**: Claude Code itself is the brain (no OAuth/SDK) ← the design of record
+  - `1509446` — the implementation plan (`docs/superpowers/plans/2026-06-27-live-category-runs.md`)
+- **`main` HEAD:** `69bd416` — **sub-project 1 (the Claude Code harness) is merged into `main` LOCALLY but NOT pushed.**
+  `main` is **8 commits ahead of `origin/main` (@ `6cc403c`)**. Push is deferred per the user; do **not** push unless asked.
+- **For the next Claude instance:** read this file, then `git checkout live-category-runs`, then **execute the plan**
+  (`docs/superpowers/plans/2026-06-27-live-category-runs.md`) — that is the in-flight task. Use
+  **`superpowers:subagent-driven-development`** (fresh subagent per task, two-stage review), task-by-task.
 
 ---
 
 ## TL;DR — where we are
 
-The user has committed to a north-star: **run the entire 3-tier swarm (Category → Layer → Main) on Claude Code itself**
-as the canonical runtime (not the hosted "Managed-Agents" backend the charter originally assumed). That is a *program*,
-decomposed into sub-projects (below). **Sub-project 1 — the harness re-homing — is spec'd (charter Part 38) and
-planned, and is the in-flight build.** Increment A (the indicator registry) is done, merged, and pushed.
+North star: **run the entire 3-tier swarm (Category → Layer → Main) inside Claude Code itself**, one interface, as the
+canonical runtime. Decomposed into sub-projects. **Sub-project 1 (the harness) is DONE and merged (local).** The current
+in-flight build is **"Live Category runs"** — make `/run-cycle` actually run any scope **live and complete in one
+command, with Claude Code itself as the brain** (a dispatched Opus subagent does extraction + judgment; deterministic
+code gates + scores). It is **spec'd + planned and ready to implement** — no code written yet on this branch.
 
 ---
 
-## THE IN-FLIGHT TASK — Claude Code harness, sub-project 1 (Approach 1)
+## THE IN-FLIGHT TASK — "Live Category runs" (sub-project 2)
 
-**What it is:** build the v1 Claude Code harness from charter **Part 38** — a single, scope-selecting **`/run-cycle`**
-trigger that runs the **Category** tier and reports **Layer/Main as explicit deferred stages**. The user can run:
-- `category:<id>` — one category,
-- `layer:<id>` — that layer **and all its categories underneath**,
-- `all` / `market` — the whole market.
+**What it is:** the harness (sp1) ships a `/run-cycle` trigger that only documents a recorded $0 dry-run. This sub-project
+makes it **drive a real live run**: real web gathering + the real Opus brain, for every assigned category in the chosen
+scope, live-by-default, in one command — **with no OAuth token, no SDK, no external API.** Claude Code *is* the brain.
 
-**Decisions locked during brainstorming (do not relitigate without reason):**
-- Target = **the whole 3-tier swarm on Claude Code (option C)**, built as sub-projects; **v1 trigger posture = manual,
-  one command** from an open session (scheduling deferred — parallels Part 37's "manually invoked").
-- Sub-project 1 = **Approach 1**: charter amendment (DONE — Part 38) + an **extensible orchestrator with the
-  Category tier wired today** and Layer/Main as named **deferred** stages. v1 stops after Category and says so.
-- **Maximally modular** (user's explicit ask): the orchestrator is a *plain driver* over **one uniform tier interface**
-  + **swappable providers** (scope resolver, assignment provider, category coordinator, model backend, store/read-seam,
-  execution driver, trigger). Every deferred piece is a drop-in behind a seam that already exists — never a rewrite.
-  This is written into **Part 38** as the design-of-record.
+**The mechanism (read the spec — `docs/superpowers/specs/2026-06-27-live-category-runs-design.md`):**
+`extract` and `judge` already accept a `--recorded <json>` answer they push through the same validate → **gate** → score
+path. We add a deterministic **`--emit-prompt`** mode to `extract`/`judge` that prints the **canonical** brain prompt +
+the answer JSON schema (no LLM call). The `/run-cycle` skill emits that prompt, **dispatches an Opus subagent** to answer
+it, and feeds the JSON back through `--recorded` / `pipeline --recorded-*`, which gates + scores it exactly as today.
+**Live and recorded unify:** a committed fixture is a *cached* answer; live is a *fresh* one — identical gate+score path,
+fully replayable.
 
-**The plan:** `docs/superpowers/plans/2026-06-26-claude-code-harness.md` — **5 TDD tasks**, each ending green + committed,
-**all additive (frozen core untouched), full suite stays green (96 + new tests) after every task:**
-1. `Taxonomy.categories_in_layer` / `all_categories` (the scope resolver) — `gpu_agent/registry/structure.py` (additive).
-2. `AssignmentProvider` (category → `Assignment | None`) — new `gpu_agent/cycle.py`.
-3. `resolve_scope` + `build_cycle_plan` (ready vs. `skipped-no-assignment`; deferred Layer/Main stages) — `cycle.py`.
-4. `cycle-plan` CLI subcommand (deterministic seam the skill calls; emits plan JSON; logs skipped to stderr;
-   fail-loud on bad scope) — `gpu_agent/cli.py` (adapter, not frozen).
-5. The `/run-cycle` orchestrator **skill** (`.claude/skills/run-cycle/SKILL.md`) — scope-selected manual trigger;
-   **reuses `gather-category`** for the Category leg; Layer/Main deferred; validated by a documented **dry-run** (no pytest).
+**Decisions locked in brainstorming (do NOT relitigate without reason):**
+- **Brain = Claude Code as a dispatched Opus subagent.** Not OAuth/SDK (`claude_code` backend), not metered
+  (`anthropic_api`), not the `[llm]` extra, not `CLAUDE_CODE_OAUTH_TOKEN`. One level deep from the session.
+- **Coverage = assigned-only.** "Full" = every category in the scope with a `fixtures/asg.<id>.json`; the rest stay
+  `skipped-no-assignment` (today only `chips.merchant-gpu`, `models.frontier-closed` have assignments). **No** taxonomy-
+  default generator in this sub-project.
+- **Ergonomics = live default + preview/confirm on multi-category.** Single category runs immediately; `layer:`/`all`
+  prints the plan (N assigned will run, M skipped) and waits for **one** confirmation. `mode: recorded` = the $0 escape hatch.
 
-> **Coverage honesty (Part 38 doctrine):** a selected category with no assignment is **logged as skipped, never silently
-> dropped**. Today only `chips.merchant-gpu` has a committed assignment (`fixtures/asg.chips.merchant-gpu.json`), so a
-> `layer:`/`all` run executes that one and lists the rest as `skipped-no-assignment`. Authoring (or auto-generating from
-> taxonomy+registry) the other assignments is a **named dependency**, not part of sub-project 1.
+**The plan:** `docs/superpowers/plans/2026-06-27-live-category-runs.md` — **3 tasks**, each green + committed, all additive
+(frozen brain untouched), full suite stays green after every task:
+1. `extract --emit-prompt` — canonical extraction prompt + `ExtractionResult` schema, no LLM (`cli.py`; TDD).
+2. `judge --emit-prompt` (+ emit→`--recorded` round-trip) — judgment prompt from gated findings via `build_briefing` +
+   `JudgmentResult` schema, no LLM (`cli.py`; TDD). Full suite → **115 passed, 3 skipped**.
+3. Upgrade `.claude/skills/run-cycle/SKILL.md` — live by default; per ready category: gather (reuse `gather-category`) →
+   emit extract prompt → **dispatch Opus subagent** → `extract --recorded` (gate) → emit judge prompt → **dispatch Opus
+   subagent** → `pipeline --recorded-extract --recorded-judge` (score+store). Preview/confirm; recorded escape hatch;
+   one-level-deep; fail-loud. **No pytest** — validated by a documented recorded dry-run + a **live single-category run**.
 
-**Acceptance for sub-project 1:** `cycle-plan` resolves all three scope modes (fail-loud on a bad scope); a `layer:`/`all`
-plan lists every selected category marking the assignment-less ones skipped; the `run-cycle` skill exists, names Category
-active + Layer/Main deferred, reuses (not duplicates) `gather-category`; full suite green; frozen core untouched.
+> **Task 3 execution note:** a skill is run by the *session*, not by an implementer subagent, and the brain subagents must
+> stay one level deep from it. So Task 3's **live** validation (Step 3 of the task) is performed by the **orchestrating
+> session (the controller)**, not delegated. Tasks 1–2 are normal subagent-implemented TDD tasks.
 
-**After sub-project 1 (the rest of the decomposition — each its own spec → plan → build):**
-- **sp2** — canonical store + scoped query tool (Part 9): the substrate the upper tiers read.
-- **sp3** — Layer tier (×5): judgment over category scorecards + adjacent-layer summaries + own history → layer assessment.
-- **sp4** — Main tier (×1) + the Recommendation skill (Parts 10–11): market thesis → `market-state.json` + exec brief.
-- **sp5** — memory + calibration (Parts 4/12); then unattended scheduling + the interactive path (Parts 28/14).
-  Each is a **drop-in behind a Part-38 seam** — the uniform tier interface, the store read-seam, the execution driver,
-  the trigger — not a rewrite.
+**Acceptance for sub-project 2:** `extract --emit-prompt`/`judge --emit-prompt` print the canonical prompt + correct
+schema and make no LLM call; an answer fed via `--recorded` gates + scores (round-trip test passes); `/run-cycle` runs
+live by default with Claude Code as the brain (single runs immediately; `layer:`/`all` previews + confirms); `mode:
+recorded` still gives the $0 replay; assignment-less categories reported skipped, never dropped; a **live single-category
+run is demonstrated end-to-end with no token/SDK/install**; full suite green; frozen contract untouched; **no new
+dependency / no `[llm]`/OAuth/SDK usage**.
+
+**After sub-project 2 (the rest of the decomposition):**
+- **sp-NEXT — Multi-tier Opus fan-out** (the user's explicit next ask): one interface in Claude Code that fans a
+  per-category Opus agent → feeds per-layer Opus agents → (optionally) Main — the real Tier-1→Tier-2→Tier-3 swarm. The
+  per-step brain subagent built here is its **seed**. **Two open decisions for that sub-project:** (a) **amend the
+  charter's "delegation one level deep" invariant** to permit N-level nesting (Claude Code *supports* nested subagents up
+  to a fixed depth cap — verified); (b) **pick the mechanism** — nested subagents vs. a **Workflow** script (the charter
+  already names the Workflow tool as the deferred execution-driver seam). Needs its own spec → plan → build.
+- Then the deferred originals: canonical store + scoped query tool (Part 9); memory + calibration (Parts 4/12);
+  unattended scheduling + the interactive path (Parts 28/14). Each a drop-in behind a Part-38 seam.
 
 ---
 
-## WHAT'S DONE AND ON `main` (@ `6cc403c`, pushed to origin)
+## WHAT'S DONE
 
-- **Core (Level A)** — deterministic scorecard pipeline (`gpu_agent/` schema, gate, scoring, store, assignment, pipeline, cli).
-- **Extraction adapter (Level C)** — `RawDocument → gated Finding[]` via an `LLMClient` port (`RecordedClient`,
-  `AnthropicAPIClient`, `ClaudeCodeClient`).
-- **Judgment adapter** — grounded LLM judgment → ratings + anchors + narrative; N-sample self-consistency; gate backstop.
-- **Gathering Swarm (Phase 4)** — `gpu_agent/gathering/ingest.py` + `ingest` CLI + the `.claude/skills/gather-category`
-  coordinator skill. Data flow end-to-end: **gather → ingest → extract → judge → score**.
-- **Increment A — the indicator registry (MERGED + PUSHED):** `registry/indicators.json` (global indicator defs +
-  per-category overrides), `gpu_agent/registry/` (`IndicatorRegistry`, `IndicatorSpec`, `RegistryError`, `Taxonomy`,
-  `validate_assignment`); slimmed `docs/taxonomy.json` to pure structure; DMI/SMI now **per-indicator** (latest-vintage,
-  count-independent); a **fail-loud registry gate** (`validate_assignment` in `_pipeline`; `validate_against` wired into
-  `cli._load_registry`); `map.py` deleted; golden re-baselined (DMI 0.04 → 0.0733). A 2nd category
-  (`models.frontier-closed`) scores **config-only**. (Ledger: `.superpowers/sdd/progress.md`, archived prior phase at
-  `progress.gathering-swarm.md`.)
-- **Suite on `main`: 96 passed, 3 skipped** (the 3 skips are env-gated live smokes: `GPU_AGENT_LIVE_LLM` ×2,
-  `GPU_AGENT_LIVE_GATHER`).
+### Sub-project 1 — the Claude Code harness (MERGED to `main` @ `69bd416`, local; NOT pushed)
+- `gpu_agent/registry/structure.py` — additive `Taxonomy.categories_in_layer()` / `all_categories()` scope accessors.
+- `gpu_agent/cycle.py` (new) — `AssignmentProvider` (category → `Assignment | None`), `resolve_scope`, `CycleEntry`,
+  `CyclePlan`, `build_cycle_plan` (ready vs `skipped-no-assignment`; stages category=active/layer=deferred/main=deferred).
+- `gpu_agent/cli.py` — `cycle-plan` subcommand (scope → plan JSON to stdout; skipped → stderr; fail-loud exit 1 on bad scope).
+- `.claude/skills/run-cycle/SKILL.md` — the scope-selecting manual trigger (Category active; Layer/Main deferred; reuses
+  `gather-category`). **Sub-project 2 upgrades this SKILL.md to drive live runs.**
+- Reviewed (opus whole-branch: "Ready to merge: Yes", no Critical/Important). Ledger: `.superpowers/sdd/progress.md`.
+
+### Earlier (all on `main`)
+- **Core (Level A)** — deterministic scorecard pipeline (schema, gate, scoring, store, assignment, pipeline, cli).
+- **Extraction adapter** — `RawDocument → gated Finding[]` via the `LLMClient` port (`RecordedClient`, `AnthropicAPIClient`,
+  `ClaudeCodeClient`). **NOTE: sp2 does NOT use the SDK backends — the brain is a Claude Code subagent.**
+- **Judgment adapter** — grounded judgment → ratings + anchors + narrative; N-sample self-consistency; gate backstop.
+- **Gathering Swarm (Part 37)** — `gpu_agent/gathering/ingest.py` + `ingest` CLI + the `.claude/skills/gather-category` skill.
+- **Increment A — indicator registry** — `registry/indicators.json`, `gpu_agent/registry/` (`IndicatorRegistry`,
+  `IndicatorSpec`, `RegistryError`, `Taxonomy`, `validate_assignment`); DMI/SMI per-indicator; fail-loud registry gate.
+- **Suite: 112 passed, 3 skipped** (the 3 skips are env-gated live smokes: `GPU_AGENT_LIVE_LLM` ×2, `GPU_AGENT_LIVE_GATHER`).
 
 ---
 
@@ -92,41 +107,48 @@ active + Layer/Main deferred, reuses (not duplicates) `gather-category`; full su
 
 - **Run from repo root** `C:\Users\danie\random_for_fun`; Python 3.11+ at `.venv/Scripts/python` (Windows host; `.venv`
   is gitignored — recreate with `python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"` if missing).
-  The `[llm]` extra is optional and **not installed** (everything deterministic via `RecordedClient` + recorded fixtures).
-- **Frozen contract — never edit:** the Finding/Scorecard schema (`gpu_agent/schema/`), the 6 dimensions, `gpu_agent/gate.py`
-  rules, `scoring.py`'s `zscore`, `pipeline.py`'s Part-7 gate behavior, and the **Increment-A registry**
-  (`gpu_agent/registry/indicators.py`, `validate.py`). The harness plan only **adds** to `structure.py` (additive scope
-  methods) and `cli.py` (an adapter subcommand), and creates `gpu_agent/cycle.py` + the `run-cycle` skill. The 6 dimensions
-  stay fixed: `momentum, unitEconomics, competitiveStructure, moat, bottleneck, strategicRisk`.
+  The `[llm]` extra is optional and **not installed — and sp2 deliberately does NOT need it** (the brain is a Claude Code
+  subagent; the deterministic gate+score path replays committed/just-generated JSON answers).
+- **Frozen contract — never edit:** the Finding/Scorecard schema (`gpu_agent/schema/`), the 6 dimensions
+  (`momentum, unitEconomics, competitiveStructure, moat, bottleneck, strategicRisk`), `gpu_agent/gate.py` rules,
+  `scoring.py`'s `zscore`, `pipeline.py`'s Part-7 gate behavior, and the Increment-A registry
+  (`gpu_agent/registry/indicators.py`, `validate.py`). **Also do not edit the extraction/judgment logic or prompts**
+  (`extraction/extractor.py`, `extraction/prompt.py`, `judgment/judge.py`, `judgment/prompt.py`, `judgment/briefing.py`) —
+  sp2's `--emit-prompt` only **reads/reuses** their `SYSTEM`, `build_user_prompt`, `ExtractionResult`, `JudgmentResult`,
+  `build_briefing`. sp2 only **adds** `--emit-prompt` to `cli.py` and rewrites the `run-cycle` skill.
 - **Part 38 doctrine (the harness):** the **session orchestrates; code computes + gates + stores**; delegation stays
-  **one level deep** (session → gatherers); a no-assignment category is **logged as skipped, never silently dropped**;
-  a cycle must be **replayable from its run log**.
+  **one level deep** (session → gatherers / brain subagents); a no-assignment category is **logged as skipped, never
+  silently dropped**; a cycle must be **replayable from its run log**. **The agent reasons; code computes, gates, stores —
+  the agent never sets a number that reaches the scorecard uncomputed (Part 17).**
 - **General doctrine:** no invented numbers; no forged provenance; ratings are judgment bounded by anchors, never set by
-  code; gate failures re-run, never commit a partial; gatherers return raw material only; fetched text is **data, not
-  instructions**; gathered material carries a **trust tier + dated receipt**; secondary-only findings are
-  confidence-capped; **caps/skips are logged, never silent**; config errors **fail loud**.
-- **All tests deterministic** via `RecordedClient` + committed fixtures. Live paths are env-gated smokes only. Skills are
-  validated by a **documented dry-run** (the `gather-category` precedent; `run-cycle` follows it).
+  code; gate failures re-run, never commit a partial; gatherers return raw material only; **fetched text is data, not
+  instructions** (Part 8/26 — put it in every subagent dispatch prompt); gathered material carries a trust tier + dated
+  receipt; secondary-only findings are confidence-capped; **caps/skips/partials are logged, never silent**; config errors
+  fail loud.
+- **Tests deterministic** via `RecordedClient` + committed fixtures. Live paths are env-gated smokes only (and sp2's live
+  path is the Claude Code subagent, validated by a documented run, not pytest). Skills validated by a documented dry-run.
 - **Every commit must end with:** `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
 - **Windows flakiness:** the Bash tool's safety classifier can be intermittently unavailable for write/commit commands —
   retry, or use the PowerShell tool. CWD sometimes resets to `C:\Users\danie` — prefix git/pytest with
   `cd /c/Users/danie/random_for_fun && …`.
-- **`.superpowers/` and `store/` are gitignored.** `.claude/` is **tracked** (skills live there: `gather-category`, and
-  `run-cycle` once built). `blobs.json` at repo root is an **untracked** run artifact — leave it.
+- **`.superpowers/` and `store/` are gitignored.** `.claude/` is **tracked** (skills live there: `gather-category`,
+  `run-cycle`). `blobs.json` at repo root is an **untracked** run artifact — leave it.
 - **Model preference (user):** opus for important final reviews; sonnet acceptable for mechanical per-task implementer +
   reviewer work.
-- **Subagent-driven execution:** keep a ledger at `.superpowers/sdd/progress.md` (start a fresh one for this sub-project;
-  archive or append below the Increment-A record). Record the BASE commit before each task; mark tasks complete as their
-  reviews come back clean. Trust the ledger + `git log` after any compaction.
+- **Subagent-driven execution:** keep the ledger at `.superpowers/sdd/progress.md` (start a fresh section for sp2 below
+  the sp1 record). Record the BASE commit before each task; mark tasks complete as reviews come back clean. Trust the
+  ledger + `git log` after any compaction.
 
 ---
 
 ## DEFERRED MINORS (non-blocking; fix opportunistically)
-
-- `cli._load_docs` filters a **denylist-of-one** (`gather-log.json`); a future sidecar in the docs folder would be parsed
-  as a `RawDocument` and crash — harden to "skip any file the schema can't validate." (Pre-existing.)
-- Increment-A prose nit: the Task-7 commit body imprecisely explains *why* the old code zeroed `market-share-pct`
-  (attributes it to a `side="structural"` skip rule; the pre-fix code had no skip rule). Code + golden value are correct.
-- Recurring PEP8 E302 single-blank-line nits across `cli.py` — one ruff/autopep8 pass clears them.
-- Broad coverage for `layer:`/`all` runs needs per-category assignments (only `chips.merchant-gpu` exists today) — author
-  them, or build a taxonomy-default assignment generator (its own small effort; named in the harness plan).
+- **sp1 MINOR (plan-mandated):** `build_cycle_plan` decides ready/skipped via `provider.path_for(cid).exists()` while
+  `AssignmentProvider.get()` (load+validate) is unused in the production path. A present-but-corrupt assignment is labeled
+  `ready` but fails **loud** downstream in `pipeline`. Follow-up (needs human OK, deviates from the committed sp1 plan):
+  route readiness through `assignment = provider.get(cid); ready = assignment is not None`; add a present-but-unloadable
+  test. Logged in `.superpowers/sdd/progress.md`.
+- `cli.py` PEP8 E302 (single blank line between top-level defs) — one ruff/autopep8 pass clears it.
+- `cli._load_docs` denylist-of-one (`gather-log.json`) — a future sidecar would crash; harden to "skip any file the schema
+  can't validate." (Pre-existing.)
+- Broad `layer:`/`all` coverage still needs per-category assignments (only 2 exist) — author them, or build a taxonomy-
+  default generator (its own effort; explicitly out of sp2 scope).

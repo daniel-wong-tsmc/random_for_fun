@@ -249,7 +249,7 @@ class WikiDiff(BaseModel):
     new_pages:     list[PageDelta]    # existed_at(as_of) and NOT existed_at(prev_as_of)
     changed_pages: list[PageDelta]    # existed_at(prev_as_of) AND ≥1 window event (append/state-change)
     quiet_pages:   list[str]          # existed_at(prev_as_of) AND 0 window events  (feeds 4-4 decay)
-    index_moves:   list[IndexMove]    # pages whose state/trajectory/salience changed across the window
+    index_moves:   list[IndexMove]    # PRE-EXISTING pages whose state/trajectory/salience changed across the window
 ```
 
 - `PageDelta = { id, title, newFindingIds: [...], stateTransition: Optional[{from, to}] }` — *what* changed,
@@ -257,7 +257,14 @@ class WikiDiff(BaseModel):
   vs at `as_of`).
 - `IndexMove = { id, oldState, newState, oldTrajectory, newTrajectory, oldSalience, newSalience }` —
   reconstructed from the latest `state-change` with `asOf <= prev_as_of` vs `asOf <= as_of`; ranked by
-  `|salience delta|` then magnitude. This is the data the 4-5 brief uses to **lead with "what moved today."**
+  `|salience delta|` (descending), **stable by page id** for ties (deterministic; the spec's earlier "then
+  magnitude" wording is dropped — `IndexMove` carries no finding magnitude, so the tiebreaker is page-id order).
+- **`new_pages` vs `index_moves` (the contract for the 4-5 brief):** `index_moves` covers **only pages that
+  already existed** as of `prev_as_of` (movement of a known thread). A page *born* in the window appears in
+  `new_pages` (carrying its `stateTransition` from `""`), **not** in `index_moves`. Therefore the 4-5 brief's
+  **"what moved today" = `new_pages` ∪ `index_moves`** (a brand-new high-salience thread is surfaced via
+  `new_pages`). This split is intentional: births and movements are distinct events the brief renders
+  differently. This is the data the 4-5 brief uses to **lead with "what moved today."**
 - diff reads the **log** (not the cached header) for as-of correctness; the header cache is only for
   `index()` / display. Fully deterministic → unit-tested with a committed two-day fixture store.
 

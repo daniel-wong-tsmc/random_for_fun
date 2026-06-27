@@ -1,0 +1,908 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-06",
+  "findings": [
+    {
+      "id": "cloud-google-com-ccf6eb1c-1",
+      "statement": "Google's Ironwood (TPU v7) custom-silicon superpod scales to 9,216 chips and Anthropic plans to access up to 1 million TPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 9216.0,
+        "unit": "chips"
+      },
+      "trend": "rising",
+      "why": "Hyperscaler custom accelerators add non-merchant AI compute supply, eroding marginal merchant-GPU demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic"
+        ],
+        "direction": "negative",
+        "mechanism": "Each unit of in-house silicon displaces one unit of merchant-GPU demand."
+      },
+      "evidence": [
+        {
+          "source": "Google Cloud Blog (official) - Ironwood TPU (TPU v7)",
+          "url": "https://cloud.google.com/blog/products/compute/ironwood-tpus-and-new-axion-based-vms-for-your-ai-workloads",
+          "date": "2025-11",
+          "excerpt": "9,216 chips in a superpod ... Anthropic plans to access up to 1 million TPUs",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "official Google Cloud filing (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "google",
+      "observedAt": "2025-11",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "ir-amd-com-f416295d-1",
+      "statement": "AMD non-GAAP gross margin was 55% in Q1 2026.",
+      "kind": "measured",
+      "value": {
+        "number": 55.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "A 55% non-GAAP margin is healthy for the #2 merchant-GPU vendor but well below NVIDIA's, capping unit-economics strength.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Margin reflects pricing power and cost structure in the merchant-GPU unit economics."
+      },
+      "evidence": [
+        {
+          "source": "AMD Investor Relations press release - AMD Reports First Quarter 2026 Financial Results",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05",
+          "excerpt": "non-GAAP gross margin 55%",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "AMD IR press release (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "ir-amd-com-f416295d-2",
+      "statement": "AMD Data Center segment revenue was $5.8B in Q1 2026, up 57% YoY on EPYC and the Instinct GPU ramp.",
+      "kind": "measured",
+      "value": {
+        "number": 5.8,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "AMD Instinct shipments are a growing alternative supply that erodes NVIDIA merchant-GPU share at the margin.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Instinct units substitute for merchant NVIDIA GPUs in AI data centers."
+      },
+      "evidence": [
+        {
+          "source": "AMD Investor Relations press release - AMD Reports First Quarter 2026 Financial Results",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05",
+          "excerpt": "Data Center segment revenue was $5.8 billion, up 57% year-over-year ... continued ramp of AMD Instinct GPU shipments",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "AMD IR press release (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-1",
+      "statement": "NVIDIA Data Center revenue was a record $75.2B in Q1 FY2027, up 21% sequentially.",
+      "kind": "measured",
+      "value": {
+        "number": 75.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Data-center demand remains very strong, though the sequential growth slope has eased from prior quarters.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "DC revenue QoQ slope is the core merchant-GPU demand-momentum read (D2)."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom (Investor Relations) - Q1 FY2027 results",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05",
+          "excerpt": "First-quarter Data Center revenue was a record $75.2 billion ... up 21% from the previous quarter",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "NVIDIA IR press release (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-87209406-1",
+      "statement": "NVIDIA Data Center revenue was $51.2B in Q3 FY2026, up 25% sequentially.",
+      "kind": "measured",
+      "value": {
+        "number": 51.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Establishes the prior-quarter point of the DC-revenue growth slope at +25% QoQ.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "DC revenue QoQ slope is the core merchant-GPU demand-momentum read (D2)."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom (Investor Relations) - Q3 FY2026 results",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2026",
+          "date": "2025-11",
+          "excerpt": "Record Data Center revenue of $51.2 billion, up 25% from Q2",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "NVIDIA IR press release (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2025-11",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-8ea14aee-1",
+      "statement": "NVIDIA Data Center revenue was $62.3B in Q4 FY2026, up 22% sequentially.",
+      "kind": "measured",
+      "value": {
+        "number": 62.3,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Mid point of the slope; +25% -> +22% -> +21% QoQ shows strong but gently decelerating demand momentum.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "DC revenue QoQ slope is the core merchant-GPU demand-momentum read (D2)."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom (Investor Relations) - Q4 and Fiscal 2026 results",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2026",
+          "date": "2026-02",
+          "excerpt": "Record quarterly Data Center revenue of $62.3 billion, up 22% from the previous quarter",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "NVIDIA IR press release (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-02",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "s201-q4cdn-com-f9f138ac-1",
+      "statement": "NVIDIA inventories rose to $25.8B as of Apr 26 2026, up from $21.4B a quarter earlier.",
+      "kind": "measured",
+      "value": {
+        "number": 25.797,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "A rising whole-chain inventory level signals supply being built ahead of shipment, a classic glut-risk tripwire.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Inventory build is the S10 whole-chain inventory index (supply-side)."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Corporation Form 10-Q (Q1 FY2027), Notes 7 & 10 / balance sheet",
+          "url": "https://s201.q4cdn.com/141608511/files/doc_financials/2027/q1/927dc2d6-a76c-4006-9f34-8769b2c665fb.pdf",
+          "date": "2026-05",
+          "excerpt": "Total inventories $25,797 (vs $21,403)",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "NVIDIA 10-Q filing (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "s201-q4cdn-com-f9f138ac-2",
+      "statement": "NVIDIA manufacturing, supply and capacity commitments reached $119B as of Apr 26 2026, plus $30B multi-year cloud commitments.",
+      "kind": "measured",
+      "value": {
+        "number": 119.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "A very large real-money supply/capacity commitment is NVIDIA locking in forward supply, expanding supply momentum.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Supply/capacity commitments expand the forward supply track (S10)."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Corporation Form 10-Q (Q1 FY2027), Notes 7 & 10 / balance sheet",
+          "url": "https://s201.q4cdn.com/141608511/files/doc_financials/2027/q1/927dc2d6-a76c-4006-9f34-8769b2c665fb.pdf",
+          "date": "2026-05",
+          "excerpt": "these commitments were $119 billion ... Multi-year cloud service agreement commitments ... were $30 billion",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "NVIDIA 10-Q filing (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-1",
+      "statement": "NVIDIA holds roughly 80-86% of AI-accelerator revenue; AMD 5-7%, Intel <1%.",
+      "kind": "measured",
+      "value": {
+        "number": 80.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "An ~80%+ revenue share in AI accelerators is a dominant moat for merchant GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Market share is the moat read for the category."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts (citing Bloomberg Intelligence, IDC, NVIDIA SEC filings)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-01",
+          "excerpt": "NVIDIA holds ~80% of the AI accelerator market by revenue ... AMD estimated 5-7% share",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "analyst synthesis, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-01",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "techcrunch-com-e4c52bd6-1",
+      "statement": "Intel cancelled Falcon Shores as a commercial GPU and missed its $500M Gaudi 3 sales goal; Jaguar Shores not expected until 2026.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Intel withdrawing a merchant AI GPU removes alternative supply, marginally relieving competitive pressure on NVIDIA/AMD.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "A would-be alternative supplier exiting reduces non-NVIDIA merchant supply (S9)."
+      },
+      "evidence": [
+        {
+          "source": "TechCrunch (Intel Falcon Shores cancellation coverage)",
+          "url": "https://techcrunch.com/2025/01/30/intel-wont-bring-its-falcon-shores-ai-chip-to-market/",
+          "date": "2025-01",
+          "excerpt": "leverage Falcon Shores as an internal test chip, without bringing it to market ... unable to meet its goal of $500 million in Gaudi 3 sales",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "intel",
+      "observedAt": "2025-01",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "wccftech-com-d80e9f0e-1",
+      "statement": "NVIDIA held 92% of the discrete GPU market in Q3 2025 per JPR (AMD 7%, Intel 1%).",
+      "kind": "measured",
+      "value": {
+        "number": 92.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Prior-quarter discrete-GPU share point; NVIDIA dominance with a small AMD uptick.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Market share is the moat read for the category."
+      },
+      "evidence": [
+        {
+          "source": "Jon Peddie Research (JPR), via WccfTech",
+          "url": "https://wccftech.com/amd-intel-gained-discrete-gpu-market-share-q3-2025-but-nvidia-still-dominates/",
+          "date": "2025-11",
+          "excerpt": "NVIDIA held 92% market share in Q3 2025 ... AMD rose to 7% ... Intel achieved a 1% market share",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "JPR via trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2025-11",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-aboutamazon-com-e36bce40-1",
+      "statement": "AWS activated Project Rainier with nearly 500,000 Trainium2 chips; Anthropic expected on >1 million Trainium2 by year-end.",
+      "kind": "measured",
+      "value": {
+        "number": 500000.0,
+        "unit": "chips"
+      },
+      "trend": "rising",
+      "why": "Large-scale Trainium deployment is alternative supply that erodes marginal merchant-GPU demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic"
+        ],
+        "direction": "negative",
+        "mechanism": "Each unit of in-house silicon displaces one unit of merchant-GPU demand (S9)."
+      },
+      "evidence": [
+        {
+          "source": "AWS / About Amazon (official) - Project Rainier activation",
+          "url": "https://www.aboutamazon.com/news/aws/aws-project-rainier-ai-trainium-chips-compute-cluster",
+          "date": "2025-10",
+          "excerpt": "AWS activated Project Rainier with nearly half a million Trainium2 chips; Claude expected to be on more than 1 million Trainium2 chips by year-end",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "AWS official newsroom (primary)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "amazon",
+      "observedAt": "2025-10",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-datacenterdynamics-com-cec1e83a-1",
+      "statement": "AMD's MI450/Helios ramps in H2 2026 with Meta (up to 6GW) and OpenAI (6GW) deployments beginning.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Multi-gigawatt AMD Instinct commitments expand alternative supply against NVIDIA at the high end.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Hyperscaler AMD GPU commitments substitute for merchant NVIDIA supply (S9)."
+      },
+      "evidence": [
+        {
+          "source": "DataCenterDynamics (DCD)",
+          "url": "https://www.datacenterdynamics.com/en/news/amd-posts-q1-2026-data-center-revenue-of-58bn-forecasts-120bn-server-cpu-income-by-2030/",
+          "date": "2026-05",
+          "excerpt": "Meta 6GW deal ... shipments ... begin in the second half of 2026 ... OpenAI 6GW deal ... deployment starting H2 2026",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-kitguru-net-2b82c805-1",
+      "statement": "NVIDIA held 94% of the discrete/AIB GPU market in Q4 2025 per JPR (AMD 5%, Intel 1%).",
+      "kind": "measured",
+      "value": {
+        "number": 94.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Latest discrete-GPU share point; NVIDIA dominance widened 10pp YoY.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Market share is the moat read for the category."
+      },
+      "evidence": [
+        {
+          "source": "Jon Peddie Research (JPR), via KitGuru",
+          "url": "https://www.kitguru.net/components/graphic-cards/joao-silva/analysis-shows-nvidia-gpus-represented-about-94-of-shipments-in-q4-2025/",
+          "date": "2026-02",
+          "excerpt": "NVIDIA 94% of the Add-In Board (AIB) market; AMD 5% market share; Intel 1%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "JPR via trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-02",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-spheron-network-86aeabc5-1",
+      "statement": "H100 on-demand rental had fallen to about $2.50/GPU-hr by May 2026 (B200 about $6.02/GPU-hr).",
+      "kind": "measured",
+      "value": {
+        "number": 2.5,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "falling",
+      "why": "The market-clearing rental price for last-gen GPUs falling is an early sign of softening marginal demand / slack.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "GPU rental price is the fastest demand-side clearing-price read (D6)."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Network GPU Cloud Pricing Comparison",
+          "url": "https://www.spheron.network/blog/gpu-cloud-pricing-comparison-2026/",
+          "date": "2026-05",
+          "excerpt": "H100 SXM5 on-demand: Spheron $2.50/hr ... B200 SXM6 on-demand: Spheron $6.02/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "rental price tracker, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D6",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-94680857-1",
+      "statement": "Intel guided Q2 2026 non-GAAP gross margin to 39.0% (GAAP 37.5%).",
+      "kind": "measured",
+      "value": {
+        "number": 39.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "Intel's ~39% margin is the weak tail of merchant-compute unit economics, dragging the category read slightly.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Margin reflects unit-economics health across the merchant-compute set."
+      },
+      "evidence": [
+        {
+          "source": "Intel Corp 8-K / Q1 2026 earnings (via StockTitan)",
+          "url": "https://www.stocktitan.net/sec-filings/INTC/8-k-intel-corp-reports-material-event-d8930f0603bf.html",
+          "date": "2026-04",
+          "excerpt": "non-GAAP gross margin of 39.0%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "8-K via trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-f135d26e-1",
+      "statement": "NVIDIA Q1 FY2027 non-GAAP gross margin was 75.0% (GAAP 74.9%), with hyperscalers ~50% of Data Center revenue.",
+      "kind": "measured",
+      "value": {
+        "number": 75.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "A 75% gross margin reflects exceptional pricing power and is the dominant unit-economics signal for the category.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Margin reflects pricing power in merchant-GPU unit economics."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Corp Form 8-K / Q1 FY2027 press release (via StockTitan)",
+          "url": "https://www.stocktitan.net/sec-filings/NVDA/8-k-nvidia-corp-reports-material-event-56086a88bbb4.html",
+          "date": "2026-05",
+          "excerpt": "GAAP and non-GAAP gross margins for the first quarter were 74.9% and 75.0%, respectively",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "8-K via trade media, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-thundercompute-com-60a1bacf-1",
+      "statement": "H100 rental ranged $1.38-$11.06/GPU-hr by June 2026, off historical ~$8 peaks; clouds cut H100/H200/A100 up to 45%.",
+      "kind": "measured",
+      "value": {
+        "number": 1.38,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "falling",
+      "why": "Steep, broad rental-price cuts corroborate softening last-gen GPU demand / rising slack.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "GPU rental price is the fastest demand-side clearing-price read (D6)."
+      },
+      "evidence": [
+        {
+          "source": "Thunder Compute - AI GPU Rental Market Trends",
+          "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+          "date": "2026-06",
+          "excerpt": "H100 80GB pricing now runs from $1.38/hr to $11.06/hr ... leaving behind historical peaks near $8/hr ... cut costs ... by up to 45%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "rental market tracker, secondary tier (capped at medium)"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D6",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-25T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    }
+  ],
+  "dimensionRatings": {
+    "bottleneck": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Strong"
+      },
+      "findingIds": [
+        "s201-q4cdn-com-f9f138ac-1",
+        "s201-q4cdn-com-f9f138ac-2"
+      ],
+      "rationale": "NVIDIA inventory rose to $25.8B and supply/capacity commitments reached $119B (+$30B cloud) - supply is being built aggressively, easing the prior shortage but seeding glut risk."
+    },
+    "competitiveStructure": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Strong"
+      },
+      "findingIds": [
+        "ir-amd-com-f416295d-2",
+        "www-datacenterdynamics-com-cec1e83a-1",
+        "www-aboutamazon-com-e36bce40-1",
+        "cloud-google-com-ccf6eb1c-1",
+        "techcrunch-com-e4c52bd6-1"
+      ],
+      "rationale": "Alternative supply is expanding fast - AMD MI450/Helios plus AWS Trainium and Google TPU at ~1M-chip scale - even as Intel exits. The competitive/alternative-supply structure is intensifying against the merchant-GPU incumbent."
+    },
+    "moat": {
+      "rating": "Very strong",
+      "direction": "steady",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Very strong"
+      },
+      "findingIds": [
+        "www-kitguru-net-2b82c805-1",
+        "wccftech-com-d80e9f0e-1",
+        "siliconanalysts-com-ce97213d-1"
+      ],
+      "rationale": "NVIDIA holds ~94% of discrete GPUs and ~80-86% of AI-accelerator revenue - a dominant, durable moat."
+    },
+    "momentum": {
+      "rating": "Strong",
+      "direction": "worsening",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Strong"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-1",
+        "nvidianews-nvidia-com-87209406-1",
+        "nvidianews-nvidia-com-8ea14aee-1",
+        "www-spheron-network-86aeabc5-1",
+        "www-thundercompute-com-60a1bacf-1"
+      ],
+      "rationale": "NVIDIA DC revenue is enormous and still growing (+25% -> +22% -> +21% QoQ), but the slope is flattening and last-gen GPU rental prices are collapsing - strong level, deteriorating momentum."
+    },
+    "unitEconomics": {
+      "rating": "Strong",
+      "direction": "steady",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Strong"
+      },
+      "findingIds": [
+        "www-stocktitan-net-f135d26e-1",
+        "ir-amd-com-f416295d-1",
+        "www-stocktitan-net-94680857-1"
+      ],
+      "rationale": "NVIDIA's 75% gross margin dominates the read; AMD healthy at 55%, Intel weak at 39%. Category unit economics are strong, led by NVIDIA pricing power."
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.14000000000000007,
+    "smiContribution": 0.26666666666666666,
+    "anchors": {
+      "competitiveStructure": 0.5333333333333333,
+      "unitEconomics": 0.3333333333333333,
+      "momentum": 0.33333333333333337,
+      "bottleneck": 1.0,
+      "moat": 0.8888888888888888
+    }
+  },
+  "narrative": "Merchant-GPU demand is still powerful but past its peak momentum: NVIDIA Data Center revenue grew +21% sequentially in Q1 FY2027 on a decelerating slope while H100 rental prices collapsed toward ~$1.38-2.50/GPU-hr, signaling softening marginal demand. Supply is ramping hard - NVIDIA committed $119B of capacity and inventory rose to $25.8B - while alternative supply (AMD MI450, AWS Trainium, Google TPU at ~1M-chip scale) intensifies even as Intel exits. NVIDIA's ~80-94% share and 75% gross margin keep its moat and unit economics dominant, but the demand-momentum/supply-build gap is the signal to watch.",
+  "confidence": {
+    "level": "high",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "AMD Investor Relations press release - AMD Reports First Quarter 2026 Financial Results",
+    "AWS / About Amazon (official) - Project Rainier activation",
+    "DataCenterDynamics (DCD)",
+    "Google Cloud Blog (official) - Ironwood TPU (TPU v7)",
+    "Intel Corp 8-K / Q1 2026 earnings (via StockTitan)",
+    "Jon Peddie Research (JPR), via KitGuru",
+    "Jon Peddie Research (JPR), via WccfTech",
+    "NVIDIA Corp Form 8-K / Q1 FY2027 press release (via StockTitan)",
+    "NVIDIA Corporation Form 10-Q (Q1 FY2027), Notes 7 & 10 / balance sheet",
+    "NVIDIA Newsroom (Investor Relations) - Q1 FY2027 results",
+    "NVIDIA Newsroom (Investor Relations) - Q3 FY2026 results",
+    "NVIDIA Newsroom (Investor Relations) - Q4 and Fiscal 2026 results",
+    "Silicon Analysts (citing Bloomberg Intelligence, IDC, NVIDIA SEC filings)",
+    "Spheron Network GPU Cloud Pricing Comparison",
+    "TechCrunch (Intel Falcon Shores cancellation coverage)",
+    "Thunder Compute - AI GPU Rental Market Trends"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.0"
+  }
+}

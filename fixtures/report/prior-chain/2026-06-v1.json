@@ -1,0 +1,82 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-06",
+  "findings": [
+    {
+      "id": "doc-nvda-1",
+      "statement": "NVIDIA DC revenue growth slope flattened to ~8% QoQ.",
+      "kind": "measured",
+      "value": {
+        "number": 8.0,
+        "unit": "% QoQ"
+      },
+      "trend": "rising",
+      "why": "Blackwell ramp digesting.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "slope flattening caps DMI"
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA 10-Q",
+          "url": "http://sec/nvda",
+          "date": "2026-05",
+          "excerpt": "grew about 8% sequentially",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary filing"
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-12T00:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    }
+  ],
+  "dimensionRatings": {
+    "momentum": {
+      "rating": "Strong",
+      "direction": "worsening",
+      "confidence": {
+        "level": "high",
+        "basis": "3/3 Strong"
+      },
+      "findingIds": [
+        "doc-nvda-1"
+      ],
+      "rationale": "DC growth solid but decelerating"
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.06666666666666667,
+    "smiContribution": 0.0,
+    "anchors": {
+      "momentum": 0.6666666666666666
+    }
+  },
+  "narrative": "NVDA demand momentum is strong but decelerating into 2026.",
+  "confidence": {
+    "level": "high",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "NVIDIA 10-Q"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.0"
+  }
+}

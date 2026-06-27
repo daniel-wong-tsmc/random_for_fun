@@ -48,6 +48,8 @@ def test_update_header_allowed_fields(tmp_path):
     page = ws.get_page("theme:cowos")
     assert page.status == "registered" and page.crossRefs == ["entity:tsmc"]
     assert page.lastUpdatedAsOf == "2026-06-28"
+    assert len(ws.log.read()) == 1
+    assert ws.log.read()[0].kind == "create-page"
 
 
 def test_update_header_disallowed_field_raises(tmp_path):
@@ -55,3 +57,17 @@ def test_update_header_disallowed_field_raises(tmp_path):
     ws.create_page("theme:cowos", "theme", "CoWoS", as_of="2026-06-26")
     with pytest.raises(ValueError):
         ws.update_header("theme:cowos", as_of="2026-06-28", salience=0.9)
+
+
+def test_update_header_missing_page_raises(tmp_path):
+    ws = _store(tmp_path)
+    with pytest.raises(PageNotFound):
+        ws.update_header("theme:nope", as_of="2026-06-26", title="X")
+
+
+def test_create_page_body_roundtrips(tmp_path):
+    ws = _store(tmp_path)
+    ws.create_page("theme:cowos", "theme", "CoWoS", category="chips.merchant-gpu",
+                   as_of="2026-06-26", body="## Heading\nsome prose\n")
+    page, body = ws._read("theme:cowos")
+    assert body == "## Heading\nsome prose\n"

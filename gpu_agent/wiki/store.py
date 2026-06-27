@@ -53,9 +53,7 @@ class WikiStore:
         if bad:
             raise ValueError(f"update_header: disallowed fields {sorted(bad)}")
         page, body = self._read(page_id)
-        for key, value in fields.items():
-            setattr(page, key, value)
-        page.lastUpdatedAsOf = as_of
+        page = page.model_copy(update={**fields, "lastUpdatedAsOf": as_of})
         self._write(page, body)
         return page
 

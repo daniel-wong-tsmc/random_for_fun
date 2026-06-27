@@ -17,6 +17,12 @@ def test_pipeline_extract_judge_score(tmp_path):
     assert sc["dimensionRatings"]["momentum"]["rating"] == "Strong"
     assert sc["narrative"].startswith("NVDA demand momentum")
     assert sc["demandSupply"]["anchors"]["momentum"] != 0
+    # sp3-B six-dimension integrity: all six present, judged categoryStatus, code-computed sdgi
+    from gpu_agent.schema.scorecard import DIMENSIONS
+    assert set(sc["dimensionStatus"].keys()) == set(DIMENSIONS)
+    assert sc["categoryStatus"]["bottleneck"] in set(DIMENSIONS)
+    assert sc["demandSupply"]["sdgi"] == pytest.approx(
+        sc["demandSupply"]["dmiContribution"] - sc["demandSupply"]["smiContribution"])
 
 @pytest.mark.skipif(os.environ.get("GPU_AGENT_LIVE_LLM") != "1",
                     reason="live LLM smoke disabled (set GPU_AGENT_LIVE_LLM=1)")

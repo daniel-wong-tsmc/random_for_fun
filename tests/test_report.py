@@ -364,3 +364,71 @@ def test_render_entity_panel_key_signals_listed():
     assert "Key signals:" in out
     # Signal lines are prefixed with [side/kind]
     assert "[demand/" in out or "[supply/" in out
+
+
+# ── render_evidence_quality ──────────────────────────────────────────────────
+
+def test_render_evidence_quality_section_header():
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    assert "EVIDENCE QUALITY" in out
+
+
+def test_render_evidence_quality_all_six_dims_listed():
+    """All 6 dimension names appear in the evidence quality section."""
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    for dim in ["momentum", "unitEconomics", "competitiveStructure",
+                "moat", "bottleneck", "strategicRisk"]:
+        assert dim in out, f"{dim} missing from evidence quality output"
+
+
+def test_render_evidence_quality_zero_for_ungrounded_dims():
+    """bottleneck and strategicRisk have 0 findings in v3."""
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    lines = out.splitlines()
+    bottleneck_line = next((l for l in lines if "bottleneck" in l), "")
+    assert "0 findings" in bottleneck_line or "under-supported" in bottleneck_line
+    strategic_line = next((l for l in lines if "strategicRisk" in l), "")
+    assert "0 findings" in strategic_line or "under-supported" in strategic_line
+
+
+def test_render_evidence_quality_positive_count_for_grounded_dims():
+    """momentum (mapped from D2) has > 0 findings in v3."""
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    lines = out.splitlines()
+    momentum_line = next((l for l in lines if l.strip().startswith("momentum")), "")
+    assert momentum_line, "momentum line not found"
+    # Should have a positive count
+    import re
+    m = re.search(r"(\d+) findings?", momentum_line)
+    assert m and int(m.group(1)) > 0
+
+
+def test_render_evidence_quality_unattributed_bucket():
+    """Findings with indicatorId that maps to no dimension appear in (unattributed)."""
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    # perfPerWatt and flopsPerDollar are non-scoring (dimension=None)
+    assert "unattributed" in out
+
+
+def test_render_evidence_quality_totals_line():
+    """A total findings line is rendered at the end of the section."""
+    from gpu_agent.report import render_evidence_quality
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_evidence_quality(sc, registry)
+    assert "Total:" in out

@@ -335,3 +335,63 @@ def render_entity_panel(sc: Scorecard) -> str:
             stmt = f.statement[:100] + "..." if len(f.statement) > 100 else f.statement
             lines.append(f"      [{f.side}/{f.kind.value}]  {stmt}")
     return "\n".join(lines)
+
+
+def render_evidence_quality(sc: Scorecard, registry: IndicatorRegistry) -> str:
+    """Render EVIDENCE QUALITY — per-dimension evidence counts by source tier.
+
+    Uses registry.indicators to map indicatorId → dimension. Findings whose
+    indicatorId is unregistered or dimension-less go to (unattributed). Each
+    finding's evidence items are tallied by tier (primary/secondary).
+    """
+    from collections import defaultdict
+
+    # Build indicatorId → dimension map from raw registry dict (graceful on unknown ids)
+    ind_to_dim: dict[str, Optional[str]] = {
+        ind_id: spec.get("dimension")
+        for ind_id, spec in registry.indicators.items()
+    }
+
+    # Bucket evidence items: dimension → {primary: int, secondary: int}
+    counts: dict[str, dict[str, int]] = defaultdict(lambda: {"primary": 0, "secondary": 0})
+    total_primary = 0
+    total_secondary = 0
+
+    for f in sc.findings:
+        dim = ind_to_dim.get(f.indicatorId)  # None if unregistered OR dimension-less
+        bucket = dim if dim else "(unattributed)"
+        for ev in f.evidence:
+            counts[bucket][ev.tier] = counts[bucket].get(ev.tier, 0) + 1
+            if ev.tier == "primary":
+                total_primary += 1
+            else:
+                total_secondary += 1
+
+    lines = ["EVIDENCE QUALITY  (per dimension)"]
+    for dim in DIMENSIONS:
+        c = counts.get(dim, {"primary": 0, "secondary": 0})
+        total = c.get("primary", 0) + c.get("secondary", 0)
+        ev_status = "grounded" if total > 0 else "under-supported"
+        if total == 0:
+            lines.append(f"  {dim:<22}   0 findings  ——  [{ev_status}]")
+        else:
+            lines.append(
+                f"  {dim:<22}  {total:>3} findings  "
+                f"(primary: {c.get('primary', 0)}, secondary: {c.get('secondary', 0)})  "
+                f"[{ev_status}]"
+            )
+    # Unattributed bucket (non-scoring / unregistered indicators)
+    uc = counts.get("(unattributed)", {"primary": 0, "secondary": 0})
+    utotal = uc.get("primary", 0) + uc.get("secondary", 0)
+    if utotal > 0:
+        lines.append(
+            f"  {'(unattributed)':<22}  {utotal:>3} findings  "
+            f"(primary: {uc.get('primary', 0)}, secondary: {uc.get('secondary', 0)})"
+        )
+    total_all = total_primary + total_secondary
+    lines.append("")
+    lines.append(
+        f"  Total: {total_all} findings  "
+        f"(primary: {total_primary}, secondary: {total_secondary})"
+    )
+    return "\n".join(lines)

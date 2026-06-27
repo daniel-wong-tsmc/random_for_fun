@@ -37,7 +37,7 @@ def test_build_reads_narrative_json_when_present(tmp_path):
         "confidence": {"level": "high", "basis": "3 samples"}}), "utf-8")
     sc = _build(argparse.Namespace(assignment=ASSIGN, fixtures=str(tmp_path)))
     assert sc.narrative == "judged narrative"
-    assert sc.confidence.level == "high"
+    assert sc.confidence.level == "medium"  # capped: only momentum grounded, 5 dims under-supported
 
 def test_build_falls_back_without_narrative_json():
     sc = _build(argparse.Namespace(assignment=ASSIGN, fixtures="fixtures/golden"))

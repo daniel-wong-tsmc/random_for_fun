@@ -1,1 +1,1 @@
-{"demandSupply": {"dmiContribution": 0.07333333333333333, "smiContribution": 0.05333333333333334, "anchors": {"momentum": 0.4, "competitiveStructure": -0.3, "moat": 0.8}, "sdgi": null, "sdgiDirection": null}}
+{"demandSupply": {"dmiContribution": 0.07333333333333333, "smiContribution": 0.05333333333333334, "anchors": {"momentum": 0.4, "competitiveStructure": -0.3, "moat": 0.8}, "sdgi": 0.019999999999999997, "sdgiDirection": "balanced"}}

@@ -481,3 +481,37 @@ def render_coverage_gaps(sc: Scorecard) -> str:
     if not gap_found and not orphan_sources:
         lines.append("  All 6 dimensions grounded; no coverage gaps this cycle.")
     return "\n".join(lines)
+
+
+def render_report(
+    sc: Scorecard,
+    prior: Optional[Scorecard],
+    registry: IndicatorRegistry,
+    render_ts: Optional[str] = None,
+) -> str:
+    """Compose the full board-ready report from a scorecard + optional prior.
+
+    Calls every render_* function in canonical section order and joins sections
+    with a blank line. ``render_ts`` is injected (the clock is only read here when
+    the caller passes None) so output is byte-identical for identical inputs.
+
+    Args:
+        sc: the current scorecard to render.
+        prior: the previous-cycle scorecard for Δ columns; None for no delta.
+        registry: the indicator registry for evidence-quality dimension mapping.
+        render_ts: ISO-8601 timestamp string for the header; defaults to now(UTC).
+    """
+    if render_ts is None:
+        render_ts = datetime.now(timezone.utc).isoformat()
+
+    sections = [
+        render_header(sc, render_ts),
+        render_overall_status(sc),
+        render_dimensions(sc, prior),
+        render_dmi_smi_sdgi(sc, prior),
+        render_entity_panel(sc),
+        render_evidence_quality(sc, registry),
+        render_sources(sc),
+        render_coverage_gaps(sc),
+    ]
+    return "\n\n".join(sections)

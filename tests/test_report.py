@@ -509,3 +509,56 @@ def test_render_coverage_gaps_no_orphan_note_when_clean():
     # Either no orphan note is needed, or the note appears
     # Just assert the section header is present and doesn't crash
     assert "COVERAGE / SKIP GAPS" in out
+
+
+# ── render_report (integration) ───────────────────────────────────────────────
+
+def test_render_report_contains_all_eight_section_headers():
+    """render_report output contains all 8 canonical section headers."""
+    from gpu_agent.report import render_report
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    out = render_report(sc, prior=None, registry=registry, render_ts="2026-06-27T00:00:00Z")
+    for header in [
+        "CATEGORY REPORT",
+        "OVERALL CATEGORY STATUS",
+        "DIMENSION RATINGS",
+        "DEMAND / SUPPLY MOMENTUM",
+        "ENTITY PANEL",
+        "EVIDENCE QUALITY",
+        "SOURCES",
+        "COVERAGE / SKIP GAPS",
+    ]:
+        assert header in out, f"Section header {header!r} missing from report"
+
+
+def test_render_report_deterministic_same_output_on_two_calls():
+    """Same scorecard + prior + render_ts → byte-identical output."""
+    from gpu_agent.report import render_report
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    prior = _load(V2)
+    ts = "2026-06-27T12:00:00Z"
+    out1 = render_report(sc, prior, registry, render_ts=ts)
+    out2 = render_report(sc, prior, registry, render_ts=ts)
+    assert out1 == out2
+
+
+def test_render_report_uses_injected_render_ts():
+    """render_ts parameter appears in the header, not the current clock time."""
+    from gpu_agent.report import render_report
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    ts = "1999-01-01T00:00:00Z"
+    out = render_report(sc, prior=None, registry=registry, render_ts=ts)
+    assert "1999-01-01" in out
+
+
+def test_render_report_with_v3_and_v2_prior_no_crash():
+    """Full report renders without error for v3 as current, v2 as prior."""
+    from gpu_agent.report import render_report
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    sc = _load(V3)
+    prior = _load(V2)
+    out = render_report(sc, prior, registry, render_ts="2026-06-27T00:00:00Z")
+    assert len(out) > 500  # substantive output

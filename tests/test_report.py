@@ -148,3 +148,97 @@ def test_render_overall_status_present_shows_rating():
     assert "Strong" in out
     assert "momentum" in out  # the bottleneck value
     assert "DC growth solid but decelerating" in out  # the reason
+
+
+# ── render_dimensions ────────────────────────────────────────────────────────
+
+def test_render_dimensions_all_six_always_present():
+    """All 6 dimension names appear in output even when some are under-supported."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)  # 4 of 6 rated
+    out = render_dimensions(sc, prior=None)
+    for dim in ["momentum", "unitEconomics", "competitiveStructure", "moat",
+                "bottleneck", "strategicRisk"]:
+        assert dim in out, f"dimension {dim!r} missing from output"
+
+
+def test_render_dimensions_under_supported_label_for_missing():
+    """Legacy fixture (no dimensionStatus): dims absent from dimensionRatings show under-supported."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    out = render_dimensions(sc, prior=None)
+    assert "under-supported" in out.lower()
+    lines = out.splitlines()
+    # CURRENT is missing bottleneck and strategicRisk from dimensionRatings.
+    bottleneck_lines = [l for l in lines if "bottleneck" in l]
+    strategicRisk_lines = [l for l in lines if "strategicRisk" in l]
+    assert any("under-supported" in l.lower() for l in bottleneck_lines)
+    assert any("under-supported" in l.lower() for l in strategicRisk_lines)
+
+
+def test_render_dimensions_grounded_label_for_present():
+    """Legacy fixture: a dimension present in dimensionRatings infers grounded."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    out = render_dimensions(sc, prior=None)
+    momentum_line = next(l for l in out.splitlines()
+                         if "momentum" in l and "under-supported" not in l.lower())
+    assert "grounded" in momentum_line
+
+
+def test_render_dimensions_reads_dimensionstatus_when_present():
+    """Post-B: evidenceStatus is read from sc.dimensionStatus, not dimensionRatings.
+
+    POSTB fixture: momentum grounded; the other five under-supported via
+    dimensionStatus even though dimensionRatings is grounded-only.
+    """
+    from gpu_agent.report import render_dimensions
+    sc = _load(POSTB)
+    out = render_dimensions(sc, prior=None)
+    bottleneck_line = next(l for l in out.splitlines() if "bottleneck" in l)
+    assert "under-supported" in bottleneck_line.lower()
+    # the under-supported note from dimensionStatus is surfaced
+    assert "no findings mapped to bottleneck this cycle" in out
+    # only momentum is grounded in the post-B fixture
+    assert "Coverage: 1/6" in out
+    momentum_line = next(l for l in out.splitlines()
+                         if "momentum" in l and "under-supported" not in l.lower())
+    assert "grounded" in momentum_line
+
+
+def test_render_dimensions_coverage_summary():
+    """Coverage line appears: 'Coverage: 4/6' for the current fixture."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    out = render_dimensions(sc, prior=None)
+    assert "Coverage: 4/6" in out
+    assert "2 under-supported" in out
+
+
+def test_render_dimensions_delta_column_absent_when_no_prior():
+    """No delta column rendered when prior is None."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    out = render_dimensions(sc, prior=None)
+    assert "Δ vs prior" not in out
+
+
+def test_render_dimensions_delta_column_present_with_prior():
+    """Δ column appears with a prior; a newly-missing dim notes it was present before."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    prior = _load(PRIOR)
+    out = render_dimensions(sc, prior=prior)
+    assert "Δ vs prior" in out
+    # bottleneck was present in PRIOR, absent in CURRENT → delta note
+    lines = out.splitlines()
+    bottleneck_line = next(l for l in lines if "bottleneck" in l)
+    assert "was present in prior" in bottleneck_line or "prior" in bottleneck_line
+
+
+def test_render_dimensions_rating_arrows():
+    """Direction arrows (↑ → ↓) appear in output for rated dimensions."""
+    from gpu_agent.report import render_dimensions
+    sc = _load(CURRENT)
+    out = render_dimensions(sc, prior=None)
+    assert any(arrow in out for arrow in ["↑", "→", "↓"])

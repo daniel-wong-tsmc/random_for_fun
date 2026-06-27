@@ -124,3 +124,98 @@ def render_overall_status(sc: Scorecard) -> str:
             f"  Reason:     {reason}",
         ]
     return "\n".join(lines)
+
+
+def _dim_evidence_status(sc: Scorecard, dim: str):
+    """Return (evidenceStatus, findingCount, confidenceCap, note) for a dimension.
+
+    Prefers sc.dimensionStatus[dim] (B's authoritative six-row view). Legacy
+    fallback (no dimensionStatus): grounded iff dim is in dimensionRatings;
+    a legacy findingCount is not derivable here, so it is reported as None.
+    """
+    ds = getattr(sc, "dimensionStatus", None) or {}
+    entry = ds.get(dim) if isinstance(ds, dict) else None
+    if entry is not None:
+        # entry is a DimensionStatus model (post-B) or a plain dict.
+        if isinstance(entry, dict):
+            return (entry.get("evidenceStatus", "under-supported"),
+                    entry.get("findingCount", 0),
+                    entry.get("confidenceCap"),
+                    entry.get("note") or None)
+        return (getattr(entry, "evidenceStatus", "under-supported"),
+                getattr(entry, "findingCount", 0),
+                getattr(entry, "confidenceCap", None),
+                getattr(entry, "note", None) or None)
+    # Legacy fallback: presence in the grounded-only dimensionRatings.
+    if dim in sc.dimensionRatings:
+        return ("grounded", None, None, None)
+    return ("under-supported", 0, None, None)
+
+
+def render_dimensions(sc: Scorecard, prior: Optional[Scorecard]) -> str:
+    """Render DIMENSION RATINGS — all 6 dimensions, driven by dimensionStatus.
+
+    For each canonical dimension: read evidenceStatus from sc.dimensionStatus
+    (B's authoritative view; legacy fallback infers it from dimensionRatings
+    presence). If grounded, JOIN sc.dimensionRatings[dim] for the rating detail.
+    If under-supported, render the under-supported row from dimensionStatus.
+    Δ vs prior column appears only when prior is not None.
+    """
+    show_delta = prior is not None
+    header = "DIMENSION RATINGS"
+    if show_delta:
+        header += f"  (Δ vs prior cycle: {prior.asOf} (prior))"
+    lines = [header]
+
+    grounded_count = 0
+    for dim in DIMENSIONS:
+        ev_status, finding_count, conf_cap, note = _dim_evidence_status(sc, dim)
+        dr = sc.dimensionRatings.get(dim)
+        # Grounded requires both the evidence flag AND a rating row to join.
+        is_grounded = (ev_status == "grounded") and (dr is not None)
+
+        if not is_grounded:
+            fc = "?" if finding_count is None else finding_count
+            cap = f"; confidence capped at {conf_cap}" if conf_cap else ""
+            note_str = f"; {note}" if note else ""
+            delta_note = ""
+            if show_delta and dim in prior.dimensionRatings:
+                delta_note = "  Δ: was present in prior cycle"
+            elif show_delta:
+                delta_note = "  Δ: absent in prior too"
+            lines.append(
+                f"  {dim:<22}  —/under-supported  "
+                f"(findings: {fc}{cap}{note_str}){delta_note}"
+            )
+        else:
+            grounded_count += 1
+            rating = dr.rating
+            direction = dr.direction
+            conf = dr.confidence.level
+            arrow = DIRECTION_ARROW.get(direction, "?")
+            delta_str = ""
+            if show_delta:
+                prior_dr = prior.dimensionRatings.get(dim)
+                if prior_dr is None:
+                    delta_str = "  Δ: new this cycle"
+                else:
+                    curr_score = RATING_SCALE.get(rating, 0)
+                    prev_score = RATING_SCALE.get(prior_dr.rating, 0)
+                    if curr_score > prev_score:
+                        delta_str = "  Δ: ↑ improved"
+                    elif curr_score < prev_score:
+                        delta_str = "  Δ: ↓ worsened"
+                    else:
+                        delta_str = "  Δ: = same"
+            lines.append(
+                f"  {dim:<22}  {rating:<12}  {arrow} {direction:<12}  "
+                f"{conf:<8}  grounded{delta_str}"
+            )
+
+    under_count = len(DIMENSIONS) - grounded_count
+    lines.append("")
+    lines.append(
+        f"  Coverage: {grounded_count}/6 dimensions grounded; "
+        f"{under_count} under-supported"
+    )
+    return "\n".join(lines)

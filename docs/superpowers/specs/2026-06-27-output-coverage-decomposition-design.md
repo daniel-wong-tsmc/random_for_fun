@@ -12,8 +12,12 @@
   registries; principle **#8 "bend, don't break" — missing ability → flagged *under-supported* + confidence-capped,
   never dropped**), Part 22 (data-source reality: per-metric **source inventory**, tiered acquisition, honest
   "estimate/unavailable"), Part 35 (the **product surface** — graceful states "inputs degraded" / "provisional"),
-  Part 37 (the gathering swarm) · the frozen contract (`gpu_agent/schema/`, the 6 dimensions, `gate.py`,
-  `scoring.py:zscore`, `pipeline.py` Part-7 gate, `registry/indicators.py`/`validate.py`).
+  Part 37 (the gathering swarm) · Part 33 (schema evolution — the frozen contract thaws *additively*) · the **truly
+  frozen** contract: the **`Finding` schema**, the **6 dimension names**, the **rating scale**, `gate.py`,
+  `scoring.py:zscore`, the `pipeline.py` Part-7 gate, and `registry/validate.py`. **Evolvable additively (Part 33):**
+  the **`Scorecard` model** (new *optional* fields only — existing fields/semantics untouched), the **judgment
+  prompt/briefing/result** (B's mandate — request all 6 + the overall status), and the **indicator *data*** in
+  `registry/indicators.json`. The sp2-era freeze on `judgment/*.py` was sp2-scoped and does **not** bind this overhaul.
 
 ---
 

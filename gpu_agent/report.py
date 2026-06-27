@@ -83,18 +83,15 @@ def find_prior(
         # Identify the current scorecard by (asOf, version) from its filename.
         cur_name = Path(current_path).name
         cur_m = _VERSION_RE.match(cur_name)
-        if cur_m:
-            cur_key = (cur_m.group(1), int(cur_m.group(2)))
-            below = [
-                (asof, v, p) for asof, v, p in candidates if (asof, v) < cur_key
-            ]
-        else:
-            # Filename doesn't match pattern — fall back to resolved-path exclusion.
-            cur_resolved = Path(current_path).resolve()
-            below = [
-                (asof, v, p) for asof, v, p in candidates
-                if p.resolve() != cur_resolved
-            ]
+        if not cur_m:
+            # Current filename doesn't match <asOf>-v<N>.json — we cannot
+            # establish a strict ordering, so return no prior (safe fallback)
+            # rather than guessing the globally-newest file.
+            return None
+        cur_key = (cur_m.group(1), int(cur_m.group(2)))
+        below = [
+            (asof, v, p) for asof, v, p in candidates if (asof, v) < cur_key
+        ]
         return below[0][2] if below else None
 
     # Legacy mode: second-newest entry is assumed to be the prior.

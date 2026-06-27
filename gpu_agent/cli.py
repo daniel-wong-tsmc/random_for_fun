@@ -250,6 +250,11 @@ def _report(args) -> int:
 
     registry = IndicatorRegistry.load(args.registry)
     text = render_report(sc, prior, registry)
+    # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
+    # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
+    # on the user's own platform (covers both the report and the "wrote" line).
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if args.out:
         pathlib.Path(args.out).write_text(text, "utf-8")
         print(f"wrote {args.out}")
@@ -312,14 +317,16 @@ def main(argv=None) -> int:
     cp.add_argument("--out", default=None, help="write the cycle plan JSON here (initial cycle log)")
     rp = sub.add_parser("report")
     rp.add_argument("--scorecard", required=True, help="path to the scorecard JSON file")
-    rp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")
     rp.add_argument("--store", default="store",
                     help="store root dir for auto-discovery of prior (default: 'store')")
     rp.add_argument("--out", default=None, help="write report to file instead of stdout")
     rp.add_argument("--registry", default="registry/indicators.json",
                     help="indicator registry path (default: 'registry/indicators.json')")
-    rp.add_argument("--no-prior", action="store_true",
-                    help="suppress prior-cycle lookup; Δ columns show —")
+    # --prior and --no-prior are mutually exclusive: passing both is a usage error.
+    grp = rp.add_mutually_exclusive_group()
+    grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")
+    grp.add_argument("--no-prior", action="store_true",
+                     help="suppress prior-cycle lookup; Δ columns show —")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)

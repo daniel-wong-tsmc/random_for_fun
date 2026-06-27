@@ -14,6 +14,9 @@ from gpu_agent.pipeline import build_scorecard
 from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore
 from gpu_agent.judgment.judge import judge_findings
+from gpu_agent.judgment.judge import JudgmentResult
+from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
+from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.structure import Taxonomy
@@ -121,7 +124,27 @@ def _extract(args) -> int:
         print(f"DROPPED {d.id}: {'; '.join(d.violations)}", file=sys.stderr)
     return 0
 
+def _emit_judge_prompt(args) -> int:
+    """Print the canonical judgment prompt + answer schema (no LLM call) from the gated findings;
+    the answer (a JSON array of `samples` JudgmentResults) feeds `judge --recorded`. The judgment
+    prompt is built from the GATED findings via the same build_briefing the frozen brain uses."""
+    findings = [Finding.model_validate(d)
+                for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    registry, _ = _load_registry()
+    briefing = build_briefing(findings, registry, args.category)
+    bundle = {
+        "system": JUDGE_SYSTEM,
+        "schema": JudgmentResult.model_json_schema(),
+        "user": build_judge_user_prompt(briefing),
+        "samples": args.samples,
+    }
+    print(json.dumps(bundle, indent=2))
+    return 0
+
+
 def _judge(args) -> int:
+    if args.emit_prompt:
+        return _emit_judge_prompt(args)
     findings = [Finding.model_validate(d)
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
     if args.recorded:
@@ -205,12 +228,14 @@ def main(argv=None) -> int:
                     help="comma-separated authoritative-source host allowlist")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
-    jg.add_argument("--out", required=True, help="dir for ratings/anchors/narrative.json")
+    jg.add_argument("--out", default=None, help="dir for ratings/anchors/narrative.json")
     jg.add_argument("--samples", type=int, default=3)
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     jg.add_argument("--category", default="chips.merchant-gpu", help="indicator category id")
+    jg.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical judgment prompt + schema (no LLM) and exit")
     pl = sub.add_parser("pipeline")
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)

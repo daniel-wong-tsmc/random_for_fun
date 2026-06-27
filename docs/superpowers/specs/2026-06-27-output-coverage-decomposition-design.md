@@ -48,9 +48,14 @@ These are fixed here so the three specs cannot diverge on the core. Each sub-spe
 ### 2.1 The scorecard contract grows additively (frozen fields untouched)
 The scorecard keeps every field it has today (`dimensionRatings`, `demandSupply{dmiContribution, smiContribution,
 anchors}`, `findings`, `sources`, `narrative`, `confidence`, `provenance`, `asOf`, `categoryId`). It **gains**:
-- **All six dimensions, always present** in `dimensionRatings`. A dimension with no grounding is **not omitted**; it
-  carries an explicit status — `evidenceStatus: "grounded" | "under-supported"` — and when `under-supported` its
-  confidence is capped (Part 18 #8; Part 35 "inputs degraded"). (Owner: **B** writes it; **A** renders it.)
+- **All six dimensions, always present** — carried in a **new `Scorecard.dimensionStatus: dict[dimName →
+  {evidenceStatus: "grounded"|"under-supported", findingCount, confidenceCap, note}]`**, which `build_scorecard` always
+  fills with all six. A dimension with no grounding is `under-supported` + confidence-capped, **never omitted** (Part 18
+  #8; Part 35 "inputs degraded"). **Why a separate dict and not `dimensionRatings`:** the *frozen* `gate.py` rejects any
+  `dimensionRatings` entry with empty `findingIds`, so ungrounded dims **cannot** live in `dimensionRatings` without
+  thawing the gate. So `dimensionRatings` stays **grounded-only** (gate byte-for-byte frozen) and `dimensionStatus` is
+  the authoritative six-row view. (Owner: **B** writes `dimensionStatus`; **A** renders six rows from it, joining
+  `dimensionRatings[dim]` for the grounded rating detail; an empty `dimensionStatus` = a legacy/pre-B scorecard.)
 - **An overall category status** — one judged headline (Part 17: "an analyst's read of its six judgments, **not** an
   average"). Because it is *judgment*, it is produced by the **judge brain** and stored in the scorecard (a new field,
   e.g. `categoryStatus{rating, direction, bottleneck, reason}`), **not** computed or invented by the report. (Owner:

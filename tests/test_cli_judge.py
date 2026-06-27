@@ -15,7 +15,10 @@ def test_judge_writes_three_files(tmp_path):
     findings = tmp_path / "findings.json"
     findings.write_text(json.dumps([_clean_finding()]), "utf-8")
     judgment = json.dumps({"dimensions": {"momentum": {"rating": "Strong", "direction": "steady",
-        "findingIds": ["x-1"], "rationale": "r"}}, "narrative": "judged narrative"})
+        "findingIds": ["x-1"], "rationale": "r"}},
+        "categoryStatus": {"rating": "Strong", "direction": "steady",
+                           "bottleneck": "momentum", "reason": "r"},
+        "narrative": "judged narrative"})
     recorded = tmp_path / "rec.json"
     recorded.write_text(json.dumps([judgment] * 3), "utf-8")
     out = tmp_path / "bundle"

@@ -3,7 +3,7 @@ from collections import Counter
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from gpu_agent.schema.finding import Confidence, Finding
-from gpu_agent.schema.scorecard import DimensionRating, Scorecard, DemandSupply
+from gpu_agent.schema.scorecard import DimensionRating, Scorecard, DemandSupply, CategoryStatus, DIMENSIONS
 from gpu_agent.judgment.briefing import Briefing, build_briefing
 from gpu_agent.judgment.prompt import SYSTEM, build_user_prompt
 from gpu_agent.gate import _rating_consistent_with_anchor, check_scorecard
@@ -21,6 +21,7 @@ class DimensionJudgment(BaseModel):
 class JudgmentResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     dimensions: dict[str, DimensionJudgment]
+    categoryStatus: CategoryStatus
     narrative: str
 
 class JudgmentBundle(BaseModel):
@@ -28,6 +29,7 @@ class JudgmentBundle(BaseModel):
     anchors: dict[str, float] = Field(default_factory=dict)
     narrative: str
     confidence: Confidence
+    categoryStatus: CategoryStatus | None = None
 
 class JudgmentError(Exception):
     def __init__(self, violations: list[str]):
@@ -73,8 +75,10 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBund
     confidence = Confidence(
         level="high" if all_unanimous else "medium",
         basis=f"self-consistency over {len(results)} samples")
+    rep_i = _representative_index(results, winners)
     return JudgmentBundle(ratings=ratings, anchors=dict(briefing.anchors),
-                          narrative=results[_representative_index(results, winners)].narrative,
+                          narrative=results[rep_i].narrative,
+                          categoryStatus=results[rep_i].categoryStatus,
                           confidence=confidence)
 
 
@@ -109,5 +113,8 @@ def judge_findings(findings: list[Finding], client: LLMClient, registry, categor
         last_conflicts = _conflicts(bundle)
         if not last_conflicts:
             _gate_backstop(bundle, findings)   # raises JudgmentError on any gate violation
+            cs = bundle.categoryStatus
+            if cs is not None and cs.bottleneck not in DIMENSIONS:
+                raise JudgmentError([f"categoryStatus.bottleneck '{cs.bottleneck}' not a dimension"])
             return bundle
     raise JudgmentError(last_conflicts)

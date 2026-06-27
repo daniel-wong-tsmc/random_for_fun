@@ -26,6 +26,9 @@ def _judge(finding_id):
     return json.dumps({"dimensions": {"momentum": {
         "rating": "Strong", "direction": "worsening", "findingIds": [finding_id],
         "rationale": "DC growth solid but decelerating"}},
+        "categoryStatus": {"rating": "Strong", "direction": "worsening",
+                           "bottleneck": "momentum",
+                           "reason": "DC growth solid but decelerating"},
         "narrative": "NVDA demand momentum is strong but decelerating into 2026."})
 
 def test_snapshot_feeds_brain_to_gate_valid_scorecard(tmp_path):

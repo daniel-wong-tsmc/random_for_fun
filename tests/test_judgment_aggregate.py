@@ -1,10 +1,13 @@
 from gpu_agent.judgment.briefing import Briefing
 from gpu_agent.judgment.judge import JudgmentResult, DimensionJudgment, aggregate, _majority
+from gpu_agent.schema.scorecard import CategoryStatus
 
 def _result(rating: str, narrative: str = "n") -> JudgmentResult:
     return JudgmentResult(
         dimensions={"momentum": DimensionJudgment(
             rating=rating, direction="steady", findingIds=["a"], rationale="r")},
+        categoryStatus=CategoryStatus(
+            rating=rating, direction="steady", bottleneck="momentum", reason="r"),
         narrative=narrative)
 
 def test_majority_winner_and_spread_basis():

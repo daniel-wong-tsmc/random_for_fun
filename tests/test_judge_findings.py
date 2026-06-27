@@ -13,10 +13,29 @@ def _f(fid="real-1", indicator="D2", pD=1, pS=0, mag=2) -> Finding:
         indicatorId=indicator, side="demand", polarityDemand=pD, polaritySupply=pS,
         magnitude=mag, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
 
-def _judgment(rating, find_ids=("real-1",)):
-    return json.dumps({"dimensions": {"momentum": {
-        "rating": rating, "direction": "steady",
-        "findingIds": list(find_ids), "rationale": "r"}}, "narrative": "n"})
+def _judgment(rating, find_ids=("real-1",), bottleneck="momentum"):
+    return json.dumps({
+        "dimensions": {"momentum": {
+            "rating": rating, "direction": "steady",
+            "findingIds": list(find_ids), "rationale": "r"}},
+        "categoryStatus": {"rating": rating, "direction": "steady",
+                           "bottleneck": bottleneck, "reason": "r"},
+        "narrative": "n"})
+
+
+def test_bundle_carries_category_status():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    client = RecordedClient([_judgment("Strong")] * 3)
+    bundle = judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3)
+    assert bundle.categoryStatus is not None
+    assert bundle.categoryStatus.bottleneck == "momentum"
+
+
+def test_invalid_bottleneck_raises():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    client = RecordedClient([_judgment("Strong", bottleneck="notADimension")] * 3)
+    with pytest.raises(JudgmentError):
+        judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3)
 
 def test_clean_judgment_produces_gate_valid_bundle():
     # D2(+1,m=2) -> momentum anchor +0.67; "Strong" is consistent.

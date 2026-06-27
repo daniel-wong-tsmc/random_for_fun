@@ -28,3 +28,16 @@ def test_dmi_smi_contribution():
     dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu", weights)
     assert math.isclose(dmi, 0.10 * 1 * 1.0 + 0.04 * -1 * 1.0)  # 0.06   (unchanged)
     assert math.isclose(smi, 0.04 * 1 * 1.0)                    # 0.04   (unchanged)
+
+def test_strategic_risk_findings_excluded_from_dmi_smi():
+    from gpu_agent.schema.finding import Finding, Confidence, Impact
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    f = Finding(id="r1", statement="export-control exposure rising", kind="observed",
+                trend="flat", why="w",
+                impact=Impact(targets=["nvidia"], direction="negative", mechanism="m"),
+                confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+                indicatorId="exportControlExposure", side="structural",
+                polarityDemand=-1, polaritySupply=0, magnitude=2, entity="nvidia",
+                observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+    dmi, smi = dmi_smi_contribution([f], reg, "chips.merchant-gpu")
+    assert dmi == 0.0 and smi == 0.0  # scoring:false -> excluded

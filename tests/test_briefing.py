@@ -35,3 +35,9 @@ def test_dimension_with_no_findings_is_omitted():
     b = build_briefing([_f("a", "D2", 1, 0, 3)], reg, "chips.merchant-gpu")
     assert "unitEconomics" not in b.anchors  # grossMargin had no finding
     assert b.findings[0].id == "a"           # all input findings are retained
+
+def test_strategic_risk_finding_forms_an_anchor():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    b = build_briefing([_f("r1", "exportControlExposure", -1, 0, 2)], reg, "chips.merchant-gpu")
+    assert "strategicRisk" in b.anchors
+    assert b.grouped["strategicRisk"] == ["r1"]

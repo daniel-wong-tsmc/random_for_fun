@@ -31,3 +31,16 @@ def test_non_scoring_metric_has_null_dimension():
     spec = reg.resolve("perfPerWatt")
     assert spec.scoring is False
     assert spec.dimension is None
+
+def test_strategic_risk_indicators_map_to_dimension_and_are_non_scoring():
+    reg = IndicatorRegistry.load(REG)
+    for ind in ("exportControlExposure", "customerConcentration"):
+        spec = reg.resolve(ind, "chips.merchant-gpu")
+        assert spec.dimension == "strategicRisk"
+        assert spec.scoring is False
+
+def test_strategic_risk_indicators_pass_validate_against_taxonomy():
+    from gpu_agent.registry.structure import Taxonomy
+    reg = IndicatorRegistry.load(REG)
+    tax = Taxonomy.load(pathlib.Path("docs/taxonomy.json"))
+    reg.validate_against(tax)  # must not raise (non-scoring indicators are skipped)

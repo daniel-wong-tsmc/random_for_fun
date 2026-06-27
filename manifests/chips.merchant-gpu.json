@@ -1,0 +1,174 @@
+{
+  "version": "1.0",
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-06",
+  "description": "Expected coverage for the merchant-GPU category (NVDA, AMD, INTC) — 6 dimensions, primary filings + open-web sources, 1 paywalled tracker inventoried.",
+  "expectedIndicators": [
+    {
+      "indicatorId": "D2",
+      "dimension": "momentum",
+      "priority": "required",
+      "sourceIds": ["nvda-earnings", "amd-earnings", "intc-earnings"]
+    },
+    {
+      "indicatorId": "D6",
+      "dimension": "momentum",
+      "priority": "required",
+      "sourceIds": ["lambda-gpu-pricing", "coreweave-pricing"]
+    },
+    {
+      "indicatorId": "market-share-pct",
+      "dimension": "moat",
+      "priority": "required",
+      "sourceIds": ["trendforce-gpu-tracker", "open-web-gpu-share"]
+    },
+    {
+      "indicatorId": "grossMargin",
+      "dimension": "unitEconomics",
+      "priority": "required",
+      "sourceIds": ["nvda-earnings", "amd-earnings"]
+    },
+    {
+      "indicatorId": "S9",
+      "dimension": "competitiveStructure",
+      "priority": "required",
+      "sourceIds": ["nvda-earnings", "amd-earnings", "open-web-asic"]
+    },
+    {
+      "indicatorId": "S10",
+      "dimension": "bottleneck",
+      "priority": "preferred",
+      "sourceIds": ["nvda-earnings", "channel-checks"]
+    },
+    {
+      "indicatorId": "strategicRisk",
+      "dimension": "strategicRisk",
+      "priority": "required",
+      "sourceIds": ["bis-export-controls", "nvda-10k-risk-factors"]
+    }
+  ],
+  "expectedSources": [
+    {
+      "id": "nvda-earnings",
+      "label": "NVIDIA earnings / 10-Q / 10-K / investor relations",
+      "urlPatterns": ["investor.nvidia.com", "sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "quarterly",
+      "indicators": ["D2", "grossMargin", "S9", "S10"]
+    },
+    {
+      "id": "amd-earnings",
+      "label": "AMD earnings / 10-Q / 10-K / investor relations",
+      "urlPatterns": ["ir.amd.com", "sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "quarterly",
+      "indicators": ["D2", "grossMargin", "S9"]
+    },
+    {
+      "id": "intc-earnings",
+      "label": "Intel earnings / 10-Q / 10-K / investor relations",
+      "urlPatterns": ["intc.com", "sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "quarterly",
+      "indicators": ["D2"]
+    },
+    {
+      "id": "lambda-gpu-pricing",
+      "label": "Lambda Labs and open-web GPU rental price trackers",
+      "urlPatterns": ["lambdalabs.com/gpu-cloud", "vast.ai/pricing", "runpod.io/pricing"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["D6"]
+    },
+    {
+      "id": "coreweave-pricing",
+      "label": "CoreWeave GPU pricing page",
+      "urlPatterns": ["coreweave.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["D6"]
+    },
+    {
+      "id": "trendforce-gpu-tracker",
+      "label": "TrendForce GPU market share tracker",
+      "urlPatterns": ["trendforce.com"],
+      "accessMethod": "licensed-api",
+      "tier": "secondary",
+      "costUsd": 5000,
+      "license": "licensed",
+      "refresh": "quarterly",
+      "indicators": ["market-share-pct"],
+      "paywalledNote": "TrendForce GPU tracker requires a subscription (~$5k/yr). Until licensed, market-share-pct runs at estimate-grade via open-web proxy sources."
+    },
+    {
+      "id": "open-web-gpu-share",
+      "label": "Open-web analyst notes / trade press on GPU market share",
+      "urlPatterns": ["tomshardware.com", "anandtech.com", "techpowerup.com", "semianalysis.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["market-share-pct"]
+    },
+    {
+      "id": "open-web-asic",
+      "label": "Open-web reporting on hyperscaler custom ASICs (competitive alternatives)",
+      "urlPatterns": ["blog.google", "aws.amazon.com/machine-learning", "techcrunch.com", "semianalysis.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["S9"]
+    },
+    {
+      "id": "channel-checks",
+      "label": "Open-web channel checks: lead times, inventory notes from distributors",
+      "urlPatterns": ["digitimes.com", "tomshardware.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["S10"]
+    },
+    {
+      "id": "bis-export-controls",
+      "label": "BIS export control notices and Federal Register",
+      "urlPatterns": ["bis.doc.gov", "federalregister.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "on-demand",
+      "indicators": ["strategicRisk"]
+    },
+    {
+      "id": "nvda-10k-risk-factors",
+      "label": "NVIDIA 10-K risk factor section (geopolitical / export control exposure)",
+      "urlPatterns": ["investor.nvidia.com/annual-reports", "sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "annual",
+      "indicators": ["strategicRisk"]
+    }
+  ]
+}

@@ -46,3 +46,18 @@ def test_build_falls_back_without_narrative_json():
     sc = _build(argparse.Namespace(assignment=ASSIGN, fixtures="fixtures/golden"))
     assert sc.narrative == "MVP scorecard."
     assert sc.confidence.basis == "fixture run"
+
+def test_judge_writes_status_json(tmp_path):
+    import json
+    from gpu_agent.cli import main
+    # judge-nvda.json references findingId "doc-nvda-1"; create a matching findings file
+    findings_path = tmp_path / "findings.json"
+    findings_path.write_text(json.dumps([_clean_finding("doc-nvda-1")]), "utf-8")
+    out = tmp_path / "jdg"
+    rc = main(["judge", "--findings", str(findings_path),
+               "--category", "chips.merchant-gpu", "--samples", "3",
+               "--recorded", "fixtures/recorded/judge-nvda.json", "--out", str(out)])
+    assert rc == 0
+    status = json.loads((out / "status.json").read_text("utf-8"))
+    assert status["bottleneck"] in {
+        "momentum","unitEconomics","competitiveStructure","moat","bottleneck","strategicRisk"}

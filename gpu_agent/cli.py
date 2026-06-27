@@ -3,7 +3,7 @@ import argparse, json, pathlib, sys
 from datetime import datetime, timezone
 from gpu_agent.assignment import load_assignment
 from gpu_agent.schema.finding import Finding, Confidence
-from gpu_agent.schema.scorecard import DimensionRating
+from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus
 from gpu_agent.schema.raw_document import RawDocument
 from gpu_agent.extraction.extractor import extract_findings
 from gpu_agent.extraction.extractor import ExtractionResult
@@ -83,8 +83,13 @@ def _build(args):
         nd = json.loads(npath.read_text("utf-8"))
         narrative = nd["narrative"]
         confidence = Confidence.model_validate(nd["confidence"])
+    category_status = None
+    spath = fx / "status.json"
+    if spath.exists():
+        category_status = CategoryStatus.model_validate_json(spath.read_text("utf-8"))
     registry, _ = _load_registry()
-    return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry)
+    return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry,
+                           category_status=category_status)
 
 def _emit_extract_prompt(args) -> int:
     """Print the canonical extraction prompt + answer schema (no LLM call) so a Claude Code
@@ -164,6 +169,8 @@ def _judge(args) -> int:
     (out / "narrative.json").write_text(
         json.dumps({"narrative": bundle.narrative, "confidence": bundle.confidence.model_dump()},
                    indent=2), "utf-8")
+    if bundle.categoryStatus is not None:
+        (out / "status.json").write_text(bundle.categoryStatus.model_dump_json(indent=2), "utf-8")
     print(f"judged {len(bundle.ratings)} dimensions -> {out}")
     return 0
 
@@ -186,7 +193,8 @@ def _pipeline(args) -> int:
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
     bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)
-    sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry)
+    sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
+                         category_status=bundle.categoryStatus)
     path = JsonStore(pathlib.Path(args.out)).append(sc)
     print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
           f"SMI={sc.demandSupply.smiContribution:.3f}")

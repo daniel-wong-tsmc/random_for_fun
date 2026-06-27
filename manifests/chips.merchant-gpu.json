@@ -163,7 +163,7 @@
       "costUsd": 0,
       "license": "public",
       "refresh": "on-demand",
-      "indicators": ["strategicRisk"]
+      "indicators": ["exportControlExposure"]
     },
     {
       "id": "nvda-10k-risk-factors",
@@ -174,7 +174,7 @@
       "costUsd": 0,
       "license": "public",
       "refresh": "annual",
-      "indicators": ["strategicRisk"]
+      "indicators": ["exportControlExposure", "customerConcentration"]
     }
   ]
 }

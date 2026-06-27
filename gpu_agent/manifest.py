@@ -126,7 +126,6 @@ def compute_coverage_gaps(
         A list of CoverageGap records. An empty list means full coverage.
     """
     gaps: list[CoverageGap] = []
-    covered_source_ids: set[str] = set()
 
     # 1. Source coverage pass
     for src in manifest.expectedSources:
@@ -145,9 +144,7 @@ def compute_coverage_gaps(
             any(pattern in url for pattern in src.urlPatterns)
             for url in blob_urls
         )
-        if matched:
-            covered_source_ids.add(src.id)
-        else:
+        if not matched:
             gaps.append(CoverageGap(
                 type="source",
                 id=src.id,

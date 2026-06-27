@@ -1,33 +1,72 @@
-# HANDOFF — GPU Category Agent (resume point: sub-project 2 "Live Category runs" DONE + merged → start sp-NEXT spec)
+# HANDOFF — GPU Category Agent (resume point: sub-projects 1–3 DONE + merged + PUSHED → start sub-project 4 "daily demand/supply monitor")
 
 - **Date:** 2026-06-27
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` HEAD:** `92d6e4d` — **sub-projects 1 AND 2 are merged into `main` LOCALLY but NOT pushed.**
-  `main` is **17 commits ahead of `origin/main` (@ `6cc403c`)**. Push is deferred per the user; do **not** push unless asked.
-- **Sub-project 2 "Live Category runs" — DONE & merged** (branch `live-category-runs`, fast-forwarded into `main`
-  69bd416..92d6e4d, then deleted). 5 implementation commits, all additive, all carrying the trailer:
-  - `e6b9a58` — `extract --emit-prompt` (canonical prompt + `ExtractionResult` schema, no LLM) — TDD.
-  - `ffca5f5` — `judge --emit-prompt` + emit→`--recorded` round-trip (no LLM) — TDD.
-  - `009d77c` — fix: `judge` without `--out` fails clean (exit 2), not a `TypeError` (review-driven).
-  - `f5c01f4` — `run-cycle` SKILL.md rewritten to drive live runs (Claude Code is the brain, Part 38).
-  - `92d6e4d` — fix: recorded answer is an **array of serialized strings**, not objects (final-review-driven) + guard test.
-  - Suite: **117 passed, 3 skipped.** Final whole-branch review (opus): clean after the one Important fix.
-- **For the next Claude instance:** read this file. Sub-project 2 is finished. The named next build is **sp-NEXT —
-  Multi-tier Opus fan-out** (see "AFTER sub-project 2" below); it needs its **own spec → plan → build**. Start with
-  **`superpowers:brainstorming`** then **`superpowers:writing-plans`**; it has two open decisions to settle first
-  (charter delegation-depth amendment; nested-subagents vs. the Workflow tool).
+- **`main` HEAD:** `d356eff` — **sub-projects 1, 2, AND 3 are merged into `main` AND PUSHED.** `origin/main` on GitHub ==
+  local `main` == `d356eff` (verified). Working tree clean. **Suite: 211 passed, 3 skipped.** Frozen contract intact.
+- **For the next Claude instance:** read this file, then the **sub-project-4 umbrella spec**
+  `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md`. sp4 turns the (now complete & legible)
+  quarterly scorecard into a **DAILY demand/supply monitor** — it tracks **events as evolving threads via Karpathy's
+  "LLM-wiki" model**, computes **two indices (trailing Momentum + forward Outlook)**, does **daily change-detection +
+  materiality filtering**, and renders a **market-state brief** that answers *"what is demand/supply doing, and where is
+  it heading."* It is built **additively on B/A/C** and **decomposed into 5 pieces** (build in order):
+  **4-1** temporal store + LLM-wiki thread model (the keystone) → **4-2** leading + daily indicators (cadence × horizon)
+  → **4-3** two indices (Momentum + Outlook) → **4-4** daily gather + relevance/lint engine → **4-5** market-state brief +
+  daily diff. **Start with 4-1.** For each piece run the full superpowers loop: `brainstorming` → spec
+  (`docs/superpowers/specs/`) → `writing-plans` → `subagent-driven-development`, **merged to `main` before the next
+  starts** (the sp3 pattern: fresh subagent per task, two-stage review, opus final whole-branch review).
 
 ---
 
 ## TL;DR — where we are
 
-North star: **run the entire 3-tier swarm (Category → Layer → Main) inside Claude Code itself**, one interface, as the
-canonical runtime. Decomposed into sub-projects. **Sub-project 1 (the harness) is DONE and merged (local). Sub-project 2
-("Live Category runs") is now also DONE and merged (local).** `/run-cycle` runs any scope **live and complete in one
-command, with Claude Code itself as the brain** — a dispatched Opus subagent does extraction + judgment by answering the
-CLI's `--emit-prompt` canonical prompt; deterministic code gates + scores. No OAuth token, SDK, `[llm]` extra, or external
-API. A **live single-category run was demonstrated end-to-end** (gather 11 real docs → Opus extraction brain → gate 17
-findings → Opus judgment brain 3 samples → scorecard DMI=0.060/SMI=-0.027), with no token/SDK/install.
+North star: a **daily, explainable GPU-market intelligence monitor running inside Claude Code itself** (Claude Code *is*
+the brain — no OAuth token, SDK, `[llm]` extra, or external API). **Sub-projects 1 (harness), 2 (live category runs), and
+3 (output & coverage overhaul) are DONE, merged, and pushed.** Today the agent runs a category **live in one command**
+(real web gather → dispatched Opus extraction + judgment subagents → deterministic gate + score), produces an
+**all-six-dimension scorecard** (ungrounded dims `under-supported`, never dropped; judge-produced overall `categoryStatus`;
+code-computed `sdgi`), renders a **deterministic executive report** (`gpu-agent report` — 8 sections, Δ-vs-prior-cycle),
+and drives the gather with a **coverage manifest + per-metric source inventory** (gaps logged, paywalled labeled not
+scraped). **NEXT (sp4):** make it a **daily monitor** that follows events over time, splits **trailing Momentum from
+forward Outlook**, filters the day's noise to **what changed and whether it matters**, and tells the demand/supply story.
+
+---
+
+## NEXT — sub-project 4: the daily demand/supply monitor (the in-flight task)
+
+**Why:** a live `v4` run produces a correct scorecard but still leaves the reader unable to say *what GPU demand/supply is
+actually doing* — the report shows **scores, not a market picture**, and the indicator base is **lagging-heavy** (10-Q
+revenue is reported 1–3 quarters late and doesn't change daily). The user runs this **every day** and needs it to track
+**quantitative + qualitative data that changes daily** and **follow events as they evolve**.
+
+**The design (read the umbrella spec `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md`):**
+- **The keystone is an LLM-wiki temporal core (charter Part 4/9/10):** threads = **wiki pages** (entity pages `nvidia`,
+  `tsmc`, …; theme pages `cowos-capacity`, `export-controls`, `hbm4`, `hyperscaler-capex`, …) that **accrete dated, cited
+  findings** and carry a **state + trajectory**, plus an `index` (catalog) and `log` (provenance). The daily loop is the
+  wiki **ingest / query / lint**; **`lint` is the materiality / early-warning engine**. The **brain curates the wiki; code
+  computes + gates + stores; numbers come only from gated findings** (Part 17). Thread id = brain-proposed + provisional
+  (Part 18 discovery lane), deduped by the store; full finding-level history per page (replayable), brief reads a windowed view.
+- **Two indices:** **Momentum** (trailing — lagging+coincident findings; today's `dmi`/`smi` generalize to it) and
+  **Outlook** (forward — leading findings), each split demand/supply with its own SDGI. **The case the system exists to
+  catch: Momentum strong while Outlook turns.** Computed in code (reuses B's additive-field discipline).
+- **Indicators gain two tags — `cadence` (daily|weekly|quarterly) × `horizon` (leading|coincident|lagging)** — added as
+  registry DATA (the C-3 top-level-map pattern; `IndicatorSpec` is `extra="forbid"`, so NEVER add fields inside an
+  indicator dict). Add leading + daily signals (capex guidance, RPO/backlog, GPU spot/secondary prices, lead times,
+  CoWoS/HBM capacity, news-event indicators) with source inventory + manifest coverage (reuses C).
+- **Daily gather** sweeps recent news + live prices, **dedups vs the store**, and scores **materiality** (multi-factor:
+  new-thread | thread-state-change | contradicts-thesis[highest] | moves-indicator∝magnitude; weighted by tier+recency;
+  decays as a thread goes quiet). Every drop is **logged, never silent** (Part 29).
+- **The report** renders a **Market-State brief** with **both views** — a **two-column** demand/supply signal board *and*
+  the **causal driver/constraint tree** (naming the specific binding constraint) — **leading with "what moved today"** +
+  thread trajectories + **per-signal recency** (a stale leading signal is flagged). Extends A's `report.py`.
+
+**Decisions locked in brainstorming (do not relitigate without reason):** two distinct indices (Momentum vs Outlook);
+**both** brief views (two-column + causal tree); daily-first (cadence-tagged, change-detection, news+price sweep);
+**richer multi-factor materiality from day 1**; **event threads via the LLM-wiki model** (Karpathy gist —
+<https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f>); **full finding-level history per thread**, brief
+reads a windowed view; **build additively on B/A/C** (reuse, don't rebuild). Out of scope: the **unattended daily
+scheduler** (Part 28 — the monitor is *designed* to run daily, but auto-scheduling is a separate follow-on); the
+Layer/Main tiers; the multi-tier Opus fan-out (still deferred); a quantitative regression model.
 
 ---
 
@@ -89,7 +128,30 @@ dependency / no `[llm]`/OAuth/SDK usage**.
 
 ## WHAT'S DONE
 
-### Sub-project 2 — Live Category runs (MERGED to `main` @ `92d6e4d`, local; NOT pushed)
+### Sub-project 3 — Output & Coverage Overhaul (MERGED to `main` @ `d356eff`, **pushed**) — B → A → C
+Built additively on B/A/C seams, sequenced (each merged before the next), opus final whole-branch review per piece.
+Umbrella spec: `docs/superpowers/specs/2026-06-27-output-coverage-decomposition-design.md`. Suite **211 passed, 3 skipped**.
+- **B — Six-dimension integrity** (`gpu_agent/schema/scorecard.py`, `pipeline.py`, `judgment/*`, `registry/indicators.json` DATA):
+  every scorecard carries **all 6 dimensions** in a new `dimensionStatus` dict (ungrounded → `under-supported` +
+  confidence-capped, **never dropped**; `dimensionRatings` stays grounded-only so the frozen `gate.py` is byte-unchanged);
+  added 2 **judgment-only `strategicRisk` indicators** (`exportControlExposure`, `customerConcentration`; `scoring:false`,
+  excluded from DMI/SMI); the judge produces an overall **`categoryStatus`**; code computes **`demandSupply.sdgi`** (= dmi−smi).
+- **A — Executive report** (`gpu_agent/report.py` + `report` CLI subcommand + `run-cycle` step): deterministic, no-LLM,
+  byte-reproducible (`--render-ts`) **8-section** board-ready report — overall status, all 6 dims (under-supported shown),
+  DMI/SMI/**SDGI** with **Δ vs prior cycle** (`find_prior` picks the strictly-prior version), per-entity panel, honest
+  evidence quality (distinct-finding counts), sources, coverage gaps. Tests use committed `fixtures/report/*.json`.
+- **C — Coverage manifest + source inventory** (`gpu_agent/manifest.py`, `manifests/chips.merchant-gpu.json`,
+  `registry/indicators.json` top-level `sourceInventory`, `gather-category` SKILL.md): per-category **expected-coverage
+  manifest** + per-metric **source inventory** (Part 22); the gather seeds primary filings first and **logs every
+  uncovered/paywalled item as a gap** (paywalled = labeled, never scraped). **C-3 lesson:** `IndicatorSpec` is
+  `extra="forbid"`, so `sourceInventory` lives as a **top-level map** in `indicators.json` (the frozen loader ignores it),
+  NEVER inside an indicator dict.
+- **Frozen contract intact across all of sp3:** `gate.py`, `scoring.py`, `registry/indicators.py`, `registry/validate.py`
+  are **byte-unchanged**; the Scorecard model, judgment prompt/result, `pipeline.py` assembly were evolved **additively**
+  (Part 33). Two tracked sp3 follow-ups (non-blocking): source-gap priority hardcoded `required` (should derive from
+  backing indicators); the registry `sourceInventory` is currently documentation-only (unwired through `SourceEntry`).
+
+### Sub-project 2 — Live Category runs (MERGED to `main` @ `92d6e4d`; pushed in `d356eff`)
 - `gpu_agent/cli.py` — **additive** `--emit-prompt` mode on `extract` and `judge`: prints the **canonical** brain prompt
   (reused `SYSTEM` + `build_user_prompt`) + the answer JSON schema (`ExtractionResult` / `JudgmentResult`), **no LLM call**.
   `judge --emit-prompt` builds the briefing from the **gated** findings via the frozen `build_briefing`. Also: `judge --out`

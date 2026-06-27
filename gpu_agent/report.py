@@ -74,3 +74,53 @@ def compute_sdgi(sc: Scorecard) -> float:
     if stored is not None:
         return stored
     return sc.demandSupply.dmiContribution - sc.demandSupply.smiContribution
+
+
+# ── Section renderers ────────────────────────────────────────────────────────
+
+def render_header(sc: Scorecard, render_ts: str) -> str:
+    """Render the report banner with category id, cycle, and render timestamp.
+
+    ``render_ts`` is the only time input — supplied by the caller, never read
+    from the clock here — so the header is byte-identical for equal inputs.
+    """
+    title = f"CATEGORY REPORT: {sc.categoryId}  |  Cycle: {sc.asOf}  |  {render_ts}"
+    bar = "=" * max(len(title) + 4, 65)
+    return f"{bar}\n{title}\n{bar}"
+
+
+def render_overall_status(sc: Scorecard) -> str:
+    """Render the OVERALL CATEGORY STATUS section.
+
+    Reads sc.categoryStatus (added by sub-project B). Degrades gracefully to
+    'not yet available' if absent (legacy scorecards predating B).
+    """
+    lines = ["OVERALL CATEGORY STATUS"]
+    cs = getattr(sc, "categoryStatus", None)
+    if cs is None:
+        lines += [
+            "  Status:     not yet available  "
+            "(field populated by sub-project B; scorecard predates it)",
+            "  Direction:  —",
+            "  Bottleneck: —",
+            "  Reason:     —",
+        ]
+    else:
+        # cs may be a typed CategoryStatus model or a plain dict.
+        if isinstance(cs, dict):
+            rating = cs.get("rating", "—")
+            direction = cs.get("direction", "—")
+            bottleneck = cs.get("bottleneck", "—")
+            reason = cs.get("reason", "—")
+        else:
+            rating = getattr(cs, "rating", "—")
+            direction = getattr(cs, "direction", "—")
+            bottleneck = getattr(cs, "bottleneck", "—")
+            reason = getattr(cs, "reason", "—")
+        arrow = DIRECTION_ARROW.get(str(direction), "")
+        lines += [
+            f"  Status:     {rating}  {arrow} {direction}".rstrip(),
+            f"  Bottleneck: {bottleneck}",
+            f"  Reason:     {reason}",
+        ]
+    return "\n".join(lines)

@@ -99,3 +99,52 @@ def test_load_scorecard_raises_on_missing_file():
     from gpu_agent.report import load_scorecard
     with pytest.raises((ValueError, FileNotFoundError)):
         load_scorecard(Path("fixtures/report/nonexistent.json"))
+
+
+# ── render_header ─────────────────────────────────────────────────────────────
+
+def test_render_header_contains_category_and_asof():
+    from gpu_agent.report import render_header
+    sc = _load(CURRENT)
+    out = render_header(sc, "2026-06-27T12:00:00Z")
+    assert "chips.merchant-gpu" in out
+    assert "2026-06" in out
+    assert "2026-06-27T12:00:00Z" in out
+
+
+def test_render_header_has_separator_line():
+    from gpu_agent.report import render_header
+    sc = _load(CURRENT)
+    out = render_header(sc, "2026-06-27T12:00:00Z")
+    assert "===" in out
+
+
+def test_render_header_is_deterministic():
+    """Same scorecard + same render_ts → byte-identical header."""
+    from gpu_agent.report import render_header
+    sc = _load(CURRENT)
+    a = render_header(sc, "2026-06-27T12:00:00Z")
+    b = render_header(sc, "2026-06-27T12:00:00Z")
+    assert a == b
+
+
+# ── render_overall_status ────────────────────────────────────────────────────
+
+def test_render_overall_status_absent_shows_not_available():
+    """Pre-B scorecard (no categoryStatus) → 'not yet available' label."""
+    from gpu_agent.report import render_overall_status
+    sc = _load(CURRENT)  # legacy fixture has no categoryStatus
+    out = render_overall_status(sc)
+    assert "not yet available" in out
+    assert "OVERALL CATEGORY STATUS" in out
+
+
+def test_render_overall_status_present_shows_rating():
+    """Post-B scorecard (categoryStatus present) → rating + bottleneck appear."""
+    from gpu_agent.report import render_overall_status
+    sc = _load(POSTB)  # categoryStatus: Strong / worsening / bottleneck=momentum
+    out = render_overall_status(sc)
+    assert "OVERALL CATEGORY STATUS" in out
+    assert "Strong" in out
+    assert "momentum" in out  # the bottleneck value
+    assert "DC growth solid but decelerating" in out  # the reason

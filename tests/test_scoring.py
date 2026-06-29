@@ -41,3 +41,20 @@ def test_strategic_risk_findings_excluded_from_dmi_smi():
                 observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
     dmi, smi = dmi_smi_contribution([f], reg, "chips.merchant-gpu")
     assert dmi == 0.0 and smi == 0.0  # scoring:false -> excluded
+
+def test_new_overlay_indicators_excluded_from_dmi_smi():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    # designWins is structural; gpuSpotPrice is price — both auto-excluded.
+    findings = [_f("designWins", 1, 0, 3), _f("gpuSpotPrice", 1, 0, 3)]
+    dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu")
+    assert dmi == 0.0 and smi == 0.0
+
+
+def test_new_scoring_indicators_contribute_to_dmi_smi():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    # rpoBacklog (demand) + leadTimes (supply) both flow into the index.
+    findings = [_f("rpoBacklog", 1, 0, 3), _f("leadTimes", 0, -1, 3)]
+    weights = {"rpoBacklog": 0.10, "leadTimes": 0.08}
+    dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu", weights)
+    assert math.isclose(dmi, 0.10 * 1 * 1.0)   # rpoBacklog demand contribution
+    assert math.isclose(smi, 0.08 * -1 * 1.0)  # leadTimes supply contribution

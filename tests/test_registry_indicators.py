@@ -44,3 +44,42 @@ def test_strategic_risk_indicators_pass_validate_against_taxonomy():
     reg = IndicatorRegistry.load(REG)
     tax = Taxonomy.load(pathlib.Path("docs/taxonomy.json"))
     reg.validate_against(tax)  # must not raise (non-scoring indicators are skipped)
+
+def test_new_in_lane_indicators_resolve():
+    reg = IndicatorRegistry.load(REG)
+    for ind in ("rpoBacklog", "vendorRevenueGuidance", "leadTimes", "designWins", "gpuSpotPrice"):
+        spec = reg.resolve(ind, "chips.merchant-gpu")
+        assert isinstance(spec, IndicatorSpec)
+        assert spec.id == ind
+
+
+def test_new_scoring_indicators_have_dimension_and_nonzero_weight():
+    reg = IndicatorRegistry.load(REG)
+    expected = {
+        "rpoBacklog": "momentum",
+        "vendorRevenueGuidance": "momentum",
+        "leadTimes": "bottleneck",
+    }
+    for ind, dim in expected.items():
+        spec = reg.resolve(ind, "chips.merchant-gpu")
+        assert spec.scoring is True
+        assert spec.dimension == dim
+        assert spec.weight > 0.0
+
+
+def test_new_overlay_indicators_are_non_scoring():
+    reg = IndicatorRegistry.load(REG)
+    dw = reg.resolve("designWins", "chips.merchant-gpu")
+    assert dw.scoring is False
+    assert dw.side == "structural"
+    assert dw.dimension == "competitiveStructure"
+    sp = reg.resolve("gpuSpotPrice", "chips.merchant-gpu")
+    assert sp.scoring is False
+    assert sp.side == "price"
+
+
+def test_new_indicators_pass_validate_against_taxonomy():
+    from gpu_agent.registry.structure import Taxonomy
+    reg = IndicatorRegistry.load(REG)
+    tax = Taxonomy.load(pathlib.Path("docs/taxonomy.json"))
+    reg.validate_against(tax)  # must not raise (overlay indicators are skipped)

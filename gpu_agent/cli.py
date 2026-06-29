@@ -12,7 +12,9 @@ from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.llm.factory import make_client
 from gpu_agent.pipeline import build_scorecard
 from gpu_agent.gate import GateError
-from gpu_agent.store import JsonStore
+from gpu_agent.store import JsonStore, FindingStore
+from gpu_agent.wiki.store import WikiStore
+from gpu_agent.wiki.ingest import route_findings, build_bundle, apply_enrichment, IngestResult
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
@@ -70,6 +72,23 @@ def _ingest(args) -> int:
         print(f"DROPPED [{d.index}] {d.url}: {d.reason}", file=sys.stderr)
     print(f"ingested {len(outcome.documents)} docs "
           f"({outcome.duplicates} dup, {len(outcome.dropped)} dropped) -> {out}")
+    return 0
+
+def _wiki_ingest(args) -> int:
+    findings = [Finding.model_validate(d)
+                for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    store = WikiStore(pathlib.Path(args.store) / "wiki",
+                      FindingStore(pathlib.Path(args.store) / "findings"))
+    touched = route_findings(store, findings, as_of=args.as_of, category=args.category)
+    if args.emit_prompt:
+        print(json.dumps(build_bundle(store, findings, touched, as_of=args.as_of), indent=2))
+        return 0
+    if args.recorded:
+        result = IngestResult.model_validate_json(pathlib.Path(args.recorded).read_text("utf-8"))
+        apply_enrichment(store, result, as_of=args.as_of)
+        print(f"enriched {len(result.pages)} page(s) -> {args.store}")
+        return 0
+    print(f"routed {len(findings)} finding(s) to {len(touched)} page(s) -> {args.store}")
     return 0
 
 def _build(args):
@@ -290,6 +309,14 @@ def main(argv=None) -> int:
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
                     help="comma-separated authoritative-source host allowlist")
+    wi = sub.add_parser("wiki-ingest")
+    wi.add_argument("--findings", required=True, help="JSON array of gated Findings")
+    wi.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
+    wi.add_argument("--as-of", required=True)
+    wi.add_argument("--category", default=None, help="category id for auto-created entity pages")
+    wi.add_argument("--recorded", default=None, help="path to a recorded IngestResult JSON")
+    wi.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical ingest prompt + schema (no LLM) and exit")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
     jg.add_argument("--out", default=None, help="dir for ratings/anchors/narrative.json")
@@ -336,6 +363,8 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
+    if args.cmd == "wiki-ingest":
+        return _wiki_ingest(args)
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":

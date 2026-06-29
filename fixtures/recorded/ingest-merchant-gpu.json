@@ -1,0 +1,14 @@
+{
+  "pages": [
+    {
+      "pageId": "entity:nvda",
+      "bodyMarkdown": "## NVIDIA\nData-center momentum strong; see [f-nvda-d2].\n",
+      "state": "accelerating",
+      "trajectory": "steady -> accelerating",
+      "salience": 0.9,
+      "crossRefs": ["entity:amd"],
+      "contradictsThesis": false,
+      "contradictionNote": ""
+    }
+  ]
+}

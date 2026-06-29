@@ -1,40 +1,54 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4a SPEC+PLAN written → run subagent-driven-development next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4a DONE+merged → brainstorm sub-project 4-4b next)
 
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8` (all merged + **PUSHED**). **4-4a is decomposed,
-  brainstormed, spec'd and planned — spec + plan committed on `main`** (`f27c944` spec, `16db7cd` plan; +the
-  decomposition spec context). **NOT pushed since 4-3** — `origin/main` is at `92434a0`; the 4-4a spec/plan +
-  this handoff are local-only (push only when the user asks). **Suite: 282 passed, 3 skipped** (no code yet —
-  4-4a is spec+plan only). Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
-- **For the next Claude instance:** read this file, then the **4-4a plan**
-  `docs/superpowers/plans/2026-06-29-wiki-ingest.md` and its **spec**
-  `docs/superpowers/specs/2026-06-29-wiki-ingest-design.md` (§0 has the full 4-4 decomposition into
-  4-4a→4-4b→4-4c→4-4d). Skim the merged 4-1 spec/plan (the wiki store this writes to) and the merged 4-2/4-3
-  plans as the SDD pattern. A ready-to-paste relaunch prompt is at
-  `docs/superpowers/sp4-relaunch-prompt.md`. The immediate task is to **execute the 4-4a plan via SDD**.
+- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; **4-4a `bccc16e`** (all merged). **4-4a is BUILT +
+  merged (local fast-forward), suite 300 passed / 3 skipped.** **NOT pushed** — `origin/main` is at `aabc4c8`;
+  local `main` is **4 commits ahead** (the 4-4a impl) + the 4-4a spec/plan/handoff were already pushed at
+  `aabc4c8` (push the impl only when the user asks). Working tree clean. Frozen core (gate/scoring/registry
+  code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki log.py+page.py) byte-unchanged across
+  4-4a (`git diff aabc4c8..bccc16e` over those paths is empty; `wiki/store.py` changed only by adding `set_body`).
+- **For the next Claude instance:** read this file, then **brainstorm 4-4b** (relevance engine — materiality/lint
+  score + salience decay). The 4-4 decomposition is locked in the **4-4a spec §0**
+  (`docs/superpowers/specs/2026-06-29-wiki-ingest-design.md`): 4-4a (done) → 4-4b → 4-4c → 4-4d. 4-4b reads what
+  4-4a wrote (the `ingest`/contradiction signal + the daily `diff`). Skim the merged 4-4a spec/plan
+  (`2026-06-29-wiki-ingest*`) for the writer's shape and the **deferred follow-ups** to fold into 4-4b (see the
+  ledger `.superpowers/sdd/progress.md` sp4-4a final-review section). A ready-to-paste relaunch prompt is at
+  `docs/superpowers/sp4-relaunch-prompt.md` (STALE — it describes the now-finished 4-4a build; refresh it for 4-4b).
 
 ---
 
-## IMMEDIATE NEXT TASK — execute sub-project 4-4a (brain ingest into the wiki) via subagent-driven-development
+## IMMEDIATE NEXT TASK — sub-project 4-4b (relevance engine) — brainstorm → spec → user-review gate → plan → SDD
 
-The **4-4a spec + plan are written and committed**. They still need the build:
-1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-06-29-wiki-ingest.md` — fresh
-   sonnet implementer per task, two-stage sonnet review between tasks, **opus final whole-branch review**, on a
-   branch `sp4-4a-...` off `main`. The plan is **4 TDD tasks** ending at **300 passed, 3 skipped**:
-   (1) `WikiStore.set_body` (additive); (2) `wiki/ingest.py` slug + models + Phase-1 router + emit bundle;
-   (3) `apply_enrichment` Phase-2 applier; (4) `wiki-ingest` CLI + recorded-fixture integration + frozen guards.
-2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3); keep the ledger `.superpowers/sdd/progress.md`.
-3. **Throwaway preview-render** (e.g. `wiki-ingest --emit-prompt` on the golden findings, and a `--recorded`
-   apply, to show entity pages going live).
-4. Then continue the 4-4 sequence: **4-4b → 4-4c → 4-4d**, each its own brainstorm → spec → plan → SDD → merge.
+4-4a (the keystone wiki writer) is **done + merged + preview-confirmed live** (entity pages curated by the brain;
+one `ingest` event; replayable log — see below). Continue the 4-4 sequence. **4-4b = the relevance engine:** the
+multi-factor materiality / `lint` score (new-thread | thread-state-change | contradicts-thesis[highest] |
+moves-indicator∝magnitude; weighted by tier+recency) + **salience decay** (a thread's salience decays as it goes
+quiet). It reads what 4-4a wrote and ranks what the daily `diff` surfaces. Follow the established pattern, each its
+own gate: **brainstorm → spec → (user-review gate) → writing-plans → subagent-driven-development → merge.**
 
-**What 4-4a builds (acceptance = spec §9):** a `wiki-ingest` CLI that (Phase 1, code) routes each gated finding
-to `entity:<slug(finding.entity)>` idempotently (auto-create provisional pages, append observations, fail loud on
-empty entity), then (Phase 2, brain via `--emit-prompt`→`--recorded`) enriches *existing entity pages only* —
-prose body, state/trajectory/salience, crossRefs, contradiction notes, one `ingest` log event per run. Adds the
-additive `WikiStore.set_body`; everything else reuses the 4-1 store API. Frozen contract + the existing 4-1
+**Fold these 4-4a deferred Minors into 4-4b where they fit** (logged in the ledger sp4-4a final review):
+- **`PageEnrichment.salience` is an unbounded `float`** — `INGEST_SYSTEM` asks for `[0,1]` but `salience: 5.0`
+  is written silently (mild Part-29 tension). 4-4b owns the salience model → add `salience: float =
+  Field(ge=0.0, le=1.0)` + a test there.
+- the `wiki-ingest` `--emit-prompt`/`--recorded` flags aren't in an argparse mutually-exclusive group (emit wins
+  silently if both passed; matches the existing `extract` subparser style); no `try/except` around its file reads.
+- test-quality nits: `test_apply_rejects_missing_page` uses `pytest.raises(Exception)` not `PageNotFound`;
+  idempotency tests assert `len(log)` not deep-equality; no two-entity `build_bundle` *unit* test; no
+  empty-`result.pages` test.
+
+Then continue: **4-4c** (discovery lane: explore budget + theme pages + provisional/quarantine/promotion) →
+**4-4d** (daily gather mode + numeric scrape sweep + dedup-vs-store) → **4-5** (per-category Market-State brief).
+
+**What 4-4a delivered (DONE, acceptance spec §9 all met):** a `wiki-ingest` CLI that (Phase 1, code) routes each
+gated finding to `entity:<slug(finding.entity)>` idempotently (auto-create provisional pages, append observations,
+fail loud on empty entity), then (Phase 2, brain via `--emit-prompt`→`--recorded`) enriches *existing entity pages
+only* — prose body, state/trajectory/salience, crossRefs, contradiction notes, one `ingest` log event per run.
+Added the additive `WikiStore.set_body`; everything else reuses the 4-1 store API. Frozen contract + existing 4-1
 wiki/store members byte-unchanged; committed fixtures unchanged; numbers only from gated findings; nothing silent.
+**Preview-confirmed:** golden findings → `entity:{nvda,amd,intc}`; recorded apply made `entity:nvda` live (state
+`accelerating`, trajectory `steady -> accelerating`, salience 0.9, crossRefs `[entity:amd]`, body cites
+`[f-nvda-d2]`); log = create/append per finding + one `state-change` + exactly one `ingest`.
 
 **4-4 decomposition (locked in the 4-4a spec §0):** **4-4a** ingest writer (this) → **4-4b** relevance engine
 (materiality/lint score + salience decay) → **4-4c** discovery lane (explore budget + theme pages + provisional
@@ -139,9 +153,13 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
 - **4-2 — Leading + daily indicators: DONE, merged to `main` (`2e3ba83`, pushed).** Suite 268/3.
 - **4-3 — Two indices Momentum/Outlook split by horizon: DONE, merged to `main` (`3f776a8`, pushed).** Suite 282/3.
 - **4-4 — decomposed into 4-4a→4-4b→4-4c→4-4d** (the daily gather + relevance + discovery engine):
-  - **4-4a — Brain ingest into the wiki: SPEC + PLAN written/committed (`f27c944`/`16db7cd`), not yet built.** ← resume here (run SDD on the 4-4a plan).
-  - **4-4b / 4-4c / 4-4d — not started.** (4-4b = materiality/lint + salience decay; 4-4c = discovery lane:
-    explore budget + theme pages + provisional/promotion; 4-4d = daily gather mode + scrape sweep + dedup-vs-store.)
+  - **4-4a — Brain ingest into the wiki: DONE, merged to `main` (`bccc16e`, local).** Suite 300/3. The keystone
+    wiki *writer*: `wiki-ingest` CLI (Phase-1 deterministic entity routing + Phase-2 brain enrichment via
+    `--emit-prompt`→`--recorded`), additive `WikiStore.set_body`, `gpu_agent/wiki/ingest.py`. Opus final review
+    "Ready to merge: Yes" (no Critical/Important). Preview-confirmed entity pages going live. ← **4-4 keystone done.**
+  - **4-4b — next (resume here): relevance engine** = materiality/lint score + salience decay. Brainstorm first.
+  - **4-4c / 4-4d — not started.** (4-4c = discovery lane: explore budget + theme pages + provisional/promotion;
+    4-4d = daily gather mode + scrape sweep + dedup-vs-store.)
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two
   indices + the divergence + "what moved" + storylines per the design target.)
 

@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import Literal
 from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import (
-    Scorecard, DimensionRating, DemandSupply, DimensionStatus, CategoryStatus, DIMENSIONS)
+    Scorecard, DimensionRating, DemandSupply, DimensionStatus, CategoryStatus, DIMENSIONS,
+    MarketIndices, Divergence)
 from gpu_agent.assignment import Assignment
 from gpu_agent.scoring import dmi_smi_contribution
 from gpu_agent.gate import check_scorecard, GateError
@@ -13,6 +14,23 @@ def _sdgi_direction(sdgi: float, eps: float = 0.02) -> Literal["demand-led", "su
     if sdgi < -eps:
         return "supply-led"
     return "balanced"
+
+# direction rank from a demand perspective: demand-led is the "strongest forward" lean
+_DIR_RANK = {"demand-led": 1, "balanced": 0, "supply-led": -1}
+
+def _divergence(momentum: DemandSupply, outlook: DemandSupply,
+                mom_count: int, out_count: int, *, floor: int = 1) -> Divergence:
+    gap = (outlook.sdgi or 0.0) - (momentum.sdgi or 0.0)
+    if out_count < floor:
+        state, note = "insufficient-coverage", "no leading findings; Outlook deferred to 4-4"
+    elif outlook.sdgiDirection == momentum.sdgiDirection:
+        state, note = "aligned", ""
+    elif _DIR_RANK[outlook.sdgiDirection] < _DIR_RANK[momentum.sdgiDirection]:
+        state, note = "diverging-weakening", ""
+    else:
+        state, note = "diverging-strengthening", ""
+    return Divergence(state=state, sdgiGap=gap, outlookFindingCount=out_count,
+                      momentumFindingCount=mom_count, note=note)
 
 def _dimension_status(ratings: dict[str, DimensionRating]) -> dict[str, DimensionStatus]:
     status: dict[str, DimensionStatus] = {}

@@ -2,9 +2,9 @@
 
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` HEAD:** `96af2c3` (local). **`origin/main` is at `3a0a9c5`** — local is **4 doc commits ahead, NOT
-  pushed** (the 4-2 spec + the design-target + the charter re-scope). **Suite: 248 passed, 3 skipped.** Working
-  tree clean. Frozen contract intact. (Push only when the user asks — they last asked once, at `3a0a9c5`.)
+- **`main`:** fully **pushed** — `origin/main` == local `main` (all sp4 docs through the 4-2 spec + this
+  handoff are on GitHub). 4-1 merged at `3a0a9c5`; 4-2 spec at `96af2c3`. **Suite: 248 passed, 3 skipped.**
+  Working tree clean. Frozen contract intact. (Going forward, push only when the user asks.)
 - **For the next Claude instance:** read this file, then the **sp4-2 spec**
   `docs/superpowers/specs/2026-06-29-leading-daily-indicators-design.md`, then the **human-output design
   target** `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md` (esp. its §0 scope

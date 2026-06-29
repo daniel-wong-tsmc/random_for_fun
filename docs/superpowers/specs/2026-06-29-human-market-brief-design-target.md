@@ -13,6 +13,32 @@
 
 ---
 
+## 0. Scope correction (2026-06-29) — category brief vs LAYER/market brief
+
+The mock in §3 is a **chips-LAYER / market** brief: it shows cross-cutting signals (CoWoS, HBM, hyperscaler
+capex, the ASIC threat, datacenter power) that are **owned by sibling / adjacent category agents** —
+`foundry-packaging` (CoWoS, wafers), `hbm-memory` (HBM), `hyperscaler-asic` + `ai-silicon-startups` (the ASIC
+threat), the **energy layer** (power/grid), the **infrastructure layer** (hyperscaler capex, cloud
+availability), the **models/apps layers** (inference demand) — **not** by the `merchant-gpu` agent (Part 21
+"counted once"; the 5-layer cake puts a category's supply in the layers/siblings below it and its demand in the
+layers above). **One category agent structurally cannot produce the §3 mock.**
+
+Therefore the design target splits into two levels:
+- **4-5 (this effort) renders the PER-CATEGORY brief** — `merchant-gpu`'s **own lane**: its demand momentum,
+  unit economics, competitive position *within merchant GPUs* (NVIDIA/AMD/Intel), product lead-times/pricing,
+  strategic risk, and its **own** Momentum/Outlook + "what moved" + storylines. Cross-cutting constraints and
+  drivers appear only as cited **"context (from sibling agent X)"** once those agents exist.
+- **The full cross-cutting GPU-market brief (the §3 mock) is a LAYER-TIER product** — the chips-layer agent
+  reconciling `foundry-packaging + hbm-memory + hyperscaler-asic + networking-silicon + merchant-gpu`, reading
+  the energy layer (supply) and infrastructure/models layers (demand). That is a **separate, larger arc** (the
+  deferred Layer/Main tiers, Part 38) — to be taken up after sp4's per-category mechanics are proven.
+
+The five readability rules (§2), the human-vs-agent split (§1), and the medium plan (Markdown → HTML, §1) all
+apply at **both** levels. The §4 section→piece contract below is for the **layer/market** brief; the per-category
+4-5 brief uses the same shape over a single category's lane.
+
+---
+
 ## 1. Decision: medium
 
 - **First (4-5):** a **deterministic Markdown / terminal brief** that **extends A's `report.py`** — pure

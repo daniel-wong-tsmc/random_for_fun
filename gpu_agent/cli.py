@@ -19,6 +19,7 @@ from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt 
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
+from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.structure import Taxonomy
 from gpu_agent.registry.validate import validate_assignment
 from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
@@ -89,8 +90,9 @@ def _build(args):
     if spath.exists():
         category_status = CategoryStatus.model_validate_json(spath.read_text("utf-8"))
     registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load("registry/indicators.json")
     return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry,
-                           category_status=category_status)
+                           category_status=category_status, horizons=horizons)
 
 def _emit_extract_prompt(args) -> int:
     """Print the canonical extraction prompt + answer schema (no LLM call) so a Claude Code
@@ -194,8 +196,9 @@ def _pipeline(args) -> int:
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
     bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)
+    horizons = IndicatorHorizons.load("registry/indicators.json")
     sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
-                         category_status=bundle.categoryStatus)
+                         category_status=bundle.categoryStatus, horizons=horizons)
     path = JsonStore(pathlib.Path(args.out)).append(sc)
     print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
           f"SMI={sc.demandSupply.smiContribution:.3f}")

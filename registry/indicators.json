@@ -215,5 +215,24 @@
         "refresh": "weekly"
       }
     ]
+  },
+  "cadenceHorizon": {
+    "market-share-pct":       { "cadence": "quarterly", "horizon": "coincident" },
+    "grossMargin":            { "cadence": "quarterly", "horizon": "lagging"    },
+    "D2":                     { "cadence": "quarterly", "horizon": "lagging"    },
+    "D6":                     { "cadence": "daily",     "horizon": "coincident" },
+    "S9":                     { "cadence": "quarterly", "horizon": "coincident" },
+    "S10":                    { "cadence": "quarterly", "horizon": "coincident" },
+    "perfPerWatt":            { "cadence": "quarterly", "horizon": "lagging"    },
+    "flopsPerDollar":         { "cadence": "quarterly", "horizon": "lagging"    },
+    "apiArr":                 { "cadence": "quarterly", "horizon": "lagging"    },
+    "releaseCadence":         { "cadence": "quarterly", "horizon": "coincident" },
+    "exportControlExposure":  { "cadence": "quarterly", "horizon": "lagging"    },
+    "customerConcentration":  { "cadence": "quarterly", "horizon": "lagging"    },
+    "rpoBacklog":             { "cadence": "quarterly", "horizon": "leading"    },
+    "vendorRevenueGuidance":  { "cadence": "quarterly", "horizon": "leading"    },
+    "leadTimes":              { "cadence": "weekly",    "horizon": "coincident" },
+    "designWins":             { "cadence": "weekly",    "horizon": "leading"    },
+    "gpuSpotPrice":           { "cadence": "daily",     "horizon": "coincident" }
   }
 }

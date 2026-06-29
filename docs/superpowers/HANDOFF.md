@@ -1,39 +1,60 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-1 DONE+merged+pushed · sp4-2 SPEC written → run writing-plans next)
+# HANDOFF — GPU Category Agent (resume point: sp4-2 DONE+merged (local) → sp4-3 next: brainstorm the two indices)
 
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main`:** fully **pushed** — `origin/main` == local `main` (all sp4 docs through the 4-2 spec + this
-  handoff are on GitHub). 4-1 merged at `3a0a9c5`; 4-2 spec at `96af2c3`. **Suite: 248 passed, 3 skipped.**
-  Working tree clean. Frozen contract intact. (Going forward, push only when the user asks.)
-- **For the next Claude instance:** read this file, then the **sp4-2 spec**
-  `docs/superpowers/specs/2026-06-29-leading-daily-indicators-design.md`, then the **human-output design
-  target** `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md` (esp. its §0 scope
-  correction), then charter **Part 39** (`docs/agent-swarm-charter.md`). The immediate task is to take the
-  **already-written, already-committed 4-2 spec** through the rest of the loop.
+- **`main`:** 4-1 merged at `3a0a9c5`; **4-2 merged at `2e3ba83` (local fast-forward `d6540e3..2e3ba83`).**
+  **NOT pushed since the 4-2 work** — `origin/main` is behind by the 4-2 plan + 3 feat commits + this handoff
+  (the relaunch said push only when the user asks; the user has not asked). **Suite: 268 passed, 3 skipped.**
+  Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
+- **For the next Claude instance:** read this file, then the **4-3** context — the umbrella spec
+  `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md`, the **human-output design target**
+  `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md` (NOW-vs-NEXT divergence is the 4-3
+  deliverable), and the merged **4-2** spec/plan as the established pattern. The immediate task is to **start
+  sub-project 4-3** with a brainstorm (it has no spec yet).
 
 ---
 
-## IMMEDIATE NEXT TASK — finish sub-project 4-2 (leading + daily indicators)
+## IMMEDIATE NEXT TASK — start sub-project 4-3 (the two indices: Momentum vs Outlook)
 
-The **4-2 spec is written and committed** (`96af2c3`). It still needs the **user-review gate**, then:
-1. **`superpowers:writing-plans`** → `docs/superpowers/plans/2026-06-29-leading-daily-indicators.md` (TDD,
-   bite-sized tasks, the 4-1 plan is the template to match).
-2. **`superpowers:subagent-driven-development`** — fresh subagent per task, two-stage review between tasks
-   (sonnet implementers/reviewers), **opus final whole-branch review**, on a branch `sp4-2-...` off `main`.
-3. **Merge to `main`** (local fast-forward, like 4-1), update the ledger `.superpowers/sdd/progress.md`.
-4. **Preview-render** merchant-gpu's own-lane brief with the new tags (throwaway, to show progress).
+4-2 is **done and merged**. 4-3 has **no spec yet** — begin with `superpowers:brainstorming`, then the same
+loop as 4-2/4-1: spec → user-review gate → `superpowers:writing-plans` → `superpowers:subagent-driven-development`
+(fresh subagent/task, two-stage sonnet review, opus final whole-branch review) → merge to `main` (local
+fast-forward) → throwaway preview-render. Keep the ledger `.superpowers/sdd/progress.md`.
 
-**What 4-2 builds (scoped to merchant-gpu's OWN lane — see the lane discipline below):**
-- 5 new in-lane indicators in `registry/indicators.json`: `rpoBacklog`, `vendorRevenueGuidance`, `leadTimes`
-  (scoring) · `designWins` (structural overlay) · `gpuSpotPrice` (price overlay).
-- A new top-level **`cadenceHorizon`** map tagging **all 17** indicators (cadence `daily|weekly|quarterly` ×
-  horizon `leading|coincident|lagging`) — the C-3 top-level-map pattern (frozen `indicators.py`/`validate.py`
-  stay byte-unchanged).
-- A new accessor **`gpu_agent/registry/horizon.py`** (`IndicatorHorizons`: `cadence`/`horizon`/`get` +
-  `validate_coverage` that fails loud if any *scoring* indicator is untagged) + tests.
-- Source-inventory entries + `manifests/chips.merchant-gpu.json` coverage for the 5 new (reuse C).
-- **Acceptance** = the 4-2 spec §10. Frozen contract byte-unchanged; DMI/SMI on committed fixtures unchanged
-  (new indicators are inert until 4-4 feeds them); full suite green.
+**What 4-3 builds (from the roadmap + design target):** two indices — trailing **Momentum** (lagging +
+coincident) and forward **Outlook** (leading) — each split demand/supply with its own SDGI, **computed in
+code** (reuse B's additive-field discipline; generalizes today's dmi/smi). It **reads the `cadenceHorizon`
+tags via the new `gpu_agent/registry/horizon.py`** (`horizon(id)` buckets each scoring indicator: `leading` →
+Outlook, `coincident|lagging` → Momentum). Surface the **Momentum-strong-while-Outlook-turns** divergence (the
+case the system exists to catch). Frozen contract stays byte-unchanged; additive only (Part 33).
+
+**4-2 substrate now available to 4-3 (just merged):** the `cadenceHorizon` top-level map (all 17 tagged) and
+`IndicatorHorizons` (`get`/`cadence`/`horizon`/`validate_coverage`). A throwaway structural preview confirmed the
+NOW/NEXT routing already works (3 leading indicators → Outlook; the rest → Momentum). **Two deferred 4-2
+follow-ups to fold into 4-3** (logged in the ledger): (1) `gpuSpotPrice` dimension is `null` in the registry but
+labeled `"momentum"` in the manifest `ExpectedIndicator` (inert/unenforced; add a manifest↔registry
+dimension-consistency test or document the null↔string exception); (2) `validate_coverage` guards only *scoring*
+indicators — if 4-3 buckets overlays for display, extend it to validate every *tagged* id.
+
+---
+
+## WHAT'S DONE — sub-project 4-2 (leading + daily indicators) — MERGED `2e3ba83`, suite 268/3
+
+Spec `2026-06-29-leading-daily-indicators-design.md`, plan `2026-06-29-leading-daily-indicators.md` (3 TDD tasks).
+Built via SDD (fresh subagent/task, two-stage sonnet review, **opus final = "Ready to merge: Yes"**, no
+Critical/Important). Deliverables:
+- 5 new merchant-gpu in-lane indicators in `registry/indicators.json`: `rpoBacklog` (momentum/demand, leading),
+  `vendorRevenueGuidance` (momentum/demand, leading), `leadTimes` (bottleneck/supply, coincident) — **scoring**;
+  `designWins` (competitiveStructure/**structural**, leading) + `gpuSpotPrice` (**price**, coincident/daily) —
+  **scoring:false overlays**, auto-excluded from the index by the frozen `dmi_smi_contribution`.
+- A top-level **`cadenceHorizon`** map tagging **all 17** indicators (C-3 top-level-map pattern; frozen
+  `indicators.py`/`validate.py` byte-unchanged — loader ignores the new key).
+- New accessor **`gpu_agent/registry/horizon.py`** (`IndicatorHorizons`: `get`/`cadence`/`horizon` +
+  `validate_coverage` that fails loud on untagged scoring indicators, invalid values, or orphan tags) + tests.
+- `sourceInventory` entries (incl. SemiAnalysis inventoried as `licensed-api`/paywalled, labeled, never scraped)
+  + `manifests/chips.merchant-gpu.json` coverage for the 5 new (reused `nvda-earnings`/`amd-earnings`/
+  `channel-checks`; added `vendor-pr-trade-press`/`semianalysis`/`gpu-marketplaces`).
+- DMI/SMI on committed fixtures **unchanged** (new indicators inert until 4-4 feeds them); frozen contract intact.
 
 ---
 
@@ -83,9 +104,10 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
   append-only `FindingStore` + `gpu_agent/wiki/` (page.py no-dep `key:<json>` frontmatter; log.py append-only
   temporal log; store.py `WikiStore` create/append/record_state/update_header/observations/state_history/
   window/index/`diff`). Pure code + diff; brain ingest deferred to 4-4. Suite 248/3.
-- **4-2 — Leading + daily indicators: SPEC WRITTEN + committed (`96af2c3`), not yet planned/built.** ← resume here.
-- **4-3 / 4-4 / 4-5 — not started.** (4-3 = two indices Momentum/Outlook split by horizon; 4-4 = daily gather +
-  scrape cron + materiality/lint + brain ingest + the discovery engine; 4-5 = per-category Market-State brief.)
+- **4-2 — Leading + daily indicators: DONE, merged to `main` (`2e3ba83`, local).** Suite 268/3. (Details above.)
+- **4-3 — Two indices Momentum/Outlook split by horizon — NEXT (no spec yet; brainstorm first).** ← resume here.
+- **4-4 / 4-5 — not started.** (4-4 = daily gather + scrape cron + materiality/lint + brain ingest + the
+  discovery engine; 4-5 = per-category Market-State brief.)
 
 ---
 

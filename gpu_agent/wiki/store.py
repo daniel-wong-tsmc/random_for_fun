@@ -133,6 +133,17 @@ class WikiStore:
                         salience=salience)
         return page
 
+    def set_body(self, page_id, body, *, as_of) -> WikiPage:
+        """Replace a page's curated markdown body, bumping lastUpdatedAsOf. Idempotent:
+        an unchanged body is not rewritten. Raises PageNotFound. No log event (body edits
+        are not temporal observations; the ingest run's event covers them)."""
+        page, current_body = self._read(page_id)
+        if body == current_body:
+            return page
+        page = page.model_copy(update={"lastUpdatedAsOf": as_of})
+        self._write(page, body)
+        return page
+
     def log_append(self, event: LogEvent) -> None:
         self.log.append_event(event)
 

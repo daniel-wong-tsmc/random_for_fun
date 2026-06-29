@@ -51,6 +51,8 @@ def _index_for(findings, registry, category, weights) -> tuple[DemandSupply, int
     plus the count of contributing (scoring, non-overlay) findings."""
     dmi, smi = dmi_smi_contribution(findings, registry, category, weights)
     sdgi = dmi - smi
+    # Count contributing FINDINGS (not distinct indicators) — this is the coverage-floor
+    # unit the spec specifies; dmi_smi_contribution itself uses only the latest per indicator.
     count = sum(1 for f in findings if _contributes(registry.resolve(f.indicatorId, category)))
     return (DemandSupply(dmiContribution=dmi, smiContribution=smi,
                          sdgi=sdgi, sdgiDirection=_sdgi_direction(sdgi)), count)

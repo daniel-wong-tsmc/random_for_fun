@@ -1,6 +1,7 @@
 import pytest
+from pydantic import ValidationError
 from gpu_agent.schema.scorecard import (
-    Divergence, MarketIndices, DemandSupply, Scorecard, DemandSupply as DS)
+    Divergence, MarketIndices, DemandSupply, Scorecard)
 from gpu_agent.schema.finding import Confidence
 
 
@@ -16,7 +17,7 @@ def test_divergence_model_roundtrips():
 
 
 def test_divergence_rejects_unknown_state():
-    with pytest.raises(Exception):  # pydantic ValidationError
+    with pytest.raises(ValidationError):
         Divergence(state="exploding", sdgiGap=0.0, outlookFindingCount=0, momentumFindingCount=0)
 
 

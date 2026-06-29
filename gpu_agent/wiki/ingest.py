@@ -92,3 +92,28 @@ def build_bundle(store: WikiStore, findings: list[Finding], touched: list[str], 
         })
     return {"system": INGEST_SYSTEM, "schema": IngestResult.model_json_schema(),
             "asOf": as_of, "pages": pages}
+
+
+def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> None:
+    """Phase 2 (deterministic apply): enrich existing entity pages from the brain's IngestResult.
+    Rejects non-entity / missing pages loud. Idempotent set_body/record_state/crossRefs. Appends
+    exactly one 'ingest' log event per as_of (contradictions recorded in its detail, not yet weighted)."""
+    contradictions: list[str] = []
+    for pe in result.pages:
+        if not pe.pageId.startswith("entity:"):
+            raise ValueError(f"enrichment targets non-entity page: {pe.pageId}")
+        page = store.get_page(pe.pageId)  # raises PageNotFound (loud) if missing
+        store.set_body(pe.pageId, pe.bodyMarkdown, as_of=as_of)  # idempotent
+        if (page.state, page.trajectory, page.salience) != (pe.state, pe.trajectory, pe.salience):
+            store.record_state(pe.pageId, as_of=as_of, state=pe.state,
+                               trajectory=pe.trajectory, salience=pe.salience)
+        if page.crossRefs != pe.crossRefs:
+            store.update_header(pe.pageId, as_of=as_of, crossRefs=pe.crossRefs)
+        if pe.contradictsThesis:
+            contradictions.append(f"{pe.pageId}: {pe.contradictionNote}")
+    already_logged = any(e.kind == "ingest" and e.asOf == as_of for e in store.log.read())
+    if not already_logged:
+        detail = f"enriched {len(result.pages)} page(s)"
+        if contradictions:
+            detail += "; contradictions: " + " | ".join(contradictions)
+        store.log.append(asOf=as_of, kind="ingest", detail=detail)

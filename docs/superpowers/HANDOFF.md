@@ -3,9 +3,9 @@
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
 - **`main`:** 4-1 merged at `3a0a9c5`; **4-2 merged at `2e3ba83` (local fast-forward `d6540e3..2e3ba83`).**
-  **NOT pushed since the 4-2 work** — `origin/main` is behind by the 4-2 plan + 3 feat commits + this handoff
-  (the relaunch said push only when the user asks; the user has not asked). **Suite: 268 passed, 3 skipped.**
-  Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
+  **PUSHED** — `origin/main` == local `main` (the user asked to push after 4-2; `559abd0..8a1b716` is on GitHub).
+  **Suite: 268 passed, 3 skipped.** Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
+  (Going forward, push only when the user asks.)
 - **For the next Claude instance:** read this file, then the **4-3** context — the umbrella spec
   `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md`, the **human-output design target**
   `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md` (NOW-vs-NEXT divergence is the 4-3

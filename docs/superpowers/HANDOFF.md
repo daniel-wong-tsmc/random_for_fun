@@ -1,40 +1,45 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-3 DONE+merged (local) → sp4-4 next: brainstorm the daily gather + discovery engine)
+# HANDOFF — GPU Category Agent (resume point: sp4-4a SPEC+PLAN written → run subagent-driven-development next)
 
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; **4-3 merged at `3f776a8` (local fast-forward `5196a58..3f776a8`).**
-  **PUSHED** — `origin/main` == local `main` (the user asked to push after 4-3; through `92434a0` on GitHub).
-  **Suite: 282 passed, 3 skipped.** Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
-  (Going forward, push only when the user asks.)
-- **For the next Claude instance:** read this file, then the **4-4** context — the umbrella spec
-  `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md` (§4.5 the relevance/materiality
-  contract, §4.7 doctrine), charter **Parts 37 (the gathering swarm), 18 (discovery lane), 10 (the signal
-  test: persists + corroborates), 29 (input/source-health), 22 (honest sourcing)**, and the merged **4-1/4-2/4-3**
-  spec/plan as the established pattern. The immediate task is to **start sub-project 4-4** with a brainstorm
-  (it has no spec yet) — it is the headline discovery/deep-investigation engine, the biggest of the five.
+- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8` (all merged + **PUSHED**). **4-4a is decomposed,
+  brainstormed, spec'd and planned — spec + plan committed on `main`** (`f27c944` spec, `16db7cd` plan; +the
+  decomposition spec context). **NOT pushed since 4-3** — `origin/main` is at `92434a0`; the 4-4a spec/plan +
+  this handoff are local-only (push only when the user asks). **Suite: 282 passed, 3 skipped** (no code yet —
+  4-4a is spec+plan only). Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
+- **For the next Claude instance:** read this file, then the **4-4a plan**
+  `docs/superpowers/plans/2026-06-29-wiki-ingest.md` and its **spec**
+  `docs/superpowers/specs/2026-06-29-wiki-ingest-design.md` (§0 has the full 4-4 decomposition into
+  4-4a→4-4b→4-4c→4-4d). Skim the merged 4-1 spec/plan (the wiki store this writes to) and the merged 4-2/4-3
+  plans as the SDD pattern. A ready-to-paste relaunch prompt is at
+  `docs/superpowers/sp4-relaunch-prompt.md`. The immediate task is to **execute the 4-4a plan via SDD**.
 
 ---
 
-## IMMEDIATE NEXT TASK — start sub-project 4-4 (daily gather + scrape cron + relevance/lint + brain ingest + the DISCOVERY engine)
+## IMMEDIATE NEXT TASK — execute sub-project 4-4a (brain ingest into the wiki) via subagent-driven-development
 
-4-3 is **done and merged**. 4-4 has **no spec yet** — begin with `superpowers:brainstorming`, then the same loop
-as 4-1/4-2/4-3: spec → user-review gate → `superpowers:writing-plans` → `superpowers:subagent-driven-development`
-(fresh subagent/task, two-stage sonnet review, opus final whole-branch review) → merge to `main` (local
-fast-forward) → throwaway preview-render. Keep the ledger `.superpowers/sdd/progress.md`.
+The **4-4a spec + plan are written and committed**. They still need the build:
+1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-06-29-wiki-ingest.md` — fresh
+   sonnet implementer per task, two-stage sonnet review between tasks, **opus final whole-branch review**, on a
+   branch `sp4-4a-...` off `main`. The plan is **4 TDD tasks** ending at **300 passed, 3 skipped**:
+   (1) `WikiStore.set_body` (additive); (2) `wiki/ingest.py` slug + models + Phase-1 router + emit bundle;
+   (3) `apply_enrichment` Phase-2 applier; (4) `wiki-ingest` CLI + recorded-fixture integration + frozen guards.
+2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3); keep the ledger `.superpowers/sdd/progress.md`.
+3. **Throwaway preview-render** (e.g. `wiki-ingest --emit-prompt` on the golden findings, and a `--recorded`
+   apply, to show entity pages going live).
+4. Then continue the 4-4 sequence: **4-4b → 4-4c → 4-4d**, each its own brainstorm → spec → plan → SDD → merge.
 
-**What 4-4 builds (from the roadmap + umbrella §4.5):** a daily gather that *populates findings* (incl. a daily
-numeric **scrape sweep** for daily-cadence indicators like `gpuSpotPrice` — respect Part 22 ToS/licensing, label
-`estimate`); **dedup vs the 4-1 store**; the **multi-factor materiality model** (the wiki `lint`: new-thread |
-thread-state-change | contradicts-thesis[highest] | moves-indicator∝magnitude; weighted by tier+recency; decays
-as a thread goes quiet); salience-decay; the `--emit-prompt` wiki-ingest seam; and the **discovery lane** (Part 18:
-provisional entity/theme threads for UNDEFINED topics, confidence-capped + quarantined from canonical, promoted
-only on persist+corroborate) + **follow-the-trail** gather with brakes + an `explore` budget. Every cap/skip/drop
-logged, never silent (Part 29). This is what makes Outlook (from 4-3) and the threads (from 4-1) finally *live*.
+**What 4-4a builds (acceptance = spec §9):** a `wiki-ingest` CLI that (Phase 1, code) routes each gated finding
+to `entity:<slug(finding.entity)>` idempotently (auto-create provisional pages, append observations, fail loud on
+empty entity), then (Phase 2, brain via `--emit-prompt`→`--recorded`) enriches *existing entity pages only* —
+prose body, state/trajectory/salience, crossRefs, contradiction notes, one `ingest` log event per run. Adds the
+additive `WikiStore.set_body`; everything else reuses the 4-1 store API. Frozen contract + the existing 4-1
+wiki/store members byte-unchanged; committed fixtures unchanged; numbers only from gated findings; nothing silent.
 
-**Scoping note:** 4-4 is the largest piece — decompose carefully in brainstorming (it may warrant several sub-specs
-or a phased plan). It is the consumer of everything built so far: 4-1's store/threads, 4-2's daily/leading
-indicators + source inventory, 4-3's Momentum/Outlook (Outlook stays `insufficient-coverage` until 4-4 feeds
-leading findings). 4-5 (the brief render) comes after.
+**4-4 decomposition (locked in the 4-4a spec §0):** **4-4a** ingest writer (this) → **4-4b** relevance engine
+(materiality/lint score + salience decay) → **4-4c** discovery lane (explore budget + theme pages + provisional
+off-registry topics + quarantine + promotion on persist+corroborate, Part 10) → **4-4d** daily gather mode +
+numeric scrape sweep + cross-run dedup-vs-store. 4-5 (the brief render) comes after 4-4.
 
 **Deferred follow-ups to fold in where they fit** (logged in the ledger): from 4-2 — `gpuSpotPrice` dimension is
 `null` in registry vs `"momentum"` in the manifest `ExpectedIndicator` (add a manifest↔registry consistency test
@@ -132,8 +137,11 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
   temporal log; store.py `WikiStore` create/append/record_state/update_header/observations/state_history/
   window/index/`diff`). Pure code + diff; brain ingest deferred to 4-4. Suite 248/3.
 - **4-2 — Leading + daily indicators: DONE, merged to `main` (`2e3ba83`, pushed).** Suite 268/3.
-- **4-3 — Two indices Momentum/Outlook split by horizon: DONE, merged to `main` (`3f776a8`, local).** Suite 282/3. (Details above.)
-- **4-4 — Daily gather + scrape cron + materiality/lint + brain ingest + the DISCOVERY engine — NEXT (no spec yet; brainstorm first).** ← resume here.
+- **4-3 — Two indices Momentum/Outlook split by horizon: DONE, merged to `main` (`3f776a8`, pushed).** Suite 282/3.
+- **4-4 — decomposed into 4-4a→4-4b→4-4c→4-4d** (the daily gather + relevance + discovery engine):
+  - **4-4a — Brain ingest into the wiki: SPEC + PLAN written/committed (`f27c944`/`16db7cd`), not yet built.** ← resume here (run SDD on the 4-4a plan).
+  - **4-4b / 4-4c / 4-4d — not started.** (4-4b = materiality/lint + salience decay; 4-4c = discovery lane:
+    explore budget + theme pages + provisional/promotion; 4-4d = daily gather mode + scrape sweep + dedup-vs-store.)
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two
   indices + the divergence + "what moved" + storylines per the design target.)
 

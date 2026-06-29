@@ -31,6 +31,18 @@ class DemandSupply(BaseModel):
     sdgi: Optional[float] = None
     sdgiDirection: Optional[Literal["demand-led", "supply-led", "balanced"]] = None
 
+class Divergence(BaseModel):
+    state: Literal["aligned", "diverging-weakening", "diverging-strengthening", "insufficient-coverage"]
+    sdgiGap: float
+    outlookFindingCount: int
+    momentumFindingCount: int
+    note: str = ""
+
+class MarketIndices(BaseModel):
+    momentum: DemandSupply       # lagging + coincident
+    outlook: DemandSupply        # leading
+    divergence: Divergence
+
 class Scorecard(BaseModel):
     categoryId: str
     asOf: str
@@ -43,3 +55,4 @@ class Scorecard(BaseModel):
     provenance: dict[str, str] = Field(default_factory=dict)
     dimensionStatus: dict[str, DimensionStatus] = Field(default_factory=dict)
     categoryStatus: Optional[CategoryStatus] = None
+    indices: Optional[MarketIndices] = None

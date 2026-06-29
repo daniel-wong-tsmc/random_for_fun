@@ -2,10 +2,10 @@
 
 - **Date:** 2026-06-29
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83` (PUSHED); **4-3 merged at `3f776a8` (local fast-forward
-  `5196a58..3f776a8`).** **4-3 NOT pushed yet** — `origin/main` is behind by the 4-3 plan + 4 feat commits +
-  1 cleanup + this handoff (push only when the user asks). **Suite: 282 passed, 3 skipped.** Working tree clean.
-  Frozen contract byte-unchanged vs `559abd0`.
+- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; **4-3 merged at `3f776a8` (local fast-forward `5196a58..3f776a8`).**
+  **PUSHED** — `origin/main` == local `main` (the user asked to push after 4-3; through `92434a0` on GitHub).
+  **Suite: 282 passed, 3 skipped.** Working tree clean. Frozen contract byte-unchanged vs `559abd0`.
+  (Going forward, push only when the user asks.)
 - **For the next Claude instance:** read this file, then the **4-4** context — the umbrella spec
   `docs/superpowers/specs/2026-06-27-daily-monitor-decomposition-design.md` (§4.5 the relevance/materiality
   contract, §4.7 doctrine), charter **Parts 37 (the gathering swarm), 18 (discovery lane), 10 (the signal

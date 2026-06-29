@@ -51,6 +51,36 @@
       "dimension": "strategicRisk",
       "priority": "required",
       "sourceIds": ["nvda-10k-risk-factors"]
+    },
+    {
+      "indicatorId": "rpoBacklog",
+      "dimension": "momentum",
+      "priority": "preferred",
+      "sourceIds": ["nvda-earnings", "amd-earnings"]
+    },
+    {
+      "indicatorId": "vendorRevenueGuidance",
+      "dimension": "momentum",
+      "priority": "required",
+      "sourceIds": ["nvda-earnings", "amd-earnings"]
+    },
+    {
+      "indicatorId": "leadTimes",
+      "dimension": "bottleneck",
+      "priority": "preferred",
+      "sourceIds": ["channel-checks", "semianalysis"]
+    },
+    {
+      "indicatorId": "designWins",
+      "dimension": "competitiveStructure",
+      "priority": "optional",
+      "sourceIds": ["vendor-pr-trade-press"]
+    },
+    {
+      "indicatorId": "gpuSpotPrice",
+      "dimension": "momentum",
+      "priority": "optional",
+      "sourceIds": ["gpu-marketplaces"]
     }
   ],
   "expectedSources": [
@@ -63,7 +93,7 @@
       "costUsd": 0,
       "license": "public",
       "refresh": "quarterly",
-      "indicators": ["D2", "grossMargin", "S9", "S10"]
+      "indicators": ["D2", "grossMargin", "S9", "S10", "rpoBacklog", "vendorRevenueGuidance"]
     },
     {
       "id": "amd-earnings",
@@ -74,7 +104,7 @@
       "costUsd": 0,
       "license": "public",
       "refresh": "quarterly",
-      "indicators": ["D2", "grossMargin", "S9"]
+      "indicators": ["D2", "grossMargin", "S9", "rpoBacklog", "vendorRevenueGuidance"]
     },
     {
       "id": "intc-earnings",
@@ -152,7 +182,7 @@
       "costUsd": 0,
       "license": "public",
       "refresh": "weekly",
-      "indicators": ["S10"]
+      "indicators": ["S10", "leadTimes"]
     },
     {
       "id": "bis-export-controls",
@@ -175,6 +205,40 @@
       "license": "public",
       "refresh": "annual",
       "indicators": ["exportControlExposure", "customerConcentration"]
+    },
+    {
+      "id": "vendor-pr-trade-press",
+      "label": "Vendor press releases + trade press on merchant-GPU design wins",
+      "urlPatterns": ["nvidianews.nvidia.com", "ir.amd.com/news-events", "tomshardware.com", "semianalysis.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["designWins"]
+    },
+    {
+      "id": "semianalysis",
+      "label": "SemiAnalysis channel-check lead-time data (deep tier)",
+      "urlPatterns": ["semianalysis.com"],
+      "accessMethod": "licensed-api",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "licensed",
+      "refresh": "weekly",
+      "indicators": ["leadTimes"],
+      "paywalledNote": "SemiAnalysis publishes free headlines; deep channel-check lead-time data is behind a subscription. Paywalled portions are inventoried + labeled estimate, never scraped (Part 22)."
+    },
+    {
+      "id": "gpu-marketplaces",
+      "label": "GPU marketplaces / resale listings (secondary-market spot price)",
+      "urlPatterns": ["ebay.com", "amazon.com", "newegg.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "daily",
+      "indicators": ["gpuSpotPrice"]
     }
   ]
 }

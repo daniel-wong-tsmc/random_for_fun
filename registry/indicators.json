@@ -214,6 +214,25 @@
         "license": "public",
         "refresh": "weekly"
       }
+    ],
+    "rpoBacklog": [
+      { "name": "NVIDIA / AMD 10-Q / 10-K (remaining performance obligations / purchase commitments)", "accessMethod": "filing", "tier": "primary", "costUsd": 0, "license": "public", "refresh": "quarterly" },
+      { "name": "Earnings call / IR transcript (backlog commentary)", "accessMethod": "free-web", "tier": "secondary", "costUsd": 0, "license": "public", "refresh": "quarterly" }
+    ],
+    "vendorRevenueGuidance": [
+      { "name": "NVIDIA / AMD earnings guidance (next-quarter DC/AI revenue outlook)", "accessMethod": "filing", "tier": "primary", "costUsd": 0, "license": "public", "refresh": "quarterly" },
+      { "name": "Earnings call / investor-day transcript (forward guidance)", "accessMethod": "free-web", "tier": "secondary", "costUsd": 0, "license": "public", "refresh": "quarterly" }
+    ],
+    "leadTimes": [
+      { "name": "Channel checks / distributor lead-time reporting (DigiTimes, Tom's Hardware)", "accessMethod": "free-web", "tier": "secondary", "costUsd": 0, "license": "public", "refresh": "weekly" },
+      { "name": "SemiAnalysis channel-check lead-time data (deep tier subscription; estimate-grade, never scraped)", "accessMethod": "licensed-api", "tier": "secondary", "costUsd": 0, "license": "licensed", "refresh": "weekly" }
+    ],
+    "designWins": [
+      { "name": "Company press releases / product announcements (design-win disclosures)", "accessMethod": "free-web", "tier": "primary", "costUsd": 0, "license": "public", "refresh": "on-demand" },
+      { "name": "Trade press (Tom's Hardware, AnandTech, SemiAnalysis) on design wins", "accessMethod": "free-web", "tier": "secondary", "costUsd": 0, "license": "public", "refresh": "weekly" }
+    ],
+    "gpuSpotPrice": [
+      { "name": "GPU marketplaces / resale listings (secondary-market spot price; scrape-fed, estimate-grade)", "accessMethod": "free-web", "tier": "secondary", "costUsd": 0, "license": "public", "refresh": "daily" }
     ]
   },
   "cadenceHorizon": {

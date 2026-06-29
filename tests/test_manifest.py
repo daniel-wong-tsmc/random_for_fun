@@ -190,3 +190,49 @@ def test_required_vs_preferred_gap_priority():
     preferred_gaps = [g for g in gaps if g.priority == "preferred"]
     assert len(required_gaps) >= 1
     assert len(preferred_gaps) >= 1
+
+
+def test_new_indicators_present_in_manifest_and_resolve():
+    """The five 4-2 indicators are declared in the shipped manifest and resolve."""
+    from gpu_agent.registry.indicators import IndicatorRegistry
+
+    manifest = load_manifest("manifests/chips.merchant-gpu.json")
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    declared = {e.indicatorId for e in manifest.expectedIndicators}
+    for ind in ("rpoBacklog", "vendorRevenueGuidance", "leadTimes", "designWins", "gpuSpotPrice"):
+        assert ind in declared, f"{ind} missing from manifest expectedIndicators"
+        reg.resolve(ind)  # must not raise
+
+
+def test_source_inventory_entries_validate_as_source_entries():
+    """Every sourceInventory entry in indicators.json (incl. the 5 new) is a valid SourceEntry."""
+    import json
+    from pathlib import Path
+    from gpu_agent.manifest import SourceEntry
+
+    data = json.loads(Path("registry/indicators.json").read_text(encoding="utf-8"))
+    inv = data["sourceInventory"]
+    for ind in ("rpoBacklog", "vendorRevenueGuidance", "leadTimes", "designWins", "gpuSpotPrice"):
+        assert ind in inv, f"{ind} missing from sourceInventory"
+    for ind_id, entries in inv.items():
+        for entry in entries:
+            SourceEntry(**entry)  # must not raise
+
+
+def test_new_indicators_flagged_as_gaps_when_uncovered():
+    """With nothing gathered, the five new indicators are logged as coverage gaps."""
+    manifest = load_manifest("manifests/chips.merchant-gpu.json")
+    gaps = compute_coverage_gaps(manifest, blob_urls=[], found_indicator_ids=set())
+    gap_ids = {g.id for g in gaps if g.type == "indicator"}
+    for ind in ("rpoBacklog", "vendorRevenueGuidance", "leadTimes", "designWins", "gpuSpotPrice"):
+        assert ind in gap_ids
+
+
+def test_semianalysis_source_is_paywalled_gap():
+    """The SemiAnalysis lead-times source is inventoried as paywalled (labeled, never scraped)."""
+    manifest = load_manifest("manifests/chips.merchant-gpu.json")
+    gaps = compute_coverage_gaps(manifest, blob_urls=[], found_indicator_ids=set())
+    sa = next((g for g in gaps if g.id == "semianalysis"), None)
+    assert sa is not None
+    assert sa.acquisitionStatus == "paywalled"
+    assert sa.type == "source"

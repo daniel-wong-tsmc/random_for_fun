@@ -7,6 +7,7 @@ from gpu_agent.schema.scorecard import (
 from gpu_agent.assignment import Assignment
 from gpu_agent.scoring import dmi_smi_contribution
 from gpu_agent.gate import check_scorecard, GateError
+from gpu_agent.registry.horizon import IndicatorHorizons
 
 def _sdgi_direction(sdgi: float, eps: float = 0.02) -> Literal["demand-led", "supply-led", "balanced"]:
     if sdgi > eps:
@@ -32,6 +33,28 @@ def _divergence(momentum: DemandSupply, outlook: DemandSupply,
     return Divergence(state=state, sdgiGap=gap, outlookFindingCount=out_count,
                       momentumFindingCount=mom_count, note=note)
 
+def _contributes(spec) -> bool:
+    """A finding contributes to an index iff its indicator is scoring and not a price/structural overlay
+    (mirrors the filter inside the frozen dmi_smi_contribution)."""
+    return spec.scoring and spec.side not in ("price", "structural")
+
+def _partition_by_horizon(findings, horizons: IndicatorHorizons):
+    """Split findings into (momentum, outlook) by indicator horizon. leading -> outlook; else momentum.
+    horizons.horizon() fails loud on an untagged indicator (never a silent drop)."""
+    momentum, outlook = [], []
+    for f in findings:
+        (outlook if horizons.horizon(f.indicatorId) == "leading" else momentum).append(f)
+    return momentum, outlook
+
+def _index_for(findings, registry, category, weights) -> tuple[DemandSupply, int]:
+    """Compute one DemandSupply index over a finding bucket via the frozen dmi_smi_contribution,
+    plus the count of contributing (scoring, non-overlay) findings."""
+    dmi, smi = dmi_smi_contribution(findings, registry, category, weights)
+    sdgi = dmi - smi
+    count = sum(1 for f in findings if _contributes(registry.resolve(f.indicatorId, category)))
+    return (DemandSupply(dmiContribution=dmi, smiContribution=smi,
+                         sdgi=sdgi, sdgiDirection=_sdgi_direction(sdgi)), count)
+
 def _dimension_status(ratings: dict[str, DimensionRating]) -> dict[str, DimensionStatus]:
     status: dict[str, DimensionStatus] = {}
     for dim in DIMENSIONS:
@@ -53,11 +76,20 @@ def _cap_confidence(confidence: Confidence, any_under_supported: bool) -> Confid
 def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating],
                     anchors: dict[str, float], assignment: Assignment,
                     narrative: str, confidence: Confidence, registry,
-                    *, category_status: CategoryStatus | None = None) -> Scorecard:
+                    *, category_status: CategoryStatus | None = None,
+                    horizons: IndicatorHorizons | None = None) -> Scorecard:
     dmi, smi = dmi_smi_contribution(findings, registry, assignment.category, assignment.weights)
     sdgi = dmi - smi
     status = _dimension_status(ratings)
     any_under = any(s.evidenceStatus == "under-supported" for s in status.values())
+    indices = None
+    if horizons is not None:
+        horizons.validate_coverage(registry)  # fail-loud: every scoring indicator must be tagged
+        mom_f, out_f = _partition_by_horizon(findings, horizons)
+        momentum, mom_n = _index_for(mom_f, registry, assignment.category, assignment.weights)
+        outlook, out_n = _index_for(out_f, registry, assignment.category, assignment.weights)
+        indices = MarketIndices(momentum=momentum, outlook=outlook,
+                                divergence=_divergence(momentum, outlook, mom_n, out_n))
     sc = Scorecard(
         categoryId=assignment.category, asOf=assignment.asOf, findings=findings,
         dimensionRatings=ratings,
@@ -66,7 +98,7 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
         narrative=narrative, confidence=_cap_confidence(confidence, any_under),
         sources=sorted({e.source for f in findings for e in f.evidence}),
         provenance={"assignment": f"{assignment.id}@{assignment.version}"},
-        dimensionStatus=status, categoryStatus=category_status)
+        dimensionStatus=status, categoryStatus=category_status, indices=indices)
     violations = check_scorecard(sc)   # FROZEN gate sees only grounded dimensionRatings
     if violations:
         raise GateError(violations)

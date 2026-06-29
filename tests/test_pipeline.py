@@ -1,10 +1,11 @@
 import pytest
-from gpu_agent.pipeline import build_scorecard
+from gpu_agent.pipeline import build_scorecard, _partition_by_horizon
 from gpu_agent.gate import GateError
 from gpu_agent.assignment import load_assignment
 from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import DimensionRating, DIMENSIONS, CategoryStatus
 from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.registry.horizon import IndicatorHorizons
 
 def _finding():
     return Finding.model_validate({
@@ -73,3 +74,57 @@ def test_build_scorecard_passes_category_status_through():
     sc = build_scorecard([_finding()], {"momentum": _rating(["f-001"])}, {"momentum": 0.4},
                          a, "n", Confidence(level="medium", basis="b"), reg, category_status=cs)
     assert sc.categoryStatus.bottleneck == "bottleneck"
+
+
+def _leading_finding(fid="f-lead", indicator="rpoBacklog", pd=1, ps=0, mag=3):
+    return Finding.model_validate({
+        "id": fid, "statement": "s", "kind": "observed", "value": None, "trend": "rising",
+        "why": "w", "impact": {"targets": ["x"], "direction": "mixed", "mechanism": "m"},
+        "evidence": [{"source": "S", "url": "u", "date": "2026-05", "excerpt": "e", "tier": "primary"}],
+        "confidence": {"level": "high", "basis": "b"}, "asOf": "2026-06", "indicatorId": indicator,
+        "side": "demand", "polarityDemand": pd, "polaritySupply": ps, "magnitude": mag,
+        "entity": "NVDA", "observedAt": "2026-05", "capturedAt": "2026-06-12"})
+
+
+def test_partition_by_horizon_buckets_leading_vs_rest():
+    hz = IndicatorHorizons.load("registry/indicators.json")
+    mom, out = _partition_by_horizon([_finding(), _leading_finding()], hz)  # D2=lagging, rpoBacklog=leading
+    assert [f.indicatorId for f in mom] == ["D2"]
+    assert [f.indicatorId for f in out] == ["rpoBacklog"]
+
+
+def test_build_scorecard_without_horizons_leaves_indices_none():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
+    sc = build_scorecard([_finding()], {"momentum": _rating(["f-001"])}, {"momentum": 0.4},
+                         a, "n", Confidence(level="medium", basis="b"), reg)
+    assert sc.indices is None
+
+
+def test_build_scorecard_computes_indices_and_invariant():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    hz = IndicatorHorizons.load("registry/indicators.json")
+    a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
+    findings = [_finding(), _leading_finding()]  # D2 (lagging, demand) + rpoBacklog (leading, demand)
+    sc = build_scorecard(findings, {"momentum": _rating(["f-001"])}, {"momentum": 0.4},
+                         a, "n", Confidence(level="medium", basis="b"), reg, horizons=hz)
+    assert sc.indices is not None
+    # additive invariant: blended == momentum + outlook
+    assert abs(sc.demandSupply.dmiContribution
+               - (sc.indices.momentum.dmiContribution + sc.indices.outlook.dmiContribution)) < 1e-9
+    assert abs(sc.demandSupply.smiContribution
+               - (sc.indices.momentum.smiContribution + sc.indices.outlook.smiContribution)) < 1e-9
+    # the leading finding lands in Outlook (nonzero demand push), Momentum has the D2 finding
+    assert sc.indices.outlook.dmiContribution > 0.0
+    assert sc.indices.divergence.outlookFindingCount == 1
+    assert sc.indices.divergence.momentumFindingCount == 1
+
+
+def test_build_scorecard_insufficient_coverage_without_leading():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    hz = IndicatorHorizons.load("registry/indicators.json")
+    a = load_assignment("fixtures/asg.chips.merchant-gpu.json")
+    sc = build_scorecard([_finding()], {"momentum": _rating(["f-001"])}, {"momentum": 0.4},
+                         a, "n", Confidence(level="medium", basis="b"), reg, horizons=hz)
+    assert sc.indices.divergence.state == "insufficient-coverage"
+    assert sc.indices.outlook.dmiContribution == 0.0

@@ -204,6 +204,48 @@ def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
                         tierMult=tier_mult, recencyMult=recency_mult, effectiveSalience=eff)
 
 
+def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT_CONFIG):
+    """Structural health over ALL pages (entity AND theme): orphans, stale (decayed), cross-ref
+    gaps (asymmetric + mention-without-link), and the contradiction roll-up. Read-only; mutates
+    nothing."""
+    idx = store.index()
+    pages = {e.id: store.get_page(e.id) for e in idx}
+
+    referenced = set()
+    for p in pages.values():
+        referenced.update(p.crossRefs)
+    orphans = sorted(pid for pid in pages if pid not in referenced)
+
+    stale = []
+    for pid, p in pages.items():
+        qa = quiet_age(store, pid, as_of)
+        if qa <= 0:
+            continue  # a fresh page is never "stale"
+        hl, _ = half_life(_findings_for(store, pid, store.observations(pid)), horizons, config)
+        eff = effective_salience(p.salience, qa, hl)
+        if eff < config.stale_threshold:
+            stale.append(StaleEntry(pageId=pid, effectiveSalience=eff))
+    stale.sort(key=lambda s: s.pageId)
+
+    gaps = []
+    for pid, p in sorted(pages.items()):
+        for ref in p.crossRefs:
+            if ref in pages and pid not in pages[ref].crossRefs:
+                gaps.append(CrossRefGap(source=pid, target=ref, reason="asymmetric"))
+    for pid, p in sorted(pages.items()):
+        body = store.window(pid, 0).body
+        for other_id, other in sorted(pages.items()):
+            if other_id == pid or not other.title:
+                continue
+            if other.title in body and other_id not in p.crossRefs:
+                gaps.append(CrossRefGap(source=pid, target=other_id, reason="mention-without-link"))
+
+    contras = [ContradictionEntry(pageId=pid, note=note, asOf=as_of)
+               for pid, note in sorted(contradictions.items())]
+
+    return HealthReport(orphans=orphans, stale=stale, crossRefGaps=gaps, contradictions=contras)
+
+
 def score_moves(store, diff, contradictions, *, as_of, prev_as_of, registry, horizons,
                 config=DEFAULT_LINT_CONFIG):
     """Assemble the move-set (diff pages + any contradicted page), score each, split on the

@@ -1,43 +1,65 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4a DONE+merged → brainstorm sub-project 4-4b next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4b SPEC+PLAN written → run subagent-driven-development next)
 
-- **Date:** 2026-06-29
+- **Date:** 2026-06-30
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main`:** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; **4-4a `bccc16e`** (all merged). **4-4a is BUILT +
-  merged (local fast-forward), suite 300 passed / 3 skipped.** **NOT pushed** — `origin/main` is at `aabc4c8`;
-  local `main` is **4 commits ahead** (the 4-4a impl) + the 4-4a spec/plan/handoff were already pushed at
-  `aabc4c8` (push the impl only when the user asks). Working tree clean. Frozen core (gate/scoring/registry
-  code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki log.py+page.py) byte-unchanged across
-  4-4a (`git diff aabc4c8..bccc16e` over those paths is empty; `wiki/store.py` changed only by adding `set_body`).
-- **For the next Claude instance:** read this file, then **brainstorm 4-4b** (relevance engine — materiality/lint
-  score + salience decay). The 4-4 decomposition is locked in the **4-4a spec §0**
-  (`docs/superpowers/specs/2026-06-29-wiki-ingest-design.md`): 4-4a (done) → 4-4b → 4-4c → 4-4d. 4-4b reads what
-  4-4a wrote (the `ingest`/contradiction signal + the daily `diff`). Skim the merged 4-4a spec/plan
-  (`2026-06-29-wiki-ingest*`) for the writer's shape and the **deferred follow-ups** to fold into 4-4b (see the
-  ledger `.superpowers/sdd/progress.md` sp4-4a final-review section). A ready-to-paste relaunch prompt is at
-  `docs/superpowers/sp4-relaunch-prompt.md` (STALE — it describes the now-finished 4-4a build; refresh it for 4-4b).
+- **`main` (`6c41e14`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; **4-4a `bccc16e`** (all merged, local). **4-4a
+  is BUILT + merged (local fast-forward), suite 300 passed / 3 skipped. 4-4b is brainstormed, spec'd, and planned —
+  spec + plan committed on `main`** (`e020a43` spec, `6c41e14` plan); **not yet built.** **NOT pushed** —
+  `origin/main` is at `aabc4c8`; local `main` is **7 commits ahead** (4 × 4-4a impl + handoff `3fe92af` + 4-4b spec
+  `e020a43` + 4-4b plan `6c41e14`); push only when the user asks. Working tree clean. Frozen core
+  (gate/scoring/registry code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki store.py+log.py+page.py)
+  byte-unchanged through 4-4a (`git diff aabc4c8..bccc16e` over those paths is empty; `wiki/store.py` changed only by
+  adding `set_body`).
+- **For the next Claude instance:** read this file, then the **4-4b plan**
+  `docs/superpowers/plans/2026-06-30-wiki-lint-relevance-engine.md` and its **spec**
+  `docs/superpowers/specs/2026-06-30-wiki-lint-relevance-engine-design.md`. Skim the merged **4-4a** spec/plan
+  (`2026-06-29-wiki-ingest*`) — 4-4b reads what 4-4a wrote (the `ingest`/contradiction signal + the daily `diff`) —
+  and the **4-2** `cadenceHorizon` tags (`registry/horizon.py`, which 4-4b's decay half-life reads). Check the SDD
+  ledger `.superpowers/sdd/progress.md` + `git log` so you don't redo finished work. A ready-to-paste relaunch prompt
+  is at `docs/superpowers/sp4-relaunch-prompt.md`. The immediate task is to **execute the 4-4b plan via SDD.**
 
 ---
 
-## IMMEDIATE NEXT TASK — sub-project 4-4b (relevance engine) — brainstorm → spec → user-review gate → plan → SDD
+## IMMEDIATE NEXT TASK — execute sub-project 4-4b (the wiki lint / relevance engine) via subagent-driven-development
 
-4-4a (the keystone wiki writer) is **done + merged + preview-confirmed live** (entity pages curated by the brain;
-one `ingest` event; replayable log — see below). Continue the 4-4 sequence. **4-4b = the relevance engine:** the
-multi-factor materiality / `lint` score (new-thread | thread-state-change | contradicts-thesis[highest] |
-moves-indicator∝magnitude; weighted by tier+recency) + **salience decay** (a thread's salience decays as it goes
-quiet). It reads what 4-4a wrote and ranks what the daily `diff` surfaces. Follow the established pattern, each its
-own gate: **brainstorm → spec → (user-review gate) → writing-plans → subagent-driven-development → merge.**
+The **4-4b spec + plan are written and committed**. They still need the build:
+1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-06-30-wiki-lint-relevance-engine.md`
+   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
+   review**, on a branch `sp4-4b-…` off `main`. The plan is **6 TDD tasks** ending at **332 passed, 3 skipped**:
+   (1) `ingest.py` contradiction `format`/`parse` seam + behavior-preserving `apply_enrichment` refactor + the folded
+   `PageEnrichment.salience` `[0,1]` bound; (2) `wiki/lint.py` data models + `LintConfig`; (3) salience **decay**
+   (tag-derived half-life + cycle-count quiet-age + non-destructive `effective_salience`); (4) the **materiality
+   scorer** (4 factors, hybrid weighting, threshold split); (5) **structural health** (orphans/stale/cross-ref
+   gaps/contradiction roll-up); (6) `lint()` assembly + `wiki-lint` CLI + idempotent `lint` event + frozen guards.
+2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3/4-4a); keep the ledger `.superpowers/sdd/progress.md`
+   (append an `sp4-4b` section; mark each task complete when its review is clean).
+3. **Throwaway preview-render** (e.g. seed a store via `wiki-ingest`, then `wiki-lint --as-of …` to show the ranked
+   `LintReport` — material moves, decayed `effective_salience`, the health report — going live).
+4. Then continue the 4-4 sequence: **4-4c → 4-4d**, each its own brainstorm → spec → user-review gate → plan → SDD →
+   merge; then **4-5** (the per-category Market-State brief render).
 
-**Fold these 4-4a deferred Minors into 4-4b where they fit** (logged in the ledger sp4-4a final review):
-- **`PageEnrichment.salience` is an unbounded `float`** — `INGEST_SYSTEM` asks for `[0,1]` but `salience: 5.0`
-  is written silently (mild Part-29 tension). 4-4b owns the salience model → add `salience: float =
-  Field(ge=0.0, le=1.0)` + a test there.
-- the `wiki-ingest` `--emit-prompt`/`--recorded` flags aren't in an argparse mutually-exclusive group (emit wins
-  silently if both passed; matches the existing `extract` subparser style); no `try/except` around its file reads.
-- test-quality nits: `test_apply_rejects_missing_page` uses `pytest.raises(Exception)` not `PageNotFound`;
-  idempotency tests assert `len(log)` not deep-equality; no two-entity `build_bundle` *unit* test; no
-  empty-`result.pages` test.
+**What 4-4b builds (acceptance = spec §14):** a pure-code `wiki-lint` pass (`gpu_agent/wiki/lint.py` + CLI, **no new
+brain step**) that ranks the daily `diff`'s **material moves** (new-thread | state/trajectory change |
+contradicts-thesis[highest] | moves-scoring-indicator∝magnitude, × tier × recency × leading-boost × the brain's
+intrinsic `salience`; below-threshold moves **dropped + logged**), applies **non-destructive salience decay** (a
+per-thread half-life **input-derived** from 4-2's `cadence × horizon` tags — cadence-driven, leading-floored,
+longest-class-wins; `quiet_age` by cycle-count; `effective_salience = intrinsic × 0.5^(quiet_age/half_life)`; a
+`stale` flag), and a **structural health** pass (orphans / stale / asymmetric + mention-without-link cross-ref gaps /
+contradiction roll-up). The contradiction is read via a **shared `format`/`parse` helper in `ingest.py`** (the brain
+flagged it at 4-4a ingest; `LogEvent` is frozen, so the helper is the seam). Emits one **idempotent `lint` log
+event** per `asOf`. **The 4-4b↔4-4c boundary is locked:** 4-4b produces signals; 4-4c (discovery) consumes them
+(materiality → promotion; `stale` → provisional pruning). 4-4b honors 5 design-for-4-4c constraints: page-type
+agnostic (entity+theme), status-agnostic-but-carried, **no lifecycle mutation**, emits `lint` events, produces the
+`stale` signal. Pure-semantic (no-mention) cross-ref suggestions are a **deferred follow-up** (a future lint
+brain-seam). Frozen contract + the existing 4-1/4-4a `wiki/store.py`/`log.py`/`page.py` members byte-unchanged;
+`ingest.py` modified additively/behavior-preserving; committed fixtures unchanged; numbers only from gated findings;
+nothing silent.
 
-Then continue: **4-4c** (discovery lane: explore budget + theme pages + provisional/quarantine/promotion) →
+**Already folded into the 4-4b plan (the 4-4a deferred Minor that fits):** the `PageEnrichment.salience` `[0,1]`
+bound (Task 1). The other 4-4a minors (CLI mutually-exclusive flags, file-read `try/except`, 4-4a test-quality nits)
+remain logged in the ledger, not 4-4b-relevant.
+
+**Then continue:** **4-4c** (discovery lane: explore budget + theme pages + provisional/quarantine/promotion) →
 **4-4d** (daily gather mode + numeric scrape sweep + dedup-vs-store) → **4-5** (per-category Market-State brief).
 
 **What 4-4a delivered (DONE, acceptance spec §9 all met):** a `wiki-ingest` CLI that (Phase 1, code) routes each
@@ -157,7 +179,9 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
     wiki *writer*: `wiki-ingest` CLI (Phase-1 deterministic entity routing + Phase-2 brain enrichment via
     `--emit-prompt`→`--recorded`), additive `WikiStore.set_body`, `gpu_agent/wiki/ingest.py`. Opus final review
     "Ready to merge: Yes" (no Critical/Important). Preview-confirmed entity pages going live. ← **4-4 keystone done.**
-  - **4-4b — next (resume here): relevance engine** = materiality/lint score + salience decay. Brainstorm first.
+  - **4-4b — Relevance engine / wiki lint: SPEC + PLAN written/committed (`e020a43`/`6c41e14`), not yet built.**
+    ← **resume here** (run SDD on the 4-4b plan `2026-06-30-wiki-lint-relevance-engine.md`). 6 TDD tasks →
+    332/3. Pure-code materiality score + salience decay + structural health; no new brain step.
   - **4-4c / 4-4d — not started.** (4-4c = discovery lane: explore budget + theme pages + provisional/promotion;
     4-4d = daily gather mode + scrape sweep + dedup-vs-store.)
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two

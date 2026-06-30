@@ -25,12 +25,40 @@ def slug(entity: str) -> str:
     return s
 
 
+def format_contradiction_detail(enriched_count: int, contradictions: list[tuple[str, str]]) -> str:
+    """Canonical ingest-event detail. `contradictions` is a list of (pageId, note). One source of
+    format truth, shared by apply_enrichment (writer) and the lint pass (reader)."""
+    detail = f"enriched {enriched_count} page(s)"
+    if contradictions:
+        detail += "; contradictions: " + " | ".join(f"{pid}: {note}" for pid, note in contradictions)
+    return detail
+
+
+def parse_contradiction_detail(detail: str) -> dict:
+    """Inverse of format_contradiction_detail. Note: a note containing ' | ' would over-split; notes
+    are short phrases and this is our own controlled format (round-trip tested)."""
+    count = 0
+    m = re.match(r"enriched (\d+) page\(s\)", detail)
+    if m:
+        count = int(m.group(1))
+    contradictions: list[dict] = []
+    marker = "; contradictions: "
+    idx = detail.find(marker)
+    if idx != -1:
+        rest = detail[idx + len(marker):]
+        for part in rest.split(" | "):
+            pid, sep, note = part.partition(": ")  # pageId has no ': ' (colon-space); first split is the boundary
+            if sep:
+                contradictions.append({"pageId": pid, "note": note})
+    return {"count": count, "contradictions": contradictions}
+
+
 class PageEnrichment(BaseModel):
     pageId: str
     bodyMarkdown: str
     state: str
     trajectory: str
-    salience: float
+    salience: float = Field(ge=0.0, le=1.0)
     crossRefs: list[str] = Field(default_factory=list)
     contradictsThesis: bool = False
     contradictionNote: str = ""
@@ -98,7 +126,7 @@ def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> N
     """Phase 2 (deterministic apply): enrich existing entity pages from the brain's IngestResult.
     Rejects non-entity / missing pages loud. Idempotent set_body/record_state/crossRefs. Appends
     exactly one 'ingest' log event per as_of (contradictions recorded in its detail, not yet weighted)."""
-    contradictions: list[str] = []
+    contradictions: list[tuple[str, str]] = []
     for pe in result.pages:
         if not pe.pageId.startswith("entity:"):
             raise ValueError(f"enrichment targets non-entity page: {pe.pageId}")
@@ -110,10 +138,8 @@ def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> N
         if page.crossRefs != pe.crossRefs:
             store.update_header(pe.pageId, as_of=as_of, crossRefs=pe.crossRefs)
         if pe.contradictsThesis:
-            contradictions.append(f"{pe.pageId}: {pe.contradictionNote}")
+            contradictions.append((pe.pageId, pe.contradictionNote))
     already_logged = any(e.kind == "ingest" and e.asOf == as_of for e in store.log.read())
     if not already_logged:
-        detail = f"enriched {len(result.pages)} page(s)"
-        if contradictions:
-            detail += "; contradictions: " + " | ".join(contradictions)
+        detail = format_contradiction_detail(len(result.pages), contradictions)
         store.log.append(asOf=as_of, kind="ingest", detail=detail)

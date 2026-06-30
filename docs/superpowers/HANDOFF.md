@@ -1,42 +1,42 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4b SPEC+PLAN written → run subagent-driven-development next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4b BUILT + merged → brainstorm sub-project 4-4c next)
 
 - **Date:** 2026-06-30
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`6c41e14`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; **4-4a `bccc16e`** (all merged, local). **4-4a
-  is BUILT + merged (local fast-forward), suite 300 passed / 3 skipped. 4-4b is brainstormed, spec'd, and planned —
-  spec + plan committed on `main`** (`e020a43` spec, `6c41e14` plan); **not yet built.** **NOT pushed** —
-  `origin/main` is at `aabc4c8`; local `main` is **7 commits ahead** (4 × 4-4a impl + handoff `3fe92af` + 4-4b spec
-  `e020a43` + 4-4b plan `6c41e14`); push only when the user asks. Working tree clean. Frozen core
-  (gate/scoring/registry code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki store.py+log.py+page.py)
-  byte-unchanged through 4-4a (`git diff aabc4c8..bccc16e` over those paths is empty; `wiki/store.py` changed only by
-  adding `set_body`).
-- **For the next Claude instance:** read this file, then the **4-4b plan**
-  `docs/superpowers/plans/2026-06-30-wiki-lint-relevance-engine.md` and its **spec**
-  `docs/superpowers/specs/2026-06-30-wiki-lint-relevance-engine-design.md`. Skim the merged **4-4a** spec/plan
-  (`2026-06-29-wiki-ingest*`) — 4-4b reads what 4-4a wrote (the `ingest`/contradiction signal + the daily `diff`) —
-  and the **4-2** `cadenceHorizon` tags (`registry/horizon.py`, which 4-4b's decay half-life reads). Check the SDD
-  ledger `.superpowers/sdd/progress.md` + `git log` so you don't redo finished work. A ready-to-paste relaunch prompt
-  is at `docs/superpowers/sp4-relaunch-prompt.md`. The immediate task is to **execute the 4-4b plan via SDD.**
+- **`main` (`8cee8a3`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; **4-4b `8cee8a3`** (all merged,
+  local). **4-4b is BUILT + merged (local fast-forward), suite 332 passed / 3 skipped.** Built via SDD (fresh sonnet
+  implementer/reviewer per task, **opus final whole-branch review = "Ready to merge: Yes"**, no Critical/Important).
+  **NOT pushed** — `origin/main` is at `aabc4c8`; local `main` is **15 commits ahead** (8 prior + 6 × 4-4b impl +
+  the spec-§8 doc fix `8cee8a3`); push only when the user asks. Working tree clean. **Truly-frozen core**
+  (gate/scoring/registry code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`)
+  byte-unchanged vs origin baseline `aabc4c8`; `wiki/store.py` changed only by 4-4a's `set_body`; `wiki/ingest.py`
+  modified additively/behavior-preserving by 4-4a + 4-4b.
+- **For the next Claude instance:** read this file, then start **sub-project 4-4c** with **`superpowers:brainstorming`**
+  (it is NOT yet spec'd — it needs brainstorm → spec → **user-review gate** → plan → SDD → merge). Read the **4-4a
+  spec §0** (the locked 4-4 decomposition) and the merged **4-4b spec §0 + §11** (`2026-06-30-wiki-lint-relevance-
+  engine-design.md` — the **locked 4-4b↔4-4c boundary**: 4-4b produces the materiality + `stale` signals; **4-4c
+  consumes them** — materiality → promotion, `stale` → provisional pruning) and the umbrella spec
+  (`2026-06-27-daily-monitor-decomposition-design.md`). Skim 4-1's `wiki/store.py` (provisional pages, `status`
+  field, theme page type already supported) since 4-4c adds theme pages + the provisional/quarantine/promotion
+  lifecycle. Check the SDD ledger `.superpowers/sdd/progress.md` + `git log` so you don't redo finished work.
 
 ---
 
-## IMMEDIATE NEXT TASK — execute sub-project 4-4b (the wiki lint / relevance engine) via subagent-driven-development
+## IMMEDIATE NEXT TASK — brainstorm + spec sub-project 4-4c (the discovery lane), then build via SDD
 
-The **4-4b spec + plan are written and committed**. They still need the build:
-1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-06-30-wiki-lint-relevance-engine.md`
-   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
-   review**, on a branch `sp4-4b-…` off `main`. The plan is **6 TDD tasks** ending at **332 passed, 3 skipped**:
-   (1) `ingest.py` contradiction `format`/`parse` seam + behavior-preserving `apply_enrichment` refactor + the folded
-   `PageEnrichment.salience` `[0,1]` bound; (2) `wiki/lint.py` data models + `LintConfig`; (3) salience **decay**
-   (tag-derived half-life + cycle-count quiet-age + non-destructive `effective_salience`); (4) the **materiality
-   scorer** (4 factors, hybrid weighting, threshold split); (5) **structural health** (orphans/stale/cross-ref
-   gaps/contradiction roll-up); (6) `lint()` assembly + `wiki-lint` CLI + idempotent `lint` event + frozen guards.
-2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3/4-4a); keep the ledger `.superpowers/sdd/progress.md`
-   (append an `sp4-4b` section; mark each task complete when its review is clean).
-3. **Throwaway preview-render** (e.g. seed a store via `wiki-ingest`, then `wiki-lint --as-of …` to show the ranked
-   `LintReport` — material moves, decayed `effective_salience`, the health report — going live).
-4. Then continue the 4-4 sequence: **4-4c → 4-4d**, each its own brainstorm → spec → user-review gate → plan → SDD →
-   merge; then **4-5** (the per-category Market-State brief render).
+**4-4c is NOT yet designed** — unlike 4-4b (which arrived spec'd+planned), 4-4c starts from scratch:
+1. **`superpowers:brainstorming`** to design 4-4c, honoring the **locked 4-4b↔4-4c seam** (4-4b spec §11): 4-4c is
+   the **brain discovery + page lifecycle** that *consumes* 4-4b's deterministic signals. Scope (umbrella spec +
+   charter Parts 18/10/37): the **explore budget**; **theme pages** + **provisional off-registry topics** (undefined
+   topics the brain wants to chase); **quarantine** from canonical; **promotion on persist + corroborate across
+   cycles** (reads 4-4b's per-cycle materiality / `lint` events); **provisional pruning** (reads 4-4b's `stale`
+   signal); **follow-the-trail with brakes**. 4-4b already honors the 5 design-for-4-4c constraints (page-type
+   agnostic, status carried, no lifecycle mutation, emits `lint` events, produces `stale`) so **4-4c forces no
+   4-4b rework**.
+2. → **spec** → **USER-REVIEW GATE** (the user reviews the 4-4c spec before planning) → **`superpowers:writing-plans`**
+   → **`superpowers:subagent-driven-development`** (same cadence: fresh sonnet impl/review per task, opus final) →
+   **merge** (local fast-forward) → preview. Keep the ledger updated.
+3. Then **4-4d** (daily gather mode + numeric scrape sweep + cross-run dedup-vs-store), same flow; then **4-5**
+   (per-category Market-State brief render, extends A's `report.py`).
 
 **What 4-4b builds (acceptance = spec §14):** a pure-code `wiki-lint` pass (`gpu_agent/wiki/lint.py` + CLI, **no new
 brain step**) that ranks the daily `diff`'s **material moves** (new-thread | state/trajectory change |
@@ -179,11 +179,17 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
     wiki *writer*: `wiki-ingest` CLI (Phase-1 deterministic entity routing + Phase-2 brain enrichment via
     `--emit-prompt`→`--recorded`), additive `WikiStore.set_body`, `gpu_agent/wiki/ingest.py`. Opus final review
     "Ready to merge: Yes" (no Critical/Important). Preview-confirmed entity pages going live. ← **4-4 keystone done.**
-  - **4-4b — Relevance engine / wiki lint: SPEC + PLAN written/committed (`e020a43`/`6c41e14`), not yet built.**
-    ← **resume here** (run SDD on the 4-4b plan `2026-06-30-wiki-lint-relevance-engine.md`). 6 TDD tasks →
-    332/3. Pure-code materiality score + salience decay + structural health; no new brain step.
-  - **4-4c / 4-4d — not started.** (4-4c = discovery lane: explore budget + theme pages + provisional/promotion;
-    4-4d = daily gather mode + scrape sweep + dedup-vs-store.)
+  - **4-4b — Relevance engine / wiki lint: DONE, merged to `main` (`8cee8a3`, local).** Suite 332/3. Pure-code,
+    no new brain step: `gpu_agent/wiki/lint.py` (materiality scorer — 4 factors × hybrid multipliers; non-
+    destructive salience decay — tag-derived half-life + cycle-count quiet-age; structural health — orphans/stale/
+    cross-ref gaps/contradiction roll-up; `lint()` + `LintReport`/`LintConfig`), the contradiction `format`/`parse`
+    seam + `PageEnrichment.salience` `[0,1]` bound in `ingest.py` (behavior-preserving), the `wiki-lint` CLI, one
+    idempotent `lint` event/cycle. Opus final review "Ready to merge: Yes". Preview-confirmed LIVE (ranked material
+    moves, contradiction as highest factor, non-destructive decay, `stale` signal, health). ← **4-4 relevance done.**
+  - **4-4c — resume here (brainstorm next).** Discovery lane: explore budget + theme pages + provisional off-
+    registry topics + quarantine + promotion on persist+corroborate (consumes 4-4b materiality) + provisional
+    pruning (consumes 4-4b `stale`). NOT yet spec'd — brainstorm → spec → user-review gate → plan → SDD → merge.
+  - **4-4d — not started.** (daily gather mode + numeric scrape sweep + cross-run dedup-vs-store.)
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two
   indices + the divergence + "what moved" + storylines per the design target.)
 

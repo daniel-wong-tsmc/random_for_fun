@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
+from gpu_agent.wiki.ingest import parse_contradiction_detail
 
 
 class IndicatorMove(BaseModel):
@@ -274,3 +275,37 @@ def score_moves(store, diff, contradictions, *, as_of, prev_as_of, registry, hor
     material.sort(key=lambda m: m.score, reverse=True)
     dropped.sort(key=lambda m: m.score, reverse=True)
     return material, dropped
+
+
+def _auto_prev(store, as_of):
+    cycles = sorted({e.asOf for e in store.log.read() if e.asOf < as_of})
+    return cycles[-1] if cycles else None
+
+
+def _contradictions_for(store, as_of):
+    out = {}
+    for e in store.log.read():
+        if e.kind == "ingest" and e.asOf == as_of:
+            for c in parse_contradiction_detail(e.detail)["contradictions"]:
+                out[c["pageId"]] = c["note"]
+    return out
+
+
+def lint(store, *, as_of, prev_as_of=None, registry, horizons, config=DEFAULT_LINT_CONFIG) -> LintReport:
+    """The wiki lint / early-warning pass: rank the cycle's material moves, decay quiet threads,
+    surface structural health. Pure, read-only except for one idempotent `lint` provenance event."""
+    if prev_as_of is None:
+        prev_as_of = _auto_prev(store, as_of)
+    diff = store.diff(as_of, prev_as_of or "")
+    contradictions = _contradictions_for(store, as_of)
+    material, dropped = score_moves(store, diff, contradictions, as_of=as_of, prev_as_of=prev_as_of,
+                                    registry=registry, horizons=horizons, config=config)
+    health = health_report(store, as_of=as_of, contradictions=contradictions,
+                            horizons=horizons, config=config)
+    report = LintReport(asOf=as_of, prevAsOf=prev_as_of, material=material,
+                        dropped=dropped, health=health)
+    if not any(e.kind == "lint" and e.asOf == as_of for e in store.log.read()):
+        detail = (f"material {len(material)}; dropped {len(dropped)}; stale {len(health.stale)}; "
+                  f"orphans {len(health.orphans)}; contradictions {len(health.contradictions)}")
+        store.log.append(asOf=as_of, kind="lint", detail=detail)
+    return report

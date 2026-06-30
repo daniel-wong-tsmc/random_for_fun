@@ -15,6 +15,7 @@ from gpu_agent.gate import GateError
 from gpu_agent.store import JsonStore, FindingStore
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.ingest import route_findings, build_bundle, apply_enrichment, IngestResult
+from gpu_agent.wiki.lint import lint
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
@@ -90,6 +91,22 @@ def _wiki_ingest(args) -> int:
         return 0
     print(f"routed {len(findings)} finding(s) to {len(touched)} page(s) -> {args.store}")
     return 0
+
+def _wiki_lint(args) -> int:
+    store = WikiStore(pathlib.Path(args.store) / "wiki",
+                      FindingStore(pathlib.Path(args.store) / "findings"))
+    registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load("registry/indicators.json")
+    report = lint(store, as_of=args.as_of, prev_as_of=args.prev_as_of,
+                  registry=registry, horizons=horizons)
+    payload = report.model_dump_json(indent=2)
+    if args.out:
+        pathlib.Path(args.out).write_text(payload, encoding="utf-8")
+        print(f"wrote {args.out}  ({len(report.material)} material, {len(report.dropped)} dropped)")
+    else:
+        print(payload)
+    return 0
+
 
 def _build(args):
     a = load_assignment(args.assignment)
@@ -317,6 +334,12 @@ def main(argv=None) -> int:
     wi.add_argument("--recorded", default=None, help="path to a recorded IngestResult JSON")
     wi.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical ingest prompt + schema (no LLM) and exit")
+    wl = sub.add_parser("wiki-lint")
+    wl.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
+    wl.add_argument("--as-of", required=True)
+    wl.add_argument("--prev-as-of", default=None,
+                    help="prior cycle asOf for the diff window (default: auto-derive from the log)")
+    wl.add_argument("--out", default=None, help="write the LintReport JSON here")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
     jg.add_argument("--out", default=None, help="dir for ratings/anchors/narrative.json")
@@ -365,6 +388,8 @@ def main(argv=None) -> int:
         return _ingest(args)
     if args.cmd == "wiki-ingest":
         return _wiki_ingest(args)
+    if args.cmd == "wiki-lint":
+        return _wiki_lint(args)
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":

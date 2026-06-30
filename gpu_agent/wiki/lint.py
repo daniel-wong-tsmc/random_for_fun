@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.registry.horizon import IndicatorHorizons
+from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 
 
 class IndicatorMove(BaseModel):
@@ -136,3 +137,98 @@ def decay(quiet_age: int, half_life: int) -> float:
 
 def effective_salience(intrinsic: float, quiet_age: int, half_life: int) -> float:
     return intrinsic * decay(quiet_age, half_life)
+
+
+def _is_scoring(registry, indicator_id):
+    """True iff the indicator contributes to the index (the frozen dmi_smi split:
+    scoring AND side not in {price, structural}). None if the id is unregistered."""
+    try:
+        spec = registry.resolve(indicator_id)
+    except RegistryError:
+        return None
+    return bool(spec.scoring and spec.side not in ("price", "structural"))
+
+
+def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
+                contradiction_note, registry, horizons, config=DEFAULT_LINT_CONFIG):
+    page = store.get_page(page_id)
+    lo = prev_as_of or ""
+    window = [o for o in store.observations(page_id) if lo < o.asOf <= as_of]
+    contributing = []
+    pairs = []  # (observation, finding)
+    for o in window:
+        try:
+            pairs.append((o, store.findings.get(o.findingId)))
+            contributing.append(o.findingId)
+        except Exception:
+            continue
+
+    factors = MoveFactors()
+    base = 0.0
+    if is_new:
+        base += config.w_new
+        factors.newThread = True
+    if (not is_new) and state_transition is not None:
+        base += config.w_state
+        factors.stateTransition = state_transition
+    if contradiction_note is not None:
+        base += config.w_contra
+        factors.contradiction = True
+        factors.contradictionNote = contradiction_note
+
+    ind_sum = 0
+    for _, f in pairs:
+        sc = _is_scoring(registry, f.indicatorId)
+        scoring = bool(sc)
+        factors.indicatorMoves.append(
+            IndicatorMove(indicatorId=f.indicatorId, magnitude=f.magnitude, scoring=scoring))
+        if scoring:
+            ind_sum += f.magnitude
+    base += config.w_ind * ind_sum
+
+    has_primary = any(any(e.tier == "primary" for e in f.evidence) for _, f in pairs)
+    tier_mult = config.tier_primary if has_primary else config.tier_secondary
+    this_cycle = any(o.asOf == as_of for o, _ in pairs)
+    recency_mult = config.recency_full if this_cycle else config.recency_decayed
+    leading = any((horizons.get(f.indicatorId) or {}).get("horizon") == "leading" for _, f in pairs)
+    horizon_boost = config.horizon_boost_leading if leading else 0.0
+    salience_weight = max(config.salience_floor, page.salience)
+    score = base * tier_mult * recency_mult * (1 + horizon_boost) * salience_weight
+
+    all_findings = _findings_for(store, page_id, store.observations(page_id))
+    hl, _untagged = half_life(all_findings, horizons, config)
+    eff = effective_salience(page.salience, quiet_age(store, page_id, as_of), hl)
+
+    return MaterialMove(pageId=page_id, title=page.title, type=page.type, status=page.status,
+                        score=score, factors=factors, contributingFindingIds=contributing,
+                        tierMult=tier_mult, recencyMult=recency_mult, effectiveSalience=eff)
+
+
+def score_moves(store, diff, contradictions, *, as_of, prev_as_of, registry, horizons,
+                config=DEFAULT_LINT_CONFIG):
+    """Assemble the move-set (diff pages + any contradicted page), score each, split on the
+    material threshold. Both lists are ranked by score descending."""
+    new_ids = {pd.id for pd in diff.new_pages}
+    delta_by_id = {pd.id: pd for pd in (list(diff.new_pages) + list(diff.changed_pages))}
+    im_by_id = {im.id: im for im in diff.index_moves}
+    move_ids = (new_ids | {pd.id for pd in diff.changed_pages}
+                | set(im_by_id) | set(contradictions))
+    material, dropped = [], []
+    for pid in sorted(move_ids):
+        is_new = pid in new_ids
+        st = None
+        if not is_new:
+            delta = delta_by_id.get(pid)
+            if delta is not None and delta.stateTransition is not None:
+                st = delta.stateTransition
+            elif pid in im_by_id:
+                im = im_by_id[pid]
+                st = {"from": im.oldState, "to": im.newState}
+        note = contradictions.get(pid)  # None when the page has no contradiction this cycle
+        mv = _score_move(store, pid, as_of=as_of, prev_as_of=prev_as_of, is_new=is_new,
+                         state_transition=st, contradiction_note=note,
+                         registry=registry, horizons=horizons, config=config)
+        (material if mv.score >= config.material_threshold else dropped).append(mv)
+    material.sort(key=lambda m: m.score, reverse=True)
+    dropped.sort(key=lambda m: m.score, reverse=True)
+    return material, dropped

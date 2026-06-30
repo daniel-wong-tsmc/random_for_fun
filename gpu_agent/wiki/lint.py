@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, Field
+from gpu_agent.wiki.store import WikiStore
+from gpu_agent.registry.horizon import IndicatorHorizons
 
 
 class IndicatorMove(BaseModel):
@@ -81,3 +83,56 @@ class LintConfig(BaseModel):
 
 
 DEFAULT_LINT_CONFIG = LintConfig()
+
+_CADENCE_HL = {"daily": "h_short", "weekly": "h_med", "quarterly": "h_long"}
+
+
+def _findings_for(store, page_id, observations):
+    """Resolve observation finding ids to Findings, skipping any not in the FindingStore."""
+    out = []
+    for o in observations:
+        try:
+            out.append(store.findings.get(o.findingId))
+        except Exception:
+            continue
+    return out
+
+
+def half_life(findings, horizons, config=DEFAULT_LINT_CONFIG):
+    """Longest-persistence half-life (in cycles) among the findings' cadence-horizon tags.
+    cadence drives persistence (daily->short, weekly->med, quarterly->long); a leading-horizon
+    finding is floored at H_med. Untagged indicator ids fall back to H_med and are RETURNED
+    (the caller logs them — nothing silent). No findings -> H_med (neutral)."""
+    untagged: list[str] = []
+    classes: list[int] = []
+    for f in findings:
+        tag = horizons.get(f.indicatorId)
+        if tag is None or tag.get("cadence") not in _CADENCE_HL:
+            untagged.append(f.indicatorId)
+            classes.append(config.h_med)
+            continue
+        hl = getattr(config, _CADENCE_HL[tag["cadence"]])
+        if tag.get("horizon") == "leading":
+            hl = max(hl, config.h_med)
+        classes.append(hl)
+    return (max(classes) if classes else config.h_med), untagged
+
+
+def quiet_age(store, page_id, as_of) -> int:
+    """Number of distinct asOf cycles in the log strictly after the page's last MATERIAL event
+    (append-observation or state-change), up to as_of. A body-only edit is not material. A page
+    with no material events decays from its createdAsOf."""
+    events = [e for e in store.log.read() if e.asOf <= as_of]
+    cycles = sorted({e.asOf for e in events})
+    materials = [e.asOf for e in events
+                 if e.pageId == page_id and e.kind in ("append-observation", "state-change")]
+    baseline = max(materials) if materials else store.get_page(page_id).createdAsOf
+    return sum(1 for c in cycles if c > baseline)
+
+
+def decay(quiet_age: int, half_life: int) -> float:
+    return 0.5 ** (quiet_age / half_life)
+
+
+def effective_salience(intrinsic: float, quiet_age: int, half_life: int) -> float:
+    return intrinsic * decay(quiet_age, half_life)

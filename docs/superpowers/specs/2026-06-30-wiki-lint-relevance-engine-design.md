@@ -250,8 +250,8 @@ class MaterialMove(BaseModel):
     effectiveSalience: float
 
 class CrossRefGap(BaseModel):
-    frm: str                                     # serialized as "from"
-    to: str
+    source: str                                  # keyword-safe (was "from"); the page that lists/mentions
+    target: str                                  # the referenced page
     reason: str                                  # "asymmetric" | "mention-without-link"
 
 class ContradictionEntry(BaseModel):
@@ -277,7 +277,8 @@ class LintReport(BaseModel):
     health: HealthReport
 ```
 
-(`CrossRefGap.frm` carries a `from`-named serialization alias since `from` is a Python keyword.)
+(`CrossRefGap` uses `source`/`target` rather than `from`/`to` since `from` is a Python keyword — the
+keyword-safe realization of the gap's intent; this is the shipped field contract 4-4c consumes.)
 
 ---
 

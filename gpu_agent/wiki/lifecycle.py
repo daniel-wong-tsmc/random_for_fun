@@ -80,3 +80,26 @@ def promotion_candidates(store, config=DEFAULT_LIFECYCLE_CONFIG) -> list[Promoti
                 persistCycles=pc, distinctSources=src,
                 verdict=f"persisted {pc} cycles, {src} sources -> promote"))
     return cands
+
+
+def prune_candidates(store, stale) -> list[PruneCandidate]:
+    """Provisional pages that have gone stale (4-4b's stale signal) — the reverse of promotion.
+    Registered pages are never pruned (established coverage). `stale` is a list of StaleEntry
+    (pageId, effectiveSalience). Ordered by pageId."""
+    idx = {e.id: e for e in store.index()}
+    cands: list[PruneCandidate] = []
+    for s in sorted(stale, key=lambda x: x.pageId):
+        entry = idx.get(s.pageId)
+        if entry is not None and entry.status == "provisional":
+            cands.append(PruneCandidate(
+                pageId=s.pageId, type=entry.type,
+                reason=f"stale: eff_salience {s.effectiveSalience:.3g} below threshold"))
+    return cands
+
+
+def partition_canonical(index):
+    """The quarantine filter seam: split a store index into (registered, provisional). Canonical
+    projections (4-5, the layer rollup) include only `registered`; `provisional` are candidates."""
+    registered = [e for e in index if e.status == "registered"]
+    provisional = [e for e in index if e.status == "provisional"]
+    return registered, provisional

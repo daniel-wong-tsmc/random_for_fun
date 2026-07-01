@@ -1,52 +1,74 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4c BUILT + merged → 4-5 next, its own brainstorm → spec → user-review gate → plan → SDD)
+# HANDOFF — GPU Category Agent (resume point: 4-5 SPEC+PLAN written + user-approved + PUSHED → run subagent-driven-development on the 4-5 plan next)
 
 - **Date:** 2026-07-01
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`6758e9f`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`;
-  **4-4d `f5f585c`**; **4-4c `6758e9f`** (all merged, local). **4-4c is BUILT + merged, suite 382 passed / 3 skipped**
-  (opus final review "Ready to merge: With fixes" — one test-only fix applied; preview-confirmed LIVE). Built via SDD
-  (5 TDD tasks, fresh sonnet impl/reviewer per task, two-stage sonnet review, opus final whole-branch review): the
-  pure-code provisional lifecycle engine `gpu_agent/wiki/lifecycle.py` (promotion via persist+corroborate + non-
-  destructive pruning of stale provisionals + quarantine filter/report/guard) + the additive `wiki-lifecycle` CLI
-  (propose default; `--apply`; `--report`). Frozen core (incl. all wiki modules + `gathering`) byte-unchanged; no new
-  `status` value, no new `LogEvent.kind`, no new dependency. **NOT pushed** — `origin/main` is at `aabc4c8`; local
-  `main` is **35 commits ahead**; push only when the user asks. Working tree clean. **Truly-frozen core** (gate/scoring/registry code/
-  Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`+`lint.py`, `gathering/ingest.py`
-  `normalize_documents`, `gathering/dedup.py`) byte-unchanged vs origin baseline `aabc4c8`; `wiki/store.py` changed
-  only by 4-4a's `set_body`; `wiki/ingest.py` modified additively/behavior-preserving by 4-4a + 4-4b.
-- **THE SEQUENCE WAS REORDERED THIS SESSION:** discovery (4-4c) needs gathered raw material to "notice the off-list
-  topic," and the gather firehose is 4-4d — so **4-4d is now built BEFORE 4-4c**. New order:
-  **4-1 → 4-2 → 4-3 → 4-4a → 4-4b → 4-4d → 4-4c → 4-5.**
-- **For the next Claude instance:** read this file, then the **4-4d plan**
-  `docs/superpowers/plans/2026-07-01-daily-gather-scrape-dedup.md` and its **spec**
-  `docs/superpowers/specs/2026-07-01-daily-gather-scrape-dedup-design.md` (§0 has the locked decisions + the reorder;
-  §10 the 4-4d↔4-4c seam). Skim the existing Part-37 ingest seam `gpu_agent/gathering/ingest.py` (`normalize_documents`
-  — 4-4d's L1 runs *after* it, frozen), the merged **4-4a/4-4b** (`2026-06-29-wiki-ingest*`, `2026-06-30-wiki-lint*`
-  — 4-4d feeds 4-4a `wiki-ingest` and its UPDATEs become 4-4b material moves), and the **4-2** `sourceInventory` +
-  `cadenceHorizon` (the scrape sources + cadence prioritization). Check the SDD ledger `.superpowers/sdd/progress.md`
-  + `git log` so you don't redo finished work. The immediate task is to **execute the 4-4d plan via SDD.**
+- **`main` (`3f0b37f`) — PUSHED:** `origin/main == local main == 3f0b37f` (0 ahead, working tree clean). This is the
+  first push since baseline `aabc4c8`; all 4-4a→4-4c feature work + docs + the 4-5 spec/plan are now on GitHub.
+  Merged pieces: 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`; 4-4d `f5f585c`;
+  **4-4c `6758e9f`** (all merged local fast-forward, now pushed). **4-4c is BUILT + merged, suite 382 passed /
+  3 skipped** (opus final review "Ready to merge: With fixes" — one test-only fix applied; preview-confirmed LIVE):
+  the pure-code provisional lifecycle engine `gpu_agent/wiki/lifecycle.py` + the additive `wiki-lifecycle` CLI.
+  **4-5 SPEC `f95baa3` (USER-APPROVED) + PLAN `3f0b37f` written + committed + pushed; not yet built.** Frozen core
+  (gate/scoring/registry code/Finding+Scorecard schema/pipeline Part-7 gate/JsonStore/FindingStore/all `wiki/`
+  modules/`gathering/`) byte-unchanged vs baseline `aabc4c8` except the documented additive edits (4-4a `set_body`;
+  4-4a/4-4b `wiki/ingest.py`). **Push freely now — the user has authorized pushing; keep `main` and `origin/main`
+  in sync** (prior sessions deferred the push; that changed this session).
+- **Sequence (built in this order):** **4-1 → 4-2 → 4-3 → 4-4a → 4-4b → 4-4d → 4-4c → 4-5** (4-4d was reordered
+  before 4-4c because discovery needs gathered material). 4-4 is fully done; **4-5 is the current piece.**
+- **For the next Claude instance:** read this file, then the **4-5 plan**
+  `docs/superpowers/plans/2026-07-01-per-category-brief-render.md` and its **spec**
+  `docs/superpowers/specs/2026-07-01-per-category-brief-render-design.md` (§0 has the locked scope split + the 4
+  decisions; §10 the acceptance) and the **design target** it renders toward
+  `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md` (§2 the five readability rules; §3 the mock).
+  Skim A's `gpu_agent/report.py` (4-5 extends its `render_report` + reuses its wording helpers `_momentum_word`/
+  `_sdgi_interpretation`/`_fmt_delta`/`compute_sdgi`/`_signal_label`), the 4-3 `Scorecard.indices` (Momentum/Outlook/
+  Divergence — the NOW/NEXT source), and the 4-2 `registry/horizon.py` `IndicatorHorizons` (the leading-signal tag).
+  Check the SDD ledger `.superpowers/sdd/progress.md` (the `sp4-4c` section is complete; a `sp4-5` section is not yet
+  created — the SDD skill will add it) + `git log` so you don't redo finished work. The immediate task is to
+  **execute the 4-5 plan via subagent-driven-development.**
 
 ---
 
-## IMMEDIATE NEXT TASK — sub-project 4-5 (per-category Market-State brief render) via brainstorm → spec → user-review gate → plan → SDD
+## IMMEDIATE NEXT TASK — execute sub-project 4-5 (per-category Market-State brief render) via subagent-driven-development
 
-**4-4c is DONE (built, merged `6758e9f`, suite 382/3, preview-confirmed LIVE).** The next piece is **4-5**, the
-per-category Market-State brief render that extends A's `report.py` per the design target
-(`docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md`): renders the two indices (4-3) + the
-divergence + "what moved" (the 4-1 `diff`'s `new_pages ∪ index_moves`) + storylines, reading `registered` pages as
-canonical coverage and `provisional` pages as "not yet in coverage / confidence-capped" (4-4c's `partition_canonical`
-is the filter seam). It is a **pure deterministic projection — no LLM in the renderer** (Part 35).
+The **4-5 spec + plan are written, committed, pushed, and the spec was user-approved.** They still need the build:
+1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-07-01-per-category-brief-render.md`
+   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
+   review**, on a branch `sp4-5-…` off `main`. The plan is **4 TDD tasks** ending at **399 passed, 3 skipped**:
+   (1) new `gpu_agent/brief.py` + `render_state_of_market` (the BLUF — demand/supply momentum as direction+Δ, gap,
+   NOW/NEXT from `indices`, divergence, `categoryStatus` headline + binding constraint); (2) `render_demand_supply_
+   board` (findings grouped by side, collapsed to latest vintage, `_signal_label` word + trend arrow, `leading` tag
+   from `horizons`, `⚠carried` flag); (3) `render_deferred_stubs` + `render_market_caveat` (honest "in 4-5b" stubs +
+   the read-DIRECTION-not-level caveat); (4) compose the brief sections **brief-first** into `render_report` +
+   optional `horizons` kwarg + the CLI `_report` `horizons` wiring + the honesty-invariant guard test + the frozen
+   guard.
+2. **Merge to `main`** (local fast-forward, like every prior piece) and **push** (the user authorized pushing this
+   session — keep `origin/main` in sync). Keep the ledger `.superpowers/sdd/progress.md` (add a `sp4-5` section;
+   the SDD skill does this — append each task line as its review comes back clean).
+3. **Throwaway preview-render** — build an in-code `Scorecard` (with `indices` + `categoryStatus` + a few findings),
+   run `report --scorecard <it>` and confirm the brief-first output (STATE OF THE MARKET → DEMAND|SUPPLY board →
+   the 4-5b stubs → the existing detailed sections → the trust caveat), Outlook honestly "insufficient coverage".
+4. Then the **DEFERRED follow-ups:** **4-5b** (wire the wiki store into `report` for the two store-fed sections —
+   WHAT MOVED = the 4-1 `diff`'s `new_pages ∪ index_moves` ranked by 4-4b materiality; STORYLINES = wiki page
+   `state`/`trajectory`/last-change, filtered by 4-4c's `partition_canonical` so `registered` = canonical coverage,
+   `provisional` = confidence-capped — replacing the two stub lines), then the HTML dashboard, then the **discovery
+   half** (brain-driven theme / off-registry discovery + `explore` budget + bounded rabbit-holing) as its own
+   sub-project (4-4c is page-type agnostic, so promotion/pruning/quarantine apply to its provisional `theme` pages
+   for free), then the **layer-tier arc** (the cross-cutting GPU-market brief; deferred Layer/Main tiers, Part 38).
 
-1. **Brainstorm** 4-5 (`superpowers:brainstorming`) — surface intent/scope with the user (which sections; how the
-   momentum-vs-outlook divergence + "what moved" render; how provisionals are shown confidence-capped; Markdown first,
-   HTML dashboard deferred).
-2. **Spec → USER-REVIEW GATE → plan** (commit spec+plan on `main` first, like every prior piece), then
-3. **`superpowers:subagent-driven-development`** on the 4-5 plan (fresh sonnet impl/reviewer per task, opus final
-   whole-branch review), on a branch `sp4-5-…` off `main`; merge local fast-forward; keep the ledger; throwaway
-   preview-render.
-4. Later, the **DEFERRED discovery half** (brain-driven theme / off-registry discovery + `explore` budget + bounded
-   rabbit-holing) as its own sub-project — 4-4c is page-type agnostic, so its promotion/pruning/quarantine apply to
-   the discovery half's provisional `theme` pages for free the moment they're written.
+**The 4 locked 4-5 design decisions (from this session's brainstorm — don't relitigate):** (a) **scope = the
+scorecard-derivable sections only this cut** (STATE OF THE MARKET + DEMAND|SUPPLY board + a TRUST & COVERAGE caveat,
+plus the existing detailed sections as drill-down); the store-fed WHAT-MOVED/STORYLINES + the judgment WHY tree are
+**DEFERRED to 4-5b** and shown this cut as one-line honest stubs. (b) **the default `report` command is the single
+unified artifact — brief-first** (no new subcommand, no flag; typing `report` gives everything, BLUF first). (c) **new
+`gpu_agent/brief.py`** holds the new renderers and **reuses** `report.py`'s helpers; `report.py`'s `render_report`
+gets a **minimal additive edit** (prepend the brief sections + append the caveat + an optional `horizons` kwarg —
+existing helpers/order below the brief untouched); `report.py`+`Scorecard` are on the additive list, not frozen.
+(d) **honesty (Part 17): no invented magnitude word on the unscaled DMI/SMI** — lead with direction (`positive/
+negative/flat`) + the Δ-vs-prior (the *change* is the signal); earned rating words come only from the brain's
+bounded-scale judgment (`categoryStatus`, per-signal `_signal_label`); Outlook honestly reads "insufficient coverage"
+until 4-4 feeds leading findings. A test **locks** this honesty invariant. **Pure Scorecard projection — no wiki-store
+read this cut** (the store enters only in 4-5b).
 
 ## WHAT 4-4c DELIVERED (DONE, merged `6758e9f`, suite 382/3 — acceptance spec §12 all met)
 

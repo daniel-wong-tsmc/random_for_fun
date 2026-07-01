@@ -58,3 +58,54 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard]) -> str:
     if cs is not None:
         lines.append(f"  BINDING CONSTRAINT: {cs.bottleneck}")
     return "\n".join(lines)
+
+
+_TREND_ARROW = {"rising": "▲", "falling": "▼", "flat": "=", "unknown": "·"}
+
+
+def _collapse_latest(findings):
+    """One finding per indicatorId — the latest vintage (max by capturedAt, observedAt,
+    magnitude), the same collapse the frozen dmi_smi_contribution uses. Deterministic."""
+    latest: dict[str, object] = {}
+    for f in findings:
+        cur = latest.get(f.indicatorId)
+        key = (f.capturedAt, f.observedAt, f.magnitude)
+        if cur is None or key > (cur.capturedAt, cur.observedAt, cur.magnitude):
+            latest[f.indicatorId] = f
+    return latest
+
+
+def _board_rows(findings, side, sc_as_of, horizons):
+    rows = []
+    on_side = [f for f in findings if f.side == side]
+    latest = _collapse_latest(on_side)
+    for indicator_id in sorted(latest):
+        f = latest[indicator_id]
+        pol = f.polarityDemand if side == "demand" else f.polaritySupply
+        word = report._signal_label(pol * f.magnitude)
+        arrow = _TREND_ARROW.get(f.trend, "·")
+        tags = []
+        if horizons is not None:
+            tag = horizons.get(indicator_id)
+            if tag is not None and tag.get("horizon") == "leading":
+                tags.append("leading")
+        if f.asOf < sc_as_of:
+            tags.append("⚠carried")
+        suffix = ("  [" + ", ".join(tags) + "]") if tags else ""
+        rows.append(f"    {indicator_id}  {word} {arrow}{suffix}")
+    if not rows:
+        rows.append(f"    (no {side} findings)")
+    return rows
+
+
+def render_demand_supply_board(sc: Scorecard, horizons) -> str:
+    """DEMAND | SUPPLY board: findings grouped by side, collapsed to the latest vintage per
+    indicator, each row a _signal_label word (from polarity*magnitude — the same score the
+    entity panel uses) + a trend arrow, with a `leading` tag (when horizons supplied) and a
+    `carried` flag for a stale carry-over. Read-only; deterministic (rows ordered by id)."""
+    lines = ["DEMAND | SUPPLY"]
+    lines.append("  DEMAND")
+    lines.extend(_board_rows(sc.findings, "demand", sc.asOf, horizons))
+    lines.append("  SUPPLY")
+    lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons))
+    return "\n".join(lines)

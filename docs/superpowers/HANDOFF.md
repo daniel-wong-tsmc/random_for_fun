@@ -1,17 +1,16 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4d BUILT+merged → brainstorm 4-4c next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4c SPEC+PLAN written + user-approved → run subagent-driven-development next)
 
 - **Date:** 2026-07-01
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`f5f585c`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`;
+- **`main` (`256d4df`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`;
   **4-4d `f5f585c`** (all merged, local). **4-4d is BUILT + merged, suite 357 passed / 3 skipped** (opus final
-  review "Ready to merge: Yes", no Critical/Important). **4-4c is NOT yet started** — its brainstorm → spec →
-  user-review gate → plan → SDD is the next work. **NOT pushed** — `origin/main` is at `aabc4c8`; local `main` is
-  **25 commits ahead** (18 prior + 6 × 4-4d impl + this handoff); push only when the user asks. Working tree clean.
-  **Truly-frozen core** (gate/scoring/registry code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki
-  `log.py`+`page.py`+`lint.py`, `gathering/ingest.py` `normalize_documents`) byte-unchanged vs origin baseline
-  `aabc4c8`; `wiki/store.py` changed only by 4-4a's `set_body`; `wiki/ingest.py` modified additively/behavior-
-  preserving by 4-4a + 4-4b. 4-4d added ONLY the new `gpu_agent/gathering/dedup.py` + additive `cli.py` edits + the
-  daily-mode skill edits (frozen contract + `normalize_documents` + all wiki modules byte-unchanged, guard verified).
+  review "Ready to merge: Yes"). **4-4c is brainstormed, spec'd, planned, and the spec was USER-APPROVED — spec +
+  plan committed on `main`** (`7473ff3` spec, `256d4df` plan); **not yet built.** **NOT pushed** — `origin/main` is
+  at `aabc4c8`; local `main` is **28 commits ahead** (25 through the 4-4d handoff + 4-4c spec `7473ff3` + 4-4c plan
+  `256d4df`); push only when the user asks. Working tree clean. **Truly-frozen core** (gate/scoring/registry code/
+  Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`+`lint.py`, `gathering/ingest.py`
+  `normalize_documents`, `gathering/dedup.py`) byte-unchanged vs origin baseline `aabc4c8`; `wiki/store.py` changed
+  only by 4-4a's `set_body`; `wiki/ingest.py` modified additively/behavior-preserving by 4-4a + 4-4b.
 - **THE SEQUENCE WAS REORDERED THIS SESSION:** discovery (4-4c) needs gathered raw material to "notice the off-list
   topic," and the gather firehose is 4-4d — so **4-4d is now built BEFORE 4-4c**. New order:
   **4-1 → 4-2 → 4-3 → 4-4a → 4-4b → 4-4d → 4-4c → 4-5.**
@@ -26,29 +25,56 @@
 
 ---
 
-## IMMEDIATE NEXT TASK — brainstorm sub-project 4-4c (the discovery lane)
+## IMMEDIATE NEXT TASK — execute sub-project 4-4c (the provisional lifecycle engine) via subagent-driven-development
 
-**4-4d is DONE + merged** (see "What 4-4d delivered" below). The next sub-project is **4-4c — the discovery lane**,
-the last piece of 4-4. It has its OWN full workflow (do NOT jump to a plan):
-1. **`superpowers:brainstorming`** — explore intent/requirements with the user. 4-4c is the *brain discovery +
-   lifecycle* lane (4-4b spec §11): an **explore budget**; **theme pages** + **provisional off-registry topics**
-   for undefined topics the gather noticed; **quarantine** (provisional + confidence-capped + out of canonical);
-   **promotion on persist+corroborate** (Part 10/18); **provisional pruning** (consumes 4-4b's `stale` signal).
-   It **consumes 4-4d's de-noised stream + NEW candidates** (4-4d spec §10 seam) + 4-4b's materiality/`stale`.
-2. **Write the spec** → `docs/superpowers/specs/…-discovery-lane-design.md`.
-3. **USER-REVIEW GATE** — the user reviews + approves the spec before any plan (this gate is explicit for 4-4c).
-4. **`superpowers:writing-plans`** → the TDD plan; then **`superpowers:subagent-driven-development`** (fresh sonnet
-   implementer/reviewer per task, opus final) on a branch `sp4-4c-…` off `main`; **merge** (local fast-forward).
-5. Then **4-5** (per-category Market-State brief render, extends A's `report.py` — the two indices + divergence +
-   "what moved" + storylines per the design target).
+The **4-4c spec + plan are written, committed, and the spec was user-approved.** They still need the build:
+1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-07-01-discovery-lifecycle.md`
+   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
+   review**, on a branch `sp4-4c-…` off `main`. The plan is **5 TDD tasks** ending at **381 passed, 3 skipped**:
+   (1) lifecycle data models + `LifecycleConfig`; (2) `persistence` + `corroboration` + `promotion_candidates`
+   (persist ≥2 distinct `asOf` cycles + corroborate ≥2 distinct evidence sources); (3) `prune_candidates`
+   (provisional∩`stale`) + `partition_canonical` filter + the quarantine guard (`build_scorecard` takes no wiki
+   input); (4) `lifecycle()` assembly + `apply_lifecycle()` (propose-then-`--apply`, idempotent); (5) CLI wiring —
+   the new `wiki-lifecycle` subcommand (propose default; `--apply`; `--report`) + frozen guard.
+2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3/4-4a/4-4b/4-4d); keep the ledger
+   `.superpowers/sdd/progress.md` (the `sp4-4c` section exists; append each task line as its review comes back clean).
+3. **Throwaway preview-render** (seed a store with a provisional page persisted across 2 cycles citing 2 sources;
+   run `wiki-lifecycle` to show the promotion candidate + quarantine list; then `--apply` to show `status=registered`
+   going live + a non-destructive prune; confirm propose is a read-only no-op).
+4. Then **4-5** (per-category Market-State brief render, extends A's `report.py`) — its own brainstorm → spec → plan →
+   SDD → merge. And later, the **DEFERRED discovery half** (brain-driven theme / off-registry discovery + `explore`
+   budget + bounded rabbit-holing) as its own sub-project.
 
-**The 4-4d→4-4c seam is already locked (4-4d spec §10):** 4-4d hands 4-4c (a) the fresh `RawDocument`s that survived
-L1, (b) the gated findings partitioned NEW/UPDATE/DUPLICATE by L2, and (c) the **NEW** findings for an
-`(entity, indicatorId)` not yet in the registry = the clean **candidate stream** for discovery. 4-4d itself does
-**not** create theme pages, define provisional off-registry topics, apply the explore budget, or run
-promotion/pruning — **those are 4-4c.** 4-4d routes to *entity* pages via the existing 4-4a `wiki-ingest` (which
-auto-creates *provisional* entity pages) and surfaces undefined/theme material as the logged candidate stream. Clean
-boundary: **4-4d supplies honest, fresh, de-duplicated input; 4-4c decides what to open, quarantine, promote, prune.**
+**What 4-4c builds (acceptance = spec §12):** the pure-code **provisional lifecycle engine**
+(`gpu_agent/wiki/lifecycle.py`): **promotion** — a provisional page observed across ≥`min_persist_cycles` distinct
+`asOf` cycles AND citing ≥`min_sources` distinct evidence sources is *proposed* for promotion; `--apply` flips
+`status=registered` idempotently (charter's "reviewed → promoted" gate; nothing auto-promoted). **Pruning** —
+a provisional+`stale` (4-4b signal) page is *proposed* for prune; `--apply` floors salience via the existing
+`record_state` (non-destructive; no delete, no new status). **Quarantine** — `partition_canonical(index) →
+(registered, provisional)` is the reusable filter seam; provisionals are surfaced as `confidence-capped`
+`QuarantineEntry`s; a guard test locks that `build_scorecard` takes no wiki/page input (provisional can't move
+DMI/SMI). A `LifecycleReport` counts + lists everything (`provisionalConsidered == len(quarantined)`). Additive:
+the new module + the `wiki-lifecycle` CLI. Frozen core (incl. all wiki modules + `gathering`) byte-unchanged; no new
+`status` value, no new `LogEvent.kind`, no new dependency.
+
+**The 4 locked 4-4c design decisions (from this session's brainstorm — don't relitigate):** (a) **scope = the
+pure-code lifecycle engine only** — the brain discovery step + `explore` budget are a DEFERRED later sub-project;
+(b) **promotion = persist (observations across ≥2 distinct `asOf`) + corroborate (≥2 distinct evidence sources)** —
+read from persisted state (the per-cycle `lint` event has `pageId=None`, so the material-per-cycle history is NOT
+persisted; and post-4-4d a new-cycle observation already implies a NEW/UPDATE material fact); (c) **propose-don't-
+auto-register** — `status` flip only behind `--apply`; (d) **non-destructive pruning** — salience floor, no delete,
+no new `status`/`LogEvent.kind` (`page.py`/`log.py` stay frozen); the `LifecycleReport` + page `status`/
+`lastUpdatedAsOf` are the replayable audit trail. Quarantine = a reusable `partition_canonical` filter + report +
+guard test. Module = `gpu_agent/wiki/lifecycle.py` (existing wiki package). CLI reads 4-4b's `stale` via
+`lint(...).health.stale` (computed in the handler like `wiki-lint`).
+
+**Why the discovery half is deferred (decided with the user this session):** 4-4c originally spanned ~6 greenfield
+capabilities. The lifecycle half (promotion/pruning/quarantine) is pure code, testable over the provisional pages
+that already exist (4-4a auto-creates provisional entity pages; 4-4d UPDATEs keep them moving) — matching the
+4-4b/4-4d rhythm. The brain-driven *discovery* half (theme-page **creation**, `explore` budget, off-registry topic
+definition, bounded rabbit-holing — a new `--emit-prompt` seam) is a larger, separate design and is its own future
+sub-project. Because 4-4c is **page-type agnostic** (reads only `status`), the moment the discovery half writes
+provisional `theme` pages, promotion/pruning/quarantine apply to them for free.
 
 ## WHAT 4-4d DELIVERED (DONE, merged `f5f585c`, suite 357/3 — acceptance spec §13 all met)
 
@@ -239,10 +265,13 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
     L1; new `wiki-dedup` subcommand L2); daily gather mode + numeric scrape skill edits (Part 22 honest —
     gatherer→frozen extract/gate; paywalled labeled `estimate`/never fetched). Opus final "Ready to merge: Yes";
     preview-confirmed LIVE. Additive; frozen + `normalize_documents` + all wiki modules byte-unchanged. ← **firehose done.**
-  - **4-4c — resume here (the discovery lane, last 4-4 piece). NOT yet started.** Discovery lane on live gather
-    input: explore budget + theme pages + provisional off-registry topics + quarantine + promotion on
-    persist+corroborate (consumes 4-4b materiality + 4-4d's NEW candidates) + provisional pruning (consumes 4-4b
-    `stale`). NOT yet spec'd — **brainstorm → spec → USER-REVIEW GATE → plan → SDD → merge.**
+  - **4-4c — resume here (SPEC + PLAN written/committed `7473ff3`/`256d4df`, spec USER-APPROVED, not yet built).**
+    ← **run SDD on the 4-4c plan `2026-07-01-discovery-lifecycle.md`.** 5 TDD tasks → 381/3. **Scope split this
+    session:** 4-4c = the **pure-code lifecycle engine** only (promotion via persist+corroborate + non-destructive
+    pruning of `stale` provisionals + quarantine filter/report/guard) in `gpu_agent/wiki/lifecycle.py` + a
+    `wiki-lifecycle` CLI. The **brain-driven discovery half** (theme-page creation + `explore` budget + off-registry
+    discovery + bounded rabbit-holing) is **DEFERRED to its own later sub-project.** Additive; frozen + all wiki
+    modules byte-unchanged; no new `status`/`LogEvent.kind`.
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two
   indices + the divergence + "what moved" + storylines per the design target.)
 

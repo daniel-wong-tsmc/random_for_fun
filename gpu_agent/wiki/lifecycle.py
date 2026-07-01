@@ -103,3 +103,37 @@ def partition_canonical(index):
     registered = [e for e in index if e.status == "registered"]
     provisional = [e for e in index if e.status == "provisional"]
     return registered, provisional
+
+
+def lifecycle(store, *, as_of, stale, config=DEFAULT_LIFECYCLE_CONFIG) -> LifecycleReport:
+    """Propose the cycle's lifecycle actions (read-only). Every provisional page is examined and
+    surfaced as a QuarantineEntry; promotions/prunes annotate subsets of them. Nothing is mutated."""
+    _, provisional = partition_canonical(store.index())
+    quarantined = [QuarantineEntry(pageId=e.id, status=e.status)
+                   for e in sorted(provisional, key=lambda e: e.id)]
+    return LifecycleReport(
+        asOf=as_of,
+        promotions=promotion_candidates(store, config),
+        prunes=prune_candidates(store, stale),
+        quarantined=quarantined,
+        provisionalConsidered=len(provisional))
+
+
+def apply_lifecycle(store, report, *, as_of, config=DEFAULT_LIFECYCLE_CONFIG) -> AppliedSummary:
+    """The --apply path (the charter's 'reviewed -> promoted' step). Promote via update_header;
+    prune via a non-destructive salience floor (record_state keeps state/trajectory). Idempotent:
+    an already-registered page is not re-promoted; an already-floored page is not re-floored."""
+    promoted = 0
+    for pc in report.promotions:
+        page = store.get_page(pc.pageId)
+        if page.status != "registered":
+            store.update_header(pc.pageId, as_of=as_of, status="registered")
+            promoted += 1
+    pruned = 0
+    for pr in report.prunes:
+        page = store.get_page(pr.pageId)
+        if page.salience > config.prune_salience_floor:
+            store.record_state(pr.pageId, as_of=as_of, state=page.state,
+                               trajectory=page.trajectory, salience=config.prune_salience_floor)
+            pruned += 1
+    return AppliedSummary(promoted=promoted, pruned=pruned)

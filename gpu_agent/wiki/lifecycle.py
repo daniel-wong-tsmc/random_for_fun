@@ -45,3 +45,38 @@ class LifecycleConfig(BaseModel):
 
 
 DEFAULT_LIFECYCLE_CONFIG = LifecycleConfig()
+
+
+def persistence(store, page_id: str) -> int:
+    """Distinct asOf cycles the page has been observed across (post-4-4d, each new-cycle
+    observation is a genuinely NEW/UPDATE fact — DUPLICATE re-reports never create observations)."""
+    return len({o.asOf for o in store.observations(page_id)})
+
+
+def corroboration(store, page_id: str) -> int:
+    """Distinct evidence sources across all findings observed on the page (Part 10 corroboration)."""
+    sources: set[str] = set()
+    for o in store.observations(page_id):
+        if not store.findings.exists(o.findingId):
+            continue
+        f = store.findings.get(o.findingId)
+        for e in f.evidence:
+            sources.add(e.source)
+    return len(sources)
+
+
+def promotion_candidates(store, config=DEFAULT_LIFECYCLE_CONFIG) -> list[PromotionCandidate]:
+    """Provisional pages (any type) that meet BOTH the persist and corroborate bars. Read-only;
+    ordered by pageId. Registered pages are already canonical and are skipped."""
+    cands: list[PromotionCandidate] = []
+    for entry in sorted(store.index(), key=lambda e: e.id):
+        if entry.status != "provisional":
+            continue
+        pc = persistence(store, entry.id)
+        src = corroboration(store, entry.id)
+        if pc >= config.min_persist_cycles and src >= config.min_sources:
+            cands.append(PromotionCandidate(
+                pageId=entry.id, type=entry.type, title=entry.title,
+                persistCycles=pc, distinctSources=src,
+                verdict=f"persisted {pc} cycles, {src} sources -> promote"))
+    return cands

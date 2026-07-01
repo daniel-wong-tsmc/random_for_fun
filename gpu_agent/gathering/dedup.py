@@ -6,6 +6,8 @@ import json
 import pathlib
 from gpu_agent.gathering.ingest import _normalize_url
 from gpu_agent.schema.raw_document import RawDocument
+from gpu_agent.wiki.store import WikiStore, PageNotFound
+from gpu_agent.wiki.ingest import slug
 
 
 class DroppedDoc(BaseModel):
@@ -103,3 +105,55 @@ def filter_seen_documents(docs, index: SeenDocIndex, *, as_of):
         index.record(url_norm, chash, as_of)
         survivors.append(doc)
     return survivors, dropped
+
+
+def _norm_statement(s: str) -> str:
+    return " ".join((s or "").split()).lower()
+
+
+def prior_vintage(store, entity: str, indicator_id: str):
+    """The store's latest-vintage Finding for (entity, indicatorId), read through the entity page's
+    observations (FindingStore has no iteration). Latest by (capturedAt, observedAt, magnitude) —
+    the same collapse the frozen dmi_smi_contribution uses. None if the page/indicator is absent."""
+    pid = f"entity:{slug(entity)}"
+    try:
+        obs = store.observations(pid)
+    except PageNotFound:
+        return None
+    cands = []
+    for o in obs:
+        try:
+            f = store.findings.get(o.findingId)
+        except Exception:
+            continue
+        if f.indicatorId == indicator_id:
+            cands.append(f)
+    if not cands:
+        return None
+    return max(cands, key=lambda f: (f.capturedAt, f.observedAt, f.magnitude))
+
+
+def changed(prior, fresh, config=DEFAULT_DEDUP_CONFIG) -> bool:
+    """UPDATE vs DUPLICATE. Measured: value delta beyond rel_tol OR magnitude change. Qualitative:
+    a value appearing/disappearing, or a normalized-statement / trend / magnitude change."""
+    pv = prior.value.number if prior.value is not None else None
+    fv = fresh.value.number if fresh.value is not None else None
+    if pv is not None and fv is not None:
+        if abs(fv - pv) > config.rel_tol * max(abs(pv), config.eps):
+            return True
+        return fresh.magnitude != prior.magnitude
+    if (pv is None) != (fv is None):
+        return True  # a measured value appeared or disappeared
+    return (_norm_statement(fresh.statement) != _norm_statement(prior.statement)
+            or fresh.trend != prior.trend
+            or fresh.magnitude != prior.magnitude)
+
+
+def delta_detail(prior, fresh, config=DEFAULT_DEDUP_CONFIG) -> str:
+    pv = prior.value.number if prior.value is not None else None
+    fv = fresh.value.number if fresh.value is not None else None
+    if pv is not None and fv is not None:
+        return f"value {pv} -> {fv} (tol {config.rel_tol:.0%})"
+    if fresh.magnitude != prior.magnitude:
+        return f"magnitude {prior.magnitude} -> {fresh.magnitude}"
+    return f"statement/trend changed (trend {prior.trend} -> {fresh.trend})"

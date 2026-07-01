@@ -71,3 +71,16 @@ def test_registered_page_skipped(tmp_path):
     _seed(store, _f("f2", "NVDA", "rpoBacklog", sources=["reuters"], asOf="2026-07", capturedAt="2026-07-01"), "2026-07")
     store.update_header("entity:nvda", as_of="2026-07", status="registered")
     assert promotion_candidates(store, DEFAULT_LIFECYCLE_CONFIG) == []  # already registered
+
+
+def test_persistence_counts_distinct_not_raw(tmp_path):
+    # Two findings observed in the SAME asOf cycle -> two observations sharing one asOf.
+    # persistence must count DISTINCT asOf (1), not raw observation count (2), so a single
+    # cycle is NOT promotable even with 2 corroborating sources. Locks the persist bar
+    # against a naive len(observations) refactor (append_observation does not dedup by asOf).
+    store = _store(tmp_path)
+    _seed(store, _f("f1", "NVDA", "rpoBacklog", sources=["sec"], asOf="2026-06", capturedAt="2026-06-01"), "2026-06")
+    _seed(store, _f("f2", "NVDA", "rpoBacklog", sources=["reuters"], asOf="2026-06", capturedAt="2026-06-02"), "2026-06")
+    assert persistence(store, "entity:nvda") == 1
+    assert corroboration(store, "entity:nvda") == 2
+    assert promotion_candidates(store, DEFAULT_LIFECYCLE_CONFIG) == []

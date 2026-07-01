@@ -1,7 +1,7 @@
 import json
 from gpu_agent.cli import main
 from gpu_agent.store import FindingStore
-from gpu_agent.wiki.store import WikiStore, PageNotFound
+from gpu_agent.wiki.store import WikiStore
 from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence
 
 

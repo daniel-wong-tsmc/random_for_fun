@@ -1,6 +1,6 @@
 import inspect
 from gpu_agent.store import FindingStore
-from gpu_agent.wiki.store import WikiStore, PageNotFound
+from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.lint import StaleEntry
 from gpu_agent.wiki.lifecycle import prune_candidates, partition_canonical
 from gpu_agent.pipeline import build_scorecard

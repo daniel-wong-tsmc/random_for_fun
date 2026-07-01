@@ -157,3 +157,34 @@ def delta_detail(prior, fresh, config=DEFAULT_DEDUP_CONFIG) -> str:
     if fresh.magnitude != prior.magnitude:
         return f"magnitude {prior.magnitude} -> {fresh.magnitude}"
     return f"statement/trend changed (trend {prior.trend} -> {fresh.trend})"
+
+
+def classify_findings(findings, store, *, config=DEFAULT_DEDUP_CONFIG) -> DedupResult:
+    """L2: partition this cycle's gated findings into NEW / UPDATE / DUPLICATE vs the store's latest
+    vintage per (entity, indicatorId). Findings sharing a key are first collapsed to their own latest
+    vintage (same tie-break); superseded batch-mates are DUPLICATE. Nothing silent."""
+    by_key: dict[tuple[str, str], list] = {}
+    for f in findings:
+        by_key.setdefault((f.entity, f.indicatorId), []).append(f)
+
+    result = DedupResult()
+    for (entity, ind), group in sorted(by_key.items()):
+        ordered = sorted(group, key=lambda f: (f.capturedAt, f.observedAt, f.magnitude), reverse=True)
+        rep, superseded = ordered[0], ordered[1:]
+        prior = prior_vintage(store, entity, ind)
+        if prior is None:
+            result.new.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+                                           verdict="new"))
+        elif changed(prior, rep, config):
+            result.update.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+                                              verdict="update", priorFindingId=prior.id,
+                                              detail=delta_detail(prior, rep, config)))
+        else:
+            result.duplicate.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+                                                verdict="duplicate", priorFindingId=prior.id,
+                                                detail="unchanged within tolerance"))
+        for s in superseded:
+            result.duplicate.append(FindingClass(findingId=s.id, entity=entity, indicatorId=ind,
+                                                verdict="duplicate",
+                                                detail="superseded by intra-batch latest vintage"))
+    return result

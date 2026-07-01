@@ -1,66 +1,91 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4b BUILT + merged → brainstorm sub-project 4-4c next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4d SPEC+PLAN written → run subagent-driven-development next)
 
-- **Date:** 2026-06-30
+- **Date:** 2026-07-01
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`8cee8a3`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; **4-4b `8cee8a3`** (all merged,
-  local). **4-4b is BUILT + merged (local fast-forward), suite 332 passed / 3 skipped.** Built via SDD (fresh sonnet
-  implementer/reviewer per task, **opus final whole-branch review = "Ready to merge: Yes"**, no Critical/Important).
-  **NOT pushed** — `origin/main` is at `aabc4c8`; local `main` is **15 commits ahead** (8 prior + 6 × 4-4b impl +
-  the spec-§8 doc fix `8cee8a3`); push only when the user asks. Working tree clean. **Truly-frozen core**
-  (gate/scoring/registry code/Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`)
+- **`main` (`fad9203`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; **4-4b `8cee8a3`** (all merged,
+  local). **4-4b is BUILT + merged, suite 332 passed / 3 skipped** (opus final review "Ready to merge: Yes").
+  **4-4d is brainstormed, spec'd, and planned — spec + plan committed on `main`** (`3b1f216` spec, `fad9203` plan);
+  **not yet built.** **NOT pushed** — `origin/main` is at `aabc4c8`; local `main` is **18 commits ahead** (8 prior +
+  6 × 4-4b impl + spec-§8 fix `8cee8a3` + handoff `08f1eda` + 4-4d spec `3b1f216` + 4-4d plan `fad9203`); push only
+  when the user asks. Working tree clean. **Truly-frozen core** (gate/scoring/registry code/Finding schema/pipeline
+  Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`+`lint.py`, `gathering/ingest.py` `normalize_documents`)
   byte-unchanged vs origin baseline `aabc4c8`; `wiki/store.py` changed only by 4-4a's `set_body`; `wiki/ingest.py`
   modified additively/behavior-preserving by 4-4a + 4-4b.
-- **For the next Claude instance:** read this file, then start **sub-project 4-4c** with **`superpowers:brainstorming`**
-  (it is NOT yet spec'd — it needs brainstorm → spec → **user-review gate** → plan → SDD → merge). Read the **4-4a
-  spec §0** (the locked 4-4 decomposition) and the merged **4-4b spec §0 + §11** (`2026-06-30-wiki-lint-relevance-
-  engine-design.md` — the **locked 4-4b↔4-4c boundary**: 4-4b produces the materiality + `stale` signals; **4-4c
-  consumes them** — materiality → promotion, `stale` → provisional pruning) and the umbrella spec
-  (`2026-06-27-daily-monitor-decomposition-design.md`). Skim 4-1's `wiki/store.py` (provisional pages, `status`
-  field, theme page type already supported) since 4-4c adds theme pages + the provisional/quarantine/promotion
-  lifecycle. Check the SDD ledger `.superpowers/sdd/progress.md` + `git log` so you don't redo finished work.
+- **THE SEQUENCE WAS REORDERED THIS SESSION:** discovery (4-4c) needs gathered raw material to "notice the off-list
+  topic," and the gather firehose is 4-4d — so **4-4d is now built BEFORE 4-4c**. New order:
+  **4-1 → 4-2 → 4-3 → 4-4a → 4-4b → 4-4d → 4-4c → 4-5.**
+- **For the next Claude instance:** read this file, then the **4-4d plan**
+  `docs/superpowers/plans/2026-07-01-daily-gather-scrape-dedup.md` and its **spec**
+  `docs/superpowers/specs/2026-07-01-daily-gather-scrape-dedup-design.md` (§0 has the locked decisions + the reorder;
+  §10 the 4-4d↔4-4c seam). Skim the existing Part-37 ingest seam `gpu_agent/gathering/ingest.py` (`normalize_documents`
+  — 4-4d's L1 runs *after* it, frozen), the merged **4-4a/4-4b** (`2026-06-29-wiki-ingest*`, `2026-06-30-wiki-lint*`
+  — 4-4d feeds 4-4a `wiki-ingest` and its UPDATEs become 4-4b material moves), and the **4-2** `sourceInventory` +
+  `cadenceHorizon` (the scrape sources + cadence prioritization). Check the SDD ledger `.superpowers/sdd/progress.md`
+  + `git log` so you don't redo finished work. The immediate task is to **execute the 4-4d plan via SDD.**
 
 ---
 
-## IMMEDIATE NEXT TASK — brainstorm + spec sub-project 4-4c (the discovery lane), then build via SDD
+## IMMEDIATE NEXT TASK — execute sub-project 4-4d (the input firehose) via subagent-driven-development
 
-**4-4c is NOT yet designed** — unlike 4-4b (which arrived spec'd+planned), 4-4c starts from scratch:
-1. **`superpowers:brainstorming`** to design 4-4c, honoring the **locked 4-4b↔4-4c seam** (4-4b spec §11): 4-4c is
-   the **brain discovery + page lifecycle** that *consumes* 4-4b's deterministic signals. Scope (umbrella spec +
-   charter Parts 18/10/37): the **explore budget**; **theme pages** + **provisional off-registry topics** (undefined
-   topics the brain wants to chase); **quarantine** from canonical; **promotion on persist + corroborate across
-   cycles** (reads 4-4b's per-cycle materiality / `lint` events); **provisional pruning** (reads 4-4b's `stale`
-   signal); **follow-the-trail with brakes**. 4-4b already honors the 5 design-for-4-4c constraints (page-type
-   agnostic, status carried, no lifecycle mutation, emits `lint` events, produces `stale`) so **4-4c forces no
-   4-4b rework**.
-2. → **spec** → **USER-REVIEW GATE** (the user reviews the 4-4c spec before planning) → **`superpowers:writing-plans`**
-   → **`superpowers:subagent-driven-development`** (same cadence: fresh sonnet impl/review per task, opus final) →
-   **merge** (local fast-forward) → preview. Keep the ledger updated.
-3. Then **4-4d** (daily gather mode + numeric scrape sweep + cross-run dedup-vs-store), same flow; then **4-5**
-   (per-category Market-State brief render, extends A's `report.py`).
+The **4-4d spec + plan are written and committed.** They still need the build:
+1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-07-01-daily-gather-scrape-dedup.md`
+   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
+   review**, on a branch `sp4-4d-…` off `main`. The plan is **6 TDD tasks** ending at **357 passed, 3 skipped**:
+   (1) dedup data models + `DedupConfig`; (2) `SeenDocIndex` + L1 pre-brain document dedup (URL + content-hash);
+   (3) prior-vintage lookup (via the entity page's observations — `FindingStore` has no iteration) + the
+   tolerance-based change test; (4) L2 `classify_findings` — NEW/UPDATE/DUPLICATE + intra-batch collapse;
+   (5) CLI wiring — `ingest --dedup-store` (L1) + the new `wiki-dedup` subcommand (L2) + frozen guard; (6) the
+   daily gather mode + numeric scrape skill edits (`gather-category`/`run-cycle` — **session-run, dry-run validated**,
+   like sp2 Task 3 / sp3-A Task 10, no pytest).
+2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3/4-4a/4-4b); keep the ledger `.superpowers/sdd/progress.md`
+   (append an `sp4-4d` section; mark each task complete when its review is clean).
+3. **Throwaway preview-render** (seed a store, run `ingest --dedup-store` twice to show L1 drop known docs, then
+   `wiki-dedup` to show the NEW/UPDATE/DUPLICATE split + the `DedupReport` going live).
+4. Then **4-4c** (discovery lane on live gather input) — its own brainstorm → spec → **user-review gate** → plan →
+   SDD → merge; then **4-5** (per-category Market-State brief render, extends A's `report.py`).
 
-**What 4-4b builds (acceptance = spec §14):** a pure-code `wiki-lint` pass (`gpu_agent/wiki/lint.py` + CLI, **no new
-brain step**) that ranks the daily `diff`'s **material moves** (new-thread | state/trajectory change |
-contradicts-thesis[highest] | moves-scoring-indicator∝magnitude, × tier × recency × leading-boost × the brain's
-intrinsic `salience`; below-threshold moves **dropped + logged**), applies **non-destructive salience decay** (a
-per-thread half-life **input-derived** from 4-2's `cadence × horizon` tags — cadence-driven, leading-floored,
-longest-class-wins; `quiet_age` by cycle-count; `effective_salience = intrinsic × 0.5^(quiet_age/half_life)`; a
-`stale` flag), and a **structural health** pass (orphans / stale / asymmetric + mention-without-link cross-ref gaps /
-contradiction roll-up). The contradiction is read via a **shared `format`/`parse` helper in `ingest.py`** (the brain
-flagged it at 4-4a ingest; `LogEvent` is frozen, so the helper is the seam). Emits one **idempotent `lint` log
-event** per `asOf`. **The 4-4b↔4-4c boundary is locked:** 4-4b produces signals; 4-4c (discovery) consumes them
-(materiality → promotion; `stale` → provisional pruning). 4-4b honors 5 design-for-4-4c constraints: page-type
-agnostic (entity+theme), status-agnostic-but-carried, **no lifecycle mutation**, emits `lint` events, produces the
-`stale` signal. Pure-semantic (no-mention) cross-ref suggestions are a **deferred follow-up** (a future lint
-brain-seam). Frozen contract + the existing 4-1/4-4a `wiki/store.py`/`log.py`/`page.py` members byte-unchanged;
-`ingest.py` modified additively/behavior-preserving; committed fixtures unchanged; numbers only from gated findings;
-nothing silent.
+**What 4-4d builds (acceptance = spec §13):** the daily **input firehose**. A pure-code **cross-run dedup-vs-store**
+engine (`gpu_agent/gathering/dedup.py`): **L1** a persistent `SeenDocIndex` (URL + content-hash → first-seen `asOf`)
+that drops already-seen documents **before** extraction; **L2** a finding-level classifier that, per
+`(entity, indicatorId)` vs the store's latest vintage, splits gated findings into **NEW / UPDATE / DUPLICATE**
+(NEW+UPDATE ingest via 4-4a; DUPLICATE logged + dropped) — tolerance-based (1% default) with an intra-batch collapse;
+a `DedupReport` counts everything (**nothing silent**). Wired additively into the CLI (`ingest --dedup-store` L1;
+new `wiki-dedup` subcommand L2). Plus the **daily gather mode** (recency-windowed Part-37 loop, cadence-prioritized,
+caps logged) + the **numeric scrape sweep** — a permissive daily source (e.g. `gpuSpotPrice`) is a gatherer snapshot
+→ the **FROZEN** `extract → gate` → a measured Finding (no code number-path; **Part 22**: paywalled labeled
+`estimate`, never fetched). Frozen contract + `normalize_documents` + all wiki modules byte-unchanged; additive only;
+no new dependency.
 
-**Already folded into the 4-4b plan (the 4-4a deferred Minor that fits):** the `PageEnrichment.salience` `[0,1]`
-bound (Task 1). The other 4-4a minors (CLI mutually-exclusive flags, file-read `try/except`, 4-4a test-quality nits)
-remain logged in the ledger, not 4-4b-relevant.
+**The 4 locked 4-4d design decisions (from this session's brainstorm — don't relitigate):** (a) **reorder** 4-4d
+before 4-4c; (b) **full firehose** — all three pieces in one sub-project; (c) **hybrid dedup** — L1 doc URL/hash
+pre-brain + L2 finding-level NEW/UPDATE/DUPLICATE post-gate; (d) numeric scrape rides the **frozen brain**
+(gatherer-snapshot → extract→gate, no new code number-source path). Plus: L1 memory = a new persistent seen-doc
+index; L2 "changed" = tolerance-based; one 4-4d spec (code core via SDD/pytest + skill edits via dry-run) on one
+branch.
 
-**Then continue:** **4-4c** (discovery lane: explore budget + theme pages + provisional/quarantine/promotion) →
-**4-4d** (daily gather mode + numeric scrape sweep + dedup-vs-store) → **4-5** (per-category Market-State brief).
+**Plan realizations pinned (the plan is the authority):** the module is `gpu_agent/gathering/dedup.py` (the
+*existing* `gathering/` package, not a new `gather/`); `DedupReport` carries the finding-level verdicts while L1's
+doc drops fold into the `ingest` gather-log (`droppedKnown`) — the two run at different pipeline stages; the current
+`ingest` subparser has only `--blobs`/`--out`/`--primary-sources`, so Task 5 adds `--dedup-store` **and** `--as-of`.
+
+**What 4-4b delivered (DONE, merged `8cee8a3`, suite 332/3):** a pure-code `wiki-lint` pass
+(`gpu_agent/wiki/lint.py` + CLI, **no new brain step**) that ranks the daily `diff`'s **material moves** (new-thread
+| state/trajectory change | contradicts-thesis[highest] | moves-scoring-indicator∝magnitude, × tier × recency ×
+leading-boost × the brain's intrinsic `salience`; below-threshold moves **dropped + logged**), applies
+**non-destructive salience decay** (per-thread half-life input-derived from 4-2's `cadence × horizon` tags;
+`quiet_age` by cycle-count; `effective_salience = intrinsic × 0.5^(quiet_age/half_life)`; a `stale` flag), and a
+**structural health** pass (orphans / stale / asymmetric + mention-without-link cross-ref gaps / contradiction
+roll-up). The contradiction is read via a **shared `format`/`parse` helper in `ingest.py`**; emits one **idempotent
+`lint` log event** per `asOf`. Folded in the 4-4a deferred Minor (`PageEnrichment.salience` `[0,1]` bound). Opus
+final review "Ready to merge: Yes" (no Critical/Important); the one pre-merge item was a doc fix (spec §8 CrossRefGap
+field names → shipped `source`/`target`). **Preview-confirmed LIVE:** ranked material moves (contradiction as the
+highest factor), non-destructive decay (stored salience unchanged), the `stale` signal, the health report.
+**The 4-4b↔4-4c boundary is locked (4-4b spec §11):** 4-4b produces signals; **4-4c consumes them** (materiality →
+promotion; `stale` → provisional pruning). 4-4b honors 5 design-for-4-4c constraints (page-type agnostic, status
+carried, no lifecycle mutation, emits `lint` events, produces `stale`). **4-4b deferred follow-ups** (logged in the
+ledger, non-blocking): the optional precise W_state guard (`im.oldState!=im.newState or im.oldTrajectory!=…`) for the
+cosmetic salience-only over-fire; `_is_scoring` ignoring per-category overrides (latent); `mention-without-link`
+substring vs spec §4 "token match"; dangling-crossRef silently skipped in the asymmetric check.
 
 **What 4-4a delivered (DONE, acceptance spec §9 all met):** a `wiki-ingest` CLI that (Phase 1, code) routes each
 gated finding to `entity:<slug(finding.entity)>` idempotently (auto-create provisional pages, append observations,
@@ -72,10 +97,13 @@ wiki/store members byte-unchanged; committed fixtures unchanged; numbers only fr
 `accelerating`, trajectory `steady -> accelerating`, salience 0.9, crossRefs `[entity:amd]`, body cites
 `[f-nvda-d2]`); log = create/append per finding + one `state-change` + exactly one `ingest`.
 
-**4-4 decomposition (locked in the 4-4a spec §0):** **4-4a** ingest writer (this) → **4-4b** relevance engine
-(materiality/lint score + salience decay) → **4-4c** discovery lane (explore budget + theme pages + provisional
-off-registry topics + quarantine + promotion on persist+corroborate, Part 10) → **4-4d** daily gather mode +
-numeric scrape sweep + cross-run dedup-vs-store. 4-5 (the brief render) comes after 4-4.
+**4-4 decomposition (locked in the 4-4a spec §0; 4-4c/4-4d REORDERED this session):** **4-4a** ingest writer (done)
+→ **4-4b** relevance engine / lint (done) → **4-4d** daily gather + numeric scrape + cross-run dedup-vs-store
+(spec+plan written, next to build) → **4-4c** discovery lane (explore budget + theme pages + provisional off-registry
+topics + quarantine + promotion on persist+corroborate, Part 10 — consumes 4-4d's de-noised stream + 4-4b's
+materiality/`stale` signals). 4-5 (the brief render) comes after 4-4. **Why the reorder:** 4-4c's brain discovery
+needs gathered raw material to notice off-list topics — that is exactly what 4-4d produces, so the firehose is built
+first (decided this session with the user).
 
 **Deferred follow-ups to fold in where they fit** (logged in the ledger): from 4-2 — `gpuSpotPrice` dimension is
 `null` in registry vs `"momentum"` in the manifest `ExpectedIndicator` (add a manifest↔registry consistency test
@@ -174,7 +202,7 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
   window/index/`diff`). Pure code + diff; brain ingest deferred to 4-4. Suite 248/3.
 - **4-2 — Leading + daily indicators: DONE, merged to `main` (`2e3ba83`, pushed).** Suite 268/3.
 - **4-3 — Two indices Momentum/Outlook split by horizon: DONE, merged to `main` (`3f776a8`, pushed).** Suite 282/3.
-- **4-4 — decomposed into 4-4a→4-4b→4-4c→4-4d** (the daily gather + relevance + discovery engine):
+- **4-4 — decomposed into 4-4a→4-4b→4-4d→4-4c** (REORDERED: gather firehose before discovery):
   - **4-4a — Brain ingest into the wiki: DONE, merged to `main` (`bccc16e`, local).** Suite 300/3. The keystone
     wiki *writer*: `wiki-ingest` CLI (Phase-1 deterministic entity routing + Phase-2 brain enrichment via
     `--emit-prompt`→`--recorded`), additive `WikiStore.set_body`, `gpu_agent/wiki/ingest.py`. Opus final review
@@ -186,10 +214,16 @@ coverage) are DONE+merged+pushed. **sp4 = turn the quarterly scorecard into a da
     seam + `PageEnrichment.salience` `[0,1]` bound in `ingest.py` (behavior-preserving), the `wiki-lint` CLI, one
     idempotent `lint` event/cycle. Opus final review "Ready to merge: Yes". Preview-confirmed LIVE (ranked material
     moves, contradiction as highest factor, non-destructive decay, `stale` signal, health). ← **4-4 relevance done.**
-  - **4-4c — resume here (brainstorm next).** Discovery lane: explore budget + theme pages + provisional off-
-    registry topics + quarantine + promotion on persist+corroborate (consumes 4-4b materiality) + provisional
-    pruning (consumes 4-4b `stale`). NOT yet spec'd — brainstorm → spec → user-review gate → plan → SDD → merge.
-  - **4-4d — not started.** (daily gather mode + numeric scrape sweep + cross-run dedup-vs-store.)
+  - **4-4d — resume here (SPEC + PLAN written/committed `3b1f216`/`fad9203`, not yet built).** ← **run SDD on the
+    4-4d plan `2026-07-01-daily-gather-scrape-dedup.md`.** 6 TDD tasks → 357/3. The input firehose: cross-run
+    dedup-vs-store (L1 `SeenDocIndex` pre-brain doc dedup + L2 finding-level NEW/UPDATE/DUPLICATE post-gate,
+    tolerance-based) in `gpu_agent/gathering/dedup.py`; CLI wiring (`ingest --dedup-store` + `wiki-dedup`); daily
+    gather mode + numeric scrape (skill, Part 22 honest — gatherer→frozen extract/gate). Additive; frozen +
+    `normalize_documents` + all wiki modules byte-unchanged.
+  - **4-4c — after 4-4d.** Discovery lane on live gather input: explore budget + theme pages + provisional off-
+    registry topics + quarantine + promotion on persist+corroborate (consumes 4-4b materiality + 4-4d's NEW
+    candidates) + provisional pruning (consumes 4-4b `stale`). NOT yet spec'd — brainstorm → spec → user-review
+    gate → plan → SDD → merge.
 - **4-5 — not started.** (Per-category Market-State brief in Markdown, extends A's `report.py`; renders the two
   indices + the divergence + "what moved" + storylines per the design target.)
 

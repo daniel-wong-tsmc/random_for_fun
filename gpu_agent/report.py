@@ -13,6 +13,7 @@ from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
 from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -529,6 +530,8 @@ def render_report(
     prior: Optional[Scorecard],
     registry: IndicatorRegistry,
     render_ts: Optional[str] = None,
+    *,
+    horizons=None,
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -536,17 +539,26 @@ def render_report(
     with a blank line. ``render_ts`` is injected (the clock is only read here when
     the caller passes None) so output is byte-identical for identical inputs.
 
+    The Market-State brief sections (render_state_of_market, render_demand_supply_board,
+    render_deferred_stubs) are prepended after the header; render_market_caveat is
+    appended as the trust footer. ``horizons`` is an optional IndicatorHorizons instance
+    passed to render_demand_supply_board for leading-indicator tagging.
+
     Args:
         sc: the current scorecard to render.
         prior: the previous-cycle scorecard for Δ columns; None for no delta.
         registry: the indicator registry for evidence-quality dimension mapping.
         render_ts: ISO-8601 timestamp string for the header; defaults to now(UTC).
+        horizons: optional IndicatorHorizons for the demand/supply board leading tags.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
 
     sections = [
         render_header(sc, render_ts),
+        brief.render_state_of_market(sc, prior),          # NEW — BLUF
+        brief.render_demand_supply_board(sc, horizons),   # NEW
+        brief.render_deferred_stubs(),                    # NEW — 4-5b stubs
         render_overall_status(sc),
         render_dimensions(sc, prior),
         render_dmi_smi_sdgi(sc, prior),
@@ -554,5 +566,6 @@ def render_report(
         render_evidence_quality(sc, registry),
         render_sources(sc),
         render_coverage_gaps(sc),
+        brief.render_market_caveat(sc),                   # NEW — trust footer caveat
     ]
     return "\n\n".join(sections)

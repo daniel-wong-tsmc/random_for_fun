@@ -341,7 +341,9 @@ def _report(args) -> int:
                     pass  # silently skip unreadable prior
 
     registry = IndicatorRegistry.load(args.registry)
-    text = render_report(sc, prior, registry, render_ts=getattr(args, "render_ts", None))
+    horizons = IndicatorHorizons.load(args.registry)   # same file; carries the cadenceHorizon tags
+    text = render_report(sc, prior, registry,
+                         render_ts=getattr(args, "render_ts", None), horizons=horizons)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).

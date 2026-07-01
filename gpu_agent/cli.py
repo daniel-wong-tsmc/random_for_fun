@@ -21,6 +21,8 @@ from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.gathering.ingest import normalize_documents
+from gpu_agent.gathering.dedup import (
+    SeenDocIndex, filter_seen_documents, classify_findings, DedupReport)
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.structure import Taxonomy
@@ -54,25 +56,36 @@ def _ingest(args) -> int:
         skipped = payload.get("skipped", [])
     primary_sources = [s.strip() for s in args.primary_sources.split(",") if s.strip()]
     outcome = normalize_documents(blobs, primary_sources=primary_sources)
+    docs = outcome.documents
+    dropped_known = []
+    if getattr(args, "dedup_store", None):
+        index = SeenDocIndex(pathlib.Path(args.dedup_store) / "seen_docs.jsonl")
+        docs, dropped_known = filter_seen_documents(docs, index, as_of=args.as_of)
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    for doc in outcome.documents:
+    for doc in docs:
         (out / f"{doc.id}.json").write_text(json.dumps(doc.model_dump(), indent=2), "utf-8")
-    n_primary = sum(1 for d in outcome.documents if d.tier == "primary")
+    n_primary = sum(1 for d in docs if d.tier == "primary")
     log = {
         "rounds": rounds,
-        "documents": len(outcome.documents),
+        "documents": len(docs),
         "primary": n_primary,
-        "secondary": len(outcome.documents) - n_primary,
+        "secondary": len(docs) - n_primary,
         "duplicates": outcome.duplicates,
         "dropped": [d.model_dump() for d in outcome.dropped],
         "skipped": skipped,
     }
+    if getattr(args, "dedup_store", None):
+        log["droppedKnown"] = len(dropped_known)
+        log["droppedKnownDetail"] = [d.model_dump() for d in dropped_known]
     (out / "gather-log.json").write_text(json.dumps(log, indent=2), "utf-8")
     for d in outcome.dropped:
         print(f"DROPPED [{d.index}] {d.url}: {d.reason}", file=sys.stderr)
-    print(f"ingested {len(outcome.documents)} docs "
-          f"({outcome.duplicates} dup, {len(outcome.dropped)} dropped) -> {out}")
+    for d in dropped_known:
+        print(f"DROPPED-KNOWN {d.url}: {d.reason} (first seen {d.firstSeenAsOf})", file=sys.stderr)
+    print(f"ingested {len(docs)} docs "
+          f"({outcome.duplicates} dup, {len(outcome.dropped)} dropped, "
+          f"{len(dropped_known)} known) -> {out}")
     return 0
 
 def _wiki_ingest(args) -> int:
@@ -90,6 +103,27 @@ def _wiki_ingest(args) -> int:
         print(f"enriched {len(result.pages)} page(s) -> {args.store}")
         return 0
     print(f"routed {len(findings)} finding(s) to {len(touched)} page(s) -> {args.store}")
+    return 0
+
+def _wiki_dedup(args) -> int:
+    findings = [Finding.model_validate(d)
+                for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    store = WikiStore(pathlib.Path(args.store) / "wiki",
+                      FindingStore(pathlib.Path(args.store) / "findings"))
+    result = classify_findings(findings, store)
+    report = DedupReport(asOf=args.as_of, findingsNew=result.new,
+                         findingsUpdate=result.update, findingsDuplicate=result.duplicate)
+    if args.out_findings:
+        keep = {fc.findingId for fc in result.new + result.update}
+        deduped = [f.model_dump() for f in findings if f.id in keep]
+        pathlib.Path(args.out_findings).write_text(json.dumps(deduped, indent=2), "utf-8")
+    payload = report.model_dump_json(indent=2)
+    if args.report:
+        pathlib.Path(args.report).write_text(payload, "utf-8")
+        print(f"wrote {args.report}  (new {len(result.new)}, update {len(result.update)}, "
+              f"duplicate {len(result.duplicate)})")
+    else:
+        print(payload)
     return 0
 
 def _wiki_lint(args) -> int:
@@ -326,6 +360,10 @@ def main(argv=None) -> int:
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
                     help="comma-separated authoritative-source host allowlist")
+    ig.add_argument("--as-of", default="",
+                    help="cycle asOf stamped as first-seen in the L1 dedup index")
+    ig.add_argument("--dedup-store", default=None,
+                    help="store root for cross-run L1 seen-document dedup (holds seen_docs.jsonl)")
     wi = sub.add_parser("wiki-ingest")
     wi.add_argument("--findings", required=True, help="JSON array of gated Findings")
     wi.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
@@ -334,6 +372,13 @@ def main(argv=None) -> int:
     wi.add_argument("--recorded", default=None, help="path to a recorded IngestResult JSON")
     wi.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical ingest prompt + schema (no LLM) and exit")
+    wd = sub.add_parser("wiki-dedup")
+    wd.add_argument("--findings", required=True, help="JSON array of gated Findings (this cycle)")
+    wd.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
+    wd.add_argument("--as-of", required=True)
+    wd.add_argument("--out-findings", default=None,
+                    help="write the deduped NEW+UPDATE findings JSON here (for wiki-ingest)")
+    wd.add_argument("--report", default=None, help="write the DedupReport JSON here (else stdout)")
     wl = sub.add_parser("wiki-lint")
     wl.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
     wl.add_argument("--as-of", required=True)
@@ -388,6 +433,8 @@ def main(argv=None) -> int:
         return _ingest(args)
     if args.cmd == "wiki-ingest":
         return _wiki_ingest(args)
+    if args.cmd == "wiki-dedup":
+        return _wiki_dedup(args)
     if args.cmd == "wiki-lint":
         return _wiki_lint(args)
     if args.cmd == "extract":

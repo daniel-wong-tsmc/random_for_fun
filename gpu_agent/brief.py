@@ -109,3 +109,20 @@ def render_demand_supply_board(sc: Scorecard, horizons) -> str:
     lines.append("  SUPPLY")
     lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons))
     return "\n".join(lines)
+
+
+def render_deferred_stubs() -> str:
+    """Honest placeholders for the store-fed sections wired in 4-5b (nothing silently
+    omitted — Part 29). They need a multi-cycle wiki store, out of scope this cut."""
+    return ("WHAT MOVED SINCE LAST RUN\n"
+            "  (rendered in 4-5b — needs a multi-cycle wiki store)\n"
+            "STORYLINES\n"
+            "  (rendered in 4-5b — needs a multi-cycle wiki store)")
+
+
+def render_market_caveat(sc: Scorecard) -> str:
+    """The one honest trust-footer caveat: the index LEVEL is run-to-run noisy until the
+    4-4 memory stabilizes it, so the brief is a read of DIRECTION and change, not level."""
+    return ("TRUST & COVERAGE (caveat)\n"
+            "  index level varies run-to-run until the 4-4 memory stabilizes it — "
+            "read DIRECTION, not level")

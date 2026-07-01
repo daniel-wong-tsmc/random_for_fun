@@ -16,6 +16,7 @@ from gpu_agent.store import JsonStore, FindingStore
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.ingest import route_findings, build_bundle, apply_enrichment, IngestResult
 from gpu_agent.wiki.lint import lint
+from gpu_agent.wiki.lifecycle import lifecycle, apply_lifecycle
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
@@ -137,6 +138,24 @@ def _wiki_lint(args) -> int:
     if args.out:
         pathlib.Path(args.out).write_text(payload, encoding="utf-8")
         print(f"wrote {args.out}  ({len(report.material)} material, {len(report.dropped)} dropped)")
+    else:
+        print(payload)
+    return 0
+
+
+def _wiki_lifecycle(args) -> int:
+    store = WikiStore(pathlib.Path(args.store) / "wiki",
+                      FindingStore(pathlib.Path(args.store) / "findings"))
+    registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load("registry/indicators.json")
+    lint_report = lint(store, as_of=args.as_of, registry=registry, horizons=horizons)
+    report = lifecycle(store, as_of=args.as_of, stale=lint_report.health.stale)
+    payload = report.model_dump_json(indent=2)
+    if args.report:
+        pathlib.Path(args.report).write_text(payload, encoding="utf-8")
+    if args.apply:
+        summary = apply_lifecycle(store, report, as_of=args.as_of)
+        print(f"applied: promoted {summary.promoted}, pruned {summary.pruned} -> {args.store}")
     else:
         print(payload)
     return 0
@@ -385,6 +404,12 @@ def main(argv=None) -> int:
     wl.add_argument("--prev-as-of", default=None,
                     help="prior cycle asOf for the diff window (default: auto-derive from the log)")
     wl.add_argument("--out", default=None, help="write the LintReport JSON here")
+    wlc = sub.add_parser("wiki-lifecycle")
+    wlc.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
+    wlc.add_argument("--as-of", required=True)
+    wlc.add_argument("--apply", action="store_true",
+                     help="apply the proposed promotions/prunes (else propose-only)")
+    wlc.add_argument("--report", default=None, help="write the LifecycleReport JSON here")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
     jg.add_argument("--out", default=None, help="dir for ratings/anchors/narrative.json")
@@ -437,6 +462,8 @@ def main(argv=None) -> int:
         return _wiki_dedup(args)
     if args.cmd == "wiki-lint":
         return _wiki_lint(args)
+    if args.cmd == "wiki-lifecycle":
+        return _wiki_lifecycle(args)
     if args.cmd == "extract":
         return _extract(args)
     if args.cmd == "judge":

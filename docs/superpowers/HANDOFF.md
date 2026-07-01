@@ -1,13 +1,16 @@
-# HANDOFF — GPU Category Agent (resume point: sp4-4c SPEC+PLAN written + user-approved → run subagent-driven-development next)
+# HANDOFF — GPU Category Agent (resume point: sp4-4c BUILT + merged → 4-5 next, its own brainstorm → spec → user-review gate → plan → SDD)
 
 - **Date:** 2026-07-01
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`256d4df`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`;
-  **4-4d `f5f585c`** (all merged, local). **4-4d is BUILT + merged, suite 357 passed / 3 skipped** (opus final
-  review "Ready to merge: Yes"). **4-4c is brainstormed, spec'd, planned, and the spec was USER-APPROVED — spec +
-  plan committed on `main`** (`7473ff3` spec, `256d4df` plan); **not yet built.** **NOT pushed** — `origin/main` is
-  at `aabc4c8`; local `main` is **28 commits ahead** (25 through the 4-4d handoff + 4-4c spec `7473ff3` + 4-4c plan
-  `256d4df`); push only when the user asks. Working tree clean. **Truly-frozen core** (gate/scoring/registry code/
+- **`main` (`6758e9f`):** 4-1 `3a0a9c5`; 4-2 `2e3ba83`; 4-3 `3f776a8`; 4-4a `bccc16e`; 4-4b `8cee8a3`;
+  **4-4d `f5f585c`**; **4-4c `6758e9f`** (all merged, local). **4-4c is BUILT + merged, suite 382 passed / 3 skipped**
+  (opus final review "Ready to merge: With fixes" — one test-only fix applied; preview-confirmed LIVE). Built via SDD
+  (5 TDD tasks, fresh sonnet impl/reviewer per task, two-stage sonnet review, opus final whole-branch review): the
+  pure-code provisional lifecycle engine `gpu_agent/wiki/lifecycle.py` (promotion via persist+corroborate + non-
+  destructive pruning of stale provisionals + quarantine filter/report/guard) + the additive `wiki-lifecycle` CLI
+  (propose default; `--apply`; `--report`). Frozen core (incl. all wiki modules + `gathering`) byte-unchanged; no new
+  `status` value, no new `LogEvent.kind`, no new dependency. **NOT pushed** — `origin/main` is at `aabc4c8`; local
+  `main` is **35 commits ahead**; push only when the user asks. Working tree clean. **Truly-frozen core** (gate/scoring/registry code/
   Finding schema/pipeline Part-7 gate/JsonStore/FindingStore/wiki `log.py`+`page.py`+`lint.py`, `gathering/ingest.py`
   `normalize_documents`, `gathering/dedup.py`) byte-unchanged vs origin baseline `aabc4c8`; `wiki/store.py` changed
   only by 4-4a's `set_body`; `wiki/ingest.py` modified additively/behavior-preserving by 4-4a + 4-4b.
@@ -25,25 +28,55 @@
 
 ---
 
-## IMMEDIATE NEXT TASK — execute sub-project 4-4c (the provisional lifecycle engine) via subagent-driven-development
+## IMMEDIATE NEXT TASK — sub-project 4-5 (per-category Market-State brief render) via brainstorm → spec → user-review gate → plan → SDD
 
-The **4-4c spec + plan are written, committed, and the spec was user-approved.** They still need the build:
-1. **`superpowers:subagent-driven-development`** on `docs/superpowers/plans/2026-07-01-discovery-lifecycle.md`
-   — fresh **sonnet** implementer per task, two-stage **sonnet** review between tasks, **opus final whole-branch
-   review**, on a branch `sp4-4c-…` off `main`. The plan is **5 TDD tasks** ending at **381 passed, 3 skipped**:
-   (1) lifecycle data models + `LifecycleConfig`; (2) `persistence` + `corroboration` + `promotion_candidates`
-   (persist ≥2 distinct `asOf` cycles + corroborate ≥2 distinct evidence sources); (3) `prune_candidates`
-   (provisional∩`stale`) + `partition_canonical` filter + the quarantine guard (`build_scorecard` takes no wiki
-   input); (4) `lifecycle()` assembly + `apply_lifecycle()` (propose-then-`--apply`, idempotent); (5) CLI wiring —
-   the new `wiki-lifecycle` subcommand (propose default; `--apply`; `--report`) + frozen guard.
-2. **Merge to `main`** (local fast-forward, like 4-1/4-2/4-3/4-4a/4-4b/4-4d); keep the ledger
-   `.superpowers/sdd/progress.md` (the `sp4-4c` section exists; append each task line as its review comes back clean).
-3. **Throwaway preview-render** (seed a store with a provisional page persisted across 2 cycles citing 2 sources;
-   run `wiki-lifecycle` to show the promotion candidate + quarantine list; then `--apply` to show `status=registered`
-   going live + a non-destructive prune; confirm propose is a read-only no-op).
-4. Then **4-5** (per-category Market-State brief render, extends A's `report.py`) — its own brainstorm → spec → plan →
-   SDD → merge. And later, the **DEFERRED discovery half** (brain-driven theme / off-registry discovery + `explore`
-   budget + bounded rabbit-holing) as its own sub-project.
+**4-4c is DONE (built, merged `6758e9f`, suite 382/3, preview-confirmed LIVE).** The next piece is **4-5**, the
+per-category Market-State brief render that extends A's `report.py` per the design target
+(`docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md`): renders the two indices (4-3) + the
+divergence + "what moved" (the 4-1 `diff`'s `new_pages ∪ index_moves`) + storylines, reading `registered` pages as
+canonical coverage and `provisional` pages as "not yet in coverage / confidence-capped" (4-4c's `partition_canonical`
+is the filter seam). It is a **pure deterministic projection — no LLM in the renderer** (Part 35).
+
+1. **Brainstorm** 4-5 (`superpowers:brainstorming`) — surface intent/scope with the user (which sections; how the
+   momentum-vs-outlook divergence + "what moved" render; how provisionals are shown confidence-capped; Markdown first,
+   HTML dashboard deferred).
+2. **Spec → USER-REVIEW GATE → plan** (commit spec+plan on `main` first, like every prior piece), then
+3. **`superpowers:subagent-driven-development`** on the 4-5 plan (fresh sonnet impl/reviewer per task, opus final
+   whole-branch review), on a branch `sp4-5-…` off `main`; merge local fast-forward; keep the ledger; throwaway
+   preview-render.
+4. Later, the **DEFERRED discovery half** (brain-driven theme / off-registry discovery + `explore` budget + bounded
+   rabbit-holing) as its own sub-project — 4-4c is page-type agnostic, so its promotion/pruning/quarantine apply to
+   the discovery half's provisional `theme` pages for free the moment they're written.
+
+## WHAT 4-4c DELIVERED (DONE, merged `6758e9f`, suite 382/3 — acceptance spec §12 all met)
+
+The pure-code **provisional lifecycle engine**, built via SDD (5 TDD tasks, fresh sonnet impl/reviewer per task,
+**opus final review "Ready to merge: With fixes"** — one test-only fix applied; no Critical, one Important that was
+the fix). Deliverables:
+- **`gpu_agent/wiki/lifecycle.py`** (new, pure code, +139): models (`PromotionCandidate`/`PruneCandidate`/
+  `QuarantineEntry`/`LifecycleReport`/`AppliedSummary`) + `LifecycleConfig` (`min_persist_cycles=2`/`min_sources=2`/
+  `stale_threshold=0.1`/`prune_salience_floor=0.0`); **promotion** — `persistence` (distinct `asOf` cycles) +
+  `corroboration` (distinct `evidence.source`) + `promotion_candidates` (both bars, provisional-only, ordered by
+  pageId); **pruning** — `prune_candidates` (provisional∩`stale` from 4-4b's `lint().health.stale`); **quarantine** —
+  `partition_canonical(index) → (registered, provisional)` + a guard test locking that `build_scorecard` takes no
+  wiki/page input; the `lifecycle()` propose assembler (read-only; `provisionalConsidered == len(quarantined)`
+  structural) + `apply_lifecycle()` (promote via `update_header(status="registered")`; prune via a non-destructive
+  `record_state` salience floor; idempotent). Reads only; writes only via existing `WikiStore` methods behind `--apply`.
+- **CLI (additive):** new **`wiki-lifecycle`** subcommand — `--store DIR --as-of D [--apply] [--report R]`; propose
+  (default) prints the `LifecycleReport`, mutates nothing; `--apply` promotes/prunes + prints `promoted N, pruned M`;
+  reads 4-4b's `stale` via `lint(...).health.stale` (computed in the handler like `wiki-lint`).
+- Frozen contract + all wiki modules + `gathering` byte-unchanged (guard EMPTY); additive only; no new `status`
+  value, no new `LogEvent.kind`, no new dependency. **Preview-confirmed LIVE:** NVDA (persist 2 / corroborate 2)
+  proposed → `--apply` flipped `registered` (2nd apply idempotent), stale AMD proposed → `--apply` floored salience
+  0.1→0.0 non-destructively (state/trajectory preserved, no delete/new status), propose a pure read-only no-op,
+  `provisionalConsidered == len(quarantined)` throughout, promoted NVDA graduated out of the quarantine list.
+- **4-4c deferred follow-ups** (logged in the ledger `sp4-4c` section, non-blocking): mutable `DEFAULT_LIFECYCLE_CONFIG`
+  singleton (mirrors `DEFAULT_LINT_CONFIG` house style); narrow `test_models_construct`; no multi-candidate
+  promotion-ordering test; `partition_canonical` missing its return annotation; no test for an absent-stale-pageId
+  (code None-guards it); prune test doesn't assert `trajectory` survives (impl correct). By-design (no change): CLI
+  propose calls `lint()` which appends its own idempotent 4-4b provenance event on a fresh `as_of` (the engine
+  `lifecycle()` itself is pure); the quarantine guard is a denylist backed by the structural findings-driven scorer;
+  promotion writes no log event (locked decision — provenance = `LifecycleReport` + page `status`/`lastUpdatedAsOf`).
 
 **What 4-4c builds (acceptance = spec §12):** the pure-code **provisional lifecycle engine**
 (`gpu_agent/wiki/lifecycle.py`): **promotion** — a provisional page observed across ≥`min_persist_cycles` distinct

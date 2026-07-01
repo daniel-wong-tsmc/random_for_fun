@@ -3,7 +3,7 @@ projection of a Scorecard — no LLM, no wiki store, no new number. Reuses repor
 wording helpers so the brief and the detailed report speak the same vocabulary."""
 from __future__ import annotations
 from typing import Optional
-from gpu_agent.schema.scorecard import Scorecard, DemandSupply
+from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
 _ARROW = {"positive": "▲", "negative": "▼", "flat": "="}   # ▲ ▼ =

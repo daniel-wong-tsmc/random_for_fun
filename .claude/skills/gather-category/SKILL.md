@@ -127,7 +127,69 @@ empty folder (no empty scorecard).
 - If any required gap is present, prepend "⚠ Coverage gaps — the following expected items were
   not covered:" and list each with its `acquisitionStatus` and `reason`.
 
+## Daily mode (the recency-windowed daily sweep — sub-project 4-4d)
+
+Daily mode is an **additive variant** of the procedure above (the standard, full-crawl path is unchanged and
+still the default). It exists because *noise control is the product*: the daily sweep looks for **what's new**,
+brings it in cheaply, and — via the two dedup layers — surfaces only what actually changed, logging the rest.
+Trigger it when the caller asks for a daily/recency run (e.g. "daily merchant-gpu sweep").
+
+**1. Recency window.** Bias every seed search and the on-topic filter to the last **N days** (a dial;
+default `recencyDays = 7`). Add "since <date> / past week / latest" style qualifiers to the round-1 queries and
+DROP any lead whose document date is older than the window (log it in `skipped[]` as
+`"lead '<x>' older than recency window (<date>)"`). This is a "what's new" sweep, not a full re-crawl.
+
+**2. Cadence prioritization.** Prioritize the indicators tagged **`daily`/`weekly`** in the 4-2 `cadenceHorizon`
+map, read via `registry/horizon.py`:
+```
+.venv/Scripts/python -c "
+from gpu_agent.registry.horizon import IndicatorHorizons
+h = IndicatorHorizons.load('registry/indicators.json')
+print([i for i in h.mapping if h.cadence(i) in ('daily','weekly')])
+"
+```
+Seed those indicators' slices FIRST (alongside recent news), then the permissive numeric-scrape sources (step 3).
+Quarterly/lagging indicators are de-prioritized in daily mode (they move on the standard cadence, not daily).
+
+**3. Numeric scrape sweep (Part 22 — honest sourcing).** The **permissive** daily numeric sources (e.g. GPU
+marketplaces for `gpuSpotPrice`, already inventoried in `sourceInventory` by 4-2) are ordinary **gatherer
+targets** — nothing special. Snapshot the page as a normal `RawDocument` blob; the **FROZEN `extract → gate`**
+turns the quoted figure into a **measured `Finding`** (value + url/source/date receipt, `secondary` tier,
+confidence-capped). **No code path sets a number** — the value only exists because it survived the gate (Part
+17), and the run replays from the snapshot (Part 20). **Hard boundary:** paywalled / licensed sources
+(SemiAnalysis, TrendForce) are **inventoried, labeled `estimate`, and NEVER fetched** — log each as a coverage
+gap immediately (exactly as the manifest-driven preamble already does for `is_paywalled` sources). A scraped
+daily figure then rides the *same* dedup + ingest + lint path as any other finding.
+
+**4. Bounded (daily caps).** Tune the four Part-37 dials smaller for a daily cadence (suggested daily defaults:
+`maxRounds = 2`, `maxDocuments = 10`, `maxSubagentsPerRound = 3`, on-topic filter tightened to the recency
+window). Every cap that truncates is logged in `skipped[]` with what it skipped — nothing silent (Part 29).
+
+**5. Dedup wiring (the two seams — sub-project 4-4d).** Thread both dedup layers into the daily run:
+- **L1 (pre-brain, doc-level):** run `ingest` with `--dedup-store` so cross-run-known documents are dropped
+  *before* extraction (saves the brain call):
+  ```
+  .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out docs \
+    --primary-sources sec.gov,investor.nvidia.com --dedup-store store --as-of <asOf>
+  ```
+  The gather-log then carries `droppedKnown` (count) + `droppedKnownDetail` — a daily sweep that drops most of
+  its input as already-seen says so explicitly. First run records the survivors; a re-run drops every doc.
+- **L2 (post-gate, finding-level):** after `extract → gate` produces this cycle's gated findings, classify them
+  vs the store's latest vintage BEFORE `wiki-ingest`:
+  ```
+  .venv/Scripts/python -m gpu_agent.cli wiki-dedup --findings <findings.json> --store store \
+    --as-of <asOf> --out-findings deduped.json --report store/dedup-report.json
+  ```
+  `deduped.json` holds only the **NEW + UPDATE** findings (feed it to `wiki-ingest`); **DUPLICATE**s are counted
+  and listed in the `DedupReport`, then dropped (no re-observation). A daily price that hasn't moved beyond the
+  1% tolerance is a DUPLICATE — that is the point of the dedup.
+
+Everything else (the gatherer contract, receipts+tiers, the frozen brain, the coverage-gap check) is identical
+to the standard procedure. Daily mode changes *what you seed and how you dedup*, never *who pulls facts* (still
+the one frozen brain under the gate).
+
 ## Snapshot determinism
 `docs/` + `gather-log.json` (including `coverageGaps`) + `blobs.json` are the saved artifacts.
 The brain re-runs on them for $0 and is fully auditable. A gather run that can't be replayed from
-its snapshot did not happen.
+its snapshot did not happen. In daily mode the `store/seen_docs.jsonl` L1 index + the `DedupReport` join the
+snapshot — together they make the day's NEW/UPDATE/DUPLICATE split fully replayable (Part 20).

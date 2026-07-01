@@ -28,8 +28,9 @@ are deferred** stages you report, not run.
 - `scope` — one of: `category:<id>` (e.g. `category:chips.merchant-gpu`), `layer:<id>` (e.g. `layer:chips`),
   or `all` / `market`.
 - `asOf` (e.g. `2026-06`).
-- `mode` — `live` (default: real gather + Opus brain subagents) or `recorded` (a $0 replay against committed
-  fixtures, for a dry-run/CI).
+- `mode` — `live` (default: real gather + Opus brain subagents), `recorded` (a $0 replay against committed
+  fixtures, for a dry-run/CI), or `daily` (the recency-windowed sweep with the 4-4d L1/L2 dedup threaded in —
+  see "Daily mode" below).
 
 ### Resolving a natural-language request to a `scope`
 The user usually speaks plainly; map their words to a `scope`, confirm only if ambiguous:
@@ -138,6 +139,44 @@ artifacts (`extract-answer.json`, `judge-answer.json`), and the tier-stage statu
 ### 7. Report
 The scope, categories run (with scorecard paths + DMI/SMI), categories skipped/failed (with reason), and the
 deferred Layer/Main stages.
+
+## Daily mode (the recency-windowed daily run — sub-project 4-4d)
+
+`mode = daily` is an **additive variant** of Step 3 (the standard live/recorded path above is unchanged). Use it
+when the caller asks for a daily/recency sweep. It threads the two 4-4d dedup layers into the run so the day's
+output is only **what changed**, everything else counted and dropped. Per `ready` category:
+
+**(a-daily) Gather (daily).** Follow **`gather-category` in its Daily mode** (recency window + cadence-prioritized
+seeds + the permissive numeric scrape; paywalled sources logged-not-fetched). Run `ingest` with **`--dedup-store
+store --as-of <asOf>`** so L1 drops cross-run-known documents before the brain sees them. Record the gather-log
+`droppedKnown` count.
+
+**(b-daily) Extraction + gate.** Exactly as Step 3(b) — emit the canonical extract prompt, dispatch the Opus
+brain, gate the answer into `<work>/findings.json`. (L1 already shrank `docs/` to fresh documents only.)
+
+**(c-daily) Finding-level dedup (L2) — BEFORE ingest.** Classify this cycle's gated findings vs the store's
+latest vintage:
+```
+.venv/Scripts/python -m gpu_agent.cli wiki-dedup --findings <work>/findings.json --store store \
+  --as-of <asOf> --out-findings <work>/deduped.json --report store/<id>/dedup-<asOf>.json
+```
+`<work>/deduped.json` holds only **NEW + UPDATE**; the `DedupReport` counts+lists every **DUPLICATE** (dropped,
+no re-observation). Record the new/update/duplicate counts.
+
+**(d-daily) Ingest + lint the deduped stream.** Route only the deduped NEW+UPDATE findings into the wiki, then
+lint:
+```
+.venv/Scripts/python -m gpu_agent.cli wiki-ingest --findings <work>/deduped.json --store store --as-of <asOf>
+.venv/Scripts/python -m gpu_agent.cli wiki-lint --store store --as-of <asOf>
+```
+(UPDATEs are exactly the material moves 4-4b's lint ranks.) Judgment/score/report (Step 3 c–e) proceed as usual
+over the category's docs when a scorecard is wanted.
+
+**(report-daily)** Alongside the scorecard path, report the **DedupReport counts** (new / update / duplicate) and
+the gather-log **`droppedKnown`** — the honest "what the daily sweep actually brought in vs dropped as noise"
+line (Part 29). The seen-doc index + snapshots + DedupReport make the daily cycle replayable (Part 20).
+
+The non-daily (standard live/recorded) path is unchanged: no `--dedup-store`, no `wiki-dedup` step.
 
 ## Caps & safety
 - A live `all`/`layer:` run fans out gathering across every assigned category — the Step 2 confirmation is the

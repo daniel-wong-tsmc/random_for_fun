@@ -1,154 +1,93 @@
-# HANDOFF — GPU Category Agent (resume point: sp4 COMPLETE @ c5358bf → execute the FIX BACKLOG `docs/fix-backlog.md`, Wave 0 then Wave 1 lanes)
+# HANDOFF — GPU Category Agent (resume point: FIX BACKLOG EXECUTED @ d933b7e → next: the feature track, starting with F4+F5 via superpowers:brainstorming)
 
-- **Date:** 2026-07-02
+- **Date:** 2026-07-02 (post-backlog)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`c5358bf`) — PUSHED, suite 417 passed / 3 skipped.** **Sub-project 4 is FULLY BUILT**: 4-1
-  `3a0a9c5` → 4-2 `2e3ba83` → 4-3 `3f776a8` → 4-4a `bccc16e` → 4-4b `8cee8a3` → 4-4d `f5f585c` →
-  4-4c `6758e9f` → 4-5 `5c9926e` → **4-5b `e970286`…`398c395` + `c5358bf`** (store-fed WHAT MOVED +
-  STORYLINES; ledger records "sp4-5b FINAL opus whole-branch review: Ready to merge = YES"). The
-  charter's Part-39 five-piece plan is done end-to-end.
-- **What happened since the last handoff:** 4-5b was built + merged + pushed. Then a **full-repo
-  review** (2026-07-02: three parallel deep reviews — core pipeline, temporal store/brief, ops/docs —
-  plus direct inspection of the live `store/chips.merchant-gpu/2026-06-v6.json` scorecard) produced
-  **`docs/fix-backlog.md`** — 48 prioritized fixes (F1–F48, must-have/should-have), each tagged with
-  a parallel-execution **lane**, plus the wave/lane execution model. That backlog **supersedes the
-  per-piece deferred-follow-up lists** in the ledger where they overlap.
-- **For the next Claude instance:** read this file, then **`docs/fix-backlog.md` in full** (the 48
-  fixes AND the "Execution model" section at the bottom — it is the build plan). Check the SDD
-  ledger `.superpowers/sdd/progress.md` + `git log` so you don't redo finished work. The immediate
-  task is to **execute the fix backlog: Wave 0, then Wave 1's five parallel lanes.**
+- **`main` (`d933b7e`) — PUSHED, suite 626 passed / 3 skipped.** The 2026-07-02 fix backlog
+  (`docs/fix-backlog.md`) is **fully executed**: Wave 0 (ops), the **contract v1.2 migration**
+  (the ONE sanctioned frozen-core change — shadow-run + replay in
+  `docs/migrations/2026-07-contract-v1.2.md`), Wave-1 lanes C/D/E, the **F46 integration gate**
+  (a real live daily cycle), and Wave-2 lanes F/G/H/I/J. 45 of 49+2 fixes shipped; the rest are
+  feature-track sub-projects by design.
+- **What the F46 gate produced (first genuine second cycle):**
+  `store/chips.merchant-gpu/2026-07-02-v1.json` (DMI +0.227 / SMI +0.053, judged Strong/improving,
+  bottleneck competitiveStructure, Δ computed vs the v1.2-replayed `2026-06-v12` — replay
+  continuity proven), the first real `store/wiki/` (3 entity pages), `store/findings/`,
+  `store/seen_docs.jsonl`, and a replayable `store/cycle-log.json`. All committed (F1: the store
+  is tracked in git now).
 
----
+## FOR THE NEXT CLAUDE INSTANCE — what remains
 
-## IMMEDIATE NEXT TASK — execute the fix backlog (`docs/fix-backlog.md`)
+**Everything left is a FEATURE-TRACK sub-project** (charter pattern: superpowers:brainstorming →
+spec → plan → subagent-driven-development, like sp1–sp4). Do NOT improvise these as lane fixes:
+1. **F4 + F5 — memory into judgment + anti-whipsaw** (the "analyst, not adder" upgrade; biggest
+   single gap vs the charter Part 4 loop). Now unblocked: real history exists (June v1–v12 + July
+   2026-07-02-v1 + a live wiki).
+2. **F6 — Depth Rubric + Golden Set** (`docs/action-items.md` Action Item 1; becomes the Part-24
+   regression gate).
+3. **F23** compliance matrix · **F24** entity canonicalization (NVDA vs nvidia pages exist NOW in
+   the wiki — visible motivation) · **F25** wiki store scaling.
+4. Then the roadmap: WHY tree, HTML dashboard, discovery half, the layer-tier arc, scheduler.
 
-**Step 0 — the two gate decisions are MADE (user-approved 2026-07-02; do NOT re-ask):**
-1. **F8 price rule — DECIDED: overlay-only now.** Flip D6 to `scoring: false` (price findings never
-   feed DMI/SMI); static levels with `trend: unknown` carry polarity 0. Wave-2 follow-up: a visible
-   **Price Momentum Index** computed in code as the confirmation overlay (new item F49, Lane F).
-   Change-based price scoring (context-judged polarity on dedup-confirmed deltas) is deferred until
-   F12 provides price history AND F6's rubric can grade the judgment.
-2. **Contract v1.2 — APPROVED as ONE migration, with replay.** Lanes A+B are a single coupled
-   workstream (one worktree/branch, e.g. `fix/contract-v1.2`) unfreezing `gate.py` / `scoring.py` /
-   `judgment/briefing.py` / `schema/finding.py` as one versioned Part-33 event: schemaVersion → 1.2,
-   golden fixtures regenerated once, migration note committed. The migration MUST include:
-   **(a) a one-shot shadow-run** — old vs new scoring over the same stored findings, output diff in
-   the migration note; **(b) a replay** — recompute the stored 2026-06 scorecards' indices under
-   v1.2 math as NEW versions (originals immutable), so vs-prior comparisons stay continuous.
-   Consequence: Wave 1 runs as **four concurrent streams** (contract lane + C + D + E).
+**Known deferred minors** are logged in the ledger (`.superpowers/sdd/progress.md`) at each wave's
+entry — e.g. SKU-granularity price series (needs a seriesKey schema field, feature track), the
+F41 schemaVersion-default bump (schema re-frozen), PriceSeries key omitting entity.
 
-**Then, in order:**
-1. **Wave 0** (ops/docs, no code risk): F1 store backup, F43 move gather artifacts out of `docs/` +
-   gitignore + reconcile `ingested/`, F45 built-vs-deferred overlay on `app/swarm-graph.html`,
-   F47 sync/retire the stale `Documents\TSMC\ai4bi\ai_state_of_the_market` doc tree (pull its
-   `action-items.md` into this repo), F48 real readme. (F44 — this handoff refresh — is done.)
-   Do these directly or with 1–2 subagents; commit + push.
-2. **Wave 1 — four concurrent streams.** Use **superpowers:writing-plans** to write one short plan
-   per stream in `docs/superpowers/plans/` (**Contract lane A+B, coupled**: F2, F16, F17, F21, F36 +
-   F3, F7, F8, F9, F37 + the shadow-run/replay from Step 0 · Lane C: F19, F20, F35, F38 · Lane D:
-   F10–F13, F22 · Lane E: F14, F15, F30–F32). File ownership per lane is defined in the backlog's
-   lane map — **no two streams touch the same module.**
-3. Create one **git worktree per stream** (superpowers:using-git-worktrees; branches
-   `fix/contract-v1.2`, `fix/lane-c`, `fix/lane-d`, `fix/lane-e`), then **dispatch all 4 stream
-   agents in a single message** (superpowers:dispatching-parallel-agents). Each agent executes ONLY
-   its own plan, sequentially, with TDD, touching only its owned files. Never dispatch two
-   implementers into the same tree (subagent-driven-development red flag).
-4. **Merge gate, sequential:** merge order contract-v1.2 → C → D → E; rebase each onto the
-   accumulated result; **full suite green before each next merge**; task-review each stream's diff
-   at merge time (the SDD reviewer step; opus for the contract lane, sonnet acceptable elsewhere).
-   Ledger one line per stream merged.
-5. **Integration gate:** run **F46** — one real live cycle (daily mode, so the wiki/dedup machinery
-   finally executes against real state) — before starting Wave 2.
-6. **Wave 2 lanes** (F: F18, F29, F33, F34 · G: F41, F42 · H: F26, F27 · I: F28, F40 · J: F39),
-   same protocol.
-
-**Do NOT fold into lanes:** F4+F5 (memory into judgment + anti-whipsaw), F6 (Depth Rubric + Golden
-Set), F23 (compliance matrix), F24 (entity registry), F25 (wiki storage scaling) are **feature-track
-sub-projects** — each starts with superpowers:brainstorming → spec → plan → SDD, like sp1–sp4. A
-lane agent improvising the memory architecture is the failure mode to prevent.
-
----
+**One open user decision:** the repo is still named `random_for_fun` — rename before anything is
+shown under TSMC branding (flagged in the readme).
 
 ## THE BIG DECISIONS ALREADY MADE (do not relitigate without reason)
 
-1. **Output goal:** a human-readable, deterministic, brief-first Market-State brief (BLUF → board →
-   WHAT MOVED → STORYLINES), pure projection of the store, no LLM in the renderer; HTML dashboard
-   later. Design target: `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md`.
-2. **Lane discipline (Part 21):** `merchant-gpu` owns the merchant vendors only; supply constraints
-   (CoWoS/HBM/power) and broad demand drivers belong to sibling categories, reconciled by the
-   (deferred) Layer tier.
-3. **The cross-cutting "GPU market state" brief is a LAYER-TIER product** — the named arc after the
-   backlog + feature track.
-4. **Claude Code IS the brain** — no OAuth token, SDK, `[llm]` extra, or metered API. Live
-   extraction/judgment = dispatched Opus subagents through `--emit-prompt` → `--recorded`.
-5. **Discovery of undefined topics** (theme pages, `explore` budget, bounded rabbit-holing) is its
-   own deferred sub-project; the lifecycle engine (4-4c) is built and page-type agnostic, so it
-   applies to theme pages for free once discovery lands.
-6. **From the product Q&A (recorded in `action-items.md`, F47 pulls it into this repo):** the reader
-   is a real TSMC executive; recommendations are a maintained position book with per-cycle deltas
-   ("nothing changed" is honest output); horizons are per-domain clock speeds; everything trackable,
-   drill-down visible, not front-page; cover = quick market read stacked above the 5-layer cake.
+1. **Output goal:** deterministic, brief-first Market-State brief; pure projection of the store;
+   HTML dashboard later. Design target: `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md`.
+2. **Lane discipline (Part 21):** merchant-gpu owns merchant vendors only; siblings own
+   CoWoS/HBM/power; the cross-cutting "GPU market state" brief is a LAYER-TIER product.
+3. **Claude Code IS the brain** — no OAuth/SDK/API. Live extraction/judgment = TOOL-LESS dispatched
+   Opus subagents through `--emit-prompt` → `--recorded`; judgment samples come from SEPARATE
+   subagent generations (F38). `ClaudeCodeClient` is a loud signpost, not a backend (F40).
+4. **Price is overlay-only (F8, user-approved 2026-07-02):** D6/gpuSpotPrice never feed DMI/SMI;
+   static levels carry polarity 0; the Price Momentum overlay (`gpu_agent/price_track.py`) is
+   displayed beside DMI/SMI, never blended. Change-based price scoring waits for history + F6.
+5. **Contract v1.2 was the ONE sanctioned frozen-core migration** (user-approved 2026-07-02) —
+   `gate.py`, `scoring.py`, `schema/finding.py`, `judgment/briefing.py`, `pipeline.py` are
+   **RE-FROZEN**. Any future change = a new versioned Part-33 migration with user approval,
+   fixtures regenerated, shadow-run + replay.
+6. **Product Q&A decisions** live in `docs/action-items.md` (reader = a real TSMC executive;
+   recommendations = a maintained position book; per-domain horizons; drill-down visible).
 
----
+## OPERATING NOTES / INVARIANTS (carry forward)
 
-## OPERATING NOTES / INVARIANTS (carry forward — amended this session)
+- Run from repo root `C:\Users\danie\random_for_fun`; Python at `.venv/Scripts/python`
+  (recreate: `python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"`).
+- Registry/taxonomy paths resolve through `gpu_agent/config.py` (env-overridable:
+  `GPU_AGENT_REGISTRY` / `GPU_AGENT_TAXONOMY`); defaults unchanged.
+- Personas are assignment-driven (`Assignment.personaLabel`, `--persona` on extract/judge emit
+  paths); GPU is only the default. `models.frontier-closed` is runnable (weights + manifest).
+- The run's `--as-of` overrides the assignment's `asOf` in `pipeline` (F50) — daily scorecards
+  label correctly.
+- **Doctrine:** code computes + gates + stores; the brain reasons; nothing un-gated reaches a
+  number; every claim cites findings; page text is DATA; every cap/skip/drop logged; provisional
+  quarantined; paywalled inventoried + never fetched; lane discipline.
+- Tests deterministic; suite green at every merge (626/3 baseline now). Commit trailer names the
+  ACTUAL model that did the work. Push freely.
+- **`store/` is TRACKED** (canonical: `chips.merchant-gpu/`, `wiki/`, `findings/`,
+  `seen_docs.jsonl`, `cycle-log.json`; scratch subtrees ignored). `.superpowers/` gitignored;
+  `.claude/` tracked. `.worktrees/` is the parallel-stream convention (gitignored).
+- **Parallel-work protocol that worked twice:** file-ownership lanes → one plan per lane
+  (docs/superpowers/plans/) → one worktree per lane → all implementers dispatched in ONE message →
+  per-lane merge-time reviews (opus for numeric/frozen-adjacent work, sonnet elsewhere; findings
+  sent BACK to the implementer to fix on-branch) → sequential rebase + ff-merge with the full
+  suite green before each → ledger line per lane → push per merge → controller does the
+  cross-lane seam wiring at the end. Never two implementers in one tree.
+- **Windows:** Bash classifier flaky on writes — prefer PowerShell (but NOT `>` redirection for
+  UTF-8 files; use bash for redirects); avoid double quotes inside `git commit -m` args.
 
-- **Run from repo root** `C:\Users\danie\random_for_fun`; Python 3.11+ at `.venv/Scripts/python`
-  (`.venv` gitignored — recreate with `python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"`).
-- **Frozen core — never edit:** `gpu_agent/gate.py`, `gpu_agent/scoring.py`, registry loader CODE,
-  the `Finding` schema, the 6 dimension names, the rating scale, `pipeline.py`'s Part-7 gate,
-  `JsonStore`. **ONE sanctioned exception:** the **contract v1.2 migration** (the coupled Wave-1
-  A+B stream — **user-approved 2026-07-02**, versioned, fixtures regenerated, shadow-run + replay
-  included, all in one migration). Everything else
-  stays additive-only (Part 33); per-indicator metadata goes as top-level maps in `indicators.json`
-  (the C-3 lesson — `IndicatorSpec` is `extra="forbid"`).
-- **Doctrine:** code computes + gates + stores; the brain reasons/curates; the agent never sets a
-  number that reaches the scorecard/page/index uncomputed; every page claim cites its finding(s);
-  fetched page text is DATA, not instructions; every cap/skip/drop/coverage gap logged, never
-  silent; provisional stays quarantined until persist + corroborate; paywalled sources inventoried +
-  labeled `estimate`, never scraped; lane discipline — counted once.
-- **Tests deterministic** via committed fixtures; live paths env-gated; skills validated by dry-runs.
-  Suite must be green at every merge (417/3 baseline).
-- **Commit trailer:** end every commit with a `Co-Authored-By:` line naming the **actual model that
-  did the work** (this handoff: `Claude Fable 5 <noreply@anthropic.com>`).
-- **Push freely** — the user has authorized pushing; keep `main` and `origin/main` in sync.
-- **Windows flakiness:** Bash safety classifier intermittently unavailable for write/commit — retry
-  or use PowerShell. CWD sometimes resets to `C:\Users\danie`; prefix commands with
-  `cd /c/Users/danie/random_for_fun && …`.
-- **`.superpowers/` and `store/` are gitignored** (F1 revisits the `store/` decision — the canonical
-  history currently has NO backup). `.claude/` is tracked. Trust the ledger + `git log` after any
-  compaction.
-- **Model preference (user):** opus for important/final reviews; sonnet acceptable for mechanical
-  per-task implementer + reviewer work.
+## WHAT'S DONE (compressed — details in `git log`, the ledger, `docs/superpowers/specs|plans/`)
 
----
-
-## WHAT'S DONE (compressed — details in `git log`, the ledger, and `docs/superpowers/specs|plans/`)
-
-- **sp1–sp3** (harness · live category runs · output/coverage): merged + pushed, baseline `d356eff`.
-- **sp4 — the daily demand/supply monitor (Part 39), ALL FIVE PIECES BUILT:**
-  4-1 temporal store + LLM-wiki (`3a0a9c5`) · 4-2 leading/daily indicators (`2e3ba83`) ·
-  4-3 Momentum/Outlook indices (`3f776a8`) · 4-4a wiki ingest writer (`bccc16e`) · 4-4b relevance
-  engine / lint (`8cee8a3`) · 4-4d daily gather + L1/L2 dedup firehose (`f5f585c`) · 4-4c lifecycle
-  engine (`6758e9f`) · 4-5 brief-first render (`5c9926e`) · 4-5b store-fed WHAT MOVED + STORYLINES
-  (`…398c395`, `c5358bf`). Suite 417/3.
-- **Live runs:** `store/chips.merchant-gpu/2026-06-v1..v6.json` (six same-month reruns — no genuine
-  second cycle yet; that's F46). The wiki/dedup machinery has **never** run against real state.
-- **2026-07-02 full-repo review** → `docs/fix-backlog.md` (F1–F48). Headline findings: the gate
-  enforces structural rules but not epistemic ones (evidence tier/excerpt LLM-asserted, observed
-  needs no evidence, dispersion vestigial); the judge is memoryless (directions asserted with zero
-  temporal input); DMI/SMI has entity-shadowing and order-dependent-anchor bugs; the recorded-replay
-  path can silently cross-attribute answers; v6's `bottleneck`/`moat` ratings rest on single
-  secondary blogs while reporting `grounded`.
-
----
-
-## ROADMAP (after the backlog)
-
-1. **Feature track:** F4+F5 memory + anti-whipsaw (the "analyst, not adder" upgrade — biggest single
-   gap vs the charter) · F6 Depth Rubric + Golden Set (grade v6 itself; becomes the Part-24
-   regression gate) · F23 charter compliance matrix · F24 entity registry · F25 wiki storage scaling.
-2. **WHY tree** (driver→constraint) · **HTML dashboard** · **discovery half** (theme pages +
-   `explore` budget + bounded rabbit-holing).
-3. **The layer-tier arc** — sibling category agents + the chips-Layer rollup (the real "GPU market
-   state" brief; deferred Layer/Main tiers, Part 38), then the unattended scheduler (Part 28).
+- **sp1–sp4** (harness · live runs · output/coverage · daily monitor, 5 pieces) — see ledger.
+- **2026-07-02 full-repo review** → `docs/fix-backlog.md` (F1–F51) → **EXECUTED** same day:
+  Wave 0 `f7ace81..86d0224` · contract v1.2 `34aed10` · lanes C `2212418` / D `52710b5` /
+  E `48bf639` + integration `f1c0835` · F46 live cycle `4ec1b34` · Wave 2 F `7cee339` /
+  G `7cc856e` / H `b743ee9` / I `1fefe28` / J `a2f6906` + persona wiring `d933b7e`.
+- **Suite growth:** 417 → 626 passed (3 skipped throughout). Frozen contract v1.2 verified by an
+  independent opus recomputation (v3/v6 DMI/SMI triangulated to 4 decimals across shadow note,
+  replay files, and hand math).

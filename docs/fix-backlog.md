@@ -12,6 +12,15 @@
 > lane. Frozen-contract items (`gate.py` / `scoring.py` / Finding schema) ship as **one versioned
 > v1.2 migration** (charter Part 33), never piecemeal.
 
+> **Wave 2 MERGED 2026-07-02** (main d933b7e, suite 626 passed / 3 skipped): lanes F (F18, F29,
+> F33, F34, F49 Price Momentum overlay, F51 per-series price dedup incl. the cross-cycle fix), G
+> (F41 minus the frozen schemaVersion-default bump - explicitly skipped, F42, F50, F26-cli), H
+> (F26 personas, F27 frontier-closed runnable - note: the old empty-weights-zero-indices claim was
+> stale, registry-weight fallback meant indices were never zero; the real deliverables are explicit
+> weights + manifest + persona + runnability pins), I (F28 host-aware matching + auditable waivers,
+> F40 signpost), J (F39 rating anchors). Reviews: opus on F, sonnet on G/H/I, controller on J.
+> Controller wiring: persona threads via --persona/personaLabel (d933b7e).
+
 > **Wave 1 MERGED 2026-07-02** (main f1c0835, suite 516 passed / 3 skipped): the contract v1.2
 > migration (F2, F3, F7, F8, F9, F16, F17, F21, F36, F37 - shadow-run + replay v7-v12 in
 > docs/migrations/2026-07-contract-v1.2.md) and lanes C (F19, F20, F35, F38), D (F10, F11, F12,
@@ -78,7 +87,7 @@
 - [x] **F17 — Vintage honesty validation.** `evidence.date` = publication date, not fetch date (v6
   is full of `2026-07-02` fetch stamps in a June scorecard); validate `observedAt`/date formats;
   flag future-dated evidence relative to `asOf`. *(Lane A)*
-- [ ] **F18 — `_traj_arrow` keyword bug.** "supply glut worsening" renders UP ▲ because
+- [x] **F18 — `_traj_arrow` keyword bug.** "supply glut worsening" renders UP ▲ because
   `"up" ⊂ "supply"` (`brief.py:123-139`); make trajectory a constrained enum. *(Lane F)*
 - [x] **F19 — Single-sample "unanimity."** A dimension in 1 of 3 samples gets high confidence with
   basis "1/1" (`judge.py:64-74`); require a real quorum. *(Lane C)*
@@ -101,15 +110,15 @@
 - [ ] **F25 — Wiki store performance + concurrency.** O(N) full-log re-reads per operation,
   O(pages²) health scans, `seq = len(read())` TOCTOU race — fatal at 34 concurrent categories.
   *(Feature track)*
-- [ ] **F26 — De-GPU the template.** "GPU market analyst" persona hardcoded for every category;
+- [x] **F26 — De-GPU the template.** "GPU market analyst" persona hardcoded for every category;
   `judge --category` defaults to merchant-gpu; `--primary-sources` defaults to sec.gov; skills
   hardcode the merchant-gpu assignment. Parameterize by assignment. *(Lane H)*
-- [ ] **F27 — Make `frontier-closed` runnable.** Empty weights (zero indices), no manifest, flat
+- [x] **F27 — Make `frontier-closed` runnable.** Empty weights (zero indices), no manifest, flat
   indicator namespace. Second category = the generalization proof. *(Lane H)*
-- [ ] **F28 — Coverage-gap matching.** Substring URL patterns produced false "required gaps"
+- [x] **F28 — Coverage-gap matching.** Substring URL patterns produced false "required gaps"
   (10-Q via s201.q4cdn.com, BIS via www.bis.gov) that were waved off in free text. Indicator-level
   credit or mirror patterns; overrides become a structured, auditable field. *(Lane I)*
-- [ ] **F29 — Single-source ⚠ flag in the brief** (deferred 4-5 item) — v6 shows it can't stay
+- [x] **F29 — Single-source ⚠ flag in the brief** (deferred 4-5 item) — v6 shows it can't stay
   deferred. *(Lane F)*
 - [x] **F30 — Log lifecycle promotions.** `update_header` writes no event; registered/provisional
   flips are invisible to replayable history (`wiki/store.py:107-114`). *(Lane E)*
@@ -118,9 +127,9 @@
 - [x] **F32 — Read paths must not write.** `wiki-lifecycle` propose calls `lint()` which appends a
   log event and can mint a "cycle," aging every page (`cli.py:152`); provenance-only events must not
   count as cycles for decay (`lint.py:127-128`). *(Lane E)*
-- [ ] **F33 — Bound brief growth.** STORYLINES renders every page forever; pruned pages never
+- [x] **F33 — Bound brief growth.** STORYLINES renders every page forever; pruned pages never
   archive. Add an archived state or render cap. *(Lane F)*
-- [ ] **F34 — Recalibrate the materiality fold.** New secondary threads score 0.27 &lt; 0.3 threshold —
+- [x] **F34 — Recalibrate the materiality fold.** New secondary threads score 0.27 &lt; 0.3 threshold —
   structurally hides the discovery class the lifecycle exists to catch. Retune or document. *(Lane F)*
 - [x] **F35 — Judgment citation coherence.** The judge can cite a momentum finding for a moat rating
   (`gate.py:43-47` checks existence only); validate `findingIds` against the dimension's indicator
@@ -133,15 +142,15 @@
 - [x] **F38 — Honest self-consistency.** All 3 judgment samples come from one subagent generation
   (correlated); sample independently, and move the vote spread out of `confidence.basis` into its
   own field. *(Lane C)*
-- [ ] **F39 — Per-dimension rating anchor definitions.** "Weak" bottleneck (built) vs "Very strong
+- [x] **F39 — Per-dimension rating anchor definitions.** "Weak" bottleneck (built) vs "Very strong
   choke point" (charter Part 17 example): write the five-word definitions per dimension so two
   analysts pick the same word. *(Lane J)*
-- [ ] **F40 — Fix or delete `ClaudeCodeClient`.** Reads `message.text` (SDK uses content blocks),
+- [x] **F40 — Fix or delete `ClaudeCodeClient`.** Reads `message.text` (SDK uses content blocks),
   leaves tools enabled, zero coverage, not the path the skills use. *(Lane I)*
-- [ ] **F41 — Input robustness bundle.** Reject NaN; parse timestamps (lexical compare misorders
+- [x] **F41 — Input robustness bundle.** Reject NaN; parse timestamps (lexical compare misorders
   mixed offsets, `scoring.py:14`); bump `Finding.schemaVersion` default to 1.1; validate wiki page
   ids/slugs (path escape, `wiki/store.py:82-84`); crash-recoverable `route_findings`. *(Lane G)*
-- [ ] **F42 — Hardcoded paths → config.** `registry/indicators.json` / `docs/taxonomy.json` are
+- [x] **F42 — Hardcoded paths → config.** `registry/indicators.json` / `docs/taxonomy.json` are
   cwd-relative literals across the CLI. *(Lane G)*
 - [x] **F43 — Move gather outputs out of `docs/`; reconcile `ingested/`.** 20 scraped JSONs beside
   the charter (the skill's `--out docs` example is the cause); duplicate folder missing
@@ -164,16 +173,16 @@
 - [x] **F48 — Front door.** Real readme (and consider the repo name before anything is shown under
   TSMC branding). *(Wave 0 — DONE 86d0224: real readme with honest build status; repo RENAME
   remains a user call, flagged in the readme)*
-- [ ] **F50 — Run asOf must own the scorecard label** (born from the F46 gate). `Scorecard.asOf`
+- [x] **F50 — Run asOf must own the scorecard label** (born from the F46 gate). `Scorecard.asOf`
   comes from `assignment.asOf` (a committed fixture pinning `2026-06`), not the run's `--as-of` —
   the F46 daily cycle first wrote its scorecard as `2026-06-v13` (removed; re-run with a
   run-scoped assignment copy). Make the pipeline's `--as-of` override the assignment's, or
   fail-loud on mismatch. *(Wave 2, Lane G — cross-cutting robustness)*
-- [ ] **F51 — Finer dedup key for price series** (born from the F46 gate). L2 keys by
+- [x] **F51 — Finer dedup key for price series** (born from the F46 gate). L2 keys by
   `(entity, indicatorId)`, so every NVDA D6 row across providers and SKUs (B200 vs H100; Lambda vs
   CoreWeave vs Runpod) collapses to one rep + dispersion. The F49 price track needs a per-series
   key (SKU/provider) before it can chart anything. *(Wave 2, with F49 in Lane F)*
-- [ ] **F49 — Price Momentum Index overlay** (born from the F8 decision). Compute the price-side
+- [x] **F49 — Price Momentum Index overlay** (born from the F8 decision). Compute the price-side
   rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
   blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.
   *(Wave 2, Lane F)*

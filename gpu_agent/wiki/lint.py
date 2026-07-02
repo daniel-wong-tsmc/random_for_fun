@@ -56,6 +56,8 @@ class HealthReport(BaseModel):
     stale: list[StaleEntry] = Field(default_factory=list)
     crossRefGaps: list[CrossRefGap] = Field(default_factory=list)
     contradictions: list[ContradictionEntry] = Field(default_factory=list)
+    missingFindings: list[str] = Field(default_factory=list)
+    untaggedIndicators: list[str] = Field(default_factory=list)
 
 
 class LintReport(BaseModel):
@@ -90,14 +92,17 @@ _CADENCE_HL = {"daily": "h_short", "weekly": "h_med", "quarterly": "h_long"}
 
 
 def _findings_for(store, page_id, observations):
-    """Resolve observation finding ids to Findings, skipping any not in the FindingStore."""
+    """Resolve observation finding ids to Findings. Returns (findings, missing_ids): a finding id
+    with no backing FindingStore entry (F22-E) is no longer silently dropped - it's surfaced to
+    the caller instead."""
     out = []
+    missing: list[str] = []
     for o in observations:
         try:
             out.append(store.findings.get(o.findingId))
         except Exception:
-            continue
-    return out
+            missing.append(o.findingId)
+    return out, missing
 
 
 def half_life(findings, horizons, config=DEFAULT_LINT_CONFIG):
@@ -158,7 +163,8 @@ def _is_scoring(registry, indicator_id):
 
 
 def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
-                contradiction_note, registry, horizons, config=DEFAULT_LINT_CONFIG):
+                contradiction_note, registry, horizons, config=DEFAULT_LINT_CONFIG,
+                missing_acc=None, untagged_acc=None):
     page = store.get_page(page_id)
     lo = prev_as_of or ""
     window = [o for o in store.observations(page_id) if lo < o.asOf <= as_of]
@@ -169,6 +175,8 @@ def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
             pairs.append((o, store.findings.get(o.findingId)))
             contributing.append(o.findingId)
         except Exception:
+            if missing_acc is not None:
+                missing_acc.add(o.findingId)
             continue
 
     factors = MoveFactors()
@@ -203,8 +211,12 @@ def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
     salience_weight = max(config.salience_floor, page.salience)
     score = base * tier_mult * recency_mult * (1 + horizon_boost) * salience_weight
 
-    all_findings = _findings_for(store, page_id, store.observations(page_id))
-    hl, _untagged = half_life(all_findings, horizons, config)
+    all_findings, missing_ids = _findings_for(store, page_id, store.observations(page_id))
+    if missing_acc is not None:
+        missing_acc.update(missing_ids)
+    hl, untagged = half_life(all_findings, horizons, config)
+    if untagged_acc is not None:
+        untagged_acc.update(untagged)
     eff = effective_salience(page.salience, quiet_age(store, page_id, as_of), hl)
 
     return MaterialMove(pageId=page_id, title=page.title, type=page.type, status=page.status,
@@ -212,10 +224,15 @@ def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
                         tierMult=tier_mult, recencyMult=recency_mult, effectiveSalience=eff)
 
 
-def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT_CONFIG):
+def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT_CONFIG,
+                  missing_acc=None, untagged_acc=None):
     """Structural health over ALL pages (entity AND theme): orphans, stale (decayed), cross-ref
     gaps (asymmetric + mention-without-link), and the contradiction roll-up. Read-only; mutates
     nothing."""
+    if missing_acc is None:
+        missing_acc = set()
+    if untagged_acc is None:
+        untagged_acc = set()
     idx = store.index()
     pages = {e.id: store.get_page(e.id) for e in idx}
 
@@ -226,10 +243,15 @@ def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT
 
     stale = []
     for pid, p in pages.items():
+        # F22-E: resolve every page's findings (not just stale-eligible ones) so a dangling
+        # observation or an untagged indicator is surfaced regardless of the page's freshness.
+        findings, missing_ids = _findings_for(store, pid, store.observations(pid))
+        missing_acc.update(missing_ids)
+        hl, untagged = half_life(findings, horizons, config)
+        untagged_acc.update(untagged)
         qa = quiet_age(store, pid, as_of)
         if qa <= 0:
             continue  # a fresh page is never "stale"
-        hl, _ = half_life(_findings_for(store, pid, store.observations(pid)), horizons, config)
         eff = effective_salience(p.salience, qa, hl)
         if eff < config.stale_threshold:
             stale.append(StaleEntry(pageId=pid, effectiveSalience=eff))
@@ -251,11 +273,12 @@ def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT
     contras = [ContradictionEntry(pageId=pid, note=note, asOf=as_of)
                for pid, note in sorted(contradictions.items())]
 
-    return HealthReport(orphans=orphans, stale=stale, crossRefGaps=gaps, contradictions=contras)
+    return HealthReport(orphans=orphans, stale=stale, crossRefGaps=gaps, contradictions=contras,
+                        missingFindings=sorted(missing_acc), untaggedIndicators=sorted(untagged_acc))
 
 
 def score_moves(store, diff, contradictions, *, as_of, prev_as_of, registry, horizons,
-                config=DEFAULT_LINT_CONFIG):
+                config=DEFAULT_LINT_CONFIG, missing_acc=None, untagged_acc=None):
     """Assemble the move-set (diff pages + any contradicted page), score each, split on the
     material threshold. Both lists are ranked by score descending."""
     new_ids = {pd.id for pd in diff.new_pages}
@@ -277,7 +300,8 @@ def score_moves(store, diff, contradictions, *, as_of, prev_as_of, registry, hor
         note = contradictions.get(pid)  # None when the page has no contradiction this cycle
         mv = _score_move(store, pid, as_of=as_of, prev_as_of=prev_as_of, is_new=is_new,
                          state_transition=st, contradiction_note=note,
-                         registry=registry, horizons=horizons, config=config)
+                         registry=registry, horizons=horizons, config=config,
+                         missing_acc=missing_acc, untagged_acc=untagged_acc)
         (material if mv.score >= config.material_threshold else dropped).append(mv)
     material.sort(key=lambda m: m.score, reverse=True)
     dropped.sort(key=lambda m: m.score, reverse=True)
@@ -309,10 +333,14 @@ def lint(store, *, as_of, prev_as_of=None, registry, horizons, config=DEFAULT_LI
         prev_as_of = _auto_prev(store, as_of)
     diff = store.diff(as_of, prev_as_of or "")
     contradictions = _contradictions_for(store, as_of)
+    missing_acc: set[str] = set()
+    untagged_acc: set[str] = set()
     material, dropped = score_moves(store, diff, contradictions, as_of=as_of, prev_as_of=prev_as_of,
-                                    registry=registry, horizons=horizons, config=config)
+                                    registry=registry, horizons=horizons, config=config,
+                                    missing_acc=missing_acc, untagged_acc=untagged_acc)
     health = health_report(store, as_of=as_of, contradictions=contradictions,
-                            horizons=horizons, config=config)
+                            horizons=horizons, config=config,
+                            missing_acc=missing_acc, untagged_acc=untagged_acc)
     report = LintReport(asOf=as_of, prevAsOf=prev_as_of, material=material,
                         dropped=dropped, health=health)
     if record and not any(e.kind == "lint" and e.asOf == as_of for e in store.log.read()):

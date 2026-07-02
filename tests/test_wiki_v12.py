@@ -301,3 +301,42 @@ def test_quiet_age_ingest_event_mints_a_cycle(tmp_path):
     ws.create_page("entity:x", "entity", "X", as_of="2026-06-01")
     ws.log.append(asOf="2026-06-02", kind="ingest", detail="enriched 0 page(s)")
     assert quiet_age(ws, "entity:x", "2026-06-02") == 1
+
+
+# ---------------------------------------------------------------------------
+# Task 6 (F22-E): lint surfaces what it used to swallow
+# ---------------------------------------------------------------------------
+
+def test_lint_health_surfaces_missing_findings(tmp_path):
+    from gpu_agent.wiki.lint import lint
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    ws.findings.append(_f("f-ghost", "NVDA"))
+    ws.create_page("entity:nvda", "entity", "NVDA", as_of="2026-06-28")
+    ws.append_observation("entity:nvda", "f-ghost", as_of="2026-06-28")
+    # Simulate a dangling observation reference (the finding was removed from the canonical
+    # FindingStore out from under the wiki) - the store API itself never deletes gated findings,
+    # so we reach under it to recreate the scenario _findings_for used to swallow silently.
+    (tmp_path / "findings" / "f-ghost.json").unlink()
+    report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
+    assert report.health.missingFindings == ["f-ghost"]
+
+
+def test_lint_health_surfaces_untagged_indicators(tmp_path):
+    from gpu_agent.wiki.lint import lint
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA", indicatorId="totally-untagged-indicator-xyz")],
+                   as_of="2026-06-28")
+    report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
+    assert "totally-untagged-indicator-xyz" in report.health.untaggedIndicators
+
+
+def test_lint_health_missing_and_untagged_empty_on_clean_store(tmp_path):
+    from gpu_agent.wiki.lint import lint
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA", indicatorId="rpoBacklog")], as_of="2026-06-28")
+    report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
+    assert report.health.missingFindings == []
+    assert report.health.untaggedIndicators == []

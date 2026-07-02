@@ -102,6 +102,92 @@ def test_latest_scorecard_before_none_when_nothing_earlier(tmp_path):
     assert latest_scorecard_before(tmp_path, CATEGORY_ID, "2026-07-03") is None
 
 
+def test_cycle_asofs_respects_as_of_cutoff_no_future_leak(tmp_path):
+    """Temporal separation: replaying a past cycle must not see later-labeled
+    scorecards in its chronology — cycleAsOfs filters label < as_of exactly like
+    latest_scorecard_before does (same fixture scenario as test 3)."""
+    from gpu_agent.memory import build_memory_bundle
+    registry, horizons = _registry_and_horizons()
+    cat_dir = tmp_path / CATEGORY_ID
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v2.json").write_text(
+        json.dumps(_minimal_scorecard(CATEGORY_ID, "2026-06")), "utf-8"
+    )
+    (cat_dir / "2026-06-v12.json").write_text(
+        json.dumps(_minimal_scorecard(CATEGORY_ID, "2026-06")), "utf-8"
+    )
+    (cat_dir / "2026-07-03-v1.json").write_text(
+        json.dumps(_minimal_scorecard(CATEGORY_ID, "2026-07-03")), "utf-8"
+    )
+
+    bundle = build_memory_bundle(tmp_path, CATEGORY_ID, "2026-07-03", registry, horizons)
+
+    assert bundle is not None
+    # No 2026-07-03 leak: labels at/after as_of are excluded from chronology.
+    assert bundle.cycleAsOfs == ["2026-06"]
+
+
+# ── prior scorecard with categoryStatus + indices -> branchy fields populate ─
+
+def test_build_memory_bundle_prior_category_status_and_indices(tmp_path):
+    """A prior scorecard carrying categoryStatus and an indices block drives the
+    only branchy logic in _prior_ratings/_prior_indices: priorCategoryStatus is
+    populated and priorIndices carries momentum/outlook/divergence keys, with
+    divergence flattened to its state string and rating confidence flattened to
+    its .level string."""
+    from gpu_agent.memory import build_memory_bundle
+    registry, horizons = _registry_and_horizons()
+
+    sc = _minimal_scorecard(CATEGORY_ID, "2026-06")
+    sc["dimensionRatings"] = {
+        "momentum": {
+            "rating": "Strong",
+            "direction": "worsening",
+            "confidence": {"level": "high", "basis": "3/3 Strong"},
+            "findingIds": ["f-1"],
+            "rationale": "solid but decelerating",
+        }
+    }
+    sc["categoryStatus"] = {
+        "rating": "Strong",
+        "direction": "worsening",
+        "bottleneck": "CoWoS",
+        "reason": "advanced packaging still gates supply",
+    }
+    sc["indices"] = {
+        "momentum": {"dmiContribution": 0.1, "smiContribution": 0.05},
+        "outlook": {"dmiContribution": 0.2, "smiContribution": 0.1},
+        "divergence": {
+            "state": "aligned",
+            "sdgiGap": 0.05,
+            "outlookFindingCount": 3,
+            "momentumFindingCount": 4,
+        },
+    }
+    cat_dir = tmp_path / CATEGORY_ID
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v1.json").write_text(json.dumps(sc), "utf-8")
+
+    bundle = build_memory_bundle(tmp_path, CATEGORY_ID, "2026-07-03", registry, horizons)
+
+    assert bundle is not None
+    assert bundle.priorCategoryStatus == {
+        "rating": "Strong",
+        "direction": "worsening",
+        "bottleneck": "CoWoS",
+        "reason": "advanced packaging still gates supply",
+    }
+    assert bundle.priorRatings == {
+        "momentum": {"rating": "Strong", "direction": "worsening", "confidence": "high"}
+    }
+    assert bundle.priorIndices["momentum"]["dmiContribution"] == pytest.approx(0.1)
+    assert bundle.priorIndices["outlook"]["dmiContribution"] == pytest.approx(0.2)
+    assert bundle.priorIndices["divergence"] == "aligned"
+    assert bundle.priorIndices["dmi"] == pytest.approx(0.1)
+    assert bundle.priorIndices["smi"] == pytest.approx(0.05)
+    assert bundle.priorIndices["sdgi"] == pytest.approx(0.05)
+
+
 # ── 4. render_memory_text: exact header, byte-stable across two calls ───────
 
 def test_render_memory_text_header_and_determinism():

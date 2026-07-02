@@ -75,26 +75,30 @@ def latest_scorecard_before(store_root, category_id: str, as_of: str):
     return path, load_scorecard(path)
 
 
-def _cycle_asofs(store_root: Path, category_id: str) -> list[str]:
-    """Chronology helper: the distinct scorecard asOf labels present under
-    store_root/category_id, ascending, last 5.
+def _cycle_asofs(store_root: Path, category_id: str, as_of: str) -> list[str]:
+    """Chronology helper: the distinct scorecard asOf labels strictly before
+    `as_of` under store_root/category_id, ascending, last 5.
 
     Design choice (documented per the brief): only the label matters for
     chronology, so multiple versions of the same label collapse to one entry
     (find_prior's max-version-per-label semantics pick the file, not the label
-    set). The result is not filtered against any as_of cutoff — it is the full
-    label chronology visible on disk; in practice the current cycle's scorecard
-    file does not exist yet when build_memory_bundle runs, so this is naturally
-    history-only.
+    set). Labels >= as_of are excluded with the same lexical `label < as_of`
+    cutoff latest_scorecard_before uses — temporal separation must hold even in
+    replay/backtest runs where later-labeled scorecards already exist on disk;
+    a past cycle's memory bundle never sees its own or a future label.
     """
     cat_dir = Path(store_root) / category_id
     if not cat_dir.is_dir():
         return []
-    labels = {label for label, _version, _path in _scan_versions(cat_dir)}
+    labels = {label for label, _version, _path in _scan_versions(cat_dir)
+              if label < as_of}
     return sorted(labels)[-_CYCLE_HISTORY_DEPTH:]
 
 
 def _prior_ratings(prior_sc) -> dict[str, dict]:
+    """dim -> {rating, direction, confidence}. Confidence flattens to its .level
+    string (the basis prose stays behind), paralleling how _prior_indices
+    flattens divergence to its .state string."""
     return {
         dim: {
             "rating": dr.rating,
@@ -218,7 +222,7 @@ def build_memory_bundle(
         theses=_theses(store_root, category_id),
         wikiStates=_wiki_states(store_root),
         priceSeries=_price_series(store_root, category_id, prior_sc),
-        cycleAsOfs=_cycle_asofs(store_root, category_id),
+        cycleAsOfs=_cycle_asofs(store_root, category_id, as_of),
     )
 
 

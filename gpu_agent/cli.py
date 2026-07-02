@@ -316,6 +316,10 @@ def _pipeline(args) -> int:
     else:
         jdg_client = make_client(args.backend)
     a = load_assignment(args.assignment)
+    if a.asOf != args.as_of:
+        print(f"note: assignment asOf {a.asOf} overridden by run asOf {args.as_of} (F50)",
+              file=sys.stderr)
+        a = a.model_copy(update={"asOf": args.as_of})
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
     bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)

@@ -1,9 +1,13 @@
 """Wave-2 Lane I: coverage matching (F28a/F28b) + honest LLM backends (F40).
 
 F28a — host-aware URL matching + mirrorPatterns.
-F28b — structured, auditable coverage overrides (this section).
-F40  — ClaudeCodeClient is an honest signpost (added by Task 3).
+F28b — structured, auditable coverage overrides.
+F40  — ClaudeCodeClient is an honest signpost (this section).
 """
+import subprocess
+import sys
+from pathlib import Path
+
 from gpu_agent.manifest import (
     CoverageManifest,
     CoverageOverride,
@@ -11,6 +15,8 @@ from gpu_agent.manifest import (
     load_manifest,
     _url_matches,
 )
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 # ── F28a: _url_matches (pure helper) ─────────────────────────────────────────
@@ -214,3 +220,26 @@ def test_coverage_gap_accepts_waived_acquisition_status():
     g = CoverageGap(type="source", id="x", priority="required",
                      acquisitionStatus="waived", reason="waived: ...")
     assert g.acquisitionStatus == "waived"
+
+
+# ── F40: pipeline invoked live (no --recorded-extract) fails loud, not with an
+#         AttributeError deep in the claude_agent_sdk ───────────────────────
+
+def test_pipeline_live_without_recorded_extract_fails_loud_with_session_signpost(tmp_path):
+    store = tmp_path / "store"
+    proc = subprocess.run(
+        [sys.executable, "-m", "gpu_agent.cli", "pipeline",
+         "--docs", "fixtures/raw",
+         "--assignment", "fixtures/asg.chips.merchant-gpu.json",
+         "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z",
+         "--samples", "3", "--out", str(store)],
+        cwd=str(REPO_ROOT),
+        capture_output=True, text=True,
+    )
+    combined = proc.stdout + proc.stderr
+    assert proc.returncode != 0, combined
+    assert "--emit-prompt" in combined
+    assert "--recorded" in combined
+    assert "AttributeError" not in combined
+    assert "claude_agent_sdk" not in combined
+    assert not list(store.glob("**/*.json")), "pipeline must not write a scorecard when the LLM call fails loud"

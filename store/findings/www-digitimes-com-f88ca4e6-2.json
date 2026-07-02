@@ -1,0 +1,44 @@
+{
+  "id": "www-digitimes-com-f88ca4e6-2",
+  "statement": "Next-generation accelerators — NVIDIA Vera Rubin, AMD Helios (MI400-series), AWS Trainium 3 and Google TPU — are all moving into mass production simultaneously, expanding datacenter accelerator supply into 2H26.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Simultaneous mass-production ramps across GPUs and custom ASICs expand alternative accelerator supply and intensify competition beyond NVIDIA merchant GPUs.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hyperscaler-asic",
+      "chips.ai-silicon-startups",
+      "chips.foundry-packaging"
+    ],
+    "direction": "positive",
+    "mechanism": "Concurrent mass production of GPUs and custom ASICs increases available accelerator supply and competitive alternatives into the second half of 2026."
+  },
+  "evidence": [
+    {
+      "source": "Digitimes",
+      "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+      "date": "2026-06-30",
+      "excerpt": "stronger 2H26 server shipments as driven by simultaneous mass-production ramps across Nvidia's next-gen Vera Rubin GPU platform, AMD's Helios rack (MI400-series), AWS Trainium 3, and Google TPU custom silicon",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Trade press (secondary), free excerpt; capacity detail paywalled."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-02",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

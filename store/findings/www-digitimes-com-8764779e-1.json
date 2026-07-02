@@ -1,0 +1,43 @@
+{
+  "id": "www-digitimes-com-8764779e-1",
+  "statement": "NVIDIA became the revenue leader in the global data center Ethernet switch market for the first time in Q1 2026, an adjacent share gain tied to Spectrum-X/Quantum networking bundled with Blackwell/GB300 deployments.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Networking leadership shows NVIDIA's GPU platform pulling through bundled Spectrum-X/Quantum networking, extending its datacenter footprint and share beyond compute.",
+  "impact": {
+    "targets": [
+      "chips.networking-silicon",
+      "infrastructure.networking-fabric",
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "GB300/Blackwell deployments bundle NVIDIA networking, driving data center Ethernet switch revenue share and reinforcing platform lock-in."
+  },
+  "evidence": [
+    {
+      "source": "Digitimes",
+      "url": "https://www.digitimes.com/news/a20260701PD224/nvidia-data-center-ethernet-idc.html",
+      "date": "2026-07-01",
+      "excerpt": "Nvidia's networking business has surged to the top, with the company becoming the revenue leader in the global data center Ethernet switch market for the first time in the first quarter of 2026.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Trade press (secondary), free excerpt; full article paywalled, no share percentage given."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Digitimes, NVIDIA Newsroom",
+  "asOf": "2026-07-02",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "NVDA",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

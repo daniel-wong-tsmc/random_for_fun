@@ -1,0 +1,145 @@
+{
+  "asOf": "2026-07-02",
+  "docsDroppedKnown": [],
+  "findingsNew": [
+    {
+      "findingId": "www-investing-com-f24cdca0-1",
+      "entity": "AMD",
+      "indicatorId": "S9",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-investing-com-f24cdca0-2",
+      "entity": "AMD",
+      "indicatorId": "designWins",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "blogs-nvidia-com-817f7ea6-1",
+      "entity": "NVDA",
+      "indicatorId": "D2",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "lambda-ai-845323fc-1",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "nvidianews-nvidia-com-2de12e3b-1",
+      "entity": "NVDA",
+      "indicatorId": "designWins",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-ebay-com-fe5361e5-1",
+      "entity": "NVDA",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-digitimes-com-8764779e-1",
+      "entity": "NVDA",
+      "indicatorId": "market-share-pct",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-digitimes-com-f88ca4e6-2",
+      "entity": "market",
+      "indicatorId": "S9",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-digitimes-com-f88ca4e6-1",
+      "entity": "market",
+      "indicatorId": "rpoBacklog",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    }
+  ],
+  "findingsUpdate": [],
+  "findingsDuplicate": [
+    {
+      "findingId": "blogs-nvidia-com-817f7ea6-2",
+      "entity": "NVDA",
+      "indicatorId": "D2",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-2",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-1",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-2",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-runpod-io-bdb62dfd-1",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-runpod-io-bdb62dfd-2",
+      "entity": "NVDA",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-ebay-com-fe5361e5-2",
+      "entity": "NVDA",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "nvidianews-nvidia-com-7296b2f1-1",
+      "entity": "NVDA",
+      "indicatorId": "market-share-pct",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": "blogs-nvidia-com-817f7ea6-1",
+  "statement": "NVIDIA is launching a new revenue-sharing and credit-support business model that lets AI clouds procure NVIDIA infrastructure, expanding compute access to startups, model builders, enterprises, research organizations and regional AI players.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Financing has been a bottleneck for capital-intensive AI infrastructure; NVIDIA's revenue-share and credit-support model unlocks financing and expands its addressable demand while adding a share of cloud revenue on top of standard product revenue.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "infrastructure.hyperscale-cloud",
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Revenue-sharing and credit support unlock financing for AI-cloud buildouts, pulling through more NVIDIA GPU sales and adding a recurring cloud-revenue share."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Blog / Newsroom",
+      "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+      "date": "2026-07-01",
+      "excerpt": "NVIDIA is introducing a new business model that opens up compute access to the fast-growing AI ecosystem of startups, model builders, enterprises, research organizations and regional AI players",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single vendor blog (secondary), qualitative announcement without figures."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: NVIDIA Blog / Newsroom",
+  "asOf": "2026-07-02",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "NVDA",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -152,15 +152,27 @@
 - [x] **F45 — Honesty overlay on `swarm-graph.html`.** Mark built vs deferred; today it presents
   all 34 agents + 3 tiers as existing. *(Wave 0 — DONE f173165: build-status overlay,
   BUILT/PARTIAL/DEFERRED badges + panel status + legend)*
-- [ ] **F46 — Run a real second cycle.** Sub-project 4's machinery has never executed against real
+- [x] **F46 — Run a real second cycle.** Sub-project 4's machinery has never executed against real
   state (no `store/wiki/`, no `seen_docs.jsonl`; v1–v6 are same-month reruns). Cheapest integration
-  test available. *(Validation gate after Wave 1)*
+  test available. *(Validation gate after Wave 1 — DONE 2026-07-02: live daily cycle →
+  `store/chips.merchant-gpu/2026-07-02-v1.json` DMI +0.227/SMI +0.053, Δ vs the v1.2-replayed
+  2026-06-v12; L1 index seeded, L2 dedup 9 new/8 dup, wiki 3 entity pages, lint 3 material.
+  Surfaced F50 + F51 below.)*
 - [x] **F47 — Retire or sync the stale doc tree** in `Documents\TSMC\ai4bi\ai_state_of_the_market`;
   pull `action-items.md` into this repo. *(Wave 0 — DONE c83ae83: action-items.md in-repo;
   external tree got a RETIRED.md pointer, nothing deleted)*
 - [x] **F48 — Front door.** Real readme (and consider the repo name before anything is shown under
   TSMC branding). *(Wave 0 — DONE 86d0224: real readme with honest build status; repo RENAME
   remains a user call, flagged in the readme)*
+- [ ] **F50 — Run asOf must own the scorecard label** (born from the F46 gate). `Scorecard.asOf`
+  comes from `assignment.asOf` (a committed fixture pinning `2026-06`), not the run's `--as-of` —
+  the F46 daily cycle first wrote its scorecard as `2026-06-v13` (removed; re-run with a
+  run-scoped assignment copy). Make the pipeline's `--as-of` override the assignment's, or
+  fail-loud on mismatch. *(Wave 2, Lane G — cross-cutting robustness)*
+- [ ] **F51 — Finer dedup key for price series** (born from the F46 gate). L2 keys by
+  `(entity, indicatorId)`, so every NVDA D6 row across providers and SKUs (B200 vs H100; Lambda vs
+  CoreWeave vs Runpod) collapses to one rep + dispersion. The F49 price track needs a per-series
+  key (SKU/provider) before it can chart anything. *(Wave 2, with F49 in Lane F)*
 - [ ] **F49 — Price Momentum Index overlay** (born from the F8 decision). Compute the price-side
   rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
   blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.

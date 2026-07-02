@@ -1,0 +1,42 @@
+{
+  "id": "www-investing-com-f24cdca0-2",
+  "statement": "AMD's MI450/Helios customer engagement may be strengthening, per same-week secondary coverage that is explicitly not independently confirmed.",
+  "kind": "hypothesis",
+  "value": null,
+  "trend": "rising",
+  "why": "If MI450/Helios engagement is firming, AMD would be converting its Instinct roadmap into named platform adoption, a leading demand indicator for its accelerators.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Named MI450/Helios customer wins would validate AMD accelerator demand and erode NVIDIA's share."
+  },
+  "evidence": [
+    {
+      "source": "Investing.com",
+      "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+      "date": "2026-06-29",
+      "excerpt": "separate analyst references to strengthening MI450/Helios customer engagement -- flagged here as secondary, not confirmed verbatim",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": "The engagement is reported only via secondary aggregation and explicitly not confirmed; treated as a hypothesis pending primary confirmation such as named customer announcements or filings.",
+  "confidence": {
+    "level": "low",
+    "basis": "Unconfirmed secondary aggregation; explicitly flagged as not verified."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-02",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "AMD",
+  "observedAt": "2026-06-29",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "www-investing-com-f24cdca0-1",
+  "statement": "Cantor Fitzgerald raised its AMD price target to $700 from $500 (maintaining Overweight), citing AMD as offering the greatest compute momentum among semiconductor companies, driven by its data-center Instinct GPU trajectory.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "An analyst upgrade framed around AMD's Instinct data-center GPU momentum signals a strengthening competitive accelerator alternative to NVIDIA.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.ai-silicon-startups",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising AMD Instinct momentum expands competitive accelerator supply and choice, pressuring NVIDIA's accelerator share."
+  },
+  "evidence": [
+    {
+      "source": "Investing.com",
+      "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+      "date": "2026-06-29",
+      "excerpt": "Cantor Fitzgerald raised its price target on Advanced Micro Devices stock to $700 from $500 while maintaining an Overweight rating.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Analyst action reported via aggregator (secondary); qualitative, no market-share figure."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-02",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": 1,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "AMD",
+  "observedAt": "2026-06-29",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

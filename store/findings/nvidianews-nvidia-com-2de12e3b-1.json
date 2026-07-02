@@ -1,0 +1,44 @@
+{
+  "id": "nvidianews-nvidia-com-2de12e3b-1",
+  "statement": "Anthropic's Claude models are now generally available in Microsoft Foundry, running in production on NVIDIA GB300 (Blackwell Ultra) GPUs in Microsoft Azure.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A frontier lab's flagship models reaching general availability on current-generation Blackwell Ultra inside a major hyperscaler is a concrete production-demand data point for merchant datacenter GPUs.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud",
+      "models.frontier-closed",
+      "models.reasoning-agentic"
+    ],
+    "direction": "positive",
+    "mechanism": "Production GA deployment of Claude on GB300 pulls through Blackwell Ultra GPU demand via Azure."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Newsroom",
+      "url": "https://nvidianews.nvidia.com/news/claude-anthropic-nvidia-gb300-azure",
+      "date": "2026-06-29",
+      "excerpt": "Anthropic's Claude models in Microsoft Foundry — hosted on Microsoft Azure and running on NVIDIA GB300 Blackwell Ultra GPUs — are now generally available",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor newsroom (secondary) announcement."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-02",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "NVDA",
+  "observedAt": "2026-06-29",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

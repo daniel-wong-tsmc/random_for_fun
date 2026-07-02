@@ -1,0 +1,46 @@
+{
+  "id": "lambda-ai-845323fc-1",
+  "statement": "Lambda lists NVIDIA B200 SXM6 GPU-cloud rental at $6.69/hr per GPU (8x configuration), the flagship Blackwell rate.",
+  "kind": "measured",
+  "value": {
+    "number": 6.69,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Provides a current per-GPU market rental level for flagship Blackwell B200 capacity, a reference point for $/GPU-hr economics; no baseline in the document so it is a static level.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Rental price level sets the cost baseline for renting B200 compute; a display overlay, not a demand/supply mover."
+  },
+  "evidence": [
+    {
+      "source": "Lambda (lambda.ai)",
+      "url": "https://lambda.ai/service/gpu-cloud",
+      "date": "2026-07-02",
+      "excerpt": "NVIDIA B200 SXM6: 8x configuration $6.69/hr",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor price page (secondary)."
+  },
+  "dispersion": "conflicting same-key reports: value 3.29 -> 6.69 (tol 1%); sources: Lambda (lambda.ai), Runpod",
+  "asOf": "2026-07-02",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "NVDA",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "www-ebay-com-fe5361e5-1",
+  "statement": "Used NVIDIA H100 average sold price on eBay is $799 (last 240 listings), but the underlying pricing data was last updated February 4, 2025, so the figure is a stale vintage.",
+  "kind": "measured",
+  "value": {
+    "number": 799.0,
+    "unit": "USD_per_card"
+  },
+  "trend": "unknown",
+  "why": "Secondary-market resale level for used H100; heavily caveated because the source data was last updated 2025-02-04 and may not reflect current resale conditions. Static level with no baseline, so it does not score.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Resale price level is a display overlay for secondary GPU supply, not a demand/supply mover."
+  },
+  "evidence": [
+    {
+      "source": "eBay (via web search aggregation)",
+      "url": "https://www.ebay.com/shop/nvidia-h100-gpu?_nkw=nvidia+h100+gpu",
+      "date": "2026-07-02",
+      "excerpt": "The average sold price for used nvidia h100 is $799 from the last 240 listings.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Aggregated secondary listing data, explicitly stale (last updated 2025-02-04)."
+  },
+  "dispersion": "conflicting same-key reports: value 6113.0 -> 799.0 (tol 1%); sources: eBay (via web search aggregation)",
+  "asOf": "2026-07-02",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "NVDA",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,52 +1,52 @@
 {
   "scope": "category:chips.merchant-gpu",
+  "asOf": "2026-07-02",
+  "mode": "daily",
+  "startedBy": "run-cycle skill (F46 integration gate)",
   "entries": [
     {
       "category_id": "chips.merchant-gpu",
-      "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
-      "status": "ready",
-      "category": "done",
-      "scorecard": "store/chips.merchant-gpu/2026-06-v6.json",
-      "DMI": 0.3,
-      "SMI": -0.107,
-      "SDGI": 0.407,
-      "docsDir": "ingested",
-      "snapshot": "blobs.json",
-      "artifacts": {
-        "extractAnswer": "work/merchant-gpu-2026-06/extract-answer.json",
-        "judgeAnswer": "work/merchant-gpu-2026-06/judge-answer.json",
-        "findings": "work/merchant-gpu-2026-06/findings.json",
-        "gatherLog": "docs/gather-log.json (coverageGaps appended)"
+      "assignment_path": "work/gather-daily-2026-07-02/asg.chips.merchant-gpu.daily.json",
+      "assignment_note": "run-scoped copy of fixtures/asg.chips.merchant-gpu.json with asOf=2026-07-02; the committed fixture pins asOf=2026-06 and Scorecard.asOf comes from the assignment, not --as-of (logged as integration finding F50)",
+      "status": "done",
+      "scorecard": "store/chips.merchant-gpu/2026-07-02-v1.json",
+      "dmi": 0.227,
+      "smi": 0.053,
+      "priorForDelta": "store/chips.merchant-gpu/2026-06-v12.json (v1.2 replay of v6 - continuity via the contract-v1.2 replay)",
+      "gather": {
+        "blobs": "work/gather-daily-2026-07-02/blobs-daily.json",
+        "docs": "work/docs-daily-2026-07-02 (10 docs, snapshots + gather-log.json with 19 coverageGaps)",
+        "droppedKnown": 0,
+        "note": "first daily run - L1 seen-doc index seeded at store/seen_docs.jsonl (10 entries)"
       },
-      "coverageGaps": {
-        "required_paywalled": [
-          "trendforce-gpu-tracker",
-          "semianalysis"
-        ],
-        "optional_notcovered": [
-          "gpuSpotPrice/gpu-marketplaces"
-        ],
-        "note": "all required INDICATORS substantively covered via equivalent sources; source-URL-pattern gaps are non-substantive"
-      }
+      "dedupL2": {
+        "report": "store/chips.merchant-gpu/dedup-2026-07-02.json",
+        "new": 9,
+        "update": 0,
+        "duplicate": 8
+      },
+      "wiki": {
+        "routed": "9 findings -> 3 entity pages (entity:nvda, entity:amd, entity:market) under store/wiki/",
+        "lint": "work/gather-daily-2026-07-02/lint-report.json (3 material, 0 dropped)",
+        "enrichment": "not run (daily mode routes + lints only; brain enrichment is the standard-mode wiki-ingest --recorded path)"
+      },
+      "brainArtifacts": {
+        "extractPrompt": "work/gather-daily-2026-07-02/extract-prompt.json",
+        "extractAnswer": "work/gather-daily-2026-07-02/extract-answer.json (1 re-dispatch: impact.direction 'neutral' not in enum, corrected to schema)",
+        "judgePrompt": "work/gather-daily-2026-07-02/judge-prompt.json",
+        "judgeAnswer": "work/gather-daily-2026-07-02/judge-answer.json (3 SEPARATE tool-less opus generations, F38; unanimous Strong/improving, bottleneck competitiveStructure)"
+      },
+      "report": "work/gather-daily-2026-07-02/report-2026-07-02.txt"
     }
   ],
   "stages": [
-    {
-      "tier": "category",
-      "status": "done"
-    },
-    {
-      "tier": "layer",
-      "status": "deferred",
-      "note": "not yet built (next sub-project); would assess layer:chips"
-    },
-    {
-      "tier": "main",
-      "status": "deferred",
-      "note": "not yet built"
-    }
+    { "tier": "category", "status": "done" },
+    { "tier": "layer", "status": "deferred" },
+    { "tier": "main", "status": "deferred" }
   ],
-  "asOf": "2026-06",
-  "mode": "live",
-  "capturedAt": "2026-07-02T07:55:15Z"
+  "integrationFindings": [
+    "F50 (new): Scorecard.asOf comes from assignment.asOf, not the run's --as-of - a daily cycle mislabels its scorecard into the assignment's month (first pipeline run wrote 2026-06-v13, removed; re-run with run-scoped assignment). Fix: run asOf must override or validate against assignment.asOf.",
+    "F51 (new): L2 dedup keys price findings by (entity, indicatorId) - all NVDA D6 rows across providers/SKUs (B200 vs H100, Lambda vs CoreWeave vs Runpod) collapse to one rep with dispersion. F49's price track needs a finer series key (SKU/provider).",
+    "Note: WHAT MOVED/STORYLINES rows show 'no-state' because daily mode routes without brain enrichment - states/trajectories only exist after a standard-mode enrichment pass."
+  ]
 }

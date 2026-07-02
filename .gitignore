@@ -10,6 +10,7 @@ store/*
 !store/chips.merchant-gpu/
 !store/cycle-log.json
 !store/wiki/
+!store/findings/
 !store/seen_docs.jsonl
 work/
 blobs.json

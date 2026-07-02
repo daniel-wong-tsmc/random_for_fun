@@ -1,0 +1,44 @@
+{
+  "id": "www-digitimes-com-f88ca4e6-1",
+  "statement": "Server supply-chain players report an AI infrastructure order boom spilling into 2H26, with demand sentiment turning increasingly upbeat.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A broad order boom into 2H26 signals sustained datacenter accelerator demand and rising backlog across the supply chain.",
+  "impact": {
+    "targets": [
+      "infrastructure.datacenter-colo",
+      "chips.merchant-gpu",
+      "chips.hyperscaler-asic",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising AI infrastructure orders lift server shipments and accelerator backlog into the second half of 2026."
+  },
+  "evidence": [
+    {
+      "source": "Digitimes",
+      "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+      "date": "2026-06-30",
+      "excerpt": "The AI infrastructure order boom is spilling into the second half of 2026, and server supply-chain players are turning increasingly upbeat about demand as Nvidia Vera Rubin, AMD Helios, AWS Trainium 3, and Google TPU all move into mass production.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Trade press (secondary), free excerpt; detailed figures paywalled."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-02",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-02T21:30:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

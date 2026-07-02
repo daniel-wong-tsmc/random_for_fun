@@ -6,6 +6,7 @@ import json
 import pathlib
 from gpu_agent.gathering.ingest import _normalize_url
 from gpu_agent.schema.raw_document import RawDocument
+from gpu_agent.schema.finding import Finding
 from gpu_agent.wiki.store import WikiStore, PageNotFound
 from gpu_agent.wiki.ingest import slug
 
@@ -29,6 +30,7 @@ class DedupResult(BaseModel):
     new: list[FindingClass] = Field(default_factory=list)
     update: list[FindingClass] = Field(default_factory=list)
     duplicate: list[FindingClass] = Field(default_factory=list)
+    outFindings: list[Finding] = Field(default_factory=list)
 
 
 class DedupReport(BaseModel):
@@ -175,8 +177,10 @@ def delta_detail(prior, fresh, config=DEFAULT_DEDUP_CONFIG) -> str:
 
 def classify_findings(findings, store, *, config=DEFAULT_DEDUP_CONFIG) -> DedupResult:
     """L2: partition this cycle's gated findings into NEW / UPDATE / DUPLICATE vs the store's latest
-    vintage per (entity, indicatorId). Findings sharing a key are first collapsed to their own latest
-    vintage (same tie-break); superseded batch-mates are DUPLICATE. Nothing silent."""
+    vintage per (entity, indicatorId). Findings sharing a key are first collapsed to a representative
+    (latest vintage tie-break). Batch-mates that AGREE with the representative (F10: corroboration)
+    have their evidence merged into it instead of being silently discarded; batch-mates that CONFLICT
+    set `dispersion` on the representative instead of being recency-collapsed away. Nothing silent."""
     by_key: dict[tuple[str, str], list] = {}
     for f in findings:
         by_key.setdefault((f.entity, f.indicatorId), []).append(f)
@@ -185,20 +189,37 @@ def classify_findings(findings, store, *, config=DEFAULT_DEDUP_CONFIG) -> DedupR
     for (entity, ind), group in sorted(by_key.items()):
         ordered = sorted(group, key=lambda f: (f.capturedAt, f.observedAt, f.magnitude), reverse=True)
         rep, superseded = ordered[0], ordered[1:]
+
+        merged = rep
+        for s in superseded:
+            if not changed(s, rep, config):
+                seen = {(e.source, e.url, e.date) for e in merged.evidence}
+                extra = [e for e in s.evidence if (e.source, e.url, e.date) not in seen]
+                if extra:
+                    merged = merged.model_copy(update={"evidence": list(merged.evidence) + extra})
+                result.duplicate.append(FindingClass(findingId=s.id, entity=entity, indicatorId=ind,
+                                        verdict="duplicate", priorFindingId=rep.id,
+                                        detail=f"corroborates {rep.id}; evidence merged"))
+            else:
+                merged = merged.model_copy(update={"dispersion":
+                    f"conflicting same-key reports: {delta_detail(s, merged, config)}; "
+                    f"sources: {', '.join(sorted({e.source for e in s.evidence} | {e.source for e in merged.evidence}))}"})
+                result.duplicate.append(FindingClass(findingId=s.id, entity=entity, indicatorId=ind,
+                                        verdict="duplicate",
+                                        detail="superseded by intra-batch latest vintage"))
+
         prior = prior_vintage(store, entity, ind)
         if prior is None:
-            result.new.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+            result.new.append(FindingClass(findingId=merged.id, entity=entity, indicatorId=ind,
                                            verdict="new"))
-        elif changed(prior, rep, config):
-            result.update.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+            result.outFindings.append(merged)
+        elif changed(prior, merged, config):
+            result.update.append(FindingClass(findingId=merged.id, entity=entity, indicatorId=ind,
                                               verdict="update", priorFindingId=prior.id,
-                                              detail=delta_detail(prior, rep, config)))
+                                              detail=delta_detail(prior, merged, config)))
+            result.outFindings.append(merged)
         else:
-            result.duplicate.append(FindingClass(findingId=rep.id, entity=entity, indicatorId=ind,
+            result.duplicate.append(FindingClass(findingId=merged.id, entity=entity, indicatorId=ind,
                                                 verdict="duplicate", priorFindingId=prior.id,
                                                 detail="unchanged within tolerance"))
-        for s in superseded:
-            result.duplicate.append(FindingClass(findingId=s.id, entity=entity, indicatorId=ind,
-                                                verdict="duplicate",
-                                                detail="superseded by intra-batch latest vintage"))
     return result

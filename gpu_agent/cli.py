@@ -118,8 +118,16 @@ def _wiki_dedup(args) -> int:
     report = DedupReport(asOf=args.as_of, findingsNew=result.new,
                          findingsUpdate=result.update, findingsDuplicate=result.duplicate)
     if args.out_findings:
+        # F10: outFindings carries the merged (corroboration/dispersion) representatives.
+        # Fall back to the old id-filter only if outFindings is empty AND there are keeps —
+        # no silent divergence between what's reported and what's written.
         keep = {fc.findingId for fc in result.new + result.update}
-        deduped = [f.model_dump() for f in findings if f.id in keep]
+        if result.outFindings:
+            deduped = [f.model_dump() for f in result.outFindings]
+        elif keep:
+            deduped = [f.model_dump() for f in findings if f.id in keep]
+        else:
+            deduped = []
         pathlib.Path(args.out_findings).write_text(json.dumps(deduped, indent=2), "utf-8")
     payload = report.model_dump_json(indent=2)
     if args.report:

@@ -1,7 +1,7 @@
 import json
 import pytest
 from gpu_agent.cli import main
-from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Value
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Value, Evidence
 from gpu_agent.store import FindingStore
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.ingest import route_findings
@@ -12,11 +12,12 @@ def _blob(url, content="body", entity="NVDA"):
             "entity": entity}
 
 
-def _f(fid, entity, indicatorId, number, capturedAt="2026-07-01"):
+def _f(fid, entity, indicatorId, number, capturedAt="2026-07-01", evidence=None):
     return Finding(
         id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
         impact=Impact(targets=["x"], direction="negative", mechanism="m"),
         value=Value(number=number, unit="usd"),
+        evidence=evidence or [],
         confidence=Confidence(level="medium", basis="b"), asOf="2026-07",
         indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
         magnitude=2, entity=entity, observedAt="2026-07", capturedAt=capturedAt)
@@ -78,6 +79,30 @@ def test_wiki_dedup_reports_and_writes_deduped(tmp_path, capsys):
     assert {fc["findingId"] for fc in report["findingsDuplicate"]} == {"f-price1b"}
     kept = {d["id"] for d in json.loads(deduped.read_text("utf-8"))}
     assert kept == {"f-new", "f-price1"}  # NEW + UPDATE only
+
+
+def test_wiki_dedup_out_findings_contains_merged_evidence(tmp_path, capsys):
+    """F10: --out-findings writes the merged (corroborated) finding, not the raw rep —
+    two agreeing same-key findings in the fresh batch collapse to one with 2 evidence items."""
+    root = tmp_path / "store"
+    _seed_store(root)
+    findings = tmp_path / "fresh.json"
+    findings.write_text(json.dumps([
+        _f("f-new-a", "NVDA", "rpoBacklog", 100.0, capturedAt="2026-07-01",
+           evidence=[Evidence(source="NVIDIA 10-Q", url="http://sec/a", date="2026-07-01",
+                              excerpt="e", tier="primary").model_dump()]).model_dump(),
+        _f("f-new-b", "NVDA", "rpoBacklog", 100.0, capturedAt="2026-07-02",
+           evidence=[Evidence(source="Analyst note", url="http://blog/b", date="2026-07-02",
+                              excerpt="e", tier="secondary").model_dump()]).model_dump(),
+    ]), "utf-8")
+    deduped = tmp_path / "deduped.json"
+    rc = main(["wiki-dedup", "--findings", str(findings), "--store", str(root),
+               "--as-of", "2026-07", "--out-findings", str(deduped)])
+    assert rc == 0
+    written = json.loads(deduped.read_text("utf-8"))
+    assert len(written) == 1
+    assert written[0]["id"] == "f-new-b"
+    assert len(written[0]["evidence"]) == 2
 
 
 def test_wiki_dedup_rerun_all_duplicate(tmp_path, capsys):

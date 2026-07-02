@@ -1,7 +1,7 @@
 from gpu_agent.store import FindingStore
 from gpu_agent.wiki.store import WikiStore, PageNotFound
 from gpu_agent.gathering.dedup import classify_findings, DEFAULT_DEDUP_CONFIG
-from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Value
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Value, Evidence
 
 
 def _store(tmp_path):
@@ -9,14 +9,19 @@ def _store(tmp_path):
 
 
 def _f(fid, entity, indicatorId, *, number=None, magnitude=2, statement="s",
-       capturedAt="2026-07-01"):
+       capturedAt="2026-07-01", evidence=None):
     return Finding(
         id=fid, statement=statement, kind=Kind.observed, trend="flat", why="w",
         impact=Impact(targets=["x"], direction="negative", mechanism="m"),
         value=(Value(number=number, unit="usd") if number is not None else None),
+        evidence=evidence or [],
         confidence=Confidence(level="medium", basis="b"), asOf="2026-07",
         indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
         magnitude=magnitude, entity=entity, observedAt="2026-07", capturedAt=capturedAt)
+
+
+def _ev(source, url, date="2026-07-01", excerpt="e", tier="primary"):
+    return Evidence(source=source, url=url, date=date, excerpt=excerpt, tier=tier)
 
 
 def _seed(store, f, as_of):
@@ -86,3 +91,65 @@ def test_classify_deterministic_order(tmp_path):
                              _f("f-a", "ALPHA", "rpoBacklog", number=1.0)],
                             store, config=DEFAULT_DEDUP_CONFIG)
     assert [fc.entity for fc in res.new] == ["ALPHA", "ZULU"]  # sorted by (entity, indicatorId)
+
+
+# ── F10: corroboration merge + dispersion instead of recency-collapse ─────────
+
+def test_classify_agreeing_batch_mates_merge_evidence(tmp_path):
+    """NVDA D2 $75.2B from doc A (primary) + $75.2B from doc B (secondary), same key:
+    outFindings has ONE finding for the key, evidence merged from both, and the mate
+    is verdict duplicate with detail 'corroborates <rep.id>'."""
+    store = _store(tmp_path)
+    res = classify_findings([
+        _f("f-a", "NVDA", "D2", number=75.2, capturedAt="2026-07-01",
+           evidence=[_ev("NVIDIA 10-Q", "http://sec/a")]),
+        _f("f-b", "NVDA", "D2", number=75.2, capturedAt="2026-07-02",
+           evidence=[_ev("Analyst note", "http://blog/b")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+
+    assert [fc.findingId for fc in res.new] == ["f-b"]   # later capturedAt is representative
+    assert len(res.outFindings) == 1
+    rep = res.outFindings[0]
+    assert rep.id == "f-b"
+    assert len(rep.evidence) == 2
+    assert rep.dispersion is None
+
+    mate = next(fc for fc in res.duplicate if fc.findingId == "f-a")
+    assert mate.verdict == "duplicate"
+    assert mate.detail.startswith("corroborates f-b")
+
+
+def test_classify_conflicting_batch_mates_set_dispersion(tmp_path):
+    """Conflicting values ($75.2B vs $80B, beyond rel_tol) are NOT recency-collapsed:
+    the representative's dispersion is set and mentions both sources; the superseded
+    mate keeps its old 'superseded by intra-batch latest vintage' detail."""
+    store = _store(tmp_path)
+    res = classify_findings([
+        _f("f-a", "NVDA", "D2", number=75.2, capturedAt="2026-07-01",
+           evidence=[_ev("NVIDIA 10-Q", "http://sec/a")]),
+        _f("f-b", "NVDA", "D2", number=80.0, capturedAt="2026-07-02",
+           evidence=[_ev("Analyst note", "http://blog/b")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+
+    assert len(res.outFindings) == 1
+    rep = res.outFindings[0]
+    assert rep.id == "f-b"
+    assert rep.dispersion is not None
+    assert "NVIDIA 10-Q" in rep.dispersion and "Analyst note" in rep.dispersion
+
+    mate = next(fc for fc in res.duplicate if fc.findingId == "f-a")
+    assert mate.detail == "superseded by intra-batch latest vintage"
+
+
+def test_classify_no_batch_mates_out_findings_unmerged(tmp_path):
+    """A singleton finding (no batch-mates) passes through outFindings untouched."""
+    store = _store(tmp_path)
+    res = classify_findings([_f("f-1", "NVDA", "rpoBacklog", number=100.0,
+                                evidence=[_ev("NVIDIA 10-Q", "http://sec/x")])],
+                            store, config=DEFAULT_DEDUP_CONFIG)
+    assert [fc.findingId for fc in res.new] == ["f-1"]
+    assert res.outFindings == [res.outFindings[0]]
+    assert len(res.outFindings) == 1
+    assert res.outFindings[0].id == "f-1"
+    assert len(res.outFindings[0].evidence) == 1
+    assert res.outFindings[0].dispersion is None

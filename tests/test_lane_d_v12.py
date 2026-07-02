@@ -14,6 +14,10 @@ from pydantic import BaseModel
 from gpu_agent.cli import main
 from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.llm.client import LLMError
+from gpu_agent.store import FindingStore
+from gpu_agent.wiki.store import WikiStore
+from gpu_agent.gathering.dedup import classify_findings, DEFAULT_DEDUP_CONFIG
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Value, Evidence
 
 
 class Tiny(BaseModel):
@@ -84,3 +88,44 @@ def test_ingest_records_only_after_docs_and_log_are_written(tmp_path, monkeypatc
                "--primary-sources", "sec.gov", "--dedup-store", str(store), "--as-of", "2026-07"])
     assert rc == 0
     assert calls  # record_documents was actually invoked
+
+
+# ── Task 3: F10 — corroboration merge + dispersion in a mixed batch ───────────
+
+
+def _finding(fid, entity, indicatorId, number, capturedAt, evidence):
+    return Finding(
+        id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
+        impact=Impact(targets=["x"], direction="negative", mechanism="m"),
+        value=Value(number=number, unit="usd"), evidence=evidence,
+        confidence=Confidence(level="medium", basis="b"), asOf="2026-07",
+        indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=2, entity=entity, observedAt="2026-07", capturedAt=capturedAt)
+
+
+def test_classify_mixed_batch_corroboration_dispersion_and_independent_key(tmp_path):
+    """A batch with: (a) two agreeing NVDA/D2 findings that must merge evidence, and
+    (b) an unrelated AMD/S10 singleton that must pass through untouched — the two keys
+    do not interfere with each other."""
+    store = WikiStore(tmp_path / "wiki", FindingStore(tmp_path / "findings"))
+    ev_a = Evidence(source="NVIDIA 10-Q", url="http://sec/nvda", date="2026-07-01",
+                    excerpt="e", tier="primary")
+    ev_b = Evidence(source="Analyst note", url="http://blog/nvda", date="2026-07-02",
+                    excerpt="e", tier="secondary")
+    ev_c = Evidence(source="AMD 10-Q", url="http://sec/amd", date="2026-07-01",
+                    excerpt="e", tier="primary")
+    findings = [
+        _finding("f-nvda-a", "NVDA", "D2", 75.2, "2026-07-01", [ev_a]),
+        _finding("f-nvda-b", "NVDA", "D2", 75.2, "2026-07-02", [ev_b]),   # agrees -> merge
+        _finding("f-amd", "AMD", "S10", 5.0, "2026-07-01", [ev_c]),      # unrelated key
+    ]
+    res = classify_findings(findings, store, config=DEFAULT_DEDUP_CONFIG)
+
+    assert {fc.findingId for fc in res.new} == {"f-nvda-b", "f-amd"}
+    by_id = {f.id: f for f in res.outFindings}
+    assert len(by_id) == 2
+    assert len(by_id["f-nvda-b"].evidence) == 2   # merged corroborating evidence
+    assert by_id["f-nvda-b"].dispersion is None
+    assert len(by_id["f-amd"].evidence) == 1      # untouched singleton
+    mate = next(fc for fc in res.duplicate if fc.findingId == "f-nvda-a")
+    assert mate.detail.startswith("corroborates f-nvda-b")

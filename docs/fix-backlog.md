@@ -37,10 +37,11 @@
   prompt change (charter Part 24). *(Feature track)*
 - [ ] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
   AMD erase each other per indicator. Bucket by `(entity, indicatorId)`. *(Lane B, contract v1.2)*
-- [ ] **F8 — Reconcile price-indicator handling.** Charter v1.1 says price findings are overlay and
-  don't feed DMI/SMI; the registry has D6 (rental price) as a scoring demand indicator, and every
-  static price level got `polarityDemand:+1`. Decide one rule; static levels with `trend: unknown`
-  carry polarity 0 — levels without a baseline are not momentum. *(Lane B + extraction guidance in Lane A)*
+- [ ] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to
+  `scoring: false` (price findings never feed DMI/SMI, per charter v1.1); static levels with
+  `trend: unknown` carry polarity 0 — levels without a baseline are not momentum. Follow-ups:
+  visible Price Momentum Index = **F49** (Wave 2); change-based price scoring deferred until F12
+  provides price history and F6 can grade the judgment. *(Lane B + extraction guidance in Lane A)*
 - [ ] **F9 — Deterministic anchor polarity track.** `briefing.py:23` lets the last finding's
   indicator pick the dimension's track (order-dependent gate outcomes). Define per dimension at
   registry level. *(Lane B, contract v1.2)*
@@ -149,6 +150,10 @@
   pull `action-items.md` into this repo. *(Wave 0)*
 - [ ] **F48 — Front door.** Real readme (and consider the repo name before anything is shown under
   TSMC branding). *(Wave 0)*
+- [ ] **F49 — Price Momentum Index overlay** (born from the F8 decision). Compute the price-side
+  rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
+  blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.
+  *(Wave 2, Lane F)*
 
 ---
 
@@ -156,8 +161,16 @@
 
 **The constraint that shapes everything:** superpowers' subagent-driven-development forbids
 parallel implementers on one branch, and dispatching-parallel-agents requires disjoint domains with
-no shared files. So parallelism comes from **file-ownership lanes, each in its own git worktree** —
-5 lanes running concurrently, each lane internally sequential.
+no shared files. So parallelism comes from **file-ownership lanes, each in its own git worktree**,
+each lane internally sequential.
+
+**Decisions recorded 2026-07-02 (user-approved — do not re-ask):** (1) F8 = overlay-only now, F49
+price track in Wave 2, change-based scoring later. (2) **Contract v1.2 approved as ONE migration:
+Lanes A+B are a single coupled stream** (one worktree, `fix/contract-v1.2`) — so Wave 1 runs as
+**four concurrent streams** (A+B, C, D, E). The migration must include a one-shot **shadow-run**
+(old vs new scoring over the same stored findings; diff in the migration note) and a **replay**
+(recompute the stored 2026-06 scorecards' indices under v1.2 as new versions, originals immutable,
+so vs-prior comparisons stay continuous).
 
 ### Lane map
 

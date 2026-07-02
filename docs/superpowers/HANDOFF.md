@@ -22,14 +22,20 @@
 
 ## IMMEDIATE NEXT TASK — execute the fix backlog (`docs/fix-backlog.md`)
 
-**Step 0 — two human gates. Ask the user BEFORE any frozen code is touched:**
-1. **The F8 price rule:** do static price levels feed DMI (status quo: registry scores D6 as a
-   demand indicator) or become overlay-only per charter Part 2 v1.1? Also: static levels with
-   `trend: unknown` should carry polarity 0.
-2. **Contract v1.2 approval:** Lanes A+B jointly unfreeze `gate.py` / `scoring.py` /
-   `judgment/briefing.py` / `schema/finding.py` as ONE versioned Part-33 migration (schemaVersion →
-   1.2, golden fixtures regenerated, migration note committed). This is a sanctioned exception to
-   the frozen-core rule below — but only with explicit user approval, recorded in the ledger.
+**Step 0 — the two gate decisions are MADE (user-approved 2026-07-02; do NOT re-ask):**
+1. **F8 price rule — DECIDED: overlay-only now.** Flip D6 to `scoring: false` (price findings never
+   feed DMI/SMI); static levels with `trend: unknown` carry polarity 0. Wave-2 follow-up: a visible
+   **Price Momentum Index** computed in code as the confirmation overlay (new item F49, Lane F).
+   Change-based price scoring (context-judged polarity on dedup-confirmed deltas) is deferred until
+   F12 provides price history AND F6's rubric can grade the judgment.
+2. **Contract v1.2 — APPROVED as ONE migration, with replay.** Lanes A+B are a single coupled
+   workstream (one worktree/branch, e.g. `fix/contract-v1.2`) unfreezing `gate.py` / `scoring.py` /
+   `judgment/briefing.py` / `schema/finding.py` as one versioned Part-33 event: schemaVersion → 1.2,
+   golden fixtures regenerated once, migration note committed. The migration MUST include:
+   **(a) a one-shot shadow-run** — old vs new scoring over the same stored findings, output diff in
+   the migration note; **(b) a replay** — recompute the stored 2026-06 scorecards' indices under
+   v1.2 math as NEW versions (originals immutable), so vs-prior comparisons stay continuous.
+   Consequence: Wave 1 runs as **four concurrent streams** (contract lane + C + D + E).
 
 **Then, in order:**
 1. **Wave 0** (ops/docs, no code risk): F1 store backup, F43 move gather artifacts out of `docs/` +
@@ -37,19 +43,20 @@
    F47 sync/retire the stale `Documents\TSMC\ai4bi\ai_state_of_the_market` doc tree (pull its
    `action-items.md` into this repo), F48 real readme. (F44 — this handoff refresh — is done.)
    Do these directly or with 1–2 subagents; commit + push.
-2. **Wave 1 — five parallel lanes.** Use **superpowers:writing-plans** to write one short plan per
-   lane in `docs/superpowers/plans/` (Lane A: F2, F16, F17, F21, F36 · Lane B: F3, F7, F8, F9, F37 ·
-   Lane C: F19, F20, F35, F38 · Lane D: F10–F13, F22 · Lane E: F14, F15, F30–F32). File ownership
-   per lane is defined in the backlog's lane map — **no two lanes touch the same module.**
-3. Create one **git worktree per lane** (superpowers:using-git-worktrees; branches `fix/lane-a` …
-   `fix/lane-e`), then **dispatch all 5 lane agents in a single message**
-   (superpowers:dispatching-parallel-agents). Each lane agent executes ONLY its lane plan,
-   sequentially, with TDD, touching only its owned files. Never dispatch two implementers into the
-   same tree (subagent-driven-development red flag).
-4. **Merge gate, sequential:** merge order A → B → C → D → E; rebase each onto the accumulated
-   result; **full suite green before each next merge**; task-review each lane's diff at merge time
-   (the SDD reviewer step, per lane; opus for the contract lanes A/B, sonnet acceptable elsewhere).
-   Ledger one line per lane merged.
+2. **Wave 1 — four concurrent streams.** Use **superpowers:writing-plans** to write one short plan
+   per stream in `docs/superpowers/plans/` (**Contract lane A+B, coupled**: F2, F16, F17, F21, F36 +
+   F3, F7, F8, F9, F37 + the shadow-run/replay from Step 0 · Lane C: F19, F20, F35, F38 · Lane D:
+   F10–F13, F22 · Lane E: F14, F15, F30–F32). File ownership per lane is defined in the backlog's
+   lane map — **no two streams touch the same module.**
+3. Create one **git worktree per stream** (superpowers:using-git-worktrees; branches
+   `fix/contract-v1.2`, `fix/lane-c`, `fix/lane-d`, `fix/lane-e`), then **dispatch all 4 stream
+   agents in a single message** (superpowers:dispatching-parallel-agents). Each agent executes ONLY
+   its own plan, sequentially, with TDD, touching only its owned files. Never dispatch two
+   implementers into the same tree (subagent-driven-development red flag).
+4. **Merge gate, sequential:** merge order contract-v1.2 → C → D → E; rebase each onto the
+   accumulated result; **full suite green before each next merge**; task-review each stream's diff
+   at merge time (the SDD reviewer step; opus for the contract lane, sonnet acceptable elsewhere).
+   Ledger one line per stream merged.
 5. **Integration gate:** run **F46** — one real live cycle (daily mode, so the wiki/dedup machinery
    finally executes against real state) — before starting Wave 2.
 6. **Wave 2 lanes** (F: F18, F29, F33, F34 · G: F41, F42 · H: F26, F27 · I: F28, F40 · J: F39),
@@ -90,8 +97,9 @@ lane agent improvising the memory architecture is the failure mode to prevent.
   (`.venv` gitignored — recreate with `python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"`).
 - **Frozen core — never edit:** `gpu_agent/gate.py`, `gpu_agent/scoring.py`, registry loader CODE,
   the `Finding` schema, the 6 dimension names, the rating scale, `pipeline.py`'s Part-7 gate,
-  `JsonStore`. **ONE sanctioned exception:** the **contract v1.2 migration** (Wave-1 Lanes A+B, gate
-  above) — user-approved, versioned, fixtures regenerated, all in one migration. Everything else
+  `JsonStore`. **ONE sanctioned exception:** the **contract v1.2 migration** (the coupled Wave-1
+  A+B stream — **user-approved 2026-07-02**, versioned, fixtures regenerated, shadow-run + replay
+  included, all in one migration). Everything else
   stays additive-only (Part 33); per-indicator metadata goes as top-level maps in `indicators.json`
   (the C-3 lesson — `IndicatorSpec` is `extra="forbid"`).
 - **Doctrine:** code computes + gates + stores; the brain reasons/curates; the agent never sets a

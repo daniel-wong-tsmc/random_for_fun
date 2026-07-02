@@ -1,7 +1,7 @@
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.schema.finding import Finding, Confidence, Impact
 from gpu_agent.judgment.briefing import build_briefing
-from gpu_agent.judgment.prompt import SYSTEM, build_user_prompt
+from gpu_agent.judgment.prompt import SYSTEM, build_system, build_user_prompt
 
 def _f() -> Finding:
     return Finding(
@@ -28,3 +28,36 @@ def test_system_prompt_requests_all_six_and_overall_status():
     assert "bottleneck" in low
     # instructs omission of ungroundable dimensions rather than inventing
     assert "omit" in low
+
+
+# --- F5: memory injection (additive; None path must stay byte-identical) ---
+
+
+def test_memory_absent_by_default():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    briefing = build_briefing([_f()], reg, "chips.merchant-gpu")
+    assert "<memory>" not in build_user_prompt(briefing)
+
+
+def test_memory_prepended_when_given():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    briefing = build_briefing([_f()], reg, "chips.merchant-gpu")
+    prompt = build_user_prompt(briefing, memory_text="X")
+    assert prompt.startswith("<memory>\nX\n</memory>")
+
+
+def test_memory_none_is_byte_identical_to_the_default_call():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    briefing = build_briefing([_f()], reg, "chips.merchant-gpu")
+    assert build_user_prompt(briefing, None) == build_user_prompt(briefing)
+
+
+def test_system_states_direction_relative_to_memory_when_present():
+    assert (
+        "When a MEMORY section is present, judge direction (improving|steady|worsening) "
+        "relative to that prior state."
+    ) in SYSTEM
+
+
+def test_system_equals_build_system_invariant_still_holds():
+    assert SYSTEM == build_system()

@@ -126,3 +126,63 @@ def render_market_caveat(sc: Scorecard) -> str:
     return ("TRUST & COVERAGE (caveat)\n"
             "  index level varies run-to-run until the 4-4 memory stabilizes it — "
             "read DIRECTION, not level")
+
+
+# ── store-fed sections (4-5b) ────────────────────────────────────────────────
+_TRAJ_UP = {"accelerating", "improving", "rising", "up", "expanding", "strengthening", "hot"}
+_TRAJ_DOWN = {"eroding", "worsening", "decelerating", "falling", "down", "slipping",
+              "softening", "weakening", "contracting"}
+_TRAJ_FLAT = {"steady", "flat", "stable", "unchanged", "tight", "intact", "firm", "on-track"}
+
+
+def _traj_arrow(text) -> str:
+    """Best-effort ▲/▼/=/· from brain-authored free-text state/trajectory (shared by the
+    WHAT MOVED UP/DOWN tag and the STORYLINES arrow). Falls back to · on no keyword match."""
+    t = (text or "").lower()
+    if any(w in t for w in _TRAJ_UP):
+        return "▲"
+    if any(w in t for w in _TRAJ_DOWN):
+        return "▼"
+    if any(w in t for w in _TRAJ_FLAT):
+        return "="
+    return "·"
+
+
+def _moved_tag(row):
+    if row.newThread:
+        return "NEW", "▲"
+    if row.contradiction:
+        return "WATCH", "▼"
+    if row.stateTo:
+        arrow = _traj_arrow(row.stateTo)
+        if arrow == "▲":
+            return "UP", "▲"
+        if arrow == "▼":
+            return "DOWN", "▼"
+        return "CHANGED", "="
+    return "MOVED", "="
+
+
+def render_what_moved(movement) -> str:
+    """WHAT MOVED SINCE LAST RUN: the materiality-ranked daily diff (4-4b score_moves),
+    each row tagged NEW/WATCH/UP/DOWN/CHANGED/MOVED, cited + tiered, provisional marked;
+    the folded below-threshold count shown. Pure; movement=None → honest empty-state."""
+    lines = ["WHAT MOVED SINCE LAST RUN"]
+    if movement is None:
+        lines.append("  (no wiki store yet — needs a multi-cycle store from daily cycles)")
+        return "\n".join(lines)
+    if movement.prevAsOf is None:
+        lines.append("  (no prior cycle to compare — first tracked cycle)")
+        return "\n".join(lines)
+    lines[0] += f"  (vs {movement.prevAsOf})"
+    for row in movement.moved:
+        tag, arrow = _moved_tag(row)
+        cite = f"[{', '.join(row.findingIds)}]" if row.findingIds else "[—]"
+        prov = "  (provisional)" if row.provisional else ""
+        contra = f"  ({row.contradictionNote})" if row.contradiction and row.contradictionNote else ""
+        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}")
+    if not movement.moved:
+        lines.append("  (no material moves this cycle)")
+    if movement.foldedCount:
+        lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
+    return "\n".join(lines)

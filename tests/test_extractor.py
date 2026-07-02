@@ -5,15 +5,15 @@ from gpu_agent.extraction.extractor import extract_findings
 
 def _doc():
     return RawDocument(id="doc-1", source="NVIDIA 10-Q", url="u", date="2026-05",
-                       tier="primary", entity="nvidia", content="...")
+                       tier="primary", entity="nvidia", content="DC revenue grew 8% QoQ.")
 
 def _good_draft():
     return {"statement": "DC growth flattened", "kind": "measured",
             "value": {"number": 8.0, "unit": "% QoQ"}, "trend": "rising", "why": "digestion",
             "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed", "mechanism": "caps DMI"},
-            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "8%", "tier": "primary"}],
+            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "8%"}],
             "confidence": {"level": "high", "basis": "filing"}, "indicatorId": "D2",
-            "side": "demand", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
+            "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
             "entity": "NVDA", "observedAt": "2026-05-01"}
 
 def _gate_violating_draft():

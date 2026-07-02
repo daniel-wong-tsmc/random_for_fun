@@ -15,10 +15,11 @@ def _extract_draft():
         "why": "Blackwell ramp digesting.",
         "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed",
                    "mechanism": "slope flattening caps DMI"},
-        "evidence": [{"source": "NVIDIA 10-Q", "url": "https://www.sec.gov/x",
-                      "date": "2026-05-01", "excerpt": "grew about 8% sequentially", "tier": "primary"}],
+        "evidence": [{"source": "NVIDIA 10-Q",
+                      "url": "https://www.sec.gov/cgi-bin/browse-edgar/nvda-10q-2026q1",
+                      "date": "2026-05-01", "excerpt": "grew about 8% sequentially"}],
         "reasoning": None, "confidence": {"level": "high", "basis": "primary filing"},
-        "dispersion": None, "indicatorId": "D2", "side": "demand",
+        "dispersion": None, "indicatorId": "D2",
         "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
         "entity": "nvidia", "observedAt": "2026-05-01"}]})
 

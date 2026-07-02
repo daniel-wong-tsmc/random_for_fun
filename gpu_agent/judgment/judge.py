@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from gpu_agent.schema.finding import Confidence, Finding
 from gpu_agent.schema.scorecard import DimensionRating, Scorecard, DemandSupply, CategoryStatus, DIMENSIONS
 from gpu_agent.judgment.briefing import Briefing, build_briefing
-from gpu_agent.judgment.prompt import SYSTEM, build_user_prompt
+from gpu_agent.judgment.prompt import SYSTEM, build_system, build_user_prompt
 from gpu_agent.gate import _rating_consistent_with_anchor, check_scorecard
 from gpu_agent.llm.client import LLMClient
 
@@ -130,13 +130,16 @@ def _gate_backstop(bundle: JudgmentBundle, findings: list[Finding]) -> None:
 
 def judge_findings(findings: list[Finding], client: LLMClient, registry, category_id: str,
                    *, samples: int = 3,
-                   resample_budget: int = 2, model: str = "claude-opus-4-8") -> JudgmentBundle:
+                   resample_budget: int = 2, model: str = "claude-opus-4-8",
+                   persona: str | None = None) -> JudgmentBundle:
     briefing = build_briefing(findings, registry, category_id)
     prompt = build_user_prompt(briefing)
+    # F26: additive persona pass-through — default (None) keeps the byte-identical SYSTEM prompt
+    system = build_system(persona) if persona is not None else SYSTEM
     findings_by_id = {f.id: f for f in findings}
     last_conflicts: list[str] = []
     for _ in range(1 + resample_budget):
-        results = [client.complete_json(prompt, SYSTEM, JudgmentResult, model)
+        results = [client.complete_json(prompt, system, JudgmentResult, model)
                    for _ in range(samples)]
         bundle = aggregate(results, briefing, findings_by_id=findings_by_id)
         last_conflicts = _conflicts(bundle, briefing)

@@ -12,6 +12,7 @@ class Assignment(BaseModel):
     weights: dict[str, float] = Field(default_factory=dict)
     version: str
     asOf: str
+    personaLabel: str | None = None   # F26: additive — None keeps old fixtures loading unchanged
 
 def load_assignment(path) -> Assignment:
     data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))

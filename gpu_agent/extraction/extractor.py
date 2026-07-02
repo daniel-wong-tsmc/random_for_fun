@@ -1,4 +1,6 @@
 from __future__ import annotations
+import math
+from datetime import datetime, timezone
 from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict
 from gpu_agent.schema.finding import Finding, Kind, Value, Impact, Confidence
@@ -32,12 +34,31 @@ class FindingDraft(BaseModel):
 class ExtractionResult(BaseModel):
     drafts: list[FindingDraft] = []
 
+def _normalize_timestamp(value: str) -> str:
+    """F41a: re-emit a full timestamp as UTC 'YYYY-MM-DDTHH:MM:SSZ' so the frozen scoring's
+    lexical (capturedAt, ...) comparison is safe against mixed offsets. Bare dates
+    (no 'T', e.g. 'YYYY-MM-DD') and unparseable strings pass through unchanged — the gate's
+    ISO-prefix check (F17) still catches the latter loud."""
+    if not value or "T" not in value:
+        return value
+    iso = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        dt = datetime.fromisoformat(iso)
+    except ValueError:
+        return value
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def draft_to_finding(draft: FindingDraft, *, doc, n: int, as_of: str,
                      captured_at: str, extraction_model: str, side: str) -> Finding:
     data = draft.model_dump()
     data["evidence"] = [{**e, "tier": doc.tier} for e in data["evidence"]]   # F2d code-stamp
+    data["observedAt"] = _normalize_timestamp(data["observedAt"])
     return Finding(
-        **data, side=side, id=f"{doc.id}-{n}", asOf=as_of, capturedAt=captured_at,
+        **data, side=side, id=f"{doc.id}-{n}", asOf=as_of,
+        capturedAt=_normalize_timestamp(captured_at),
         extractionModel=extraction_model, schemaVersion="1.2",
     )
 
@@ -81,6 +102,8 @@ def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
             dropped.append(DroppedFinding(id=fid, violations=[f"unregistered indicator: {draft.indicatorId}"]))
             continue
         violations: list[str] = []
+        if draft.value is not None and not math.isfinite(draft.value.number):
+            violations.append(f"{fid}: non-finite value")
         for e in draft.evidence:
             if " ".join(e.excerpt.split()) not in folded_doc:
                 violations.append(f"{fid}: excerpt not found in source document")

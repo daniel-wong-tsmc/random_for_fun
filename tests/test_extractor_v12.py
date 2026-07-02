@@ -86,3 +86,62 @@ def test_build_user_prompt_escapes_document_fence():
     p = build_user_prompt(doc)
     assert p.count("</document>") == 1
     assert p.rstrip().endswith("</document>")
+
+
+# --- F41a: non-finite values + timestamp normalization (Wave-2 Lane G) --------------
+
+def _measured_draft(number, **over):
+    d = _draft(kind="measured", value={"number": number, "unit": "%"})
+    d.update(over)
+    return d
+
+
+def test_nan_value_dropped_with_named_violation():
+    out = extract_findings(DOC, _client(_measured_draft(float("nan"))), **KW)
+    assert not out.findings
+    assert any("non-finite value" in v for v in out.dropped[0].violations)
+
+
+def test_positive_infinity_value_dropped_with_named_violation():
+    out = extract_findings(DOC, _client(_measured_draft(float("inf"))), **KW)
+    assert not out.findings
+    assert any("non-finite value" in v for v in out.dropped[0].violations)
+
+
+def test_negative_infinity_value_dropped_with_named_violation():
+    out = extract_findings(DOC, _client(_measured_draft(float("-inf"))), **KW)
+    assert not out.findings
+    assert any("non-finite value" in v for v in out.dropped[0].violations)
+
+
+def test_finite_measured_value_not_flagged_non_finite():
+    out = extract_findings(DOC, _client(_measured_draft(8.0)), **KW)
+    assert out.findings and not out.dropped
+
+
+def test_observed_at_normalizes_offset_timestamp_to_utc():
+    d = _draft(observedAt="2026-07-02T05:00:00+08:00")
+    out = extract_findings(DOC, _client(d), **KW)
+    assert out.findings[0].observedAt == "2026-07-01T21:00:00Z"
+
+
+def test_captured_at_normalizes_offset_timestamp_to_utc():
+    out = extract_findings(DOC, _client(_draft()), as_of="2026-06",
+                           captured_at="2026-07-02T05:00:00+08:00",
+                           extraction_model="claude-opus-4-8")
+    assert out.findings[0].capturedAt == "2026-07-01T21:00:00Z"
+
+
+def test_bare_date_observed_at_passes_through_unchanged():
+    d = _draft(observedAt="2026-07-02")
+    out = extract_findings(DOC, _client(d), **KW)
+    assert out.findings[0].observedAt == "2026-07-02"
+
+
+def test_unparseable_observed_at_passes_through_and_gate_still_errors():
+    # F17 (frozen gate.py) requires an ISO YYYY-MM-DD prefix; a garbage timestamp is not
+    # silently coerced by normalization — it passes through unchanged and the gate drops it loud.
+    d = _draft(observedAt="soon-ish")
+    out = extract_findings(DOC, _client(d), **KW)
+    assert not out.findings
+    assert any("observedAt not ISO" in v for v in out.dropped[0].violations)

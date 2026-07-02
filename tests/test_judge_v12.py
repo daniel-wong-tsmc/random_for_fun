@@ -1,7 +1,11 @@
+import json
+import pytest
 from gpu_agent.judgment.briefing import Briefing
-from gpu_agent.judgment.judge import JudgmentResult, DimensionJudgment, aggregate
+from gpu_agent.judgment.judge import JudgmentResult, DimensionJudgment, aggregate, judge_findings, JudgmentError
 from gpu_agent.schema.scorecard import CategoryStatus, DimensionRating
 from gpu_agent.schema.finding import Confidence, Finding, Impact
+from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.llm.recorded import RecordedClient
 
 
 def _result(dims: dict[str, str], narrative: str = "n") -> JudgmentResult:
@@ -143,3 +147,46 @@ def test_confidence_cap_not_applied_when_findings_by_id_omitted():
     results = [_result_with_findings("Strong", ["f1"])] * 3
     bundle = aggregate(results, _briefing())
     assert bundle.ratings["momentum"].confidence.level == "high"
+
+
+# --- Task 4: F35 — citation coherence: cited findings must belong to the dimension's group ---
+
+def _v12_finding(fid: str, indicator: str) -> Finding:
+    # D2 -> momentum, market-share-pct -> moat (real registry indicator ids).
+    return Finding(
+        id=fid, statement="s", kind="observed", trend="flat", why="w",
+        impact=Impact(targets=["t"], direction="positive", mechanism="m"),
+        confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+        indicatorId=indicator, side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=2, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+
+
+def _v12_judgment(moat_cites: list[str]) -> str:
+    return json.dumps({
+        "dimensions": {
+            "momentum": {"rating": "Strong", "direction": "steady",
+                        "findingIds": ["mom-1"], "rationale": "r"},
+            "moat": {"rating": "Strong", "direction": "steady",
+                    "findingIds": moat_cites, "rationale": "r"},
+        },
+        "categoryStatus": {"rating": "Strong", "direction": "steady",
+                           "bottleneck": "momentum", "reason": "r"},
+        "narrative": "n"})
+
+
+def test_citation_outside_dimension_group_raises():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    findings = [_v12_finding("mom-1", "D2"), _v12_finding("moat-1", "market-share-pct")]
+    # "moat" dimension incorrectly cites the momentum finding "mom-1".
+    client = RecordedClient([_v12_judgment(["mom-1"])])
+    with pytest.raises(JudgmentError) as exc:
+        judge_findings(findings, client, reg, "chips.merchant-gpu", samples=1, resample_budget=0)
+    assert "not in its indicator group" in str(exc.value)
+
+
+def test_coherent_citations_pass():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    findings = [_v12_finding("mom-1", "D2"), _v12_finding("moat-1", "market-share-pct")]
+    client = RecordedClient([_v12_judgment(["moat-1"])])
+    bundle = judge_findings(findings, client, reg, "chips.merchant-gpu", samples=1, resample_budget=0)
+    assert bundle.ratings["moat"].rating == "Strong"

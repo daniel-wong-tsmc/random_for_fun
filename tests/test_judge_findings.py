@@ -65,7 +65,10 @@ def test_anchor_conflict_exhausts_budget_then_raises():
 
 def test_gate_backstop_rejects_unknown_finding_id():
     # No anchor conflict (Strong vs +0.67), but cites a finding that does not exist.
+    # It also is not in the dimension's indicator group (F35), so it fails at the
+    # citation-coherence check before ever reaching the gate backstop; resample_budget=0
+    # so the (deliberately small) recorded fixture covers exactly one round.
     reg = IndicatorRegistry.load("registry/indicators.json")
     client = RecordedClient([_judgment("Strong", find_ids=("ghost-1",))] * 3)
     with pytest.raises(JudgmentError):
-        judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3)
+        judge_findings([_f()], client, reg, "chips.merchant-gpu", samples=3, resample_budget=0)

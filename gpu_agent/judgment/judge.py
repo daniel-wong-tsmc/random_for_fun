@@ -106,12 +106,16 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing,
                           belowQuorum=below_quorum)
 
 
-def _conflicts(bundle: JudgmentBundle) -> list[str]:
+def _conflicts(bundle: JudgmentBundle, briefing: Briefing) -> list[str]:
     bad: list[str] = []
     for d, r in bundle.ratings.items():
         a = bundle.anchors.get(d)
         if a is not None and not _rating_consistent_with_anchor(r.rating, a):
             bad.append(f"{d}: rating {r.rating} contradicts anchor {a:.2f}")
+        allowed = set(briefing.grouped.get(d, []))
+        for fid in r.findingIds:
+            if fid not in allowed:
+                bad.append(f"{d}: cites {fid} which is not in its indicator group")
     return bad
 
 def _gate_backstop(bundle: JudgmentBundle, findings: list[Finding]) -> None:
@@ -135,7 +139,7 @@ def judge_findings(findings: list[Finding], client: LLMClient, registry, categor
         results = [client.complete_json(prompt, SYSTEM, JudgmentResult, model)
                    for _ in range(samples)]
         bundle = aggregate(results, briefing, findings_by_id=findings_by_id)
-        last_conflicts = _conflicts(bundle)
+        last_conflicts = _conflicts(bundle, briefing)
         if not last_conflicts:
             _gate_backstop(bundle, findings)   # raises JudgmentError on any gate violation
             cs = bundle.categoryStatus

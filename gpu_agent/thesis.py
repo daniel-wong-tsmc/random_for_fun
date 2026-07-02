@@ -394,15 +394,24 @@ def gate_answer(answer: ThesisAnswer, book: ThesisBook,
         statement_owner.setdefault(_normalize_statement(entry.statement), entry.id)
 
     for proposal in answer.proposed:
-        slug = thesis_slug(proposal.title)
-        if slug in existing_ids:
-            errors.append(f"proposal duplicates thesis id {slug}")
-        owner = statement_owner.get(_normalize_statement(proposal.statement))
-        if owner is not None:
-            errors.append(f"proposal duplicates statement of {owner}")
-        errors.extend(_gate_citations(slug, proposal.findingIds, findings_by_id))
+        # The gate's contract is to enumerate violations, never crash: an
+        # all-punctuation/whitespace title slugifies to '' and thesis_slug raises —
+        # report that as a violation, skip the slug-dependent dedup checks, and label
+        # the remaining checks with the raw title so accumulation continues.
+        try:
+            label = thesis_slug(proposal.title)
+        except ValueError:
+            label = proposal.title
+            errors.append(f"proposal has unroutable title: {proposal.title!r}")
+        else:
+            if label in existing_ids:
+                errors.append(f"proposal duplicates thesis id {label}")
+            owner = statement_owner.get(_normalize_statement(proposal.statement))
+            if owner is not None:
+                errors.append(f"proposal duplicates statement of {owner}")
+        errors.extend(_gate_citations(label, proposal.findingIds, findings_by_id))
         errors.extend(_gate_depth_fields(
-            slug, proposal.mechanism, proposal.falsifiableTrigger, proposal.sensitivity, registry,
+            label, proposal.mechanism, proposal.falsifiableTrigger, proposal.sensitivity, registry,
         ))
 
     return errors

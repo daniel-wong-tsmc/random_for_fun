@@ -211,6 +211,43 @@ def test_proposal_duplicates_existing_statement_case_and_whitespace_insensitive(
     assert "proposal duplicates statement of thesis-a" in violations
 
 
+def test_unroutable_proposal_title_is_a_violation_not_a_crash():
+    """An all-punctuation title slugifies to '' — the gate must report it as a
+    violation (pinned substring: 'proposal has unroutable title'), never raise, and
+    must keep accumulating other proposals' violations."""
+    book = _book()
+    answer = ThesisAnswer(
+        judgments=[_judgment("thesis-a"), _judgment("thesis-b")],
+        proposed=[
+            _proposal(title="???", statement="Perfectly novel statement."),
+            _proposal(title="Second Proposal", statement="Also novel.", finding_ids=()),
+        ],
+    )
+    violations = gate_answer(answer, book, FINDINGS, REGISTRY)
+    assert any("proposal has unroutable title" in v for v in violations)
+    # accumulation survives: the second proposal's citation violation is still there
+    assert "second-proposal: cites no findings" in violations
+
+
+def test_unroutable_proposal_still_gets_citation_and_depth_checks():
+    """Slug-dependent dedup is skipped for an unroutable title, but rule 2/3 checks
+    still run, labeled with the raw title."""
+    book = _book()
+    answer = ThesisAnswer(
+        judgments=[_judgment("thesis-a"), _judgment("thesis-b")],
+        proposed=[_proposal(
+            title="???", statement="Perfectly novel statement.",
+            finding_ids=(), mechanism="", trigger="", sensitivity="",
+        )],
+    )
+    violations = gate_answer(answer, book, FINDINGS, REGISTRY)
+    assert any("proposal has unroutable title" in v for v in violations)
+    assert "???: cites no findings" in violations
+    assert "???: missing mechanism" in violations
+    assert "???: missing falsifiableTrigger" in violations
+    assert "???: missing sensitivity" in violations
+
+
 def test_proposal_citation_and_depth_field_rules_apply():
     book = _book()
     answer = ThesisAnswer(

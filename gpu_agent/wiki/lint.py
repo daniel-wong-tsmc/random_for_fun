@@ -192,14 +192,20 @@ def _score_move(store, page_id, *, as_of, prev_as_of, is_new, state_transition,
         factors.contradiction = True
         factors.contradictionNote = contradiction_note
 
+    # F34: count EVERY observed finding's magnitude toward activity, scoring or not. A
+    # non-scoring indicator (e.g. designWins, D6) is still evidence the page moved — the
+    # `scoring` flag stays recorded on each IndicatorMove for display, but it no longer
+    # gates whether the move counts as materiality-worthy activity. Before this change a
+    # NEW secondary thread whose only observation was a non-scoring finding scored
+    # w_new 0.5 * tier 0.6 * salience-floor 0.5 = 0.15 < material_threshold 0.3 — the
+    # lifecycle's discovery class was structurally folded regardless of magnitude.
     ind_sum = 0
     for _, f in pairs:
         sc = _is_scoring(registry, f.indicatorId)
         scoring = bool(sc)
         factors.indicatorMoves.append(
             IndicatorMove(indicatorId=f.indicatorId, magnitude=f.magnitude, scoring=scoring))
-        if scoring:
-            ind_sum += f.magnitude
+        ind_sum += f.magnitude
     base += config.w_ind * ind_sum
 
     has_primary = any(any(e.tier == "primary" for e in f.evidence) for _, f in pairs)

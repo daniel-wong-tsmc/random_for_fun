@@ -37,8 +37,11 @@ def test_collect_ranks_moves_splits_storylines_and_never_writes(tmp_path):
     ws.update_header("entity:nvda", as_of="2026-05", status="registered")
     ws.record_state("entity:nvda", as_of="2026-05", state="on-track", trajectory="accelerating", salience=0.9)
     # cycle 2 (2026-06): NVDA gets a new material finding; AMD is a NEW provisional overlay (low materiality).
+    # F34: AMD's magnitude-1 D6 (price) finding still folds — (0.5 + 0.3*1) * 0.6 * 1.0 * 1.0 * 0.5
+    # = 0.24 < 0.3 — a low-magnitude price-only thread stays quiet even though non-scoring
+    # activity now counts (a magnitude-2+ overlay would clear the threshold; see test_w2_lane_f.py).
     route_findings(ws, [_f("f-nv2", "NVDA", "rpoBacklog", as_of="2026-06", magnitude=3, tier="primary"),
-                        _f("f-amd", "AMD", "gpuSpotPrice", as_of="2026-06")], as_of="2026-06")
+                        _f("f-amd", "AMD", "D6", as_of="2026-06", magnitude=1)], as_of="2026-06")
     ws.record_state("entity:amd", as_of="2026-06", state="watch", trajectory="softening", salience=0.4)
 
     before = len(ws.log.read())

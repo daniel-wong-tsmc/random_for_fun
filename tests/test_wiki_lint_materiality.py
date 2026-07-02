@@ -32,15 +32,18 @@ def test_score_new_thread_nonscoring(tmp_path):
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     # gpuSpotPrice: scoring=False (price overlay), daily/coincident (no leading boost)
-    route_findings(ws, [_f("f-1", "NVDA", "gpuSpotPrice")], as_of="2026-06")
+    route_findings(ws, [_f("f-1", "NVDA", "gpuSpotPrice")], as_of="2026-06")  # magnitude=2 (default)
     mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.newThread is True
-    assert mv.factors.indicatorMoves[0].scoring is False  # overlay excluded from the indicator factor
+    assert mv.factors.indicatorMoves[0].scoring is False  # overlay flag still recorded for display
     assert mv.tierMult == 0.6 and mv.recencyMult == 1.0   # secondary tier, observed this cycle
-    # base = w_new 0.5 (no scoring indicator) ; *0.6 *1.0 *(1+0) *max(0.5,0)=0.5
-    assert math.isclose(mv.score, 0.5 * 0.6 * 1.0 * 1.0 * 0.5)
+    # F34: ind_sum now counts EVERY observed finding's magnitude, scoring or not — a
+    # non-scoring indicator is still activity. base = w_new 0.5 + w_ind 0.3 * ind_sum 2 = 1.1
+    # score = 1.1 * tier_secondary 0.6 * recency_full 1.0 * (1+boost 0) * salience_floor 0.5 = 0.33
+    assert math.isclose(mv.score, (0.5 + 0.3 * 2) * 0.6 * 1.0 * 1.0 * 0.5)
+    assert math.isclose(mv.score, 0.33)
 
 
 def test_score_scoring_indicator_and_leading_boost(tmp_path):
@@ -100,13 +103,19 @@ def test_score_moves_threshold_split_and_sorted(tmp_path):
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     # NVDA: a scoring leading magnitude-3 finding -> high score (material).
-    # AMD: a non-scoring overlay finding -> low score (dropped under threshold 0.3).
+    # AMD: a non-scoring overlay finding, magnitude 2 (default) -> F34 recalibration counts
+    #   this as activity too: (0.5 + 0.3*2) * 0.6 * 1.0 * 1.0 * 0.5 = 0.33 >= 0.3 -> material.
+    # INTC: a non-scoring D6 (price) magnitude-1 finding -> still below threshold:
+    #   (0.5 + 0.3*1) * 0.6 * 1.0 * 1.0 * 0.5 = 0.24 < 0.3 -> dropped (price noise stays quiet).
     route_findings(ws, [_f("f-nv", "NVDA", "rpoBacklog", magnitude=3, tier="primary"),
-                        _f("f-amd", "AMD", "gpuSpotPrice")], as_of="2026-06")
+                        _f("f-amd", "AMD", "gpuSpotPrice"),
+                        _f("f-intc", "INTC", "D6", magnitude=1)], as_of="2026-06")
     diff = ws.diff("2026-06", "")
     material, dropped = score_moves(ws, diff, {}, as_of="2026-06", prev_as_of=None,
                                     registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     mat_ids = [m.pageId for m in material]
     drop_ids = [m.pageId for m in dropped]
-    assert "entity:nvda" in mat_ids and "entity:amd" in drop_ids
+    assert "entity:nvda" in mat_ids
+    assert "entity:amd" in mat_ids     # F34: recalibrated - no longer structurally folded
+    assert "entity:intc" in drop_ids   # low-magnitude price-only thread still folds
     assert material == sorted(material, key=lambda m: m.score, reverse=True)

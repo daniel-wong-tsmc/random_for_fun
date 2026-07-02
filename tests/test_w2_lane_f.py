@@ -5,10 +5,18 @@ proven failing before the corresponding implementation change lands.
 """
 from __future__ import annotations
 
+import math
+
 from gpu_agent.brief import _traj_arrow, render_demand_supply_board, render_storylines
 from gpu_agent.schema.scorecard import Scorecard, DemandSupply
-from gpu_agent.schema.finding import Finding, Confidence, Evidence
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence
 from gpu_agent.wiki.movement import MarketMovement, StorylineRow
+from gpu_agent.store import FindingStore
+from gpu_agent.wiki.store import WikiStore
+from gpu_agent.wiki.ingest import route_findings
+from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.registry.horizon import IndicatorHorizons
+from gpu_agent.wiki.lint import _score_move, DEFAULT_LINT_CONFIG
 
 
 # ── Task 1 (F18): trajectory arrows match TOKENS, not substrings ──────────────
@@ -117,3 +125,62 @@ def test_storylines_byte_deterministic():
                    for i in range(10)]
     mv = MarketMovement(prevAsOf="2026-06", moved=[], foldedCount=0, storylines=provisional)
     assert render_storylines(mv) == render_storylines(mv)
+
+
+# ── Task 4 (F34): recalibrate the materiality fold ─────────────────────────────
+
+def _wiki_store(tmp_path):
+    return WikiStore(tmp_path / "wiki", FindingStore(tmp_path / "findings"))
+
+
+def _reg_hz():
+    return (IndicatorRegistry.load("registry/indicators.json"),
+            IndicatorHorizons.load("registry/indicators.json"))
+
+
+def _lint_finding(fid, entity, indicatorId, magnitude=2, tier="secondary"):
+    return Finding(
+        id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
+        impact=Impact(targets=["x"], direction="negative", mechanism="m"),
+        evidence=[Evidence(source="src", url="u", date="2026-06", excerpt="e", tier=tier)],
+        confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+        indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=magnitude, entity=entity, observedAt="2026-06", capturedAt="2026-06-12")
+
+
+def test_materiality_new_nonscoring_mag2_is_material(tmp_path):
+    """A brand-new secondary thread whose only observation is a non-scoring (overlay)
+    finding of magnitude 2 must now count as ACTIVITY, not be structurally folded.
+    gpuSpotPrice: scoring=False, side=price, daily/coincident (no leading boost).
+    base = w_new 0.5 + w_ind 0.3 * ind_sum 2 = 1.1
+    score = 1.1 * tier_secondary 0.6 * recency_full 1.0 * (1 + boost 0) * salience_floor 0.5 = 0.33
+    """
+    reg, hz = _reg_hz()
+    ws = _wiki_store(tmp_path)
+    route_findings(ws, [_lint_finding("f-1", "NVDA", "gpuSpotPrice", magnitude=2)], as_of="2026-06")
+    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
+                     state_transition=None, contradiction_note=None,
+                     registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
+    assert mv.factors.indicatorMoves[0].scoring is False   # still recorded as non-scoring for display
+    assert math.isclose(mv.score, (0.5 + 0.3 * 2) * 0.6 * 1.0 * 1.0 * 0.5)
+    assert math.isclose(mv.score, 0.33)
+    assert mv.score >= DEFAULT_LINT_CONFIG.material_threshold   # material
+
+
+def test_materiality_new_price_only_mag1_stays_folded(tmp_path):
+    """A brand-new secondary thread whose only observation is a D6 (price, non-scoring)
+    magnitude-1 finding stays below threshold — price noise is quiet, but it is COUNTED
+    (not excluded), unlike before F34.
+    base = w_new 0.5 + w_ind 0.3 * ind_sum 1 = 0.8
+    score = 0.8 * tier_secondary 0.6 * recency_full 1.0 * (1 + boost 0) * salience_floor 0.5 = 0.24
+    """
+    reg, hz = _reg_hz()
+    ws = _wiki_store(tmp_path)
+    route_findings(ws, [_lint_finding("f-1", "NVDA", "D6", magnitude=1)], as_of="2026-06")
+    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
+                     state_transition=None, contradiction_note=None,
+                     registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
+    assert mv.factors.indicatorMoves[0].scoring is False
+    assert math.isclose(mv.score, (0.5 + 0.3 * 1) * 0.6 * 1.0 * 1.0 * 0.5)
+    assert math.isclose(mv.score, 0.24)
+    assert mv.score < DEFAULT_LINT_CONFIG.material_threshold   # folded

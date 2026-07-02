@@ -1,5 +1,6 @@
 from __future__ import annotations
 import pathlib
+import re
 from typing import Optional
 from pydantic import BaseModel
 from gpu_agent.schema.finding import Finding
@@ -7,6 +8,8 @@ from gpu_agent.wiki.page import WikiPage, dump_page, load_page
 from gpu_agent.wiki.log import WikiLog, LogEvent, Observation, StateChange
 
 _ALLOWED_HEADER_FIELDS = {"title", "category", "status", "crossRefs"}
+_ALLOWED_PAGE_TYPES = {"entity", "theme"}
+_SAFE_SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
 class PageNotFound(KeyError):
@@ -81,6 +84,12 @@ class WikiStore:
     # --- persistence helpers ---
     def _page_path(self, page_id: str) -> pathlib.Path:
         ptype, _, slug = page_id.partition(":")
+        # F41b: ptype/slug become path segments below; an unvalidated slug (e.g. "../escape")
+        # can walk out of self.root. Only the two known page types and a safe slug shape
+        # (lowercase alnum + internal dashes, matching what wiki/ingest.py's slug() ever
+        # produces) are allowed.
+        if ptype not in _ALLOWED_PAGE_TYPES or not _SAFE_SLUG.match(slug):
+            raise ValueError(f"unsafe page id: {page_id!r}")
         return self.root / ptype / f"{slug}.md"
 
     def _read(self, page_id: str) -> tuple[WikiPage, str]:

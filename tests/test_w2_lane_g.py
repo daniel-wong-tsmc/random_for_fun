@@ -7,6 +7,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import pytest
 from gpu_agent.cli import main
 
 
@@ -116,3 +117,87 @@ def test_extractor_default_registry_load_unaffected_when_env_unset():
          "--recorded", "fixtures/recorded/extract-nvda.json"],
         capture_output=True, text=True)
     assert out.returncode == 0, out.stderr
+
+
+# --- Task 4: F41b — wiki page id validation + crash-recoverable routing --------------
+
+from gpu_agent.store import FindingStore
+from gpu_agent.wiki.store import WikiStore, PageNotFound
+from gpu_agent.wiki.ingest import route_findings
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence
+
+
+def _wiki_store(tmp_path):
+    return WikiStore(tmp_path / "wiki", FindingStore(tmp_path / "findings"))
+
+
+def _finding(fid, entity, statement="s", **over):
+    data = dict(
+        id=fid, statement=statement, kind=Kind.observed, trend="flat", why="w",
+        impact=Impact(targets=["x"], direction="negative", mechanism="m"),
+        confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+        indicatorId="D2", side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=2, entity=entity, observedAt="2026-06", capturedAt="2026-06-12")
+    data.update(over)
+    return Finding(**data)
+
+
+def test_page_path_rejects_path_escape_on_get(tmp_path):
+    ws = _wiki_store(tmp_path)
+    with pytest.raises(ValueError):
+        ws.get_page("entity:../escape")
+
+
+def test_page_path_rejects_path_escape_on_create(tmp_path):
+    ws = _wiki_store(tmp_path)
+    with pytest.raises(ValueError):
+        ws.create_page("entity:../x", "entity", "X", as_of="2026-06-26")
+
+
+def test_page_path_rejects_unknown_type(tmp_path):
+    ws = _wiki_store(tmp_path)
+    with pytest.raises(ValueError):
+        ws.get_page("bogus:nvidia")
+
+
+def test_page_path_rejects_uppercase_slug(tmp_path):
+    ws = _wiki_store(tmp_path)
+    with pytest.raises(ValueError):
+        ws.get_page("entity:NVIDIA")
+
+
+def test_page_path_happy_path_ids_unaffected(tmp_path):
+    ws = _wiki_store(tmp_path)
+    ws.create_page("entity:nvidia", "entity", "NVIDIA", as_of="2026-06-26")
+    assert ws.get_page("entity:nvidia").title == "NVIDIA"
+    ws.create_page("theme:cowos-capacity", "theme", "CoWoS", as_of="2026-06-26")
+    assert ws.get_page("theme:cowos-capacity").title == "CoWoS"
+
+
+def test_route_findings_crash_recoverable_and_idempotent_on_retry(tmp_path):
+    ws = _wiki_store(tmp_path)
+    # Pre-existing finding "f-3" under a DIFFERENT statement, simulating an id already
+    # claimed (elsewhere / an earlier cycle) with different content.
+    ws.findings.append(_finding("f-3", "NVDA", statement="original content"))
+
+    f1 = _finding("f-1", "NVDA", statement="finding one")
+    f2 = _finding("f-2", "AMD", statement="finding two")
+    f3_colliding = _finding("f-3", "NVDA", statement="COLLIDING content")
+
+    with pytest.raises(ValueError):
+        route_findings(ws, [f1, f2, f3_colliding], as_of="2026-06-28")
+
+    # findings 1-2 are durably routed even though the batch blew up on finding 3
+    assert {o.findingId for o in ws.observations("entity:nvda")} == {"f-1"}
+    assert {o.findingId for o in ws.observations("entity:amd")} == {"f-2"}
+    n_events_after_crash = len(ws.log.read())
+
+    # a re-run with finding 3 corrected (matching the pre-existing content) converges:
+    # no exception, no duplicate observations for f-1/f-2, and f-3 now routes cleanly.
+    f3_fixed = _finding("f-3", "NVDA", statement="original content")
+    touched = route_findings(ws, [f1, f2, f3_fixed], as_of="2026-06-28")
+    assert touched == ["entity:amd", "entity:nvda"]
+    assert {o.findingId for o in ws.observations("entity:nvda")} == {"f-1", "f-3"}
+    assert {o.findingId for o in ws.observations("entity:amd")} == {"f-2"}
+    # exactly one new event landed (append-observation for f-3); f-1/f-2 were no-ops
+    assert len(ws.log.read()) == n_events_after_crash + 1

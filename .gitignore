@@ -4,6 +4,12 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .superpowers/
-store/
+# store/: the CANONICAL run history (scorecards, wiki, dedup index, cycle log) is TRACKED (F1);
+# only scratch/demo subtrees stay ignored.
+store/*
+!store/chips.merchant-gpu/
+!store/cycle-log.json
+!store/wiki/
+!store/seen_docs.jsonl
 work/
 blobs.json

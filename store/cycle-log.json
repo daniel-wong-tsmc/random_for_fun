@@ -1,0 +1,52 @@
+{
+  "scope": "category:chips.merchant-gpu",
+  "entries": [
+    {
+      "category_id": "chips.merchant-gpu",
+      "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
+      "status": "ready",
+      "category": "done",
+      "scorecard": "store/chips.merchant-gpu/2026-06-v6.json",
+      "DMI": 0.3,
+      "SMI": -0.107,
+      "SDGI": 0.407,
+      "docsDir": "ingested",
+      "snapshot": "blobs.json",
+      "artifacts": {
+        "extractAnswer": "work/merchant-gpu-2026-06/extract-answer.json",
+        "judgeAnswer": "work/merchant-gpu-2026-06/judge-answer.json",
+        "findings": "work/merchant-gpu-2026-06/findings.json",
+        "gatherLog": "docs/gather-log.json (coverageGaps appended)"
+      },
+      "coverageGaps": {
+        "required_paywalled": [
+          "trendforce-gpu-tracker",
+          "semianalysis"
+        ],
+        "optional_notcovered": [
+          "gpuSpotPrice/gpu-marketplaces"
+        ],
+        "note": "all required INDICATORS substantively covered via equivalent sources; source-URL-pattern gaps are non-substantive"
+      }
+    }
+  ],
+  "stages": [
+    {
+      "tier": "category",
+      "status": "done"
+    },
+    {
+      "tier": "layer",
+      "status": "deferred",
+      "note": "not yet built (next sub-project); would assess layer:chips"
+    },
+    {
+      "tier": "main",
+      "status": "deferred",
+      "note": "not yet built"
+    }
+  ],
+  "asOf": "2026-06",
+  "mode": "live",
+  "capturedAt": "2026-07-02T07:55:15Z"
+}

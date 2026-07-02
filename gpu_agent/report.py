@@ -532,6 +532,7 @@ def render_report(
     render_ts: Optional[str] = None,
     *,
     horizons=None,
+    movement=None,
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -540,7 +541,7 @@ def render_report(
     the caller passes None) so output is byte-identical for identical inputs.
 
     The Market-State brief sections (render_state_of_market, render_demand_supply_board,
-    render_deferred_stubs) are prepended after the header; render_market_caveat is
+    render_what_moved, render_storylines) are prepended after the header; render_market_caveat is
     appended as the trust footer. ``horizons`` is an optional IndicatorHorizons instance
     passed to render_demand_supply_board for leading-indicator tagging.
 
@@ -550,6 +551,8 @@ def render_report(
         registry: the indicator registry for evidence-quality dimension mapping.
         render_ts: ISO-8601 timestamp string for the header; defaults to now(UTC).
         horizons: optional IndicatorHorizons for the demand/supply board leading tags.
+        movement: optional MarketMovement (from wiki.movement.collect_movement) feeding
+            the WHAT MOVED / STORYLINES sections; None renders their honest empty-state.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
@@ -558,7 +561,8 @@ def render_report(
         render_header(sc, render_ts),
         brief.render_state_of_market(sc, prior),          # NEW — BLUF
         brief.render_demand_supply_board(sc, horizons),   # NEW
-        brief.render_deferred_stubs(),                    # NEW — 4-5b stubs
+        brief.render_what_moved(movement),        # was render_deferred_stubs (part 1)
+        brief.render_storylines(movement),        # was render_deferred_stubs (part 2)
         render_overall_status(sc),
         render_dimensions(sc, prior),
         render_dmi_smi_sdgi(sc, prior),

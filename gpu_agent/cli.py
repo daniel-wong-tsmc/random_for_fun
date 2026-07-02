@@ -17,6 +17,7 @@ from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.ingest import route_findings, build_bundle, apply_enrichment, IngestResult
 from gpu_agent.wiki.lint import lint
 from gpu_agent.wiki.lifecycle import lifecycle, apply_lifecycle
+from gpu_agent.wiki.movement import collect_movement
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
@@ -342,8 +343,16 @@ def _report(args) -> int:
 
     registry = IndicatorRegistry.load(args.registry)
     horizons = IndicatorHorizons.load(args.registry)   # same file; carries the cadenceHorizon tags
+    wiki_dir = pathlib.Path(args.store) / "wiki"
+    movement = None
+    if wiki_dir.exists():
+        store = WikiStore(wiki_dir, FindingStore(pathlib.Path(args.store) / "findings"))
+        prev_as_of = prior.asOf if prior is not None else None
+        movement = collect_movement(store, as_of=sc.asOf, prev_as_of=prev_as_of,
+                                    registry=registry, horizons=horizons)
     text = render_report(sc, prior, registry,
-                         render_ts=getattr(args, "render_ts", None), horizons=horizons)
+                         render_ts=getattr(args, "render_ts", None),
+                         horizons=horizons, movement=movement)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).

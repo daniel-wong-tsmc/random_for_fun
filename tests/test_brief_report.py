@@ -4,12 +4,18 @@ Verifies that render_report composes the Market-State brief *first* (before the
 detailed sections), and that the honesty / byte-stability invariants hold.
 """
 from __future__ import annotations
+import pathlib
 from gpu_agent.report import render_report
 from gpu_agent.cli import main
 from gpu_agent.schema.scorecard import (
     Scorecard, DemandSupply, MarketIndices, Divergence, CategoryStatus,
 )
 from gpu_agent.schema.finding import Finding, Confidence
+from gpu_agent.store import FindingStore
+from gpu_agent.wiki.store import WikiStore
+from gpu_agent.wiki.ingest import route_findings
+from gpu_agent.schema.finding import Kind, Impact, Evidence
+from gpu_agent.wiki.movement import MarketMovement, StorylineRow
 
 
 # ── Test helpers ─────────────────────────────────────────────────────────────
@@ -101,3 +107,70 @@ def test_cli_report_brief_first(tmp_path, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert out.index("STATE OF THE MARKET") < out.index("ENTITY PANEL")
+
+
+def _story_movement():
+    return MarketMovement(prevAsOf=None, moved=[], foldedCount=0, storylines=[
+        StorylineRow(title="AMD", state="on-track", trajectory="accelerating",
+                     lastUpdatedAsOf="2026-07", salience=0.8, provisional=False)])
+
+
+def test_render_report_composes_store_sections_brief_first():
+    out = render_report(_rich_sc(), None, _reg(), render_ts="t", movement=_story_movement())
+    i_state = out.index("STATE OF THE MARKET")
+    i_board = out.index("DEMAND | SUPPLY")
+    i_moved = out.index("WHAT MOVED SINCE LAST RUN")
+    i_story = out.index("STORYLINES (tracked over time)")
+    i_detail = out.index("ENTITY PANEL")
+    i_caveat = out.index("read DIRECTION, not level")
+    assert i_state < i_board < i_moved < i_story < i_detail < i_caveat
+    assert "• AMD  on-track → accelerating" in out   # real storyline, not the stub
+
+
+def test_render_report_movement_none_is_empty_state():
+    out = render_report(_rich_sc(), None, _reg(), render_ts="t", movement=None)
+    assert "WHAT MOVED SINCE LAST RUN" in out and "STORYLINES (tracked over time)" in out
+    assert "no wiki store yet" in out
+    assert "rendered in 4-5b" not in out             # the promissory stub is retired
+
+
+def test_render_report_byte_stable_with_movement():
+    a = render_report(_rich_sc(), None, _reg(), render_ts="fixed", movement=_story_movement())
+    b = render_report(_rich_sc(), None, _reg(), render_ts="fixed", movement=_story_movement())
+    assert a == b
+
+
+def _seed_store(root: pathlib.Path):
+    ws = WikiStore(root / "wiki", FindingStore(root / "findings"))
+    f = Finding(id="f-nv", statement="s", kind=Kind.observed, trend="flat", why="w",
+                impact=Impact(targets=["x"], direction="negative", mechanism="m"),
+                evidence=[Evidence(source="src", url="u", date="2026-07", excerpt="e", tier="primary")],
+                confidence=Confidence(level="medium", basis="b"), asOf="2026-07",
+                indicatorId="rpoBacklog", side="demand", polarityDemand=1, polaritySupply=0,
+                magnitude=3, entity="NVDA", observedAt="2026-07", capturedAt="2026-07-12")
+    route_findings(ws, [f], as_of="2026-07")
+    ws.update_header("entity:nvda", as_of="2026-07", status="registered")
+    ws.record_state("entity:nvda", as_of="2026-07", state="hot", trajectory="rising", salience=0.9)
+
+
+def test_cli_report_renders_storylines_from_store(tmp_path, capsys):
+    _seed_store(tmp_path)
+    p = tmp_path / "sc.json"
+    p.write_text(_rich_sc().model_dump_json(), encoding="utf-8")
+    rc = main(["report", "--scorecard", str(p), "--store", str(tmp_path), "--no-prior",
+               "--render-ts", "2026-07-02T00:00:00+00:00"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "STORYLINES (tracked over time)" in out
+    assert "• NVDA  hot → rising" in out                       # real storyline from the store
+    assert "no prior cycle to compare" in out                 # --no-prior → WHAT MOVED note
+
+
+def test_cli_report_no_wiki_store_is_empty_state(tmp_path, capsys):
+    p = tmp_path / "sc.json"
+    p.write_text(_rich_sc().model_dump_json(), encoding="utf-8")
+    rc = main(["report", "--scorecard", str(p), "--store", str(tmp_path), "--no-prior",
+               "--render-ts", "t"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "no wiki store yet" in out                          # <store>/wiki absent → empty-state

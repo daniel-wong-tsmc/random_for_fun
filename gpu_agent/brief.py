@@ -4,6 +4,7 @@ wording helpers so the brief and the detailed report speak the same vocabulary."
 from __future__ import annotations
 import re
 from typing import Optional
+from urllib.parse import urlparse
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
@@ -76,6 +77,15 @@ def _collapse_latest(findings):
     return latest
 
 
+def _publisher(ev) -> str:
+    """Domain-level publisher for one Evidence item: netloc minus a leading 'www.',
+    falling back to the evidence's source name when the URL has no netloc (F29)."""
+    netloc = urlparse(ev.url).netloc.lower()
+    if netloc.startswith("www."):
+        netloc = netloc[len("www."):]
+    return netloc or ev.source.lower()
+
+
 def _board_rows(findings, side, sc_as_of, horizons):
     rows = []
     on_side = [f for f in findings if f.side == side]
@@ -92,6 +102,12 @@ def _board_rows(findings, side, sc_as_of, horizons):
                 tags.append("leading")
         if f.asOf < sc_as_of:
             tags.append("⚠carried")
+        # F29: a row backed by exactly one distinct publisher domain (whether that's one
+        # evidence item or several from the same outlet) carries a visible warning —
+        # honest about corroboration, not just presence of evidence.
+        publishers = {_publisher(ev) for ev in f.evidence}
+        if len(publishers) == 1:
+            tags.append("⚠single-source")
         suffix = ("  [" + ", ".join(tags) + "]") if tags else ""
         rows.append(f"    {indicator_id}  {word} {arrow}{suffix}")
     if not rows:

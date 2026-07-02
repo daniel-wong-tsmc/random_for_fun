@@ -1,6 +1,7 @@
 from __future__ import annotations
 import argparse, json, pathlib, sys
 from datetime import datetime, timezone
+from pydantic import ValidationError
 from gpu_agent.assignment import load_assignment
 from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH
 from gpu_agent.schema.finding import Finding, Confidence
@@ -27,6 +28,10 @@ from gpu_agent.judgment.prompt import (
     SYSTEM as JUDGE_SYSTEM, build_system as build_judge_system,
     build_user_prompt as build_judge_user_prompt)
 from gpu_agent.judgment.briefing import build_briefing
+from gpu_agent.thesis import (
+    ThesisAnswer, ThesisStore, apply_answer, gate_answer, seed_book,
+    THESIS_SYSTEM, build_thesis_system, build_thesis_user_prompt)
+from gpu_agent.memory import build_memory_bundle, render_memory_text
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.gathering.dedup import (
     SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
@@ -248,16 +253,28 @@ def _extract(args) -> int:
 def _emit_judge_prompt(args) -> int:
     """Print the canonical judgment prompt + answer schema (no LLM call) from the gated findings;
     the answer (a JSON array of `samples` JudgmentResults) feeds `judge --recorded`. The judgment
-    prompt is built from the GATED findings via the same build_briefing the frozen brain uses."""
+    prompt is built from the GATED findings via the same build_briefing the frozen brain uses.
+
+    F5: also threads prior-cycle MEMORY (scorecards/theses/wiki/price state) from `args.store`
+    when a prior scorecard exists for this category strictly before this cycle's asOf (taken
+    from the gated findings themselves, which all carry the current cycle's asOf) -- absent a
+    prior, memory_text stays None and build_judge_user_prompt returns the byte-identical legacy
+    (pre-memory) prompt."""
     findings = [Finding.model_validate(d)
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
     registry, _ = _load_registry()
     briefing = build_briefing(findings, registry, args.category)
     persona = getattr(args, "persona", None)
+    memory_text = None
+    if findings:
+        horizons = IndicatorHorizons.load(REGISTRY_PATH)
+        memory = build_memory_bundle(args.store, args.category, findings[0].asOf, registry, horizons)
+        if memory is not None:
+            memory_text = render_memory_text(memory)
     bundle = {
         "system": build_judge_system(persona) if persona else JUDGE_SYSTEM,
         "schema": JudgmentResult.model_json_schema(),
-        "user": build_judge_user_prompt(briefing),
+        "user": build_judge_user_prompt(briefing, memory_text=memory_text),
         "samples": args.samples,
     }
     print(json.dumps(bundle, indent=2))
@@ -297,6 +314,85 @@ def _judge(args) -> int:
     print(f"judged {len(bundle.ratings)} dimensions -> {out}")
     return 0
 
+def _thesis(args) -> int:
+    """Handler for `gpu-agent thesis`: emit the canonical thesis-book prompt (standing book +
+    gated findings + prior-cycle MEMORY when available), or gate + apply a recorded answer.
+    Mirrors extract/judge's emit->recorded pattern (F6/F7); this is the CLI grammar's final
+    always-emit-then-recorded stage -- neither flag is a usage error, not a silent no-op.
+
+    Steps (spec order):
+      1. load findings, index by id.
+      2. seed the thesis store if it doesn't exist yet (first run for this category).
+      3. build the F4 memory bundle (None when no prior scorecard exists).
+      4. --emit-prompt: print system/schema/user, exit 0.
+      5. --recorded: parse -> gate -> apply -> write -> print per-thesis summary lines +
+         proposal/promotion/retirement notes, exit 0; a parse or gate failure exits 1 and
+         never calls store.write (the book stays byte-unchanged).
+      6. neither flag: exit 2.
+    """
+    findings = [Finding.model_validate(d)
+                for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    findings_by_id = {f.id: f for f in findings}
+
+    store = ThesisStore(pathlib.Path(args.store) / "theses" / args.category)
+    if not store.exists():
+        seed_path = args.seed or f"registry/theses.{args.category}.json"
+        book = seed_book(seed_path, args.category, args.as_of)
+        seeded_record = {
+            "asOf": args.as_of, "event": "seeded", "thesisId": "",
+            "detail": [e.model_dump() for e in book.entries],
+            "note": f"seeded {len(book.entries)} theses",
+        }
+        store.write(book, [seeded_record])
+        print(f"seeded {len(book.entries)} theses", file=sys.stderr)
+    else:
+        book = store.load()
+
+    registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
+    memory = build_memory_bundle(args.store, args.category, args.as_of, registry, horizons)
+    memory_text = render_memory_text(memory) if memory is not None else None
+
+    if args.emit_prompt:
+        persona = getattr(args, "persona", None)
+        bundle = {
+            "system": build_thesis_system(persona) if persona else THESIS_SYSTEM,
+            "schema": ThesisAnswer.model_json_schema(),
+            "user": build_thesis_user_prompt(book, findings, memory_text),
+        }
+        print(json.dumps(bundle, indent=2))
+        return 0
+
+    if args.recorded:
+        try:
+            answer = ThesisAnswer.model_validate_json(
+                pathlib.Path(args.recorded).read_text("utf-8"))
+        except ValidationError as e:
+            print(f"gpu-agent thesis: error: invalid recorded answer: {e}", file=sys.stderr)
+            return 1
+        violations = gate_answer(answer, book, findings_by_id, registry)
+        if violations:
+            print("THESIS GATE FAILED:", *violations, sep="\n  ", file=sys.stderr)
+            return 1
+        history: list[dict] = []
+        if store.history_path.exists():
+            with store.history_path.open("r", encoding="utf-8") as f:
+                history = [json.loads(line) for line in f if line.strip()]
+        new_book, records, notes = apply_answer(
+            book, answer, as_of=args.as_of, findings_by_id=findings_by_id, history=history)
+        store.write(new_book, records)
+        for record in records:
+            if "verdict" in record:   # judgment records only; lifecycle records surface via notes
+                print(f"{record['thesisId']}: {record['verdict']} "
+                      f"applied={record['applied']} conviction={record['conviction']}")
+        for note in notes:
+            print(note)
+        return 0
+
+    print("gpu-agent thesis: error: exactly one of --emit-prompt or --recorded is required",
+          file=sys.stderr)
+    return 2
+
 def _pipeline(args) -> int:
     docs = _load_docs(args.docs)
     if args.recorded_extract:
@@ -330,6 +426,11 @@ def _pipeline(args) -> int:
         a = a.model_copy(update={"asOf": args.as_of})
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
+    # F5: judge_findings' signature is frozen and builds its own prompt internally, so this
+    # recorded-judge path threads no memory of its own -- the skill's live cycle gets prior-cycle
+    # MEMORY via the `judge --emit-prompt --store ...` call in Step 3(c), whose emitted user
+    # prompt is what the dispatched brain actually answers; --recorded-judge here just replays
+    # that saved answer through the frozen gate/scorer.
     bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
                             model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
     horizons = IndicatorHorizons.load(REGISTRY_PATH)
@@ -490,6 +591,20 @@ def main(argv=None) -> int:
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")
     jg.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical judgment prompt + schema (no LLM) and exit")
+    jg.add_argument("--store", default="store",
+                    help="store root for prior-cycle MEMORY threading (F5) in --emit-prompt; default: 'store'")
+    th = sub.add_parser("thesis")
+    th.add_argument("--findings", required=True, help="JSON array of gated Findings")
+    th.add_argument("--store", default="store", help="store root (holds theses/<category>/)")
+    th.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
+    th.add_argument("--as-of", required=True)
+    th.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical thesis prompt + schema (no LLM) and exit")
+    th.add_argument("--recorded", default=None, help="path to a recorded ThesisAnswer JSON")
+    th.add_argument("--seed", default=None,
+                    help="seed file path for a first run (default: registry/theses.<category>.json)")
+    th.add_argument("--persona", default=None,
+                    help="analyst persona for the emitted system prompt (default: GPU market)")
     pl = sub.add_parser("pipeline")
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)
@@ -539,6 +654,12 @@ def main(argv=None) -> int:
     if args.cmd == "judge":
         try:
             return _judge(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+    if args.cmd == "thesis":
+        try:
+            return _thesis(args)
         except RegistryError as e:
             print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
             return 1

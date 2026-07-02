@@ -1,0 +1,59 @@
+{
+  "judgments": [
+    {
+      "thesisId": "nvda-demand-durability",
+      "verdict": "reaffirmed",
+      "rationale": "DC revenue growth continues to outrun shipment capacity even as the slope flattens.",
+      "findingIds": ["f-nvda-d2"],
+      "mechanism": "Backlog and purchase commitments keep growing faster than shipment volumes, the signature of demand still pulling ahead of supply.",
+      "falsifiableTrigger": "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters.",
+      "sensitivity": "Sensitive to hyperscaler capex guidance over the next two quarters."
+    },
+    {
+      "thesisId": "supply-constraint-binding",
+      "verdict": "reaffirmed",
+      "rationale": "Rising Intel channel inventory days show the chain is still packaging/memory-bound, not demand-bound.",
+      "findingIds": ["f-intc-s10"],
+      "mechanism": "CoWoS advanced-packaging capacity and HBM memory supply, not wafer starts or end demand, keep setting the ceiling on finished-GPU shipments this quarter.",
+      "falsifiableTrigger": "CoWoS/HBM lead times normalize to historical norms while demand indicators stay positive for 2 quarters.",
+      "sensitivity": "Sensitive to announced advanced-packaging and HBM capacity additions from packaging and memory vendors."
+    },
+    {
+      "thesisId": "amd-credible-second-source",
+      "verdict": "reaffirmed",
+      "rationale": "AMD's MI-series and custom-ASIC erosion of NVIDIA share keeps tracking toward ~75%, consistent with a credible second source emerging.",
+      "findingIds": ["f-amd-s9"],
+      "mechanism": "AMD's Instinct MI-series roadmap and hyperscaler design-win cadence continue to determine whether it becomes a credible, at-scale second source in datacenter accelerators.",
+      "falsifiableTrigger": "Two consecutive quarters without a named hyperscaler MI-series deployment at scale.",
+      "sensitivity": "Sensitive to named hyperscaler deployment announcements and AMD's execution against its MI-series shipment cadence."
+    },
+    {
+      "thesisId": "custom-asic-substitution",
+      "verdict": "reaffirmed",
+      "rationale": "Hyperscalers internalizing silicon toward the ~75% accelerator-share mark keeps custom ASICs on track to displace merchant-GPU demand growth.",
+      "findingIds": ["f-amd-s9"],
+      "mechanism": "Hyperscalers' in-house training and inference accelerator programs keep competing directly with merchant-GPU purchases for the same capex dollars.",
+      "falsifiableTrigger": "Hyperscaler capex mix shifts back toward merchant GPUs, or a named ASIC program is cancelled/delayed a generation, within 2 quarters.",
+      "sensitivity": "Sensitive to hyperscaler capex-mix disclosures and the shipment/deployment cadence of named custom-silicon programs."
+    },
+    {
+      "thesisId": "pricing-power-persistence",
+      "verdict": "reaffirmed",
+      "rationale": "CUDA lock-in remaining the dominant switching barrier keeps rental/spot pricing power intact despite added supply.",
+      "findingIds": ["f-nvda-moat"],
+      "mechanism": "Sustained demand for GPU compute, reinforced by CUDA switching costs, keeps rental and spot prices firm even as new capacity comes online.",
+      "falsifiableTrigger": "The D6 price track shows a decline of 15% or more across 2 or more providers within a quarter.",
+      "sensitivity": "Sensitive to the D6 rental price track across providers and the pace at which new GPU capacity enters the rental market."
+    },
+    {
+      "thesisId": "export-control-exposure",
+      "verdict": "reaffirmed",
+      "rationale": "No new licensing rollback or reversal this cycle; export-control exposure remains a live constraint on addressable demand.",
+      "findingIds": ["f-nvda-d2"],
+      "mechanism": "Export-control restrictions on advanced GPUs continue to limit the addressable market in restricted destinations, redirecting or destroying demand that would otherwise be served.",
+      "falsifiableTrigger": "A full licensing regime rollback, or 2 consecutive quarters with no new policy action and no vendor-reported impact.",
+      "sensitivity": "Sensitive to new export-control rulemaking, licensing decisions, and vendor-reported revenue-impact disclosures."
+    }
+  ],
+  "proposed": []
+}

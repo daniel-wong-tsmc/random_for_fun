@@ -12,18 +12,24 @@
 > lane. Frozen-contract items (`gate.py` / `scoring.py` / Finding schema) ship as **one versioned
 > v1.2 migration** (charter Part 33), never piecemeal.
 
+> **Wave 1 MERGED 2026-07-02** (main f1c0835, suite 516 passed / 3 skipped): the contract v1.2
+> migration (F2, F3, F7, F8, F9, F16, F17, F21, F36, F37 - shadow-run + replay v7-v12 in
+> docs/migrations/2026-07-contract-v1.2.md) and lanes C (F19, F20, F35, F38), D (F10, F11, F12,
+> F13-report, F22-cli), E (F14, F15, F30, F31, F32, F13-wiki, F22-lint). Reviews: opus on the
+> contract diff, sonnet on C/D/E; every stream READY-TO-MERGE with fixes applied where demanded.
+
 ## Must-have
 
 - [x] **F1 — Protect the canonical store.** `store/` is gitignored; all history is one
   `git clean -xdf` from gone. Commit it or add a versioned backup. *(Wave 0 — DONE f7ace81:
   canonical paths tracked; scratch subtrees stay ignored)*
-- [ ] **F2 — Evidence-integrity gate bundle** (`gate.py`, `extraction/`): **(a)** `observed`
+- [x] **F2 — Evidence-integrity gate bundle** (`gate.py`, `extraction/`): **(a)** `observed`
   requires ≥1 evidence (today `gate.py:7-14` only checks measured); **(b)** `evidence.excerpt`
   must appear in the source document content; **(c)** `evidence.url == doc.url`;
   **(d)** `evidence.tier` code-stamped from the document tier, stripped from model output;
   **(e)** secondary-only evidence → confidence ≤ medium enforced in the gate. Closes the
   fabrication/injection path. *(Lane A)*
-- [ ] **F3 — Enforce the Part-37 headline-protection rule.** A dimension rating resting solely on
+- [x] **F3 — Enforce the Part-37 headline-protection rule.** A dimension rating resting solely on
   secondary sources must be confidence-capped + flagged. v6's `bottleneck` and `moat` each rest on
   one blog yet report `grounded` / `confidenceCap: null` (`pipeline.py:60-76`). *(Lane B)*
 - [ ] **F4 — Wire memory into judgment.** Feed the judge the prior scorecard + relevant wiki state;
@@ -36,52 +42,52 @@
 - [ ] **F6 — Depth Rubric + Golden Set** (recorded Action Item 1). Author the rubric, grade v6
   against it, write corrected exemplars → the per-archetype golden set + regression gate for every
   prompt change (charter Part 24). *(Feature track)*
-- [ ] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
+- [x] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
   AMD erase each other per indicator. Bucket by `(entity, indicatorId)`. *(Lane B, contract v1.2)*
-- [ ] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to
+- [x] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to
   `scoring: false` (price findings never feed DMI/SMI, per charter v1.1); static levels with
   `trend: unknown` carry polarity 0 — levels without a baseline are not momentum. Follow-ups:
   visible Price Momentum Index = **F49** (Wave 2); change-based price scoring deferred until F12
   provides price history and F6 can grade the judgment. *(Lane B + extraction guidance in Lane A)*
-- [ ] **F9 — Deterministic anchor polarity track.** `briefing.py:23` lets the last finding's
+- [x] **F9 — Deterministic anchor polarity track.** `briefing.py:23` lets the last finding's
   indicator pick the dimension's track (order-dependent gate outcomes). Define per dimension at
   registry level. *(Lane B, contract v1.2)*
-- [ ] **F10 — Corroboration merge + dispersion emission.** Same (entity, indicator, value, period)
+- [x] **F10 — Corroboration merge + dispersion emission.** Same (entity, indicator, value, period)
   from two sources = one finding with two evidence entries (v6 stores NVIDIA's $75.2B twice);
   conflicting same-key findings must set `dispersion` instead of recency-collapse
   (`gathering/dedup.py:171-189`). *(Lane D)*
-- [ ] **F11 — Recorded-replay alignment.** The live path IS `--recorded`; a failed validation
+- [x] **F11 — Recorded-replay alignment.** The live path IS `--recorded`; a failed validation
   consumes the *next* document's answer → silent cross-attribution (`llm/recorded.py:11-14` +
   `cli.py:209-214`). Pair answers to docs explicitly; hard-fail on length mismatch. *(Lane D)*
-- [ ] **F12 — L1 dedup: content-hash before URL; record "seen" only after extraction commits.**
+- [x] **F12 — L1 dedup: content-hash before URL; record "seen" only after extraction commits.**
   Stable-URL price pages are dropped forever after first sight (`dedup.py:74-79`); crash
   pre-extraction permanently loses docs (`dedup.py:105`). *(Lane D)*
-- [ ] **F13 — Fix the asOf-grain trap.** Month grain drops a second same-month ingest's
+- [x] **F13 — Fix the asOf-grain trap.** Month grain drops a second same-month ingest's
   contradictions (`wiki/ingest.py:142-145`) and empties intra-month diffs; day grain silently breaks
   `find_prior`'s regex (`report.py:37`). Validate the grain, key ingest events by run, make
   `find_prior` fail loud. *(Lane D + Lane E)*
-- [ ] **F14 — Gate the wiki enrichment channel.** `apply_enrichment` (`wiki/ingest.py:125-146`)
+- [x] **F14 — Gate the wiki enrichment channel.** `apply_enrichment` (`wiki/ingest.py:125-146`)
   writes LLM body/state/salience with no check that cited `[f-...]` ids exist and no numeric gate —
   the one path where un-gated claims reach the brief. *(Lane E)*
-- [ ] **F15 — Salience computed in code, never brain-invented.** The 4-1 spec forbids exactly what
+- [x] **F15 — Salience computed in code, never brain-invented.** The 4-1 spec forbids exactly what
   the shipped prompt asks (`wiki/ingest.py:11`); model salience currently drives materiality, decay,
   pruning, STORYLINES order. *(Lane E)*
-- [ ] **F16 — Injection hardening at extraction.** Escape/robustly delimit document content in the
+- [x] **F16 — Injection hardening at extraction.** Escape/robustly delimit document content in the
   prompt fence (`extraction/prompt.py:32-34`); never fold system into user; dispatch extraction
   subagents tool-less. *(Lane A)*
-- [ ] **F17 — Vintage honesty validation.** `evidence.date` = publication date, not fetch date (v6
+- [x] **F17 — Vintage honesty validation.** `evidence.date` = publication date, not fetch date (v6
   is full of `2026-07-02` fetch stamps in a June scorecard); validate `observedAt`/date formats;
   flag future-dated evidence relative to `asOf`. *(Lane A)*
 - [ ] **F18 — `_traj_arrow` keyword bug.** "supply glut worsening" renders UP ▲ because
   `"up" ⊂ "supply"` (`brief.py:123-139`); make trajectory a constrained enum. *(Lane F)*
-- [ ] **F19 — Single-sample "unanimity."** A dimension in 1 of 3 samples gets high confidence with
+- [x] **F19 — Single-sample "unanimity."** A dimension in 1 of 3 samples gets high confidence with
   basis "1/1" (`judge.py:64-74`); require a real quorum. *(Lane C)*
-- [ ] **F20 — Propagate confidence caps upward.** A dimension driven by hypothesis/capped findings
+- [x] **F20 — Propagate confidence caps upward.** A dimension driven by hypothesis/capped findings
   must inherit the cap; finding-level confidence is never consulted at aggregation. *(Lane C)*
-- [ ] **F21 — Impact quality gate.** Empty `targets`/`mechanism` pass; require non-empty and
+- [x] **F21 — Impact quality gate.** Empty `targets`/`mechanism` pass; require non-empty and
   taxonomy-valid targets. v6's impacts are 100% self-referential — starving the future
   recommendation layer. *(Lane A)*
-- [ ] **F22 — Kill the silent drops.** `_pipeline` discards gate-dropped findings unlogged
+- [x] **F22 — Kill the silent drops.** `_pipeline` discards gate-dropped findings unlogged
   (`cli.py:277-280`); lint discards untagged-indicator lists and swallows exceptions
   (`lint.py:98-99,164-165,200,225`); report silently skips unreadable priors. *(Lane D + Lane E)*
 
@@ -105,26 +111,26 @@
   credit or mirror patterns; overrides become a structured, auditable field. *(Lane I)*
 - [ ] **F29 — Single-source ⚠ flag in the brief** (deferred 4-5 item) — v6 shows it can't stay
   deferred. *(Lane F)*
-- [ ] **F30 — Log lifecycle promotions.** `update_header` writes no event; registered/provisional
+- [x] **F30 — Log lifecycle promotions.** `update_header` writes no event; registered/provisional
   flips are invisible to replayable history (`wiki/store.py:107-114`). *(Lane E)*
-- [ ] **F31 — Real corroboration for promotion.** Distinct free-text `evidence.source` strings count
+- [x] **F31 — Real corroboration for promotion.** Distinct free-text `evidence.source` strings count
   the same publisher twice (`lifecycle.py:56-65`); key by domain/publisher. *(Lane E)*
-- [ ] **F32 — Read paths must not write.** `wiki-lifecycle` propose calls `lint()` which appends a
+- [x] **F32 — Read paths must not write.** `wiki-lifecycle` propose calls `lint()` which appends a
   log event and can mint a "cycle," aging every page (`cli.py:152`); provenance-only events must not
   count as cycles for decay (`lint.py:127-128`). *(Lane E)*
 - [ ] **F33 — Bound brief growth.** STORYLINES renders every page forever; pruned pages never
   archive. Add an archived state or render cap. *(Lane F)*
 - [ ] **F34 — Recalibrate the materiality fold.** New secondary threads score 0.27 &lt; 0.3 threshold —
   structurally hides the discovery class the lifecycle exists to catch. Retune or document. *(Lane F)*
-- [ ] **F35 — Judgment citation coherence.** The judge can cite a momentum finding for a moat rating
+- [x] **F35 — Judgment citation coherence.** The judge can cite a momentum finding for a moat rating
   (`gate.py:43-47` checks existence only); validate `findingIds` against the dimension's indicator
   group. *(Lane C)*
-- [ ] **F36 — Tighten the anchor band; fix its label.** ±0.5 tolerance allows "Very strong" at
+- [x] **F36 — Tighten the anchor band; fix its label.** ±0.5 tolerance allows "Very strong" at
   −0.49 (`gate.py:30-35`); the "z=" message references a z-score that doesn't exist (`zscore()` is
   dead code — use it for trend-vs-blip or delete it). *(Lane A, contract v1.2)*
-- [ ] **F37 — Check `Finding.side` against the registry** — currently decorative; silent
+- [x] **F37 — Check `Finding.side` against the registry** — currently decorative; silent
   contradictions persist in stored data. *(Lane B)*
-- [ ] **F38 — Honest self-consistency.** All 3 judgment samples come from one subagent generation
+- [x] **F38 — Honest self-consistency.** All 3 judgment samples come from one subagent generation
   (correlated); sample independently, and move the vote spread out of `confidence.basis` into its
   own field. *(Lane C)*
 - [ ] **F39 — Per-dimension rating anchor definitions.** "Weak" bottleneck (built) vs "Very strong

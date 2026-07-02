@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Optional
+from urllib.parse import urlparse
 from pydantic import BaseModel, Field
 import hashlib
 import json
@@ -175,18 +176,46 @@ def delta_detail(prior, fresh, config=DEFAULT_DEDUP_CONFIG) -> str:
     return f"statement/trend changed (trend {prior.trend} -> {fresh.trend})"
 
 
+def _price_publisher(f: Finding) -> str:
+    """First evidence item's URL netloc, lowercased, minus a leading 'www.'; falls back to
+    that evidence's source name, or '' when the finding carries no evidence at all (F51)."""
+    if not f.evidence:
+        return ""
+    ev = f.evidence[0]
+    netloc = urlparse(ev.url).netloc.lower()
+    if netloc.startswith("www."):
+        netloc = netloc[len("www."):]
+    return netloc or ev.source.lower()
+
+
+def _l2_key(f: Finding) -> tuple[str, str, str, str]:
+    """F51: price findings ((f.side == 'price')) get a per-SERIES key — (entity, indicatorId,
+    publisher, unit) — so different providers quoting the same entity+indicator (e.g. Lambda,
+    CoreWeave, Runpod all reporting NVDA D6 rental price) land in separate series instead of
+    colliding into one dispersed record. Non-price findings are unaffected: their key is still
+    (entity, indicatorId), represented here as (entity, indicatorId, "", "") for a uniform tuple
+    shape. KNOWN LIMIT: publisher+unit does not carry SKU — two SKUs at the SAME provider with
+    the SAME unit (e.g. B200 vs H100 rental $/hr, both USD_per_gpu_hr) still collapse into one
+    series until a dedicated seriesKey field exists (feature track)."""
+    if f.side == "price":
+        unit = f.value.unit if f.value else ""
+        return (f.entity, f.indicatorId, _price_publisher(f), unit)
+    return (f.entity, f.indicatorId, "", "")
+
+
 def classify_findings(findings, store, *, config=DEFAULT_DEDUP_CONFIG) -> DedupResult:
     """L2: partition this cycle's gated findings into NEW / UPDATE / DUPLICATE vs the store's latest
-    vintage per (entity, indicatorId). Findings sharing a key are first collapsed to a representative
-    (latest vintage tie-break). Batch-mates that AGREE with the representative (F10: corroboration)
+    vintage per (entity, indicatorId) — or, for price findings, per (entity, indicatorId, publisher,
+    unit) series (F51). Findings sharing a key are first collapsed to a representative (latest
+    vintage tie-break). Batch-mates that AGREE with the representative (F10: corroboration)
     have their evidence merged into it instead of being silently discarded; batch-mates that CONFLICT
     set `dispersion` on the representative instead of being recency-collapsed away. Nothing silent."""
-    by_key: dict[tuple[str, str], list] = {}
+    by_key: dict[tuple[str, str, str, str], list] = {}
     for f in findings:
-        by_key.setdefault((f.entity, f.indicatorId), []).append(f)
+        by_key.setdefault(_l2_key(f), []).append(f)
 
     result = DedupResult()
-    for (entity, ind), group in sorted(by_key.items()):
+    for (entity, ind, _publisher, _unit), group in sorted(by_key.items()):
         ordered = sorted(group, key=lambda f: (f.capturedAt, f.observedAt, f.magnitude), reverse=True)
         rep, superseded = ordered[0], ordered[1:]
 

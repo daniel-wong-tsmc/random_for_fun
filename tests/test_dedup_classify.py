@@ -9,14 +9,14 @@ def _store(tmp_path):
 
 
 def _f(fid, entity, indicatorId, *, number=None, magnitude=2, statement="s",
-       capturedAt="2026-07-01", evidence=None):
+       capturedAt="2026-07-01", evidence=None, side="demand", unit="usd"):
     return Finding(
         id=fid, statement=statement, kind=Kind.observed, trend="flat", why="w",
         impact=Impact(targets=["x"], direction="negative", mechanism="m"),
-        value=(Value(number=number, unit="usd") if number is not None else None),
+        value=(Value(number=number, unit=unit) if number is not None else None),
         evidence=evidence or [],
         confidence=Confidence(level="medium", basis="b"), asOf="2026-07",
-        indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
+        indicatorId=indicatorId, side=side, polarityDemand=1, polaritySupply=0,
         magnitude=magnitude, entity=entity, observedAt="2026-07", capturedAt=capturedAt)
 
 
@@ -153,3 +153,61 @@ def test_classify_no_batch_mates_out_findings_unmerged(tmp_path):
     assert res.outFindings[0].id == "f-1"
     assert len(res.outFindings[0].evidence) == 1
     assert res.outFindings[0].dispersion is None
+
+
+# ── F51: price findings dedup per (entity, indicatorId, publisher, unit) series ────
+#
+# Non-price findings above are untouched by this change (their key is still
+# effectively (entity, indicatorId) — the byte-identical-behavior pin for the
+# non-price path is simply that every test above this section still passes).
+
+def test_classify_price_findings_per_publisher_no_collapse(tmp_path):
+    """Three merchant-gpu cloud providers quoting the same entity+indicator (D6, GPU
+    rental price) are three DIFFERENT series (different publisher domains) — not one
+    dispersed record. Empty store -> all three classify NEW, no dispersion at all."""
+    store = _store(tmp_path)
+    res = classify_findings([
+        _f("f-lambda", "NVDA", "D6", number=6.69, side="price", unit="USD_per_gpu_hr",
+           evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+        _f("f-coreweave", "NVDA", "D6", number=8.60, side="price", unit="USD_per_gpu_hr",
+           evidence=[_ev("CoreWeave", "https://www.coreweave.com/pricing")]),
+        _f("f-runpod", "NVDA", "D6", number=5.89, side="price", unit="USD_per_gpu_hr",
+           evidence=[_ev("Runpod", "https://www.runpod.io/pricing")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+    assert sorted(fc.findingId for fc in res.new) == ["f-coreweave", "f-lambda", "f-runpod"]
+    assert res.update == [] and res.duplicate == []
+    assert len(res.outFindings) == 3
+    assert all(f.dispersion is None for f in res.outFindings)
+
+
+def test_classify_price_same_publisher_same_unit_conflict_sets_dispersion(tmp_path):
+    """Two quotes from the SAME publisher+unit series that disagree beyond rel_tol are
+    NOT split into separate series by finding id — conflict semantics WITHIN a series are
+    unchanged: intra-batch collapse to the latest vintage as representative + dispersion."""
+    store = _store(tmp_path)
+    res = classify_findings([
+        _f("f-a", "NVDA", "D6", number=6.00, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-01", evidence=[_ev("Lambda", "https://lambda.ai/x")]),
+        _f("f-b", "NVDA", "D6", number=9.00, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-02", evidence=[_ev("Lambda", "https://lambda.ai/y")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+    assert len(res.outFindings) == 1
+    rep = res.outFindings[0]
+    assert rep.id == "f-b"                    # later capturedAt is representative
+    assert rep.dispersion is not None
+    mate = next(fc for fc in res.duplicate if fc.findingId == "f-a")
+    assert mate.detail == "superseded by intra-batch latest vintage"
+
+
+def test_classify_price_no_evidence_publisher_falls_back_to_empty(tmp_path):
+    """A price finding with no evidence at all gets publisher '' (still keyed distinctly
+    from a real-publisher series of the same entity/indicator/unit) — nothing silent."""
+    store = _store(tmp_path)
+    res = classify_findings([
+        _f("f-nopub", "NVDA", "D6", number=6.69, side="price", unit="USD_per_gpu_hr",
+           evidence=[]),
+        _f("f-lambda", "NVDA", "D6", number=6.69, side="price", unit="USD_per_gpu_hr",
+           evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+    assert sorted(fc.findingId for fc in res.new) == ["f-lambda", "f-nopub"]
+    assert res.duplicate == []

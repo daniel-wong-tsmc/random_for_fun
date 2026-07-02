@@ -1,0 +1,1621 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-06",
+  "findings": [
+    {
+      "id": "cdrdv2-public-intel-com-b794688e-1",
+      "statement": "Intel Gaudi 3 delivers roughly 3.06 matrix TFLOPS per watt (1,835 TFLOPS / 600W), a search-computed efficiency figure.",
+      "kind": "measured",
+      "value": {
+        "number": 3.06,
+        "unit": "TFLOPS_per_W"
+      },
+      "trend": "unknown",
+      "why": "Perf-per-watt frames how competitive Intel's accelerator is against NVIDIA on efficiency, the key product attribute buyers weigh.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "A more efficient Intel accelerator strengthens its appeal as an alternative, modestly pressuring NVIDIA's demand moat."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis - Intel Gaudi 3 specifications and perf-per-watt (Tom's Hardware, Intel white paper, Supermicro brief)",
+          "url": "https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf",
+          "date": "2024",
+          "excerpt": "approximately 3.06 TFLOPS per watt for matrix operations (1,835 TFLOPS / 600W)",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Derived figure from secondary search summaries; PDF/spec pages returned 403 and were not directly verified."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2024",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "cdrdv2-public-intel-com-b794688e-2",
+      "statement": "Gaudi 3 is positioned as a cheaper alternative to NVIDIA's H100 (slower, but Intel claims up to 1.7x training, 50% better inference, 40% better efficiency).",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "A credible cheaper accelerator expands non-NVIDIA supply options for buyers.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "Availability of a lower-cost competing accelerator adds alternative supply to the AI compute market."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis - Intel Gaudi 3 specifications and perf-per-watt (Tom's Hardware, Intel white paper, Supermicro brief)",
+          "url": "https://cdrdv2-public.intel.com/817486/gaudi-3-ai-accelerator-white-paper.pdf",
+          "date": "2024",
+          "excerpt": "Slower than Nvidia's H100 AI GPU, but also cheaper",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary coverage / vendor comparative claims, not verified against primary Intel docs."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2024",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "finance-yahoo-com-ad07210d-1",
+      "statement": "Intel Data Center and AI (DCAI) revenue was $5.1 billion in Q1 2026, up 22% year-over-year.",
+      "kind": "measured",
+      "value": {
+        "number": 5.1,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "DCAI revenue growth signals firming demand for Intel's data-center compute.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising data-center revenue indicates stronger demand pull for Intel's DC products."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis of Intel Q1 2026 earnings coverage (Yahoo Finance, CNBC, mlq.ai, tech-insider.org)",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/intel-q1-2026-earnings-beat-203222105.html",
+          "date": "2026-04-23",
+          "excerpt": "The Data Center and AI unit brought in $5.1 billion, locking in a 22% year-over-year gain",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary outlet coverage of Intel earnings, not the primary filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "intel",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "finance-yahoo-com-ad07210d-2",
+      "statement": "Intel reported Q1 2026 non-GAAP gross margin of 41.0%, 650 bps above prior guidance of 34.5%.",
+      "kind": "measured",
+      "value": {
+        "number": 41.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Gross margin reflects pricing power and product mix strength.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "Margin beating guidance signals healthier demand/pricing for Intel products."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis of Intel Q1 2026 earnings coverage (Yahoo Finance, CNBC, mlq.ai, tech-insider.org)",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/intel-q1-2026-earnings-beat-203222105.html",
+          "date": "2026-04-23",
+          "excerpt": "Non-GAAP gross margin of 41.0% came in 650 basis points above Intel's own prior guidance of 34.5%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary coverage, not verified against primary filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "ir-amd-com-f416295d-1",
+      "statement": "AMD Data Center segment revenue was $5,775 million in Q1 2026, up 57% year-over-year.",
+      "kind": "measured",
+      "value": {
+        "number": 5.775,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Data-center revenue growth is the core demand signal for AMD's AI/server franchise.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Strong YoY data-center revenue growth reflects rising demand for AMD's EPYC/Instinct products."
+      },
+      "evidence": [
+        {
+          "source": "AMD Investor Relations (official press release)",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05-05",
+          "excerpt": "Data Center Segment revenue: '$5,775' million, 'up 57% year-over-year'",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official AMD investor-relations press release (primary filing source)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "ir-amd-com-f416295d-2",
+      "statement": "AMD Q1 2026 non-GAAP gross margin was 55% (GAAP 53%).",
+      "kind": "measured",
+      "value": {
+        "number": 55.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Gross margin captures pricing/mix strength of AMD's data-center-weighted portfolio.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Healthy and improving margins reflect favorable demand and product mix."
+      },
+      "evidence": [
+        {
+          "source": "AMD Investor Relations (official press release)",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05-05",
+          "excerpt": "Gross Margin (GAAP): '53%'; Gross Margin (Non-GAAP): '55%'",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official AMD press release (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "ir-amd-com-f416295d-3",
+      "statement": "AMD reports continued ramp of Instinct GPU shipments and strengthening MI450/Helios customer engagement, with forecasts exceeding initial expectations.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Qualitative demand signal for AMD's accelerator roadmap from the issuer itself.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Strengthening customer forecasts indicate building demand for AMD data-center GPUs."
+      },
+      "evidence": [
+        {
+          "source": "AMD Investor Relations (official press release)",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05-05",
+          "excerpt": "Customer engagement around MI450 Series and Helios is strengthening, with leading customer forecasts exceeding our initial expectations",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official AMD press release (primary), though claim is qualitative."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "newsroom-intel-com-a5736b51-1",
+      "statement": "Intel announced Crescent Island, a new data-center GPU (160GB LPDDR5X) with customer sampling in 2H 2026, expanding non-NVIDIA accelerator supply.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A new Intel data-center GPU adds to the pool of alternative accelerators competing with NVIDIA.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "New entrant accelerator increases alternative supply available to buyers over time."
+      },
+      "evidence": [
+        {
+          "source": "Intel Newsroom - official announcement: 'Intel to Expand AI Accelerator Portfolio with New GPU'",
+          "url": "https://newsroom.intel.com/artificial-intelligence/intel-to-expand-ai-accelerator-portfolio-with-new-gpu",
+          "date": "2025-10-14",
+          "excerpt": "Customer sampling of the new data center GPU code-named Crescent Island is expected in the second half of 2026",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official Intel newsroom announcement (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "intel",
+      "observedAt": "2025-10",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "newsroom-intel-com-a5736b51-2",
+      "statement": "Crescent Island uses the Xe3P microarchitecture with optimized performance-per-watt, power/cost-optimized for air-cooled enterprise servers.",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "Efficiency positioning is a structural product attribute affecting competitiveness.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "Power/cost-optimized efficiency strengthens product appeal for inference deployments."
+      },
+      "evidence": [
+        {
+          "source": "Intel Newsroom - official announcement: 'Intel to Expand AI Accelerator Portfolio with New GPU'",
+          "url": "https://newsroom.intel.com/artificial-intelligence/intel-to-expand-ai-accelerator-portfolio-with-new-gpu",
+          "date": "2025-10-14",
+          "excerpt": "Xe3P microarchitecture with optimized performance-per-watt",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Primary source but claim is qualitative with no perf-per-watt figure."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2025-10",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-1",
+      "statement": "NVIDIA Data Center revenue was a record $75.2 billion in Q1 FY2027, up 92% year-over-year.",
+      "kind": "measured",
+      "value": {
+        "number": 75.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "NVIDIA data-center revenue is the dominant demand indicator for the AI accelerator market.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Record DC revenue up 92% YoY shows overwhelming demand for NVIDIA AI systems."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Investor Relations / Newsroom - official press release",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "Data Center revenue: record $75,200M (75.2 billion), up 92% YoY and up 21% sequentially",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official NVIDIA newsroom press release (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-2",
+      "statement": "NVIDIA Q1 FY2027 GAAP gross margin was 74.9% (non-GAAP 75.0%).",
+      "kind": "measured",
+      "value": {
+        "number": 74.9,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "Very high, stable gross margins reflect NVIDIA's pricing power amid strong demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Sustained ~75% margins indicate demand far outpacing competitive pricing pressure."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Investor Relations / Newsroom - official press release",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "GAAP gross margin 74.9%; ... non-GAAP ... gross margin 75.0%",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official NVIDIA press release (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-3",
+      "statement": "NVIDIA Data Center networking revenue was a record $14.8 billion, up 199% year-over-year.",
+      "kind": "measured",
+      "value": {
+        "number": 14.8,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Networking growth shows demand for full NVIDIA rack-scale AI systems, not just GPUs.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Surging networking revenue reflects demand for InfiniBand/Spectrum-X/NVLink AI infrastructure."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Investor Relations / Newsroom - official press release",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "Data Center networking revenue was a record $14.8 billion, up 199% from a year ago",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Official NVIDIA press release (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-22971770-1",
+      "statement": "AMD is estimated to hold ~5-7% of the AI accelerator market (~$7-8B Instinct revenue), with share projected to reach 10-15% over 2026-2028.",
+      "kind": "measured",
+      "value": {
+        "number": 7.0,
+        "unit": "pct_segment_rev"
+      },
+      "trend": "rising",
+      "why": "AMD's share trajectory signals whether it is gaining demand against NVIDIA.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising market-share estimate indicates AMD capturing incremental accelerator demand."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts (independent analysis) - AMD vs NVIDIA AI GPU Market Share 2026",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026-amd",
+          "date": "2026-04-13",
+          "excerpt": "AMD 'estimated 5-7% share (~$7-8B in Instinct revenue)'; ... reaching '10-15%' market share over 2026-2028",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party analyst estimate (secondary)."
+      },
+      "dispersion": "5-7% current, projected 10-15%",
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-22971770-2",
+      "statement": "AMD accelerators are 30-50% cheaper than NVIDIA (MI300X $10-15K vs H100 $25-40K), aiding price-performance positioning.",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "Lower price for comparable hardware improves AMD's FLOPS-per-dollar appeal.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "A substantial price discount strengthens AMD's price-performance case for buyers."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts (independent analysis) - AMD vs NVIDIA AI GPU Market Share 2026",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026-amd",
+          "date": "2026-04-13",
+          "excerpt": "AMD is 30-50% cheaper: MI300X sells for $10-15K vs H100 at $25-40K",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party analyst estimate (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "flopsPerDollar",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-47ffeeeb-1",
+      "statement": "NVIDIA's AI accelerator revenue share is estimated to decline from 87% (2024) to 81% (2025E) to 75% (2026E).",
+      "kind": "measured",
+      "value": {
+        "number": 75.0,
+        "unit": "pct_segment_rev"
+      },
+      "trend": "falling",
+      "why": "A declining share signals competitors are taking incremental accelerator demand from NVIDIA.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "negative",
+        "mechanism": "Eroding revenue share indicates relative demand softening for NVIDIA as alternatives scale."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts - NVIDIA AI Accelerator Market Share analysis (third-party estimate)",
+          "url": "https://siliconanalysts.com/analysis/nvidia-ai-accelerator-market-share-2024-2026",
+          "date": "2026",
+          "excerpt": "NVIDIA revenue share: 2024 '87% (peak)'; 2025E '81%'; 2026E '75%'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party analyst estimate (secondary)."
+      },
+      "dispersion": "87% (2024) -> 81% (2025E) -> 75% (2026E)",
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-47ffeeeb-2",
+      "statement": "NVIDIA data center revenue is estimated at $130B+ for 2025E (up from $100B+ in 2024).",
+      "kind": "measured",
+      "value": {
+        "number": 130.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Absolute DC revenue growth confirms expanding demand even as share moderates.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising data-center revenue reflects strong absolute demand for NVIDIA systems."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts - NVIDIA AI Accelerator Market Share analysis (third-party estimate)",
+          "url": "https://siliconanalysts.com/analysis/nvidia-ai-accelerator-market-share-2024-2026",
+          "date": "2026",
+          "excerpt": "NVIDIA data center revenue: 2024 '$100B+'; 2025E '$130B+'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party analyst estimate (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-1",
+      "statement": "NVIDIA holds ~80% of the AI accelerator market in 2026, with some analysts projecting decline to ~75% as competitors scale.",
+      "kind": "measured",
+      "value": {
+        "number": 80.0,
+        "unit": "pct_segment_rev"
+      },
+      "trend": "falling",
+      "why": "Confirms NVIDIA's dominant but moderating share of accelerator demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "negative",
+        "mechanism": "Projected share decline reflects competitive pressure on NVIDIA's demand share."
+      },
+      "evidence": [
+        {
+          "source": "Web search aggregate - additional market-share data points (third-party estimates)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026",
+          "excerpt": "NVIDIA holds approximately 80% of the AI accelerator market in 2026; some analysts project share declining to ~75% by 2026",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Aggregated third-party estimates (secondary)."
+      },
+      "dispersion": "~80% to ~75%",
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-2",
+      "statement": "Custom ASIC shipments are projected to grow 44.6% in 2026 (vs GPU +16.1%), with custom silicon capturing 15-25% of the AI accelerator market.",
+      "kind": "measured",
+      "value": {
+        "number": 44.6,
+        "unit": "pct_growth"
+      },
+      "trend": "rising",
+      "why": "Rapidly growing custom silicon is alternative supply that competes with NVIDIA GPUs.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "Faster-growing custom ASIC supply expands non-NVIDIA accelerator capacity."
+      },
+      "evidence": [
+        {
+          "source": "Web search aggregate - additional market-share data points (third-party estimates)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026",
+          "excerpt": "Custom ASIC shipments projected to grow 44.6% in 2026 vs GPU shipments +16.1%; custom silicon expected to capture 15-25%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party projection (secondary)."
+      },
+      "dispersion": "custom silicon 15-25% of market",
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-datacenterdynamics-com-cec1e83a-1",
+      "statement": "AMD posted Q1 2026 data center revenue of $5.8 billion, up 57% year-over-year.",
+      "kind": "measured",
+      "value": {
+        "number": 5.8,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Confirms strong data-center demand for AMD EPYC and Instinct products.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "57% YoY DC revenue growth indicates rising demand for AMD data-center compute."
+      },
+      "evidence": [
+        {
+          "source": "DataCenterDynamics (DCD) news",
+          "url": "https://www.datacenterdynamics.com/en/news/amd-posts-q1-2026-data-center-revenue-of-58bn-forecasts-120bn-server-cpu-income-by-2030/",
+          "date": "2026-05-06",
+          "excerpt": "Data Center Revenue: '$5.8 billion' with '57 percent year-on-year (YoY) revenue increase'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary news coverage."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-datacenterdynamics-com-cec1e83a-2",
+      "statement": "AMD raised its server CPU market growth forecast from 18% to 35% annually, expecting the market to exceed $120B by 2030.",
+      "kind": "measured",
+      "value": {
+        "number": 120.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "A sharply raised TAM forecast signals AMD's confidence in sustained data-center demand.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher market-growth forecast underpins expectations of continued demand expansion."
+      },
+      "evidence": [
+        {
+          "source": "DataCenterDynamics (DCD) news",
+          "url": "https://www.datacenterdynamics.com/en/news/amd-posts-q1-2026-data-center-revenue-of-58bn-forecasts-120bn-server-cpu-income-by-2030/",
+          "date": "2026-05-06",
+          "excerpt": "raised server CPU market growth forecast 'from 18 percent to 35 percent annually' ... 'hit more than $120bn by 2030'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary coverage of company forecast (forward-looking)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-nvidia-com-85a8d31c-1",
+      "statement": "GB300 NVL72 (Blackwell Ultra) claims 5x improvement in throughput per megawatt versus Hopper, a perf-per-watt proxy.",
+      "kind": "measured",
+      "value": {
+        "number": 5.0,
+        "unit": "x_TPS_per_MW_vs_Hopper"
+      },
+      "trend": "rising",
+      "why": "Throughput per megawatt is a direct efficiency metric that strengthens NVIDIA's product demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Large efficiency gains reinforce demand for NVIDIA's latest platform."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA.com - official GB300 NVL72 product page (Blackwell Ultra)",
+          "url": "https://www.nvidia.com/en-us/data-center/gb300-nvl72/",
+          "date": "2026",
+          "excerpt": "5x improvement in throughput (TPS per megawatt) [performance-per-watt proxy]",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Official product page but vendor marketing claim; tier secondary per doc header."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-sec-gov-014d458b-1",
+      "statement": "NVIDIA's Q1 FY2027 8-K reports total revenue $81.6B and record Data Center revenue of $75.2 billion.",
+      "kind": "measured",
+      "value": {
+        "number": 75.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "The authoritative filing confirms record data-center demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Record DC revenue in the filing confirms dominant demand for NVIDIA AI systems."
+      },
+      "evidence": [
+        {
+          "source": "SEC EDGAR - NVIDIA Form 8-K, Q1 FY2027 press release exhibit (q1fy27pr.htm)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000051/q1fy27pr.htm",
+          "date": "2026-05-20",
+          "excerpt": "total revenue $81.6B, Data Center revenue $75.2B, GAAP gross margin 74.9%, non-GAAP 75.0%",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Authoritative SEC 8-K filing (primary), content mirrored from official newsroom."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-sec-gov-014d458b-2",
+      "statement": "NVIDIA Q1 FY2027 GAAP gross margin was 74.9% (non-GAAP 75.0%) per the 8-K filing.",
+      "kind": "measured",
+      "value": {
+        "number": 74.9,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "Filing-grade confirmation of NVIDIA's pricing power.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "~75% margins confirm demand outstripping competitive pricing pressure."
+      },
+      "evidence": [
+        {
+          "source": "SEC EDGAR - NVIDIA Form 8-K, Q1 FY2027 press release exhibit (q1fy27pr.htm)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000051/q1fy27pr.htm",
+          "date": "2026-05-20",
+          "excerpt": "GAAP gross margin 74.9%, non-GAAP 75.0%",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Authoritative SEC 8-K filing (primary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-sec-gov-d5d74845-1",
+      "statement": "NVIDIA full-year FY2026 data center revenue reached $193.7 billion (surfaced from Q4/FY2026 8-K, not directly verified this pass).",
+      "kind": "measured",
+      "value": {
+        "number": 193.7,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Full-year DC revenue scale anchors the magnitude of NVIDIA-driven AI compute demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "~$194B annual DC revenue underscores enormous sustained demand for NVIDIA systems."
+      },
+      "evidence": [
+        {
+          "source": "Web search aggregate - NVIDIA FY2026 full-year context",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000019/q4fy26pr.htm",
+          "date": "2026",
+          "excerpt": "NVIDIA data center revenue reached $193.7 billion in FY2026 (full fiscal year ended ~Jan 2026)",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Primary filing source but figure not verified by direct fetch this pass; flagged as a lead."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-server-parts-eu-9eafb8a6-1",
+      "statement": "GB300 NVL72 is reported to deliver 5x higher throughput per megawatt versus Hopper, a perf-per-watt efficiency gain.",
+      "kind": "measured",
+      "value": {
+        "number": 5.0,
+        "unit": "x_TPS_per_MW_vs_Hopper"
+      },
+      "trend": "rising",
+      "why": "Efficiency gains strengthen NVIDIA's product competitiveness and demand.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher throughput per megawatt improves AI factory economics, supporting NVIDIA demand."
+      },
+      "evidence": [
+        {
+          "source": "Web search aggregate - Blackwell Ultra B300 / GB300 individual GPU specs (third-party tech sites)",
+          "url": "https://www.server-parts.eu/post/nvidia-b300-gpu-blackwell-ultra-architecture",
+          "date": "2026",
+          "excerpt": "50x higher AI factory output, combining 10x better latency (TPS per user) and 5x higher throughput per megawatt relative to Hopper",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Third-party tech-press summary (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-0127b379-1",
+      "statement": "AMD data-center net revenue was $5.8 billion for the quarter ended March 28, 2026, up 57% YoY, driven by EPYC and MI350 GPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 5.775,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "10-Q-sourced data-center revenue confirms demand strength for AMD compute.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "57% YoY DC growth reflects rising demand for EPYC CPUs and MI350 accelerators."
+      },
+      "evidence": [
+        {
+          "source": "AMD Form 10-Q (Q1 FY2026, quarter ended March 28, 2026), via StockTitan SEC filing page",
+          "url": "https://www.stocktitan.net/sec-filings/AMD/10-q-advanced-micro-devices-inc-quarterly-earnings-report-2e5206c29fc0.html",
+          "date": "2026-05-06",
+          "excerpt": "Data Center net revenue of $5.8 billion ... increased by 57% ... driven by demand for 5th generation EPYC processors and MI350 GPUs",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "10-Q content relayed via StockTitan; doc header tier=secondary."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-0127b379-2",
+      "statement": "AMD gross margin for the quarter ended March 28, 2026 was 53%, up from 50% a year earlier, on favorable data-center mix.",
+      "kind": "measured",
+      "value": {
+        "number": 53.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Improving margin reflects richer product mix tied to data-center demand.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Margin expansion driven by higher data-center revenue signals favorable demand mix."
+      },
+      "evidence": [
+        {
+          "source": "AMD Form 10-Q (Q1 FY2026, quarter ended March 28, 2026), via StockTitan SEC filing page",
+          "url": "https://www.stocktitan.net/sec-filings/AMD/10-q-advanced-micro-devices-inc-quarterly-earnings-report-2e5206c29fc0.html",
+          "date": "2026-05-06",
+          "excerpt": "Gross margin for the three months ended March 28, 2026 was 53% compared to gross margin of 50%",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Relayed via StockTitan; doc header tier=secondary."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-94680857-1",
+      "statement": "Intel Data Center and AI (DCAI) revenue was $5.1 billion in Q1 2026, up 22% YoY, reflecting AI-related CPU demand.",
+      "kind": "measured",
+      "value": {
+        "number": 5.1,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "DCAI revenue growth indicates firming demand for Intel data-center compute.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "22% YoY DCAI growth signals rising demand for Intel's data-center products."
+      },
+      "evidence": [
+        {
+          "source": "StockTitan - Intel Corp 8-K (Q1 2026 earnings, material event filing)",
+          "url": "https://www.stocktitan.net/sec-filings/INTC/8-k-intel-corp-reports-material-event-d8930f0603bf.html",
+          "date": "2026-04-23",
+          "excerpt": "Data Center and AI (DCAI) 5.1 billion up 22% ... reflecting AI-related CPU demand",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "8-K content relayed via StockTitan; doc header tier=secondary."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "intel",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-stocktitan-net-94680857-2",
+      "statement": "Intel Q1 2026 non-GAAP gross margin reached 41.0% (GAAP 39.4%, up from 36.9%).",
+      "kind": "measured",
+      "value": {
+        "number": 41.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Margin improvement reflects better pricing/mix and demand conditions.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising gross margin indicates improving demand and product mix for Intel."
+      },
+      "evidence": [
+        {
+          "source": "StockTitan - Intel Corp 8-K (Q1 2026 earnings, material event filing)",
+          "url": "https://www.stocktitan.net/sec-filings/INTC/8-k-intel-corp-reports-material-event-d8930f0603bf.html",
+          "date": "2026-04-23",
+          "excerpt": "GAAP gross margin improved to 39.4% from 36.9% ... non-GAAP gross margin reached '41.0%'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Relayed via StockTitan; doc header tier=secondary."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-04",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-techpowerup-com-60db2ba1-1",
+      "statement": "AMD MI350 series offers 1.3x better HBM read bandwidth per watt versus MI300X (raw bandwidth up 1.5x to 8.0 TB/s).",
+      "kind": "measured",
+      "value": {
+        "number": 1.3,
+        "unit": "x_HBM_BW_per_W_vs_MI300X"
+      },
+      "trend": "rising",
+      "why": "Per-watt bandwidth efficiency strengthens the MI350's competitiveness for AI workloads.",
+      "impact": {
+        "targets": [
+          "amd"
+        ],
+        "direction": "positive",
+        "mechanism": "Improved efficiency boosts AMD product appeal as an alternative accelerator."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch aggregate (TechPowerUp / Tom's Hardware / AMD product pages) - MI350 series specs",
+          "url": "https://www.techpowerup.com/337940/amd-instinct-mi355x-draws-up-to-1-400-watts-in-oam-form-factor",
+          "date": "2026-06",
+          "excerpt": "1.3x better HBM read bandwidth per watt compared to the MI300X, with raw bandwidth increased 1.5x (from 5.3 to 8.0 TB/s)",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Search-result spec summaries; AMD datasheets 403/timed out (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-techpowerup-com-60db2ba1-2",
+      "statement": "AMD positions MI350 series as matching the more expensive GB200, expanding competitive alternative accelerator supply.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A high-end accelerator claimed to match NVIDIA's GB200 adds credible alternative supply.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "A competitive MI350 increases non-NVIDIA accelerator supply available to buyers."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch aggregate (TechPowerUp / Tom's Hardware / AMD product pages) - MI350 series specs",
+          "url": "https://www.techpowerup.com/337940/amd-instinct-mi355x-draws-up-to-1-400-watts-in-oam-form-factor",
+          "date": "2026-06",
+          "excerpt": "We are actually matching the performance of the more expensive and complex GB200",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor claim via secondary coverage."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-tomshardware-com-01366263-1",
+      "statement": "Intel Crescent Island is an inference-only GPU with a 350W air-cooled PCIe design and up to 480GB memory, targeting token-intensive workloads with strong performance-per-watt.",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "Efficient, high-memory inference accelerator strengthens Intel's structural product positioning.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "positive",
+        "mechanism": "Power-efficient large-memory design improves competitiveness for inference deployments."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis - Crescent Island detailed specs (TechSpot, Tom's Hardware, DCD, Computex 2026 coverage)",
+          "url": "https://www.tomshardware.com/pc-components/gpus/intel-details-long-awaited-crescent-island-ai-gpu-at-computex",
+          "date": "2026-06",
+          "excerpt": "power efficient 350W air-cooled PCIe design enables highly efficient scaling for agentic AI with strong performance-per-watt",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Press coverage, not the official Intel newsroom page (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-tomshardware-com-01366263-2",
+      "statement": "Crescent Island sampling is planned for 2H 2026 with availability in 2027, adding a future Intel alternative accelerator to supply.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A near-term inference GPU expands the pool of non-NVIDIA accelerators over time.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "Upcoming Intel inference GPU adds alternative supply, though not until 2027."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis - Crescent Island detailed specs (TechSpot, Tom's Hardware, DCD, Computex 2026 coverage)",
+          "url": "https://www.tomshardware.com/pc-components/gpus/intel-details-long-awaited-crescent-island-ai-gpu-at-computex",
+          "date": "2026-06",
+          "excerpt": "Customer sampling for Crescent Island is planned for the second half of 2026, with availability expected in 2027",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary press coverage."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-06",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-tomshardware-com-9cdebdc8-1",
+      "statement": "Intel cancelled the commercial launch of Falcon Shores (kept as an internal test chip), removing a planned Gaudi 3 successor from the market until Jaguar Shores.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Cancelling a planned accelerator reduces near-term non-NVIDIA alternative supply.",
+      "impact": {
+        "targets": [
+          "nvidia"
+        ],
+        "direction": "mixed",
+        "mechanism": "Loss of a commercial Intel accelerator shrinks the pipeline of alternative supply."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware / WebSearch synthesis - Intel Falcon Shores cancellation and roadmap",
+          "url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/intel-cancels-falcon-shores-gpu-for-ai-workloads-jaguar-shores-to-be-successor",
+          "date": "2025-01-31",
+          "excerpt": "Falcon Shores will remain an internal test processor ... rather than releasing it as a commercial product",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary coverage / synthesis."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "intel",
+      "observedAt": "2025-01",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    },
+    {
+      "id": "www-visualcapitalist-com-9e254958-1",
+      "statement": "Intel's discrete data-center GPU market share is characterized as low single digits / negligible (no verbatim figure available), while NVIDIA leads at 86% as of late 2025.",
+      "kind": "observed",
+      "value": null,
+      "trend": "flat",
+      "why": "Negligible share indicates weak market demand for Intel's data-center GPUs relative to NVIDIA.",
+      "impact": {
+        "targets": [
+          "intel"
+        ],
+        "direction": "negative",
+        "mechanism": "Negligible accelerator share reflects limited demand traction for Intel data-center GPUs."
+      },
+      "evidence": [
+        {
+          "source": "WebSearch synthesis - data center GPU market share (Visual Capitalist, Fortune Business Insights, Statista)",
+          "url": "https://www.visualcapitalist.com/charted-the-battle-for-ai-data-center-revenue-2021-2025/",
+          "date": "2025",
+          "excerpt": "Intel's discrete data-center GPU share is widely characterized as low single digits / negligible, but no verbatim figure was found",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary synthesis; explicit Intel share figure not surfaced (paywalled)."
+      },
+      "dispersion": null,
+      "asOf": "2026-06",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2025",
+      "capturedAt": "2026-06-27T06:19:27Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.1"
+    }
+  ],
+  "dimensionRatings": {
+    "competitiveStructure": {
+      "rating": "Mixed",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "2/3 Mixed, 1/3 Strong"
+      },
+      "findingIds": [
+        "newsroom-intel-com-a5736b51-1",
+        "www-techpowerup-com-60db2ba1-2",
+        "siliconanalysts-com-ce97213d-2"
+      ],
+      "rationale": "Crescent Island and MI350-vs-GB200 expand alternative supply while custom ASICs grow 44.6%."
+    },
+    "moat": {
+      "rating": "Weak",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "2/3 Weak, 1/3 Mixed"
+      },
+      "findingIds": [
+        "siliconanalysts-com-47ffeeeb-1",
+        "siliconanalysts-com-ce97213d-1",
+        "siliconanalysts-com-22971770-1"
+      ],
+      "rationale": "NVIDIA share eroding 87%->81%->75% as AMD climbs toward 10-15%."
+    },
+    "momentum": {
+      "rating": "Very strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "2/3 Very strong, 1/3 Strong"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-1",
+        "ir-amd-com-f416295d-1",
+        "nvidianews-nvidia-com-7b7a02ff-3",
+        "www-stocktitan-net-94680857-1"
+      ],
+      "rationale": "NVIDIA DC revenue $75.2B up 92% and networking up 199%, with AMD +57% and Intel DCAI +22%."
+    },
+    "unitEconomics": {
+      "rating": "Strong",
+      "direction": "steady",
+      "confidence": {
+        "level": "medium",
+        "basis": "2/3 Strong, 1/3 Mixed"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-2",
+        "ir-amd-com-f416295d-2",
+        "www-stocktitan-net-94680857-2"
+      ],
+      "rationale": "NVIDIA ~75% gross margin with AMD 53-55% and Intel 41% supports robust economics."
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.3666666666666667,
+    "smiContribution": 0.06666666666666667,
+    "anchors": {
+      "competitiveStructure": 0.0,
+      "momentum": 0.8333333333333334,
+      "unitEconomics": 0.4444444444444444,
+      "moat": -0.25
+    },
+    "sdgi": 0.30000000000000004,
+    "sdgiDirection": "demand-led"
+  },
+  "narrative": "Demand momentum is exceptional, led by NVIDIA's record $75.2B data-center quarter and broad-based growth at AMD and Intel. Margins remain healthy across vendors, but the competitive field is filling in with Intel's Crescent Island, AMD's MI350, and surging custom ASICs. NVIDIA's dominance is intact yet measurably eroding, so the durable moat is the softest part of the picture.",
+  "confidence": {
+    "level": "medium",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "AMD Form 10-Q (Q1 FY2026, quarter ended March 28, 2026), via StockTitan SEC filing page",
+    "AMD Investor Relations (official press release)",
+    "DataCenterDynamics (DCD) news",
+    "Intel Newsroom - official announcement: 'Intel to Expand AI Accelerator Portfolio with New GPU'",
+    "NVIDIA Investor Relations / Newsroom - official press release",
+    "NVIDIA.com - official GB300 NVL72 product page (Blackwell Ultra)",
+    "SEC EDGAR - NVIDIA Form 8-K, Q1 FY2027 press release exhibit (q1fy27pr.htm)",
+    "Silicon Analysts (independent analysis) - AMD vs NVIDIA AI GPU Market Share 2026",
+    "Silicon Analysts - NVIDIA AI Accelerator Market Share analysis (third-party estimate)",
+    "StockTitan - Intel Corp 8-K (Q1 2026 earnings, material event filing)",
+    "Tom's Hardware / WebSearch synthesis - Intel Falcon Shores cancellation and roadmap",
+    "Web search aggregate - Blackwell Ultra B300 / GB300 individual GPU specs (third-party tech sites)",
+    "Web search aggregate - NVIDIA FY2026 full-year context",
+    "Web search aggregate - additional market-share data points (third-party estimates)",
+    "WebSearch aggregate (TechPowerUp / Tom's Hardware / AMD product pages) - MI350 series specs",
+    "WebSearch synthesis - Crescent Island detailed specs (TechSpot, Tom's Hardware, DCD, Computex 2026 coverage)",
+    "WebSearch synthesis - Intel Gaudi 3 specifications and perf-per-watt (Tom's Hardware, Intel white paper, Supermicro brief)",
+    "WebSearch synthesis - data center GPU market share (Visual Capitalist, Fortune Business Insights, Statista)",
+    "WebSearch synthesis of Intel Q1 2026 earnings coverage (Yahoo Finance, CNBC, mlq.ai, tech-insider.org)"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.0",
+    "replayOf": "2026-06-v3",
+    "migration": "contract-v1.2"
+  },
+  "dimensionStatus": {},
+  "categoryStatus": null,
+  "indices": null
+}

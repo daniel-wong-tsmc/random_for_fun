@@ -71,4 +71,19 @@ price-overlay contribution**; the `competitiveStructure` anchor collapses to the
 
 ## Replay mapping (2026-06 v1..v6 → v7..v12)
 
-_Added by the Task-9 replay._
+`scripts/replay_v12.py` recomputes each stored 2026-06 scorecard under v1.2 math and APPENDS it
+as a new immutable store version (`provenance.replayOf` + `provenance.migration=contract-v1.2`).
+Findings, ratings, narrative, confidence, and status blocks are copied verbatim — the replay
+re-runs the MATH, not the gate. Originals v1..v6 are byte-unchanged. `v12` (replay of `v6`) now
+carries the latest-version v1.2 math, so `find_prior` / vs-prior comparisons stay continuous.
+
+| stored | replay | old DMI | new DMI | old SMI | new SMI |
+|---|---|---|---|---|---|
+| 2026-06-v1 | 2026-06-v7  | +0.0667 | +0.0667 | +0.0000 | +0.0000 |
+| 2026-06-v2 | 2026-06-v8  | +0.2200 | +0.3000 | +0.1067 | +0.1600 |
+| 2026-06-v3 | 2026-06-v9  | +0.1000 | +0.3667 | +0.0267 | +0.0667 |
+| 2026-06-v4 | 2026-06-v10 | +0.3133 | +0.4000 | +0.0267 | +0.0400 |
+| 2026-06-v5 | 2026-06-v11 | +0.1467 | +0.3333 | +0.0267 | +0.0133 |
+| 2026-06-v6 | 2026-06-v12 | +0.3000 | +0.5067 | -0.1067 | -0.0733 |
+
+(old = the pre-v1.2 shadow computation; new = the appended replay = the v1.2 package math.)

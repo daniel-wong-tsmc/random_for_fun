@@ -128,10 +128,16 @@ def _norm_statement(s: str) -> str:
     return " ".join((s or "").split()).lower()
 
 
-def prior_vintage(store, entity: str, indicator_id: str):
+def prior_vintage(store, entity: str, indicator_id: str, *, series_match=None):
     """The store's latest-vintage Finding for (entity, indicatorId), read through the entity page's
     observations (FindingStore has no iteration). Latest by (capturedAt, observedAt, magnitude) —
-    the same collapse the frozen dmi_smi_contribution uses. None if the page/indicator is absent."""
+    the same collapse the frozen dmi_smi_contribution uses. None if the page/indicator is absent.
+
+    series_match (F51 cross-cycle): an optional predicate on a candidate Finding. When given,
+    only candidates it accepts are considered — classify_findings passes one for price reps so
+    the store baseline comes from the rep's OWN (publisher, unit) series, not from whichever
+    provider happened to publish the latest vintage. None (all non-price callers) leaves the
+    candidate set — and therefore the behavior — byte-identical to before."""
     pid = f"entity:{slug(entity)}"
     try:
         obs = store.observations(pid)
@@ -143,7 +149,7 @@ def prior_vintage(store, entity: str, indicator_id: str):
             f = store.findings.get(o.findingId)
         except Exception:
             continue
-        if f.indicatorId == indicator_id:
+        if f.indicatorId == indicator_id and (series_match is None or series_match(f)):
             cands.append(f)
     if not cands:
         return None
@@ -194,9 +200,11 @@ def _l2_key(f: Finding) -> tuple[str, str, str, str]:
     CoreWeave, Runpod all reporting NVDA D6 rental price) land in separate series instead of
     colliding into one dispersed record. Non-price findings are unaffected: their key is still
     (entity, indicatorId), represented here as (entity, indicatorId, "", "") for a uniform tuple
-    shape. KNOWN LIMIT: publisher+unit does not carry SKU — two SKUs at the SAME provider with
-    the SAME unit (e.g. B200 vs H100 rental $/hr, both USD_per_gpu_hr) still collapse into one
-    series until a dedicated seriesKey field exists (feature track)."""
+    shape. The series key governs BOTH the intra-batch grouping here AND the cross-cycle store
+    baseline (classify_findings passes a series filter into prior_vintage for price reps).
+    KNOWN LIMIT (the only remaining one): publisher+unit does not carry SKU — two SKUs at the
+    SAME provider with the SAME unit (e.g. B200 vs H100 rental $/hr, both USD_per_gpu_hr) still
+    collapse into one series until a dedicated seriesKey field exists (feature track)."""
     if f.side == "price":
         unit = f.value.unit if f.value else ""
         return (f.entity, f.indicatorId, _price_publisher(f), unit)
@@ -237,7 +245,14 @@ def classify_findings(findings, store, *, config=DEFAULT_DEDUP_CONFIG) -> DedupR
                                         verdict="duplicate",
                                         detail="superseded by intra-batch latest vintage"))
 
-        prior = prior_vintage(store, entity, ind)
+        # F51 (cross-cycle): a price rep's store baseline must come from its OWN
+        # (publisher, unit) series — otherwise CoreWeave's quote would classify as an
+        # UPDATE against Lambda's stored price (wrong baseline, wrong provenance).
+        series_match = None
+        if merged.side == "price":
+            rep_series = _l2_key(merged)[2:]   # the (publisher, unit) parts
+            series_match = lambda cand, _s=rep_series: _l2_key(cand)[2:] == _s
+        prior = prior_vintage(store, entity, ind, series_match=series_match)
         if prior is None:
             result.new.append(FindingClass(findingId=merged.id, entity=entity, indicatorId=ind,
                                            verdict="new"))

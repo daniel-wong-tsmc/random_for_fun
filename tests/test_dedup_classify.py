@@ -211,3 +211,52 @@ def test_classify_price_no_evidence_publisher_falls_back_to_empty(tmp_path):
     ], store, config=DEFAULT_DEDUP_CONFIG)
     assert sorted(fc.findingId for fc in res.new) == ["f-lambda", "f-nopub"]
     assert res.duplicate == []
+
+
+def test_classify_price_cross_cycle_store_prior_is_series_aware(tmp_path):
+    """Merge-review reproduction: the STORE holds only Lambda's D6 series; a cycle-2
+    batch quotes Lambda (unchanged), CoreWeave, and Runpod. Before the fix,
+    prior_vintage keyed candidates by (entity, indicatorId) alone, so CoreWeave and
+    Runpod came back UPDATE with priorFindingId pointing at the LAMBDA finding (wrong
+    baseline, wrong provenance). The store comparison is now series-aware for price
+    findings: Lambda -> DUPLICATE vs its OWN series' prior; CoreWeave and Runpod have
+    no matching (publisher, unit) series in the store -> NEW, no priorFindingId."""
+    store = _store(tmp_path)
+    _seed(store, _f("f-lambda-0", "NVDA", "D6", number=6.69, side="price",
+                    unit="USD_per_gpu_hr", capturedAt="2026-07-01",
+                    evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+          "2026-06")
+    res = classify_findings([
+        _f("f-lambda-1", "NVDA", "D6", number=6.69, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-02", evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+        _f("f-coreweave-1", "NVDA", "D6", number=8.60, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-02", evidence=[_ev("CoreWeave", "https://www.coreweave.com/pricing")]),
+        _f("f-runpod-1", "NVDA", "D6", number=5.89, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-02", evidence=[_ev("Runpod", "https://www.runpod.io/pricing")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+    assert sorted(fc.findingId for fc in res.new) == ["f-coreweave-1", "f-runpod-1"]
+    assert all(fc.priorFindingId is None for fc in res.new)
+    assert res.update == []
+    dup = next(fc for fc in res.duplicate if fc.findingId == "f-lambda-1")
+    assert dup.priorFindingId == "f-lambda-0"    # its OWN series' prior, not another provider's
+    assert dup.detail == "unchanged within tolerance"
+    # the two genuinely-new series flow through outFindings; the unchanged one is folded
+    assert sorted(f.id for f in res.outFindings) == ["f-coreweave-1", "f-runpod-1"]
+
+
+def test_classify_price_cross_cycle_same_series_update(tmp_path):
+    """Cross-cycle movement WITHIN one series still classifies UPDATE with correct
+    provenance: Lambda 6.69 -> 6.99 (+4.5%, beyond rel_tol 1%) vs Lambda's own prior."""
+    store = _store(tmp_path)
+    _seed(store, _f("f-lambda-0", "NVDA", "D6", number=6.69, side="price",
+                    unit="USD_per_gpu_hr", capturedAt="2026-07-01",
+                    evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+          "2026-06")
+    res = classify_findings([
+        _f("f-lambda-1", "NVDA", "D6", number=6.99, side="price", unit="USD_per_gpu_hr",
+           capturedAt="2026-07-02", evidence=[_ev("Lambda", "https://lambda.ai/service/gpu-cloud")]),
+    ], store, config=DEFAULT_DEDUP_CONFIG)
+    assert [fc.findingId for fc in res.update] == ["f-lambda-1"]
+    assert res.update[0].priorFindingId == "f-lambda-0"
+    assert "value 6.69 -> 6.99" in res.update[0].detail
+    assert res.new == [] and res.duplicate == []

@@ -110,13 +110,15 @@ loaded, `coverageGaps` is an empty list `[]`.
 
 **6. Run the brain** (deterministic CLI; from repo root):
 ```
-.venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out docs \
+.venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
   --primary-sources sec.gov,investor.nvidia.com
-.venv/Scripts/python -m gpu_agent.cli pipeline --docs docs \
+.venv/Scripts/python -m gpu_agent.cli pipeline --docs work/docs \
   --assignment fixtures/asg.chips.merchant-gpu.json --as-of <asOf> \
   --captured-at <ISO-8601 UTC> --out store
 ```
 (Use `--backend claude_code` live, or `--recorded-extract/--recorded-judge` for a $0 replay.)
+Run artifacts (doc snapshots, gather-log) go under gitignored `work/` — NEVER into `docs/`, which
+holds committed documentation only.
 
 **7. If zero documents gathered:** report "nothing gathered" and STOP — do not run the brain on an
 empty folder (no empty scorecard).
@@ -169,7 +171,7 @@ window). Every cap that truncates is logged in `skipped[]` with what it skipped 
 - **L1 (pre-brain, doc-level):** run `ingest` with `--dedup-store` so cross-run-known documents are dropped
   *before* extraction (saves the brain call):
   ```
-  .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out docs \
+  .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
     --primary-sources sec.gov,investor.nvidia.com --dedup-store store --as-of <asOf>
   ```
   The gather-log then carries `droppedKnown` (count) + `droppedKnownDetail` — a daily sweep that drops most of

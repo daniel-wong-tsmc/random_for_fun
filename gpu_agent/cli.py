@@ -2,6 +2,7 @@ from __future__ import annotations
 import argparse, json, pathlib, sys
 from datetime import datetime, timezone
 from gpu_agent.assignment import load_assignment
+from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH
 from gpu_agent.schema.finding import Finding, Confidence
 from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus
 from gpu_agent.schema.raw_document import RawDocument
@@ -38,8 +39,8 @@ def _load_docs(docs_dir: str) -> list[RawDocument]:
             if p.name != "gather-log.json"]
 
 def _load_registry():
-    registry = IndicatorRegistry.load("registry/indicators.json")
-    taxonomy = Taxonomy.load("docs/taxonomy.json")
+    registry = IndicatorRegistry.load(REGISTRY_PATH)
+    taxonomy = Taxonomy.load(TAXONOMY_PATH)
     registry.validate_against(taxonomy)
     return (registry, taxonomy)
 
@@ -142,7 +143,7 @@ def _wiki_lint(args) -> int:
     store = WikiStore(pathlib.Path(args.store) / "wiki",
                       FindingStore(pathlib.Path(args.store) / "findings"))
     registry, _ = _load_registry()
-    horizons = IndicatorHorizons.load("registry/indicators.json")
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
     report = lint(store, as_of=args.as_of, prev_as_of=args.prev_as_of,
                   registry=registry, horizons=horizons)
     payload = report.model_dump_json(indent=2)
@@ -158,7 +159,7 @@ def _wiki_lifecycle(args) -> int:
     store = WikiStore(pathlib.Path(args.store) / "wiki",
                       FindingStore(pathlib.Path(args.store) / "findings"))
     registry, _ = _load_registry()
-    horizons = IndicatorHorizons.load("registry/indicators.json")
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
     # F32: the propose path is a READ — record=False so it neither logs nor mints a cycle.
     lint_report = lint(store, as_of=args.as_of, registry=registry, horizons=horizons,
                        record=False)
@@ -192,7 +193,7 @@ def _build(args):
     if spath.exists():
         category_status = CategoryStatus.model_validate_json(spath.read_text("utf-8"))
     registry, _ = _load_registry()
-    horizons = IndicatorHorizons.load("registry/indicators.json")
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
     return build_scorecard(findings, ratings, anchors, a, narrative, confidence, registry,
                            category_status=category_status, horizons=horizons)
 
@@ -323,7 +324,7 @@ def _pipeline(args) -> int:
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
     bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)
-    horizons = IndicatorHorizons.load("registry/indicators.json")
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
     sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
                          category_status=bundle.categoryStatus, horizons=horizons)
     path = JsonStore(pathlib.Path(args.out)).append(sc)
@@ -491,15 +492,15 @@ def main(argv=None) -> int:
                     help="category:<id> | layer:<id> | all")
     cp.add_argument("--assignments", default="fixtures",
                     help="dir of asg.<category>.json files")
-    cp.add_argument("--taxonomy", default="docs/taxonomy.json")
+    cp.add_argument("--taxonomy", default=TAXONOMY_PATH)
     cp.add_argument("--out", default=None, help="write the cycle plan JSON here (initial cycle log)")
     rp = sub.add_parser("report")
     rp.add_argument("--scorecard", required=True, help="path to the scorecard JSON file")
     rp.add_argument("--store", default="store",
                     help="store root dir for auto-discovery of prior (default: 'store')")
     rp.add_argument("--out", default=None, help="write report to file instead of stdout")
-    rp.add_argument("--registry", default="registry/indicators.json",
-                    help="indicator registry path (default: 'registry/indicators.json')")
+    rp.add_argument("--registry", default=REGISTRY_PATH,
+                    help=f"indicator registry path (default: {REGISTRY_PATH!r})")
     rp.add_argument("--render-ts", default=None,
                     help="fix the report's render timestamp (ISO-8601) for byte-reproducible output; "
                          "default: current UTC time")

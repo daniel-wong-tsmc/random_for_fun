@@ -62,10 +62,12 @@ def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
     from gpu_agent.registry.indicators import RegistryError
     if registry is None:
         from gpu_agent.registry.indicators import IndicatorRegistry
-        registry = IndicatorRegistry.load("registry/indicators.json")
+        from gpu_agent.config import REGISTRY_PATH
+        registry = IndicatorRegistry.load(REGISTRY_PATH)
     if taxonomy is None:
         from gpu_agent.registry.structure import Taxonomy
-        taxonomy = Taxonomy.load("docs/taxonomy.json")
+        from gpu_agent.config import TAXONOMY_PATH
+        taxonomy = Taxonomy.load(TAXONOMY_PATH)
     valid_targets = frozenset(taxonomy.categories)
     folded_doc = " ".join(doc.content.split())
     result = client.complete_json(build_user_prompt(doc), SYSTEM, ExtractionResult, model)

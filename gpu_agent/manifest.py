@@ -75,10 +75,19 @@ class CoverageGap(BaseModel):
     priority: Literal["required", "preferred", "optional"]
     acquisitionStatus: Literal[
         "paywalled", "not-covered", "cap-truncated",
-        "manual-upload-required", "mcp-unavailable"
+        "manual-upload-required", "mcp-unavailable", "waived"
     ]
     reason: str
     paywalledNote: str | None = None
+
+
+# ── Coverage override (structured, auditable waiver) ─────────────────────────
+
+class CoverageOverride(BaseModel):
+    type: Literal["indicator", "source"]
+    id: str
+    reason: str          # the auditable free text that used to live in prose
+    waivedBy: str         # who/what waived it, e.g. "gather-coordinator 2026-07-02"
 
 
 # ── Loader ────────────────────────────────────────────────────────────────────
@@ -126,6 +135,7 @@ def compute_coverage_gaps(
     manifest: CoverageManifest,
     blob_urls: list[str],
     found_indicator_ids: set[str],
+    overrides: list[CoverageOverride] | None = None,
 ) -> list[CoverageGap]:
     """Return a gap record for each expected item not covered by the gather run.
 
@@ -135,6 +145,12 @@ def compute_coverage_gaps(
         found_indicator_ids: set of indicatorIds that appear in at least one
             collected blob (i.e., the coordinator matched an on-topic blob to
             this indicator).
+        overrides: optional structured, auditable waivers. A gap whose
+            (type, id) matches an override is STILL RETURNED but with
+            acquisitionStatus="waived" and its reason extended with who/why
+            waived it — waived gaps stay visible, never silently dropped.
+            An override naming an item that has no gap (already covered)
+            changes nothing.
 
     Returns:
         A list of CoverageGap records. An empty list means full coverage.
@@ -192,5 +208,17 @@ def compute_coverage_gaps(
                 f"was not covered. Expected sources: {ind.sourceIds}."
             ),
         ))
+
+    # 3. Apply structured overrides: waived gaps stay visible, never dropped.
+    if overrides:
+        by_key = {(ov.type, ov.id): ov for ov in overrides}
+        for i, gap in enumerate(gaps):
+            ov = by_key.get((gap.type, gap.id))
+            if ov is None:
+                continue
+            gaps[i] = gap.model_copy(update={
+                "acquisitionStatus": "waived",
+                "reason": f"waived: {ov.reason} (by {ov.waivedBy}); original: {gap.reason}",
+            })
 
     return gaps

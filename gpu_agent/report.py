@@ -13,6 +13,7 @@ from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
 from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -322,6 +323,47 @@ def render_dmi_smi_sdgi(sc: Scorecard, prior: Optional[Scorecard]) -> str:
     return "\n".join(lines)
 
 
+def _pmi_word(pmi: float) -> str:
+    """PMI has a fixed -1..1 scale (unlike the unbounded DMI/SMI contributions Part 17
+    forbids a magnitude word on), so a magnitude threshold is earned here: |PMI| >= 0.5
+    is a real majority of tracked series moving the same way."""
+    if pmi >= 0.5:
+        return "up"
+    if pmi <= -0.5:
+        return "down"
+    return "flat"
+
+
+_PMI_ARROW = {"up": "▲", "down": "▼", "flat": "="}
+
+
+def render_price_track(track: PriceTrack) -> str:
+    """Render PRICE TRACK — the Price Momentum overlay (F49): per-series levels + Δ vs
+    prior, and a PMI computed over matched series only. Displayed beside DMI/SMI, never
+    blended into them. Omit the whole section when the scorecard has no price series —
+    honest absence, not a placeholder (render_report drops the resulting empty string)."""
+    if not track.series:
+        return ""
+    lines = ["PRICE TRACK  (overlay — displayed, never blended into DMI/SMI)"]
+    for s in track.series:
+        if s.delta is None:
+            delta_str = "—"
+        else:
+            sign = "+" if s.delta >= 0 else "−"
+            delta_str = f"{sign}{abs(s.delta):.2f}"
+        lines.append(f"  {s.indicatorId} [{s.publisher}] {s.value:g} {s.unit}   "
+                     f"Δ vs prior: {delta_str}")
+    if track.pmi is None:
+        lines.append(f"  PMI: — ({track.matchedSeries} matched series — "
+                     f"needs two cycles of the same series)")
+    else:
+        word = _pmi_word(track.pmi)
+        sign = "+" if track.pmi >= 0 else "−"
+        lines.append(f"  PMI: {sign}{abs(track.pmi):.2f} {_PMI_ARROW[word]}   "
+                     f"({track.matchedSeries} matched series)")
+    return "\n".join(lines)
+
+
 def _signal_label(score: float) -> str:
     """Convert a normalized polarity×magnitude score to a plain label."""
     if score > 1.5:
@@ -566,19 +608,22 @@ def render_report(
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
 
+    track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
+
     sections = [
         render_header(sc, render_ts),
-        brief.render_state_of_market(sc, prior),          # NEW — BLUF
+        brief.render_state_of_market(sc, prior, track),    # NEW — BLUF
         brief.render_demand_supply_board(sc, horizons),   # NEW
         brief.render_what_moved(movement),        # was render_deferred_stubs (part 1)
         brief.render_storylines(movement),        # was render_deferred_stubs (part 2)
         render_overall_status(sc),
         render_dimensions(sc, prior),
         render_dmi_smi_sdgi(sc, prior),
+        render_price_track(track),                # NEW — F49, omitted (returns "") with no price series
         render_entity_panel(sc),
         render_evidence_quality(sc, registry),
         render_sources(sc),
         render_coverage_gaps(sc),
         brief.render_market_caveat(sc),                   # NEW — trust footer caveat
     ]
-    return "\n\n".join(sections)
+    return "\n\n".join(s for s in sections if s)

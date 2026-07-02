@@ -15,11 +15,12 @@ def _dir_arrow(value: float) -> str:
     return _ARROW[report._momentum_word(value)]
 
 
-def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard]) -> str:
+def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None) -> str:
     """STATE OF THE MARKET (BLUF): demand/supply momentum as direction + Δ (never an
     invented magnitude word on the unscaled index — Part 17), the SDGI gap wording, the
     brain's earned categoryStatus headline + binding constraint, and NOW/NEXT + divergence
-    from the two indices. Optional fields degrade cleanly."""
+    from the two indices. Optional fields degrade cleanly. ``track`` (F49, optional) adds
+    one Price Momentum overlay line after the Gap line, only when it carries series."""
     ds = sc.demandSupply
     sdgi = report.compute_sdgi(sc)
     p_dmi = prior.demandSupply.dmiContribution if prior else None
@@ -38,6 +39,15 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard]) -> str:
                  f"(SMI {ds.smiContribution:.3f}, Δ {report._fmt_delta(ds.smiContribution, p_smi)})")
     lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}   "
                  f"(SDGI {sdgi:.3f}, Δ {report._fmt_delta(sdgi, p_sdgi)})")
+
+    if track is not None and track.series:
+        if track.pmi is None:
+            pmi_str = "PMI —"
+        else:
+            word = report._pmi_word(track.pmi)
+            sign = "+" if track.pmi >= 0 else "−"
+            pmi_str = f"PMI {sign}{abs(track.pmi):.2f} {report._PMI_ARROW[word]}"
+        lines.append(f"  Price overlay: {len(track.series)} series tracked, {pmi_str}")
 
     ix = sc.indices
     if ix is not None:

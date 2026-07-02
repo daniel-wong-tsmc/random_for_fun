@@ -210,10 +210,28 @@ def _storyline_line(s) -> str:
             f"(last updated {s.lastUpdatedAsOf})  {_traj_arrow(s.trajectory)}")
 
 
+_STORYLINE_CAP = 8   # F33: bound per-group render growth; the fold is always disclosed
+
+
+def _storyline_group_lines(entries) -> list[str]:
+    """Render one STORYLINES group, capped at _STORYLINE_CAP entries (already sorted by
+    the caller's (-salience, title) order). When the group is capped, an explicit
+    fold-count line is appended — nothing silent. Empty group -> "(none)"."""
+    if not entries:
+        return ["    (none)"]
+    shown = entries[:_STORYLINE_CAP]
+    lines = [_storyline_line(s) for s in shown]
+    folded = len(entries) - len(shown)
+    if folded > 0:
+        lines.append(f"    (+{folded} more tracked — see wiki-lint)")
+    return lines
+
+
 def render_storylines(movement) -> str:
     """STORYLINES: the tracked threads' state → trajectory + last-change, split by
     partition_canonical into REGISTERED (canonical) and PROVISIONAL (confidence-capped),
-    each ordered by salience desc. Pure; movement=None → honest empty-state."""
+    each ordered by salience desc and capped at the top _STORYLINE_CAP (F33) with an
+    explicit fold count when a group overflows. Pure; movement=None → honest empty-state."""
     lines = ["STORYLINES (tracked over time)"]
     if movement is None:
         lines.append("  (no wiki store yet — needs a multi-cycle store from daily cycles)")
@@ -225,7 +243,7 @@ def render_storylines(movement) -> str:
     registered = sorted((s for s in movement.storylines if not s.provisional), key=_key)
     provisional = sorted((s for s in movement.storylines if s.provisional), key=_key)
     lines.append("  REGISTERED (canonical)")
-    lines.extend(_storyline_line(s) for s in registered) if registered else lines.append("    (none)")
+    lines.extend(_storyline_group_lines(registered))
     lines.append("  PROVISIONAL (confidence-capped)")
-    lines.extend(_storyline_line(s) for s in provisional) if provisional else lines.append("    (none)")
+    lines.extend(_storyline_group_lines(provisional))
     return "\n".join(lines)

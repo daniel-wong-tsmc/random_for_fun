@@ -5,9 +5,10 @@ proven failing before the corresponding implementation change lands.
 """
 from __future__ import annotations
 
-from gpu_agent.brief import _traj_arrow, render_demand_supply_board
+from gpu_agent.brief import _traj_arrow, render_demand_supply_board, render_storylines
 from gpu_agent.schema.scorecard import Scorecard, DemandSupply
 from gpu_agent.schema.finding import Finding, Confidence, Evidence
+from gpu_agent.wiki.movement import MarketMovement, StorylineRow
 
 
 # ── Task 1 (F18): trajectory arrows match TOKENS, not substrings ──────────────
@@ -83,3 +84,36 @@ def test_board_two_same_domain_evidence_is_tagged():
     ])])
     out = render_demand_supply_board(sc, None)
     assert "⚠single-source" in out
+
+
+# ── Task 3 (F33): bound STORYLINES growth ──────────────────────────────────────
+
+def _story(title, salience, *, provisional=False):
+    return StorylineRow(title=title, state="on-track", trajectory="steady",
+                        lastUpdatedAsOf="2026-07", salience=salience, provisional=provisional)
+
+
+def test_storylines_caps_provisional_group_at_8_with_fold_count():
+    provisional = [_story(f"thread-{i}", salience=1.0 - i * 0.01, provisional=True)
+                   for i in range(10)]
+    mv = MarketMovement(prevAsOf="2026-06", moved=[], foldedCount=0, storylines=provisional)
+    out = render_storylines(mv)
+    lines = out.splitlines()
+    bullet_lines = [ln for ln in lines if ln.strip().startswith("•")]
+    assert len(bullet_lines) == 8
+    assert "    (+2 more tracked — see wiki-lint)" in out
+
+
+def test_storylines_8_or_fewer_no_fold_line():
+    provisional = [_story(f"thread-{i}", salience=1.0 - i * 0.01, provisional=True)
+                   for i in range(8)]
+    mv = MarketMovement(prevAsOf="2026-06", moved=[], foldedCount=0, storylines=provisional)
+    out = render_storylines(mv)
+    assert "more tracked" not in out
+
+
+def test_storylines_byte_deterministic():
+    provisional = [_story(f"thread-{i}", salience=1.0 - i * 0.01, provisional=True)
+                   for i in range(10)]
+    mv = MarketMovement(prevAsOf="2026-06", moved=[], foldedCount=0, storylines=provisional)
+    assert render_storylines(mv) == render_storylines(mv)

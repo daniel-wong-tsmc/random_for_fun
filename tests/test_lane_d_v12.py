@@ -148,3 +148,62 @@ def test_cli_report_notes_unmatched_stray_file_in_store(tmp_path, capsys):
     assert rc == 0
     err = capsys.readouterr().err
     assert "gpu-agent report: note: ignoring non-scorecard file notes.json" in err
+
+
+# ── Task 5: F22d — no silent drops in _pipeline; no silent unreadable prior ───
+
+
+def test_pipeline_gate_dropped_findings_are_reported_not_silent(tmp_path, capsys):
+    """A recorded-extract draft that fails the gate must be surfaced via DROPPED +
+    a 'gate dropped N finding(s)' summary line, identical style to `_extract`. Craft the
+    recorded answer against the CURRENT FindingDraft schema by round-tripping the
+    committed extract-nvda.json fixture's single draft (never hand-write draft JSON —
+    the schema changes in a parallel stream): keep one clean copy so the pipeline still
+    has a valid finding to judge/score, and break a second copy's `why` field."""
+    raw_answers = json.loads(pathlib.Path("fixtures/recorded/extract-nvda.json").read_text("utf-8"))
+    answer_obj = json.loads(raw_answers[0])
+    clean_draft = answer_obj["drafts"][0]
+    broken_draft = json.loads(json.dumps(clean_draft))  # round-trip copy, never hand-written
+    broken_draft["why"] = ""   # gated field: check_finding requires a non-empty `why`
+    answer_obj["drafts"] = [clean_draft, broken_draft]
+    rec = tmp_path / "rec-extract-broken.json"
+    rec.write_text(json.dumps([json.dumps(answer_obj)]), "utf-8")
+
+    store = tmp_path / "store"
+    rc = main(["pipeline", "--docs", "fixtures/raw",
+               "--assignment", "fixtures/asg.chips.merchant-gpu.json",
+               "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z", "--samples", "3",
+               "--recorded-extract", str(rec),
+               "--recorded-judge", "fixtures/recorded/judge-nvda.json",
+               "--out", str(store)])
+    err = capsys.readouterr().err
+    assert "DROPPED doc-nvda-2" in err
+    assert "gate dropped 1 finding(s)" in err
+    assert rc == 0   # the one surviving finding (doc-nvda-1) still carries the pipeline through
+
+
+def test_report_explicit_corrupt_prior_warns_not_silent(tmp_path, capsys):
+    """--prior <corrupt file>: stderr must contain a 'could not load prior' warning
+    (this branch already exists; guard against regression)."""
+    corrupt = tmp_path / "corrupt.json"
+    corrupt.write_text("not valid json", "utf-8")
+    rc = main(["report", "--scorecard", "fixtures/report/legacy-current.json",
+               "--prior", str(corrupt)])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "could not load prior" in err
+
+
+def test_report_auto_discovered_corrupt_prior_warns_not_silent(tmp_path, capsys):
+    """F22d: the auto-discovery branch must not silently swallow an unreadable prior —
+    it prints a warning instead of the old bare `pass`."""
+    fix = pathlib.Path("fixtures/report/legacy-current.json")
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v1.json").write_text("not valid json", "utf-8")   # corrupt prior candidate
+    (cat_dir / "2026-06-v2.json").write_text(fix.read_text("utf-8"), "utf-8")
+    rc = main(["report", "--scorecard", str(cat_dir / "2026-06-v2.json"),
+               "--store", str(tmp_path)])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "could not load prior" in err

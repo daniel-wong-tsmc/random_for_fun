@@ -299,10 +299,16 @@ def _pipeline(args) -> int:
     else:
         ext_client = make_client(args.backend)
     captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()
-    findings = []
+    findings, dropped = [], []
     for doc in docs:
-        findings.extend(extract_findings(doc, ext_client, as_of=args.as_of, captured_at=captured_at,
-                                         extraction_model=args.model, model=args.model).findings)
+        outcome = extract_findings(doc, ext_client, as_of=args.as_of, captured_at=captured_at,
+                                   extraction_model=args.model, model=args.model)
+        findings.extend(outcome.findings)
+        dropped.extend(outcome.dropped)
+    for d in dropped:
+        print(f"DROPPED {d.id}: {'; '.join(d.violations)}", file=sys.stderr)
+    if dropped:
+        print(f"gate dropped {len(dropped)} finding(s)", file=sys.stderr)
     if args.recorded_judge:
         jdg_client = RecordedClient(json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8")))
     else:
@@ -367,8 +373,11 @@ def _report(args) -> int:
             if prior_path is not None:
                 try:
                     prior = load_scorecard(prior_path)
-                except (ValueError, FileNotFoundError):
-                    pass  # silently skip unreadable prior
+                except (ValueError, FileNotFoundError) as e:
+                    print(
+                        f"gpu-agent report: warning: could not load prior {prior_path}: {e}",
+                        file=sys.stderr,
+                    )
 
     registry = IndicatorRegistry.load(args.registry)
     horizons = IndicatorHorizons.load(args.registry)   # same file; carries the cadenceHorizon tags

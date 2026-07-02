@@ -8,7 +8,9 @@ from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus
 from gpu_agent.schema.raw_document import RawDocument
 from gpu_agent.extraction.extractor import extract_findings
 from gpu_agent.extraction.extractor import ExtractionResult
-from gpu_agent.extraction.prompt import SYSTEM as EXTRACT_SYSTEM, build_user_prompt as build_extract_user_prompt
+from gpu_agent.extraction.prompt import (
+    SYSTEM as EXTRACT_SYSTEM, build_system as build_extract_system,
+    build_user_prompt as build_extract_user_prompt)
 from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.llm.factory import make_client
 from gpu_agent.pipeline import build_scorecard
@@ -21,7 +23,9 @@ from gpu_agent.wiki.lifecycle import lifecycle, apply_lifecycle
 from gpu_agent.wiki.movement import collect_movement
 from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.judgment.judge import JudgmentResult
-from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt
+from gpu_agent.judgment.prompt import (
+    SYSTEM as JUDGE_SYSTEM, build_system as build_judge_system,
+    build_user_prompt as build_judge_user_prompt)
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.gathering.dedup import (
@@ -202,8 +206,9 @@ def _emit_extract_prompt(args) -> int:
     subagent can answer it; the answer feeds `extract --recorded`. Part 38: code emits the
     uniform prompt, the agent reasons, code gates the result."""
     docs = _load_docs(args.docs)
+    persona = getattr(args, "persona", None)
     bundle = {
-        "system": EXTRACT_SYSTEM,
+        "system": build_extract_system(persona) if persona else EXTRACT_SYSTEM,
         "schema": ExtractionResult.model_json_schema(),
         "docs": [{"id": doc.id, "user": build_extract_user_prompt(doc)} for doc in docs],
     }
@@ -248,8 +253,9 @@ def _emit_judge_prompt(args) -> int:
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
     registry, _ = _load_registry()
     briefing = build_briefing(findings, registry, args.category)
+    persona = getattr(args, "persona", None)
     bundle = {
-        "system": JUDGE_SYSTEM,
+        "system": build_judge_system(persona) if persona else JUDGE_SYSTEM,
         "schema": JudgmentResult.model_json_schema(),
         "user": build_judge_user_prompt(briefing),
         "samples": args.samples,
@@ -276,7 +282,8 @@ def _judge(args) -> int:
     else:
         client = make_client(args.backend)
     registry, _ = _load_registry()
-    bundle = judge_findings(findings, client, registry, args.category, samples=args.samples, model=args.model)
+    bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
+                            model=args.model, persona=getattr(args, "persona", None))
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "ratings.json").write_text(
@@ -323,7 +330,8 @@ def _pipeline(args) -> int:
         a = a.model_copy(update={"asOf": args.as_of})
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
-    bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples, model=args.model)
+    bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
+                            model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
     horizons = IndicatorHorizons.load(REGISTRY_PATH)
     sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
                          category_status=bundle.categoryStatus, horizons=horizons)
@@ -428,6 +436,8 @@ def main(argv=None) -> int:
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
     ex.add_argument("--backend", default="claude_code")
     ex.add_argument("--recorded", default=None, help="JSON array of recorded responses (offline)")
+    ex.add_argument("--persona", default=None,
+                    help="analyst persona for the emitted system prompt (F26; default: GPU market)")
     ex.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical extraction prompt + schema (no LLM) and exit")
     ig = sub.add_parser("ingest")
@@ -476,6 +486,8 @@ def main(argv=None) -> int:
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
+    jg.add_argument("--persona", default=None,
+                    help="analyst persona for the judgment system prompt (F26; default: GPU market)")
     jg.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical judgment prompt + schema (no LLM) and exit")
     pl = sub.add_parser("pipeline")

@@ -66,9 +66,12 @@ For each `ready` entry, with its `assignment_path` and `asOf`:
 with a logged reason** (no empty scorecard) and continue.
 *(recorded mode: use the committed `fixtures/raw` docs instead of gathering.)*
 
-**(b) Extraction — Claude Code is the brain.** Emit the canonical extraction prompt:
+**(b) Extraction — Claude Code is the brain.** Emit the canonical extraction prompt (when the
+assignment carries a `personaLabel`, pass it — F26: the persona is assignment-driven, GPU is only
+the default):
 ```
-.venv/Scripts/python -m gpu_agent.cli extract --emit-prompt --docs <docs> --as-of <asOf>
+.venv/Scripts/python -m gpu_agent.cli extract --emit-prompt --docs <docs> --as-of <asOf> \
+  [--persona "<assignment personaLabel>"]
 ```
 This prints `{"system","schema","docs":[{"id","user"}, ...]}`. **Dispatch one TOOL-LESS Opus subagent**
 (no tools at all — pure reasoning over the provided text; a tool-bearing subagent could be steered by
@@ -89,7 +92,8 @@ Gate the answer into findings (this runs the deterministic gate):
 
 **(c) Judgment — Claude Code is the brain.** Emit the canonical judgment prompt from the gated findings:
 ```
-.venv/Scripts/python -m gpu_agent.cli judge --emit-prompt --findings <work>/findings.json --category <id>
+.venv/Scripts/python -m gpu_agent.cli judge --emit-prompt --findings <work>/findings.json --category <id> \
+  [--persona "<assignment personaLabel>"]
 ```
 This prints `{"system","schema","user","samples"}`. **Dispatch `samples` SEPARATE tool-less Opus
 subagents in one message** (one generation per sample — a single subagent producing all samples yields

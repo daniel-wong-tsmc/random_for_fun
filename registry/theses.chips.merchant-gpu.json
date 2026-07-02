@@ -17,14 +17,14 @@
       "lens": "supply",
       "mechanism": "CoWoS advanced-packaging capacity and HBM memory supply, not wafer starts or end demand, set the ceiling on how many finished GPUs can actually ship in a given quarter.",
       "falsifiableTrigger": "CoWoS/HBM lead times normalize to historical norms while demand indicators stay positive.",
-      "sensitivity": "Sensitive to packaging and HBM capacity additions announced by TSMC and the memory vendors, which would loosen the binding constraint independent of demand."
+      "sensitivity": "Sensitive to announced advanced-packaging and HBM capacity additions from the packaging and memory vendors, which would loosen the binding constraint independent of demand."
     },
     {
       "id": "amd-credible-second-source",
       "title": "AMD credible second source",
       "statement": "AMD converts its Instinct roadmap into material datacenter share.",
       "lens": "competitive",
-      "mechanism": "AMD's Instinct MI-series roadmap and its hyperscaler design-win cadence determine whether it becomes a credible, at-scale alternative to NVIDIA rather than a niche second source.",
+      "mechanism": "AMD's Instinct MI-series roadmap and its hyperscaler design-win cadence determine whether it becomes a credible, at-scale second source in datacenter accelerators rather than a niche alternative.",
       "falsifiableTrigger": "Two consecutive quarters without a named hyperscaler MI-series deployment at scale.",
       "sensitivity": "Sensitive to named hyperscaler deployment announcements and AMD's execution against its MI-series shipment cadence."
     },

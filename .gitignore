@@ -13,3 +13,4 @@ store/*
 !store/seen_docs.jsonl
 work/
 blobs.json
+.worktrees/

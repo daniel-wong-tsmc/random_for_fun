@@ -4,5 +4,8 @@
   "template": "category", "mode": "canonical",
   "entities": ["openai", "anthropic", "google-deepmind"],
   "metrics": ["apiArr", "releaseCadence", "market-share-pct", "grossMargin"],
-  "weights": {}, "version": "1.0", "asOf": "2026-06"
+  "weights": {"apiArr": 0.2, "releaseCadence": 0.1, "market-share-pct": 0.1, "grossMargin": 0.1},
+  "personaLabel": "frontier AI model market",
+  "manifestRef": "manifests/models.frontier-closed.json",
+  "version": "1.0", "asOf": "2026-06"
 }

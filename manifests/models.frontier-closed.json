@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "categoryId": "models.frontier-closed",
+  "asOf": "2026-06",
+  "description": "Expected coverage for the frontier closed-model labs category (OpenAI, Anthropic, Google DeepMind) — 4 scoring indicators, filings-as-proxy + vendor PR + one paywalled tracker inventoried. NOTE: apiArr/releaseCadence/market-share-pct/grossMargin are shared global indicator ids in a flat namespace (F24 will scope this per-category); until then this manifest reuses the same registry entries other categories score with.",
+  "expectedIndicators": [
+    {
+      "indicatorId": "apiArr",
+      "dimension": "momentum",
+      "priority": "required",
+      "sourceIds": ["msft-sec-filings", "googl-sec-filings", "theinformation"]
+    },
+    {
+      "indicatorId": "releaseCadence",
+      "dimension": "competitiveStructure",
+      "priority": "preferred",
+      "sourceIds": ["openai-blog", "anthropic-news"]
+    },
+    {
+      "indicatorId": "market-share-pct",
+      "dimension": "moat",
+      "priority": "preferred",
+      "sourceIds": ["theinformation", "open-web-model-analyst-notes"]
+    },
+    {
+      "indicatorId": "grossMargin",
+      "dimension": "unitEconomics",
+      "priority": "optional",
+      "sourceIds": ["googl-sec-filings", "open-web-model-analyst-notes"]
+    }
+  ],
+  "expectedSources": [
+    {
+      "id": "openai-blog",
+      "label": "OpenAI blog / product and model announcements (vendor PR)",
+      "urlPatterns": ["openai.com/blog", "openai.com/index"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["releaseCadence"]
+    },
+    {
+      "id": "anthropic-news",
+      "label": "Anthropic news / model announcements (vendor PR)",
+      "urlPatterns": ["anthropic.com/news"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["releaseCadence"]
+    },
+    {
+      "id": "msft-sec-filings",
+      "label": "Microsoft SEC filings (10-Q/10-K) — proxy for OpenAI investment/ARR disclosures",
+      "urlPatterns": ["sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "quarterly",
+      "indicators": ["apiArr", "market-share-pct"]
+    },
+    {
+      "id": "googl-sec-filings",
+      "label": "Alphabet/Google SEC filings (10-Q/10-K) — proxy for Google DeepMind model revenue disclosures",
+      "urlPatterns": ["sec.gov"],
+      "accessMethod": "filing",
+      "tier": "primary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "quarterly",
+      "indicators": ["apiArr", "grossMargin"]
+    },
+    {
+      "id": "theinformation",
+      "label": "The Information — frontier lab revenue/ARR and market-share reporting",
+      "urlPatterns": ["theinformation.com"],
+      "accessMethod": "licensed-api",
+      "tier": "secondary",
+      "costUsd": 399,
+      "license": "licensed",
+      "refresh": "weekly",
+      "indicators": ["apiArr", "market-share-pct"],
+      "paywalledNote": "The Information requires a paid subscription (~$399/yr). Until licensed, apiArr and market-share-pct run at estimate-grade via open-web proxy sources; never scraped while paywalled (Part 22)."
+    },
+    {
+      "id": "open-web-model-analyst-notes",
+      "label": "Open-web analyst notes / trade press on frontier-model market share and unit economics",
+      "urlPatterns": ["semianalysis.com", "technologyreview.com"],
+      "accessMethod": "free-web",
+      "tier": "secondary",
+      "costUsd": 0,
+      "license": "public",
+      "refresh": "weekly",
+      "indicators": ["market-share-pct", "grossMargin"]
+    }
+  ]
+}

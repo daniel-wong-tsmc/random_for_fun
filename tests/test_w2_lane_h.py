@@ -15,8 +15,19 @@ from gpu_agent.judgment.judge import judge_findings
 from gpu_agent.assignment import load_assignment
 from gpu_agent.schema.finding import Finding, Confidence, Impact
 from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.registry.structure import Taxonomy
+from gpu_agent.registry.validate import validate_assignment
+from gpu_agent.registry.horizon import IndicatorHorizons
+from gpu_agent.judgment.briefing import build_briefing
+from gpu_agent.pipeline import build_scorecard
+from gpu_agent.manifest import load_manifest
+from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
 
 REG = "registry/indicators.json"
+TAX = "docs/taxonomy.json"
+FRONTIER_CATEGORY = "models.frontier-closed"
+FRONTIER_ASSIGNMENT = "fixtures/asg.models.frontier-closed.json"
+FRONTIER_MANIFEST = "manifests/models.frontier-closed.json"
 
 
 # ── F26: SYSTEM byte-identity pins (CRITICAL compatibility rule) ──────────────
@@ -104,3 +115,67 @@ def test_judge_findings_persona_param_swaps_system():
     assert client.seen_systems
     assert all(s == expected for s in client.seen_systems)
     assert all("GPU" not in s for s in client.seen_systems)
+
+
+# ── F27: models.frontier-closed is actually runnable ───────────────────────
+
+def test_frontier_manifest_indicators_resolve_and_are_horizon_tagged():
+    reg = IndicatorRegistry.load(REG)
+    horizons = IndicatorHorizons.load(REG)
+    manifest = load_manifest(FRONTIER_MANIFEST)
+    assert manifest.categoryId == FRONTIER_CATEGORY
+    assert manifest.expectedIndicators
+    for ind in manifest.expectedIndicators:
+        spec = reg.resolve(ind.indicatorId, manifest.categoryId)   # raises if unresolved
+        assert spec.scoring
+        assert horizons.get(ind.indicatorId) is not None           # cadenceHorizon-tagged
+
+
+def test_frontier_assignment_validates_clean_with_real_weights_and_persona():
+    reg, tax = IndicatorRegistry.load(REG), Taxonomy.load(TAX)
+    a = load_assignment(FRONTIER_ASSIGNMENT)
+    assert validate_assignment(a, reg, tax) == []
+    assert a.personaLabel == "frontier AI model market"
+    assert a.weights == {
+        "apiArr": 0.2, "releaseCadence": 0.1, "market-share-pct": 0.1, "grossMargin": 0.1}
+
+
+def test_frontier_category_cycle_plan_is_ready():
+    tax = Taxonomy.load(TAX)
+    provider = AssignmentProvider()   # default root "fixtures"
+    plan = build_cycle_plan(f"category:{FRONTIER_CATEGORY}", tax, provider)
+    assert len(plan.entries) == 1
+    assert plan.entries[0].category_id == FRONTIER_CATEGORY
+    assert plan.entries[0].status == "ready"
+
+
+def _frontier_finding(fid, indicator_id, magnitude, entity="OpenAI") -> Finding:
+    return Finding(
+        id=fid, statement="s", kind="observed", trend="rising", why="w",
+        impact=Impact(targets=[FRONTIER_CATEGORY], direction="positive", mechanism="m"),
+        evidence=[{"source": "S", "url": "u", "date": "2026-06-01", "excerpt": "e",
+                   "tier": "primary"}],
+        confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+        indicatorId=indicator_id, side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=magnitude, entity=entity, observedAt="2026-06-01",
+        capturedAt="2026-06-25T00:00:00Z")
+
+
+def test_frontier_findings_yield_nonzero_index_through_gate():
+    reg = IndicatorRegistry.load(REG)
+    a = load_assignment(FRONTIER_ASSIGNMENT)
+    findings = [
+        _frontier_finding("fx-1", "apiArr", 3),
+        _frontier_finding("fx-2", "releaseCadence", 2),
+    ]
+    briefing = build_briefing(findings, reg, a.category)
+    horizons = IndicatorHorizons.load(REG)
+    sc = build_scorecard(findings, {}, briefing.anchors, a, "n",
+                         Confidence(level="medium", basis="b"), reg, horizons=horizons)
+    # hand-computed: apiArr(+1,m=3) w=0.2 -> 0.2*1*3/3=0.2000
+    #              + releaseCadence(+1,m=2) w=0.1 -> 0.1*1*2/3=0.0667  => dmi=0.2667
+    expected_dmi = 0.2 * 1 * 3 / 3 + 0.1 * 1 * 2 / 3
+    assert sc.demandSupply.dmiContribution == pytest.approx(expected_dmi)
+    assert sc.demandSupply.dmiContribution != 0.0   # closes the backlog's "empty weights (zero indices)"
+    assert sc.indices is not None
+    assert sc.indices.momentum.dmiContribution == pytest.approx(expected_dmi)

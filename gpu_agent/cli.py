@@ -24,7 +24,7 @@ from gpu_agent.judgment.prompt import SYSTEM as JUDGE_SYSTEM, build_user_prompt 
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.gathering.dedup import (
-    SeenDocIndex, filter_seen_documents, classify_findings, DedupReport)
+    SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.structure import Taxonomy
@@ -81,6 +81,8 @@ def _ingest(args) -> int:
         log["droppedKnown"] = len(dropped_known)
         log["droppedKnownDetail"] = [d.model_dump() for d in dropped_known]
     (out / "gather-log.json").write_text(json.dumps(log, indent=2), "utf-8")
+    if getattr(args, "dedup_store", None):
+        record_documents(docs, index, as_of=args.as_of)   # F12: only after snapshots are durable
     for d in outcome.dropped:
         print(f"DROPPED [{d.index}] {d.url}: {d.reason}", file=sys.stderr)
     for d in dropped_known:

@@ -72,11 +72,13 @@ class SeenDocIndex:
                 self._hash.setdefault(rec["hash"], rec["asOf"])
 
     def contains(self, url_norm: str, chash: str):
-        """Return (reason, firstSeenAsOf) if this doc is already known, else None. URL wins."""
-        if url_norm in self._url:
-            return ("seen-url", self._url[url_norm])
+        """Return (reason, firstSeenAsOf) if this doc is already known, else None.
+
+        Known iff the CONTENT is known (F12: hash before URL — a stable URL whose
+        content changed is a new document, not a seen one; stable price pages survive)."""
         if chash in self._hash:
-            return ("seen-content-hash", self._hash[chash])
+            reason = "seen-url" if url_norm in self._url else "seen-content-hash"
+            return (reason, self._hash[chash])
         return None
 
     def record(self, url_norm: str, chash: str, as_of: str) -> None:
@@ -90,21 +92,33 @@ class SeenDocIndex:
 
 
 def filter_seen_documents(docs, index: SeenDocIndex, *, as_of):
-    """L1: drop documents already in the seen index (or repeated within this batch); record
-    survivors. Returns (survivors, dropped) — nothing silent (every drop is a DroppedDoc)."""
+    """L1 filter — PURE read against the index; recording is the caller's job AFTER the
+    snapshots are durably written (F12: crash pre-write must not lose docs forever).
+    Still drops batch-internal repeats by content hash. Returns (survivors, dropped) —
+    nothing silent (every drop is a DroppedDoc)."""
     survivors: list[RawDocument] = []
     dropped: list[DroppedDoc] = []
+    batch_hashes: set[str] = set()
     for doc in docs:
         url_norm = _normalize_url(doc.url)
         chash = content_hash(doc.content)
         hit = index.contains(url_norm, chash)
+        if hit is None and chash in batch_hashes:
+            hit = ("seen-content-hash", as_of)
         if hit is not None:
             reason, first_seen = hit
             dropped.append(DroppedDoc(url=doc.url, reason=reason, firstSeenAsOf=first_seen))
             continue
-        index.record(url_norm, chash, as_of)
+        batch_hashes.add(chash)
         survivors.append(doc)
     return survivors, dropped
+
+
+def record_documents(docs, index: SeenDocIndex, *, as_of):
+    """Record survivors as seen. Call ONLY after the docs' snapshots (and any batch log)
+    are durably written to disk — a crash before that point must lose nothing forever."""
+    for doc in docs:
+        index.record(_normalize_url(doc.url), content_hash(doc.content), as_of)
 
 
 def _norm_statement(s: str) -> str:

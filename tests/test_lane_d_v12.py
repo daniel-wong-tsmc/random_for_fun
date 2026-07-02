@@ -52,3 +52,35 @@ def test_cli_extract_recorded_count_mismatch_exits_2(tmp_path, capsys):
     assert rc == 2
     err = capsys.readouterr().err
     assert "recorded answers (3) != documents (1)" in err
+
+
+# ── Task 2: F12 — L1 dedup records only after snapshots are durable ───────────
+
+
+def test_ingest_records_only_after_docs_and_log_are_written(tmp_path, monkeypatch):
+    """F12: crash-safety — record_documents must be called only after every doc file
+    and gather-log.json are durably on disk, so a crash before that point loses
+    nothing forever (the same docs get re-ingested next run instead of vanishing)."""
+    from gpu_agent import cli as cli_module
+
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text(json.dumps([{"url": "http://x/a", "content": "c", "source": "s",
+                                   "date": "2026-07", "entity": "NVDA"}]), "utf-8")
+    out = tmp_path / "out"
+    store = tmp_path / "store"
+
+    calls = []
+    real_record = cli_module.record_documents
+
+    def spy(docs, index, *, as_of):
+        calls.append(True)
+        # by the time recording happens, every doc file AND gather-log.json must exist
+        assert (out / f"{docs[0].id}.json").exists()
+        assert (out / "gather-log.json").exists()
+        return real_record(docs, index, as_of=as_of)
+
+    monkeypatch.setattr(cli_module, "record_documents", spy)
+    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out),
+               "--primary-sources", "sec.gov", "--dedup-store", str(store), "--as-of", "2026-07"])
+    assert rc == 0
+    assert calls  # record_documents was actually invoked

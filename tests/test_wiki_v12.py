@@ -5,7 +5,8 @@ from pydantic import ValidationError
 from gpu_agent.store import FindingStore
 from gpu_agent.wiki.store import WikiStore
 from gpu_agent.wiki.ingest import (
-    apply_enrichment, route_findings, IngestResult, PageEnrichment, INGEST_SYSTEM)
+    apply_enrichment, route_findings, IngestResult, PageEnrichment, INGEST_SYSTEM,
+    EnrichmentGateError)
 from gpu_agent.wiki.salience import computed_salience
 from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence
 
@@ -88,3 +89,49 @@ def test_apply_enrichment_writes_computed_salience(tmp_path):
 
 def test_ingest_system_does_not_mention_salience():
     assert "salience" not in INGEST_SYSTEM.lower()
+
+
+# ---------------------------------------------------------------------------
+# Task 2 (F14): enrichment gate - citations must resolve, numbers must be cited
+# ---------------------------------------------------------------------------
+
+def test_gate_rejects_unknown_citation_and_writes_nothing(tmp_path):
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    body_before = ws.window("entity:nvda", 0).body
+    log_len_before = len(ws.log.read())
+    result = _enrich(bodyMarkdown="## NVDA\nSee [no-such-finding].\n")
+    with pytest.raises(EnrichmentGateError) as ei:
+        apply_enrichment(ws, result, as_of="2026-06-28")
+    assert any("entity:nvda" in v and "no-such-finding" in v for v in ei.value.violations)
+    assert ws.window("entity:nvda", 0).body == body_before
+    assert len(ws.log.read()) == log_len_before
+
+
+def test_gate_rejects_uncited_number(tmp_path):
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")  # plain finding, no matching digits
+    result = _enrich(bodyMarkdown="## NVDA\nRevenue $75,200,000,000 rising [f-1].\n")
+    with pytest.raises(EnrichmentGateError) as ei:
+        apply_enrichment(ws, result, as_of="2026-06-28")
+    assert any("uncited number" in v for v in ei.value.violations)
+
+
+def test_gate_allows_number_cited_via_evidence_excerpt(tmp_path):
+    ws = _store(tmp_path)
+    ev = [Evidence(source="10-Q", url="http://sec/nvda", date="2026-06",
+                   excerpt="revenue reached $75,200,000,000 in the quarter", tier="primary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    result = _enrich(bodyMarkdown="## NVDA\nRevenue $75,200,000,000 rising [f-1].\n")
+    apply_enrichment(ws, result, as_of="2026-06-28")
+    assert "75,200,000,000" in ws.window("entity:nvda", 0).body
+
+
+def test_gate_ignores_list_markers_and_matches_year_in_evidence_date(tmp_path):
+    ws = _store(tmp_path)
+    ev = [Evidence(source="10-Q", url="http://sec/nvda", date="2026-06",
+                   excerpt="filed for the period", tier="primary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    body = "## NVDA\n1. Guidance reaffirmed for 2026 [f-1].\n"
+    apply_enrichment(ws, _enrich(bodyMarkdown=body), as_of="2026-06-28")
+    assert "reaffirmed" in ws.window("entity:nvda", 0).body

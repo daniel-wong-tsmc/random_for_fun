@@ -70,6 +70,70 @@ class IngestResult(BaseModel):
     pages: list[PageEnrichment]
 
 
+class EnrichmentGateError(ValueError):
+    """Raised when apply_enrichment's F14 gate rejects one or more pages: an unresolved
+    citation or a number with no cited-finding backing. Nothing is written when this fires."""
+
+    def __init__(self, violations: list[str]):
+        self.violations = violations
+        super().__init__("; ".join(violations))
+
+
+_CITATION_RE = re.compile(r"\[([A-Za-z0-9][A-Za-z0-9._-]*)\]")
+_NUMERIC_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+
+
+def _cited_finding_ids(body: str) -> set[str]:
+    return set(_CITATION_RE.findall(body))
+
+
+def _numeric_tokens(text: str) -> set[str]:
+    """Numeric tokens (>= 2 digits after stripping thousands commas) mentioned in `text`.
+    Single-digit tokens (list markers like '1.') are not material and are dropped."""
+    out: set[str] = set()
+    for m in _NUMERIC_RE.findall(text):
+        norm = m.replace(",", "")
+        if sum(ch.isdigit() for ch in norm) >= 2:
+            out.add(norm)
+    return out
+
+
+def _cited_findings_corpus(store: WikiStore, cited_ids: set[str], pe: PageEnrichment) -> str:
+    """Concatenation of everything a cited finding is allowed to justify a number with, plus the
+    enrichment's own state/trajectory strings. Commas are stripped so a comma-formatted number in
+    an excerpt (e.g. '$75,200,000,000') still matches the body's normalized token."""
+    parts = [pe.state, pe.trajectory]
+    for fid in sorted(cited_ids):
+        if not store.findings.exists(fid):
+            continue
+        f = store.findings.get(fid)
+        parts.append(f.statement)
+        parts.append(f.why)
+        if f.value is not None:
+            parts.append(repr(f.value.number))
+            parts.append(f"{f.value.number:g}")
+        for e in f.evidence:
+            parts.append(e.excerpt)
+            parts.append(e.date)
+    return " ".join(parts).replace(",", "")
+
+
+def _validate_enrichment_gate(store: WikiStore, pe: PageEnrichment) -> list[str]:
+    """F14: every citation must resolve to a gated finding; every number in the body must trace
+    to a cited finding (or the enrichment's own state/trajectory). Returns violation strings;
+    empty means the page is clean."""
+    violations: list[str] = []
+    cited = _cited_finding_ids(pe.bodyMarkdown)
+    for token in sorted(cited):
+        if not store.findings.exists(token):
+            violations.append(f"{pe.pageId}: cites unknown finding {token}")
+    corpus = _cited_findings_corpus(store, cited, pe)
+    for token in sorted(_numeric_tokens(pe.bodyMarkdown)):
+        if token not in corpus:
+            violations.append(f"{pe.pageId}: uncited number {token}")
+    return violations
+
+
 def _entity_page_id(finding: Finding) -> str:
     if not finding.entity or not finding.entity.strip():
         raise ValueError(f"finding {finding.id} has empty entity; cannot route")
@@ -127,7 +191,18 @@ def build_bundle(store: WikiStore, findings: list[Finding], touched: list[str], 
 def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> None:
     """Phase 2 (deterministic apply): enrich existing entity pages from the brain's IngestResult.
     Rejects non-entity / missing pages loud. Idempotent set_body/record_state/crossRefs. Appends
-    exactly one 'ingest' log event per as_of (contradictions recorded in its detail, not yet weighted)."""
+    exactly one 'ingest' log event per as_of (contradictions recorded in its detail, not yet weighted).
+
+    F14 gate (before any write): every citation in a page's body must resolve to a gated finding,
+    and every number in the body must trace to a cited finding (or the page's own state/trajectory).
+    All pages are validated and all violations collected before raising, so nothing is written on
+    a rejection."""
+    violations: list[str] = []
+    for pe in result.pages:
+        violations.extend(_validate_enrichment_gate(store, pe))
+    if violations:
+        raise EnrichmentGateError(violations)
+
     contradictions: list[tuple[str, str]] = []
     for pe in result.pages:
         if not pe.pageId.startswith("entity:"):

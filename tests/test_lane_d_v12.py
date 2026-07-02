@@ -129,3 +129,22 @@ def test_classify_mixed_batch_corroboration_dispersion_and_independent_key(tmp_p
     assert len(by_id["f-amd"].evidence) == 1      # untouched singleton
     mate = next(fc for fc in res.duplicate if fc.findingId == "f-nvda-a")
     assert mate.detail.startswith("corroborates f-nvda-b")
+
+
+# ── Task 4: F13d — find_prior day grain + loud unmatched-file notes via CLI ───
+
+
+def test_cli_report_notes_unmatched_stray_file_in_store(tmp_path, capsys):
+    """`report` auto-discovery must not silently skip a stray non-scorecard file in the
+    category dir — it prints one stderr note per unmatched name."""
+    fix = pathlib.Path("fixtures/report/legacy-current.json")
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v1.json").write_text(fix.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-06-v2.json").write_text(fix.read_text("utf-8"), "utf-8")
+    (cat_dir / "notes.json").write_text("{}", "utf-8")
+    rc = main(["report", "--scorecard", str(cat_dir / "2026-06-v2.json"),
+               "--store", str(tmp_path)])
+    assert rc == 0
+    err = capsys.readouterr().err
+    assert "gpu-agent report: note: ignoring non-scorecard file notes.json" in err

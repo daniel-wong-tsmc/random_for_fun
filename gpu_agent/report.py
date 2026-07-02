@@ -34,7 +34,7 @@ SDGI_INTERP_RULES = [
     (-0.05, "Demand and supply roughly balanced"),
     (float("-inf"), "Supply outrunning demand — glut pressure forming"),
 ]
-_VERSION_RE = re.compile(r"^(\d{4}-\d{2})-v(\d+)\.json$")
+_VERSION_RE = re.compile(r"^(\d{4}-\d{2}(?:-\d{2})?)-v(\d+)\.json$")
 
 
 # ── I/O helpers ──────────────────────────────────────────────────────────────
@@ -52,11 +52,14 @@ def find_prior(
     store_dir: Path,
     sc: Scorecard,
     current_path: Optional[Path] = None,
+    unmatched: Optional[list[str]] = None,
 ) -> Optional[Path]:
     """Return the most-recent previous scorecard for sc.categoryId in store_dir, or None.
 
-    Scans store_dir/<categoryId>/*.json, parses <asOf>-v<N>.json filenames,
-    sorts by (asOf, N) descending.
+    Scans store_dir/<categoryId>/*.json, parses <asOf>-v<N>.json filenames — asOf may be
+    month grain (YYYY-MM) or day grain (YYYY-MM-DD) — sorts by (asOf, N) descending.
+    Mixed grain sorts lexically (e.g. "2026-06" < "2026-06-15"); grain consistency per
+    category is enforced wiki-side by another stream, not here.
 
     When *current_path* is provided the function identifies the current
     scorecard's (asOf, version) from its filename, excludes it from the
@@ -69,6 +72,10 @@ def find_prior(
     assumes the newest file in the directory is the current scorecard and
     returns the second-newest entry (index 1).  Existing callers and tests
     that rely on this behaviour remain green.
+
+    F13d: when *unmatched* is passed a list, the name of every ``.json`` file in the
+    category dir that does NOT match the <asOf>-v<N>.json pattern is appended to it —
+    such files are never silently skipped.
     """
     cat_dir = store_dir / sc.categoryId
     if not cat_dir.is_dir():
@@ -78,6 +85,8 @@ def find_prior(
         m = _VERSION_RE.match(p.name)
         if m:
             candidates.append((m.group(1), int(m.group(2)), p))
+        elif unmatched is not None:
+            unmatched.append(p.name)
     candidates.sort(key=lambda t: (t[0], t[1]), reverse=True)
 
     if current_path is not None:

@@ -95,6 +95,50 @@ def test_find_prior_returns_none_when_only_one_version(tmp_path):
     assert find_prior(tmp_path, sc) is None
 
 
+def test_find_prior_day_grain_names_are_not_dropped(tmp_path):
+    """F13d: day-grain scorecard filenames (YYYY-MM-DD-vN.json) must not be silently
+    ignored — the old month-only regex would drop them entirely from the candidate list."""
+    from gpu_agent.report import find_prior
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-15-v1.json").write_text(PRIOR.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-06-20-v1.json").write_text(CURRENT.read_text("utf-8"), "utf-8")
+    sc = _load(CURRENT)
+    prior_path = find_prior(tmp_path, sc)
+    assert prior_path is not None
+    assert prior_path.name == "2026-06-15-v1.json"
+
+
+def test_find_prior_collects_unmatched_stray_files_instead_of_silently_skipping(tmp_path):
+    """F13d: a stray non-scorecard .json file in the category dir is never silently
+    skipped — its name is appended to the caller-supplied `unmatched` list."""
+    from gpu_agent.report import find_prior
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v2.json").write_text(PRIOR.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-06-v3.json").write_text(CURRENT.read_text("utf-8"), "utf-8")
+    (cat_dir / "notes.json").write_text("{}", "utf-8")
+    sc = _load(CURRENT)
+    unmatched: list = []
+    find_prior(tmp_path, sc, unmatched=unmatched)
+    assert unmatched == ["notes.json"]
+
+
+def test_find_prior_mixed_grain_same_version_day_grain_outranks_month_lexically(tmp_path):
+    """Mixed grain sorts lexically: '2026-06' < '2026-06-15', so at the same version
+    number a day-grain name outranks a month-grain name from the same month. Grain
+    consistency per category is enforced wiki-side by another stream, not here."""
+    from gpu_agent.report import find_prior
+    cat_dir = tmp_path / "chips.merchant-gpu"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "2026-06-v1.json").write_text(PRIOR.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-06-15-v1.json").write_text(PRIOR.read_text("utf-8"), "utf-8")
+    (cat_dir / "2026-07-v2.json").write_text(CURRENT.read_text("utf-8"), "utf-8")
+    sc = _load(CURRENT)
+    prior_path = find_prior(tmp_path, sc, current_path=cat_dir / "2026-07-v2.json")
+    assert prior_path.name == "2026-06-15-v1.json"
+
+
 def test_load_scorecard_parses_pydantic_model():
     """load_scorecard returns a typed Scorecard, not a raw dict."""
     sc = _load(CURRENT)

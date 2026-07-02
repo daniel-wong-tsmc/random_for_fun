@@ -356,10 +356,14 @@ def _report(args) -> int:
             # current scorecard by (asOf, version) and picks the highest
             # version strictly below it.  This is correct even when the
             # current scorecard is not the newest file in the store.
+            unmatched: list[str] = []
             prior_path = find_prior(
                 pathlib.Path(args.store), sc,
                 current_path=pathlib.Path(args.scorecard),
+                unmatched=unmatched,
             )
+            for name in unmatched:
+                print(f"gpu-agent report: note: ignoring non-scorecard file {name}", file=sys.stderr)
             if prior_path is not None:
                 try:
                     prior = load_scorecard(prior_path)

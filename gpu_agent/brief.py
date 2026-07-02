@@ -2,6 +2,7 @@
 projection of a Scorecard — no LLM, no wiki store, no new number. Reuses report.py's
 wording helpers so the brief and the detailed report speak the same vocabulary."""
 from __future__ import annotations
+import re
 from typing import Optional
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
@@ -126,15 +127,23 @@ _TRAJ_DOWN = {"eroding", "worsening", "decelerating", "falling", "down", "slippi
 _TRAJ_FLAT = {"steady", "flat", "stable", "unchanged", "tight", "intact", "firm", "on-track"}
 
 
+_TRAJ_TOKEN_RE = re.compile(r"[a-z]+(?:-[a-z]+)?")
+
+
 def _traj_arrow(text) -> str:
     """Best-effort ▲/▼/=/· from brain-authored free-text state/trajectory (shared by the
-    WHAT MOVED UP/DOWN tag and the STORYLINES arrow). Falls back to · on no keyword match."""
-    t = (text or "").lower()
-    if any(w in t for w in _TRAJ_UP):
+    WHAT MOVED UP/DOWN tag and the STORYLINES arrow). Falls back to · on no keyword match.
+
+    F18: matches whole TOKENS, not substrings — a naive `"up" in text` check would fire
+    on "supply" or "shutdown" (both contain "up"/"down" as substrings, not words), giving
+    a fabricated direction. Tokenizing on [a-z]+ (with an optional single internal hyphen,
+    so "on-track" stays one token) and intersecting with the keyword sets closes that gap."""
+    tokens = set(_TRAJ_TOKEN_RE.findall((text or "").lower()))
+    if tokens & _TRAJ_UP:
         return "▲"
-    if any(w in t for w in _TRAJ_DOWN):
+    if tokens & _TRAJ_DOWN:
         return "▼"
-    if any(w in t for w in _TRAJ_FLAT):
+    if tokens & _TRAJ_FLAT:
         return "="
     return "·"
 

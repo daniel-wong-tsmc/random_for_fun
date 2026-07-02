@@ -2,10 +2,14 @@ import json
 
 import pytest
 
+from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact, Kind
 from gpu_agent.thesis import (
     PendingChallenge,
+    ThesisAnswer,
+    ThesisJudgment,
     ThesisStore,
     ThesisStoreError,
+    apply_answer,
     seed_book,
 )
 
@@ -350,3 +354,44 @@ def test_streak_is_code_derived_from_record_and_prior_state(tmp_path):
     entry = store.rebuild().get(thesis_id)
     assert entry.streak == 1
     assert entry.lastDirection == -1
+
+
+def _finding(fid, *, tier="secondary"):
+    return Finding(
+        id=fid, statement="x", kind=Kind.observed, trend="flat", why="w",
+        impact=Impact(targets=["nvidia"], direction="negative", mechanism="m"),
+        evidence=[Evidence(source="Example", url="https://example.com/a", date=AS_OF_2,
+                            excerpt="e", tier=tier)],
+        confidence=Confidence(level="medium", basis="b"),
+        asOf=AS_OF_2, indicatorId="D2", side="demand",
+        polarityDemand=0, polaritySupply=-1, magnitude=2, entity="nvidia",
+        observedAt=AS_OF_2, capturedAt=AS_OF_2,
+    )
+
+
+def test_apply_answer_round_trips_through_write_and_rebuild(tmp_path):
+    """No second transition implementation: apply_answer's returned book must be exactly
+    what store.write(that book, those records) + rebuild() replays back to (Task 4's
+    architecture requirement — apply_answer folds its records through the same
+    apply_record() rebuild() uses, never mutating book state independently)."""
+    book1 = seed_book(SEED_PATH, CATEGORY_ID, AS_OF_1)
+    store = ThesisStore(tmp_path / "theses" / CATEGORY_ID)
+    store.write(book1, [_seeded_record(book1, AS_OF_1)])
+
+    findings_by_id = {"f-1": _finding("f-1", tier="secondary")}
+    answer = ThesisAnswer(judgments=[
+        ThesisJudgment(
+            thesisId="nvda-demand-durability", verdict="reaffirmed", rationale="r",
+            findingIds=["f-1"], mechanism="m", falsifiableTrigger="t", sensitivity="s",
+        ),
+    ])
+    new_book, records, notes = apply_answer(
+        book1, answer, as_of=AS_OF_2, findings_by_id=findings_by_id, history=[],
+    )
+    assert records  # sanity: the cycle produced at least the one judgment record
+    assert notes == []  # a plain reaffirmed judgment isn't a "nothing silent" note
+
+    store.write(new_book, records)
+
+    assert store.rebuild().model_dump() == new_book.model_dump()
+    assert store.load().model_dump() == new_book.model_dump()

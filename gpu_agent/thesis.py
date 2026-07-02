@@ -191,6 +191,11 @@ def _apply_lifecycle_record(book: ThesisBook, record: dict) -> ThesisBook:
 
 
 def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
+    # `publisherDomains` (Task 4 / rule 5 promotion): a judgment record may carry the
+    # cited findings' publisher domains, written by apply_answer purely as provenance so
+    # promotion counting can read domains straight from history (findings_by_id only ever
+    # holds the CURRENT cycle's findings, so past cycles' domains can't be re-derived from
+    # their findingIds alone). It carries no book state and is intentionally not read here.
     def transform(entry: ThesisEntry) -> ThesisEntry:
         updates: dict = {"lastJudgedAsOf": record["asOf"]}
         if record.get("applied"):
@@ -415,3 +420,234 @@ def gate_answer(answer: ThesisAnswer, book: ThesisBook,
         ))
 
     return errors
+
+
+# --- apply (spec §3 rules 5-7: promotion, anti-whipsaw, retirement) ---
+
+try:
+    # F31's corroboration key, defined in wiki/lifecycle.py: keys by the evidence URL's
+    # registered netloc (www.-stripped, lowercased), falling back to the source string.
+    # Reused verbatim (not re-derived) so the two publisher-identity notions never drift.
+    from gpu_agent.wiki.lifecycle import _publisher_key as _evidence_publisher
+except ImportError:  # pragma: no cover - defensive; wiki.lifecycle is a sibling module today
+    from urllib.parse import urlparse
+
+    def _evidence_publisher(evidence) -> str:
+        """Mirrors wiki/lifecycle.py's F31 `_publisher_key` helper (copied here only because
+        the import above failed): publisher = evidence URL netloc, www.-stripped and
+        lowercased; falls back to the evidence `source` string when the URL has no netloc."""
+        netloc = urlparse(evidence.url).netloc.lower()
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        return netloc or evidence.source.strip().lower()
+
+
+_RANK_TO_CONVICTION = {rank: name for name, rank in CONVICTION_RANK.items()}
+
+
+def _has_primary(finding_ids: list[str], findings_by_id: dict[str, Finding]) -> bool:
+    """has_primary(j): any finding cited by findingIds has any evidence item tier=='primary'."""
+    return any(
+        evidence.tier == "primary"
+        for fid in finding_ids
+        for evidence in findings_by_id[fid].evidence
+    )
+
+
+def _publisher_domains(finding_ids: list[str], findings_by_id: dict[str, Finding]) -> list[str]:
+    """Publisher domains (F31 key) cited by a judgment, sorted for determinism. Stored on
+    the judgment record itself (see `_apply_judgment_record`'s comment) so rule-5 promotion
+    counting can read every past cycle's domains straight from history without needing
+    those past findingIds to resolve against THIS cycle's findings_by_id."""
+    domains = {
+        _evidence_publisher(evidence)
+        for fid in finding_ids
+        for evidence in findings_by_id[fid].evidence
+    }
+    return sorted(domains)
+
+
+def _bump_conviction(conviction: str, steps: int) -> str:
+    """Move `conviction` by `steps` levels on the low/medium/high scale, clamped to the
+    scale ends. apply_answer only ever calls this with steps in {-1, +1}."""
+    rank = CONVICTION_RANK[conviction]
+    rank = max(0, min(2, rank + steps))
+    return _RANK_TO_CONVICTION[rank]
+
+
+def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_of: str,
+                             findings_by_id: dict[str, Finding],
+                             ) -> tuple[Optional[dict], dict, Optional[str]]:
+    """Decide applied/deferred for one standing thesis's judgment this cycle (spec rule 6),
+    resolving any pendingChallenge from a prior cycle first. Returns
+    (challenge-lapsed record or None, this cycle's judgment record, an extra note for the
+    returned notes list or None — set only for the non-applied/deferred case; a subsequent
+    'broken applied -> retired' record and its note are the caller's responsibility)."""
+    verdict = judgment.verdict
+    direction = DIRECTION[verdict]
+    domains = _publisher_domains(judgment.findingIds, findings_by_id)
+
+    lapsed_record: Optional[dict] = None
+    # A same-direction confirmation of an existing pendingChallenge applies unconditionally
+    # (any tier); anything else (opposite direction, or a neutral reaffirmed/adjusted) drops
+    # the stale challenge via a challenge-lapsed record, then this cycle's verdict is judged
+    # fresh against entry.lastDirection below (unaffected, since the deferred judgment that
+    # created the challenge was never applied).
+    confirmed_by_pending = False
+    if entry.pendingChallenge is not None:
+        pending_direction = DIRECTION[entry.pendingChallenge.verdict]
+        if direction != 0 and direction == pending_direction:
+            confirmed_by_pending = True
+        else:
+            lapsed_record = {
+                "asOf": as_of, "event": "challenge-lapsed", "thesisId": entry.id, "detail": None,
+                "note": f"{entry.id}: pending challenge lapsed (no same-direction confirmation)",
+            }
+
+    is_reversal = (
+        (direction != 0 and entry.lastDirection != 0 and direction != entry.lastDirection)
+        or verdict == "broken"
+    )
+    applied = (
+        confirmed_by_pending
+        or not is_reversal
+        or _has_primary(judgment.findingIds, findings_by_id)
+    )
+
+    if applied:
+        if verdict == "broken":
+            new_conviction = "low"
+        elif verdict == "strengthened":
+            new_conviction = _bump_conviction(entry.conviction, +1)
+        elif verdict == "weakened":
+            new_conviction = _bump_conviction(entry.conviction, -1)
+        else:  # reaffirmed / adjusted: unchanged
+            new_conviction = entry.conviction
+        note = f"{entry.id}: {verdict} applied, conviction {entry.conviction}->{new_conviction}"
+        extra_note = None
+    else:
+        new_conviction = entry.conviction
+        note = f"{entry.id}: deferred: secondary-only reversal"
+        extra_note = note
+
+    record = {
+        "asOf": as_of,
+        "thesisId": entry.id,
+        "verdict": verdict,
+        "applied": applied,
+        "conviction": new_conviction,
+        "rationale": judgment.rationale,
+        "findingIds": judgment.findingIds,
+        "mechanism": judgment.mechanism,
+        "falsifiableTrigger": judgment.falsifiableTrigger,
+        "sensitivity": judgment.sensitivity,
+        "note": note,
+        "publisherDomains": domains,
+    }
+    return lapsed_record, record, extra_note
+
+
+def _promotion_eligible(thesis_id: str, records: list[dict]) -> tuple[bool, int, int]:
+    """Rule 5: eligible when judgments for `thesis_id` across `records` span >=2 distinct
+    asOf values AND their (record-carried) publisherDomains collectively span >=2 distinct
+    publishers. Only records with a 'verdict' key count (lifecycle records are skipped);
+    applied and deferred judgments both count — a deferred judgment still cited real,
+    distinct-publisher findings, which is what corroboration is about."""
+    as_ofs: set[str] = set()
+    domains: set[str] = set()
+    for record in records:
+        if record.get("thesisId") == thesis_id and "verdict" in record:
+            as_ofs.add(record["asOf"])
+            domains.update(record.get("publisherDomains", []))
+    return len(as_ofs) >= 2 and len(domains) >= 2, len(as_ofs), len(domains)
+
+
+def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
+                  findings_by_id: dict[str, Finding], history: list[dict],
+                  ) -> tuple[ThesisBook, list[dict], list[str]]:
+    """Pure: never mutates book/answer/history. Builds this cycle's history records per the
+    anti-whipsaw (rule 6), promotion (rule 5), and retirement semantics, then folds each
+    record through apply_record over `book` — apply_record is the single transition
+    function, so the returned book is always exactly what ThesisStore.rebuild() would
+    produce from the prior history plus these records; there is no second implementation
+    of the state transition here.
+
+    Record order: this cycle's judgment records in book order (a thesis whose pending
+    challenge resolves this cycle gets its challenge-lapsed record immediately before its
+    own judgment record; a broken-and-applied thesis gets its retired record immediately
+    after), then proposal records, then promotion records.
+
+    `notes` (the third return value) carries one human-readable line for every record in
+    the "nothing silent" set the spec calls out: a non-applied (deferred) judgment, a
+    lapsed challenge, a promotion, a retirement, or a proposal. Every record — including
+    ordinary applied judgments — carries its own one-line `note` field, but ordinary
+    applied judgments are not echoed into `notes` (they are the unremarkable case).
+    """
+    judgment_by_id = {j.thesisId: j for j in answer.judgments}
+    working_book = book
+    records: list[dict] = []
+    notes: list[str] = []
+
+    for entry in book.entries:
+        judgment = judgment_by_id.get(entry.id)
+        if judgment is None:
+            continue
+        lapsed_record, judgment_record, extra_note = _build_judgment_records(
+            entry, judgment, as_of=as_of, findings_by_id=findings_by_id,
+        )
+        if lapsed_record is not None:
+            records.append(lapsed_record)
+            working_book = apply_record(working_book, lapsed_record)
+            notes.append(lapsed_record["note"])
+
+        records.append(judgment_record)
+        working_book = apply_record(working_book, judgment_record)
+        if extra_note is not None:
+            notes.append(extra_note)
+
+        if judgment_record["applied"] and judgment_record["verdict"] == "broken":
+            retired_record = {
+                "asOf": as_of, "event": "retired", "thesisId": entry.id, "detail": None,
+                "note": f"{entry.id}: broken with primary evidence -> retired",
+            }
+            records.append(retired_record)
+            working_book = apply_record(working_book, retired_record)
+            notes.append(retired_record["note"])
+
+    for proposal in answer.proposed:
+        new_id = thesis_slug(proposal.title)
+        new_entry = ThesisEntry(
+            id=new_id, title=proposal.title, statement=proposal.statement,
+            lens=proposal.lens, status="provisional", conviction="low",
+            mechanism=proposal.mechanism, falsifiableTrigger=proposal.falsifiableTrigger,
+            sensitivity=proposal.sensitivity, createdAsOf=as_of, lastChangedAsOf=as_of,
+            provenance=f"proposed@{as_of}",
+        )
+        proposed_record = {
+            "asOf": as_of, "event": "proposed", "thesisId": new_id,
+            "detail": new_entry.model_dump(),
+            "note": f"{new_id}: new provisional thesis proposed",
+        }
+        records.append(proposed_record)
+        working_book = apply_record(working_book, proposed_record)
+        notes.append(proposed_record["note"])
+
+    combined_records = [*history, *records]
+    for entry in working_book.entries:
+        if entry.status != "provisional":
+            continue
+        eligible, n_asofs, n_domains = _promotion_eligible(entry.id, combined_records)
+        if not eligible:
+            continue
+        promoted_record = {
+            "asOf": as_of, "event": "promoted", "thesisId": entry.id, "detail": None,
+            "note": (
+                f"{entry.id}: promoted to registered "
+                f"({n_asofs} distinct asOfs, {n_domains} publisher domains)"
+            ),
+        }
+        records.append(promoted_record)
+        working_book = apply_record(working_book, promoted_record)
+        notes.append(promoted_record["note"])
+
+    return working_book, records, notes

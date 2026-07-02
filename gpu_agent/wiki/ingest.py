@@ -17,6 +17,12 @@ INGEST_SYSTEM = (
 )
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
+_AS_OF_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?$")
+
+
+def _check_as_of_grain(as_of: str) -> None:
+    if not _AS_OF_RE.match(as_of):
+        raise ValueError(f"invalid asOf grain: {as_of!r}")
 
 
 def slug(entity: str) -> str:
@@ -144,6 +150,7 @@ def route_findings(store: WikiStore, findings: list[Finding], *, as_of: str,
                    category: str | None = None) -> list[str]:
     """Phase 1 (deterministic): append each gated finding to its entity page, idempotently.
     Returns the sorted list of touched page ids."""
+    _check_as_of_grain(as_of)
     touched: set[str] = set()
     for f in findings:
         pid = _entity_page_id(f)
@@ -197,6 +204,7 @@ def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> N
     and every number in the body must trace to a cited finding (or the page's own state/trajectory).
     All pages are validated and all violations collected before raising, so nothing is written on
     a rejection."""
+    _check_as_of_grain(as_of)
     violations: list[str] = []
     for pe in result.pages:
         violations.extend(_validate_enrichment_gate(store, pe))
@@ -218,7 +226,8 @@ def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> N
             store.update_header(pe.pageId, as_of=as_of, crossRefs=pe.crossRefs)
         if pe.contradictsThesis:
             contradictions.append((pe.pageId, pe.contradictionNote))
-    already_logged = any(e.kind == "ingest" and e.asOf == as_of for e in store.log.read())
+    detail = format_contradiction_detail(len(result.pages), contradictions)
+    already_logged = any(e.kind == "ingest" and e.asOf == as_of and e.detail == detail
+                         for e in store.log.read())
     if not already_logged:
-        detail = format_contradiction_detail(len(result.pages), contradictions)
         store.log.append(asOf=as_of, kind="ingest", detail=detail)

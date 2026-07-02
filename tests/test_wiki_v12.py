@@ -135,3 +135,63 @@ def test_gate_ignores_list_markers_and_matches_year_in_evidence_date(tmp_path):
     body = "## NVDA\n1. Guidance reaffirmed for 2026 [f-1].\n"
     apply_enrichment(ws, _enrich(bodyMarkdown=body), as_of="2026-06-28")
     assert "reaffirmed" in ws.window("entity:nvda", 0).body
+
+
+# ---------------------------------------------------------------------------
+# Task 3 (F13-E): ingest events keyed per run; asOf grain validated
+# ---------------------------------------------------------------------------
+
+def test_apply_enrichment_rejects_invalid_asof_grain(tmp_path):
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    with pytest.raises(ValueError, match="invalid asOf grain"):
+        apply_enrichment(ws, _enrich(), as_of="June 2026")
+
+
+def test_route_findings_rejects_invalid_asof_grain(tmp_path):
+    ws = _store(tmp_path)
+    with pytest.raises(ValueError, match="invalid asOf grain"):
+        route_findings(ws, [_f("f-1", "NVDA")], as_of="June 2026")
+
+
+def test_two_different_enrichments_same_asof_both_logged(tmp_path):
+    # Different CONTENT (contradiction present vs. not) -> different detail -> both logged, even
+    # though both calls share the same asOf.
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(bodyMarkdown="## NVDA\nDC up [f-1].\n"), as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(bodyMarkdown="## NVDA\nDC up [f-1].\n",
+                                 contradictsThesis=True, contradictionNote="guidance cut"),
+                     as_of="2026-06-28")
+    ingest_events = [e for e in ws.log.read() if e.kind == "ingest"]
+    assert len(ingest_events) == 2
+
+
+def test_same_enrichment_applied_twice_same_asof_is_idempotent(tmp_path):
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(), as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(), as_of="2026-06-28")  # identical re-apply
+    ingest_events = [e for e in ws.log.read() if e.kind == "ingest"]
+    assert len(ingest_events) == 1
+
+
+def test_lint_aggregates_contradictions_from_both_same_asof_ingest_events(tmp_path):
+    from gpu_agent.registry.indicators import IndicatorRegistry
+    from gpu_agent.registry.horizon import IndicatorHorizons
+    from gpu_agent.wiki.lint import lint
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    hz = IndicatorHorizons.load("registry/indicators.json")
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA"), _f("f-2", "AMD")], as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(pageId="entity:nvda",
+                                 bodyMarkdown="## NVDA\nDC up [f-1].\n",
+                                 contradictsThesis=True, contradictionNote="guidance cut"),
+                     as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(pageId="entity:amd",
+                                 bodyMarkdown="## AMD\nShare up [f-2].\n",
+                                 contradictsThesis=True, contradictionNote="share loss"),
+                     as_of="2026-06-28")
+    report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
+    contra_ids = {c.pageId for c in report.health.contradictions}
+    assert contra_ids == {"entity:nvda", "entity:amd"}

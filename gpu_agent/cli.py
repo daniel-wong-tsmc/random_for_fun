@@ -159,7 +159,9 @@ def _wiki_lifecycle(args) -> int:
                       FindingStore(pathlib.Path(args.store) / "findings"))
     registry, _ = _load_registry()
     horizons = IndicatorHorizons.load("registry/indicators.json")
-    lint_report = lint(store, as_of=args.as_of, registry=registry, horizons=horizons)
+    # F32: the propose path is a READ — record=False so it neither logs nor mints a cycle.
+    lint_report = lint(store, as_of=args.as_of, registry=registry, horizons=horizons,
+                       record=False)
     report = lifecycle(store, as_of=args.as_of, stale=lint_report.health.stale)
     payload = report.model_dump_json(indent=2)
     if args.report:

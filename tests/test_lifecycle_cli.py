@@ -34,6 +34,18 @@ def test_wiki_lifecycle_propose_prints_report(tmp_path, capsys):
     assert store.get_page("entity:nvda").status == "provisional"
 
 
+def test_wiki_lifecycle_propose_writes_no_log_event(tmp_path, capsys):
+    # F32: the propose path is a pure read — its lint pass runs record=False, so the
+    # wiki log is byte-identical before and after (no lint event, no minted cycle).
+    root = tmp_path / "store"
+    store = _seed_promotable(root)
+    before = len(store.log.read())
+    rc = main(["wiki-lifecycle", "--store", str(root), "--as-of", "2026-07"])
+    assert rc == 0
+    capsys.readouterr()
+    assert len(store.log.read()) == before
+
+
 def test_wiki_lifecycle_apply_promotes(tmp_path, capsys):
     root = tmp_path / "store"
     _seed_promotable(root)

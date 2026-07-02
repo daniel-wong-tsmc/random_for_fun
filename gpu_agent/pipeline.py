@@ -89,6 +89,7 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
                     narrative: str, confidence: Confidence, registry,
                     *, category_status: CategoryStatus | None = None,
                     horizons: IndicatorHorizons | None = None) -> Scorecard:
+    ratings = dict(ratings)   # F3 caps replace entries; never mutate the caller's dict
     findings_by_id = {f.id: f for f in findings}
     side_violations = [
         f"{f.id}: side '{f.side}' contradicts registry side '{spec.side}' for {f.indicatorId}"

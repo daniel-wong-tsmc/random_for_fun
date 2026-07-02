@@ -22,11 +22,10 @@ def test_wiki_ingest_emit_prompt_prints_bundle(tmp_path, capsys):
 
 
 def test_wiki_ingest_recorded_applies_enrichment(tmp_path):
-    # NOTE: fixtures/recorded/ingest-merchant-gpu.json is owned by another lane and still
-    # carries the model-supplied `salience` field that F15 (Lane E) forbids on PageEnrichment
-    # (extra="forbid"); rather than edit that shared fixture, this test builds its own
-    # recorded IngestResult with the current (salience-free) schema, citing a real gated
-    # finding id from the golden fixture (f-nvda-d2) so the F14 citation gate resolves.
+    # This test builds its own recorded IngestResult with the current (salience-free)
+    # schema, citing a real gated finding id from the golden fixture (f-nvda-d2) so the
+    # F14 citation gate resolves. (fixtures/recorded/ingest-merchant-gpu.json was
+    # regenerated salience-free at the Wave-1 merge and stays a shape example.)
     recorded = tmp_path / "recorded.json"
     recorded.write_text(json.dumps({
         "pages": [{

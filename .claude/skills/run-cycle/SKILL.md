@@ -70,7 +70,9 @@ with a logged reason** (no empty scorecard) and continue.
 ```
 .venv/Scripts/python -m gpu_agent.cli extract --emit-prompt --docs <docs> --as-of <asOf>
 ```
-This prints `{"system","schema","docs":[{"id","user"}, ...]}`. **Dispatch one Opus subagent** with that
+This prints `{"system","schema","docs":[{"id","user"}, ...]}`. **Dispatch one TOOL-LESS Opus subagent**
+(no tools at all — pure reasoning over the provided text; a tool-bearing subagent could be steered by
+instructions injected inside a fetched document, Part 26/F16) with that
 `system`, the per-document `user` prompts, and the `schema`, instructing it: *"Answer each document's prompt.
 Return ONLY a JSON array whose every element is a JSON **string** containing one serialized object matching
 the schema — one per document, in the given order (i.e. `["{...}", "{...}", ...]`, the array-of-serialized-
@@ -89,12 +91,14 @@ Gate the answer into findings (this runs the deterministic gate):
 ```
 .venv/Scripts/python -m gpu_agent.cli judge --emit-prompt --findings <work>/findings.json --category <id>
 ```
-This prints `{"system","schema","user","samples"}`. **Dispatch one Opus subagent** with that `system`,
-`user`, and `schema`, instructing it: *"Produce `samples` INDEPENDENT answers to this one prompt. Return ONLY
-a JSON array of `samples` elements, each a JSON **string** containing one serialized object matching the
-schema (i.e. `["{...}", ...]`, the array-of-serialized-strings shape `judge --recorded` consumes, matching
-`fixtures/recorded/judge-nvda.json`). Ratings are judgment bounded by the anchors; cite finding ids; invent
-nothing."* Save its answer to `<work>/judge-answer.json`.
+This prints `{"system","schema","user","samples"}`. **Dispatch `samples` SEPARATE tool-less Opus
+subagents in one message** (one generation per sample — a single subagent producing all samples yields
+CORRELATED votes and fake self-consistency, F38), each with that `system`, `user`, and `schema`,
+instructing each: *"Answer this prompt once. Return ONLY a JSON **string** containing one serialized
+object matching the schema. Ratings are judgment bounded by the anchors; cite finding ids; invent
+nothing."* The SESSION then assembles the answers, in dispatch order, into a JSON array of `samples`
+serialized-object strings (i.e. `["{...}", ...]`, the shape `judge --recorded` consumes, matching
+`fixtures/recorded/judge-nvda.json`) and saves it to `<work>/judge-answer.json`.
 *(recorded mode: use `fixtures/recorded/judge-nvda.json` as the answer.)*
 
 **(d) Score + store (deterministic).** Run the frozen brain over both saved answers — this re-gates, judges,

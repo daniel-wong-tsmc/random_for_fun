@@ -16,11 +16,11 @@ def _extract_draft():
         "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed",
                    "mechanism": "slope flattening caps DMI"},
         "evidence": [{"source": "NVIDIA 10-Q", "url": "https://www.sec.gov/x",
-                      "date": "2026-05", "excerpt": "grew about 8% sequentially", "tier": "primary"}],
+                      "date": "2026-05-01", "excerpt": "grew about 8% sequentially", "tier": "primary"}],
         "reasoning": None, "confidence": {"level": "high", "basis": "primary filing"},
         "dispersion": None, "indicatorId": "D2", "side": "demand",
         "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
-        "entity": "nvidia", "observedAt": "2026-05"}]})
+        "entity": "nvidia", "observedAt": "2026-05-01"}]})
 
 def _judge(finding_id):
     return json.dumps({"dimensions": {"momentum": {

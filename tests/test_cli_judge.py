@@ -6,9 +6,10 @@ ASSIGN = "fixtures/asg.chips.merchant-gpu.json"
 def _clean_finding(fid="x-1"):
     return {"id": fid, "statement": "s", "kind": "observed", "trend": "flat", "why": "w",
             "impact": {"targets": ["t"], "direction": "positive", "mechanism": "m"},
+            "evidence": [{"source": "S", "url": "u", "date": "2026-06-01", "excerpt": "e", "tier": "primary"}],
             "confidence": {"level": "medium", "basis": "b"}, "asOf": "2026-06",
             "indicatorId": "D2", "side": "demand", "polarityDemand": 1, "polaritySupply": 0,
-            "magnitude": 2, "entity": "E", "observedAt": "2026-06",
+            "magnitude": 2, "entity": "E", "observedAt": "2026-06-01",
             "capturedAt": "2026-06-12T00:00:00Z"}
 
 def test_judge_writes_three_files(tmp_path):

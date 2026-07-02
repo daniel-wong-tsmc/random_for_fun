@@ -61,11 +61,11 @@ def test_extract_ignores_gather_log(tmp_path):
         "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed",
                    "mechanism": "slope flattening caps DMI"},
         "evidence": [{"source": "NVIDIA 10-Q", "url": "https://www.sec.gov/nvda/10q",
-                      "date": "2026-05", "excerpt": "grew about 8% sequentially", "tier": "primary"}],
+                      "date": "2026-05-01", "excerpt": "grew about 8% sequentially", "tier": "primary"}],
         "reasoning": None, "confidence": {"level": "high", "basis": "primary filing"},
         "dispersion": None, "indicatorId": "D2", "side": "demand",
         "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
-        "entity": "nvidia", "observedAt": "2026-05",
+        "entity": "nvidia", "observedAt": "2026-05-01",
     }
     rec = tmp_path / "rec-extract.json"
     rec.write_text(json.dumps([json.dumps({"drafts": [draft]})]), "utf-8")

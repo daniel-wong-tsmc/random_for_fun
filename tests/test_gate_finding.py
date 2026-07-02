@@ -5,10 +5,10 @@ def _base(**over):
     data = {
         "id": "f", "statement": "s", "kind": "observed", "value": None, "trend": "flat",
         "why": "because", "impact": {"targets": ["chips.merchant-gpu"], "direction": "positive", "mechanism": "m"},
-        "evidence": [{"source": "S", "url": "u", "date": "2026-05", "excerpt": "e", "tier": "secondary"}],
+        "evidence": [{"source": "S", "url": "u", "date": "2026-05-01", "excerpt": "e", "tier": "primary"}],
         "reasoning": None, "confidence": {"level": "high", "basis": "b"}, "dispersion": None, "asOf": "2026-06",
         "indicatorId": "S9", "side": "supply", "polarityDemand": -1, "polaritySupply": 1, "magnitude": 2,
-        "entity": "AMD", "observedAt": "2026-05", "capturedAt": "2026-06-12", "schemaVersion": "1.0",
+        "entity": "AMD", "observedAt": "2026-05-01", "capturedAt": "2026-06-12", "schemaVersion": "1.0",
     }
     data.update(over)
     return Finding.model_validate(data)

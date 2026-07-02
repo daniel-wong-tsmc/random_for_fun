@@ -9,9 +9,10 @@ def _f(fid="real-1", indicator="D2", pD=1, pS=0, mag=2) -> Finding:
     return Finding(
         id=fid, statement="s", kind="observed", trend="flat", why="w",
         impact=Impact(targets=["t"], direction="positive", mechanism="m"),
+        evidence=[{"source": "S", "url": "u", "date": "2026-06-01", "excerpt": "e", "tier": "primary"}],
         confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
         indicatorId=indicator, side="demand", polarityDemand=pD, polaritySupply=pS,
-        magnitude=mag, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+        magnitude=mag, entity="E", observedAt="2026-06-01", capturedAt="2026-06-12T00:00:00Z")
 
 def _judgment(rating, find_ids=("real-1",), bottleneck="momentum"):
     return json.dumps({

@@ -11,10 +11,10 @@ def _finding():
     return Finding.model_validate({
         "id": "f-001", "statement": "s", "kind": "measured", "value": {"number": 8.0, "unit": "%"},
         "trend": "rising", "why": "w", "impact": {"targets": ["x"], "direction": "mixed", "mechanism": "m"},
-        "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05", "excerpt": "e", "tier": "primary"}],
+        "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "e", "tier": "primary"}],
         "confidence": {"level": "high", "basis": "b"}, "asOf": "2026-06", "indicatorId": "D2",
         "side": "demand", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 3,
-        "entity": "NVDA", "observedAt": "2026-05", "capturedAt": "2026-06-12"})
+        "entity": "NVDA", "observedAt": "2026-05-01", "capturedAt": "2026-06-12"})
 
 def _rating(fids):
     return DimensionRating(rating="Strong", direction="worsening",
@@ -80,10 +80,10 @@ def _leading_finding(fid="f-lead", indicator="rpoBacklog", pd=1, ps=0, mag=3):
     return Finding.model_validate({
         "id": fid, "statement": "s", "kind": "observed", "value": None, "trend": "rising",
         "why": "w", "impact": {"targets": ["x"], "direction": "mixed", "mechanism": "m"},
-        "evidence": [{"source": "S", "url": "u", "date": "2026-05", "excerpt": "e", "tier": "primary"}],
+        "evidence": [{"source": "S", "url": "u", "date": "2026-05-01", "excerpt": "e", "tier": "primary"}],
         "confidence": {"level": "high", "basis": "b"}, "asOf": "2026-06", "indicatorId": indicator,
         "side": "demand", "polarityDemand": pd, "polaritySupply": ps, "magnitude": mag,
-        "entity": "NVDA", "observedAt": "2026-05", "capturedAt": "2026-06-12"})
+        "entity": "NVDA", "observedAt": "2026-05-01", "capturedAt": "2026-06-12"})
 
 
 def test_partition_by_horizon_buckets_leading_vs_rest():

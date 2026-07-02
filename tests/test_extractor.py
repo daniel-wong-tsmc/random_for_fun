@@ -11,10 +11,10 @@ def _good_draft():
     return {"statement": "DC growth flattened", "kind": "measured",
             "value": {"number": 8.0, "unit": "% QoQ"}, "trend": "rising", "why": "digestion",
             "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed", "mechanism": "caps DMI"},
-            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05", "excerpt": "8%", "tier": "primary"}],
+            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "8%", "tier": "primary"}],
             "confidence": {"level": "high", "basis": "filing"}, "indicatorId": "D2",
             "side": "demand", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
-            "entity": "NVDA", "observedAt": "2026-05"}
+            "entity": "NVDA", "observedAt": "2026-05-01"}
 
 def _gate_violating_draft():
     # measured but value=None -> check_finding flags "missing value"

@@ -10,9 +10,9 @@ def _recorded(p: pathlib.Path):
     draft = {"statement": "DC growth", "kind": "measured", "value": {"number": 8.0, "unit": "% QoQ"},
              "trend": "rising", "why": "digestion",
              "impact": {"targets": ["chips.merchant-gpu"], "direction": "mixed", "mechanism": "caps DMI"},
-             "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05", "excerpt": "8%", "tier": "primary"}],
+             "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "8%", "tier": "primary"}],
              "confidence": {"level": "high", "basis": "filing"}, "indicatorId": "D2", "side": "demand",
-             "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2, "entity": "NVDA", "observedAt": "2026-05"}
+             "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2, "entity": "NVDA", "observedAt": "2026-05-01"}
     p.write_text(json.dumps([json.dumps({"drafts": [draft]})]), "utf-8")
 
 def test_extract_writes_gated_findings(tmp_path):

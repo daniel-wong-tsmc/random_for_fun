@@ -7,10 +7,10 @@ def _sc(**over):
         "findings": [{
             "id": "f-001", "statement": "s", "kind": "measured", "value": {"number": 8.0, "unit": "%"},
             "trend": "rising", "why": "w", "impact": {"targets": ["x"], "direction": "mixed", "mechanism": "m"},
-            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05", "excerpt": "e", "tier": "primary"}],
+            "evidence": [{"source": "NVIDIA 10-Q", "url": "u", "date": "2026-05-01", "excerpt": "e", "tier": "primary"}],
             "confidence": {"level": "high", "basis": "b"}, "asOf": "2026-06", "indicatorId": "D2",
             "side": "demand", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 2,
-            "entity": "NVDA", "observedAt": "2026-05", "capturedAt": "2026-06-12",
+            "entity": "NVDA", "observedAt": "2026-05-01", "capturedAt": "2026-06-12",
         }],
         "dimensionRatings": {"momentum": {"rating": "Strong", "direction": "worsening",
             "confidence": {"level": "high", "basis": "b"}, "findingIds": ["f-001"], "rationale": "r"}},

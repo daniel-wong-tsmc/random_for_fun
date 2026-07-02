@@ -12,6 +12,7 @@ store/*
 !store/wiki/
 !store/findings/
 !store/seen_docs.jsonl
+!store/theses/
 work/
 blobs.json
 .worktrees/

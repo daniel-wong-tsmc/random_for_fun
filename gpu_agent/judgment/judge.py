@@ -77,8 +77,9 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBund
                    if d in r.dimensions and r.dimensions[d].rating == winner)
         ratings[d] = DimensionRating(
             rating=winner, direction=rep.direction, findingIds=rep.findingIds,
-            rationale=rep.rationale,
-            confidence=Confidence(level="high" if unanimous else "medium", basis=basis))
+            rationale=rep.rationale, voteSpread=basis,
+            confidence=Confidence(level="high" if unanimous else "medium",
+                                  basis=f"majority of {len(votes)}/{n} samples"))
     confidence = Confidence(
         level="high" if all_unanimous else "medium",
         basis=f"self-consistency over {len(results)} samples")

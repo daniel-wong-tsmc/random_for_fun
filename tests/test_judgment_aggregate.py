@@ -26,7 +26,8 @@ def test_aggregate_caps_confidence_when_split():
     r = bundle.ratings["momentum"]
     assert r.rating == "Strong"
     assert r.confidence.level == "medium"           # split -> capped
-    assert r.confidence.basis == "2/3 Strong, 1/3 Mixed"
+    assert r.voteSpread == "2/3 Strong, 1/3 Mixed"
+    assert r.confidence.basis == "majority of 3/3 samples"
     assert bundle.anchors == {"momentum": 0.5}      # anchors copied from briefing, untouched
 
 def test_aggregate_unanimous_keeps_high_confidence():

@@ -11,6 +11,7 @@ class DimensionRating(BaseModel):
     confidence: Confidence
     findingIds: list[str]
     rationale: str
+    voteSpread: Optional[str] = None
 
 class DimensionStatus(BaseModel):
     evidenceStatus: Literal["grounded", "under-supported"]

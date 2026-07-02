@@ -14,8 +14,9 @@
 
 ## Must-have
 
-- [ ] **F1 — Protect the canonical store.** `store/` is gitignored; all history is one
-  `git clean -xdf` from gone. Commit it or add a versioned backup. *(Wave 0)*
+- [x] **F1 — Protect the canonical store.** `store/` is gitignored; all history is one
+  `git clean -xdf` from gone. Commit it or add a versioned backup. *(Wave 0 — DONE f7ace81:
+  canonical paths tracked; scratch subtrees stay ignored)*
 - [ ] **F2 — Evidence-integrity gate bundle** (`gate.py`, `extraction/`): **(a)** `observed`
   requires ≥1 evidence (today `gate.py:7-14` only checks measured); **(b)** `evidence.excerpt`
   must appear in the source document content; **(c)** `evidence.url == doc.url`;
@@ -136,20 +137,24 @@
   ids/slugs (path escape, `wiki/store.py:82-84`); crash-recoverable `route_findings`. *(Lane G)*
 - [ ] **F42 — Hardcoded paths → config.** `registry/indicators.json` / `docs/taxonomy.json` are
   cwd-relative literals across the CLI. *(Lane G)*
-- [ ] **F43 — Move gather outputs out of `docs/`; reconcile `ingested/`.** 20 scraped JSONs beside
+- [x] **F43 — Move gather outputs out of `docs/`; reconcile `ingested/`.** 20 scraped JSONs beside
   the charter (the skill's `--out docs` example is the cause); duplicate folder missing
-  `coverageGaps`; gitignore the artifacts. *(Wave 0)*
-- [ ] **F44 — Refresh continuity docs.** HANDOFF.md instructs redoing the merged 4-5b;
-  START-HERE.md describes the dead OAuth backend. *(Wave 0)*
-- [ ] **F45 — Honesty overlay on `swarm-graph.html`.** Mark built vs deferred; today it presents
-  all 34 agents + 3 tiers as existing. *(Wave 0)*
+  `coverageGaps`; gitignore the artifacts. *(Wave 0 — DONE 839113b: skill writes to work/;
+  artifacts archived under work/gather-2026-07-02/)*
+- [x] **F44 — Refresh continuity docs.** HANDOFF.md instructs redoing the merged 4-5b;
+  START-HERE.md describes the dead OAuth backend. *(Wave 0 — DONE 7b93be3)*
+- [x] **F45 — Honesty overlay on `swarm-graph.html`.** Mark built vs deferred; today it presents
+  all 34 agents + 3 tiers as existing. *(Wave 0 — DONE f173165: build-status overlay,
+  BUILT/PARTIAL/DEFERRED badges + panel status + legend)*
 - [ ] **F46 — Run a real second cycle.** Sub-project 4's machinery has never executed against real
   state (no `store/wiki/`, no `seen_docs.jsonl`; v1–v6 are same-month reruns). Cheapest integration
   test available. *(Validation gate after Wave 1)*
-- [ ] **F47 — Retire or sync the stale doc tree** in `Documents\TSMC\ai4bi\ai_state_of_the_market`;
-  pull `action-items.md` into this repo. *(Wave 0)*
-- [ ] **F48 — Front door.** Real readme (and consider the repo name before anything is shown under
-  TSMC branding). *(Wave 0)*
+- [x] **F47 — Retire or sync the stale doc tree** in `Documents\TSMC\ai4bi\ai_state_of_the_market`;
+  pull `action-items.md` into this repo. *(Wave 0 — DONE c83ae83: action-items.md in-repo;
+  external tree got a RETIRED.md pointer, nothing deleted)*
+- [x] **F48 — Front door.** Real readme (and consider the repo name before anything is shown under
+  TSMC branding). *(Wave 0 — DONE 86d0224: real readme with honest build status; repo RENAME
+  remains a user call, flagged in the readme)*
 - [ ] **F49 — Price Momentum Index overlay** (born from the F8 decision). Compute the price-side
   rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
   blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.

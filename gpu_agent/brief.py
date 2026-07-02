@@ -186,3 +186,29 @@ def render_what_moved(movement) -> str:
     if movement.foldedCount:
         lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
     return "\n".join(lines)
+
+
+def _storyline_line(s) -> str:
+    return (f"    • {s.title}  {s.state} → {s.trajectory}  "
+            f"(last updated {s.lastUpdatedAsOf})  {_traj_arrow(s.trajectory)}")
+
+
+def render_storylines(movement) -> str:
+    """STORYLINES: the tracked threads' state → trajectory + last-change, split by
+    partition_canonical into REGISTERED (canonical) and PROVISIONAL (confidence-capped),
+    each ordered by salience desc. Pure; movement=None → honest empty-state."""
+    lines = ["STORYLINES (tracked over time)"]
+    if movement is None:
+        lines.append("  (no wiki store yet — needs a multi-cycle store from daily cycles)")
+        return "\n".join(lines)
+    if not movement.storylines:
+        lines.append("  (no tracked storylines yet)")
+        return "\n".join(lines)
+    _key = lambda s: (-s.salience, s.title)   # deterministic display order: salience desc, then title
+    registered = sorted((s for s in movement.storylines if not s.provisional), key=_key)
+    provisional = sorted((s for s in movement.storylines if s.provisional), key=_key)
+    lines.append("  REGISTERED (canonical)")
+    lines.extend(_storyline_line(s) for s in registered) if registered else lines.append("    (none)")
+    lines.append("  PROVISIONAL (confidence-capped)")
+    lines.extend(_storyline_line(s) for s in provisional) if provisional else lines.append("    (none)")
+    return "\n".join(lines)

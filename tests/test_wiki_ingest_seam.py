@@ -1,7 +1,4 @@
-import pytest
-from pydantic import ValidationError
-from gpu_agent.wiki.ingest import (
-    format_contradiction_detail, parse_contradiction_detail, PageEnrichment)
+from gpu_agent.wiki.ingest import format_contradiction_detail, parse_contradiction_detail
 
 
 def test_format_parse_roundtrip():
@@ -29,15 +26,3 @@ def test_parse_keeps_entity_colon_and_note_colon():
     parsed = parse_contradiction_detail(detail)
     assert parsed["contradictions"] == [{"pageId": "entity:nvda", "note": "guidance: cut deep"}]
 
-
-def test_salience_bound_rejects_out_of_range():
-    with pytest.raises(ValidationError):
-        PageEnrichment(pageId="entity:nvda", bodyMarkdown="b", state="s",
-                       trajectory="t", salience=5.0)
-
-
-def test_salience_bound_accepts_edges():
-    for s in (0.0, 1.0):
-        pe = PageEnrichment(pageId="entity:nvda", bodyMarkdown="b", state="s",
-                            trajectory="t", salience=s)
-        assert pe.salience == s

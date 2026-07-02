@@ -33,7 +33,7 @@ def _seed_with_contradiction(ws):
     route_findings(ws, [_f("f-nv", "NVDA")], as_of="2026-06")
     apply_enrichment(ws, IngestResult(pages=[PageEnrichment(
         pageId="entity:nvda", bodyMarkdown="## NVDA\nDC up [f-nv].\n", state="accelerating",
-        trajectory="steady -> accelerating", salience=0.8, contradictsThesis=True,
+        trajectory="steady -> accelerating", contradictsThesis=True,
         contradictionNote="guidance cut")]), as_of="2026-06")
 
 

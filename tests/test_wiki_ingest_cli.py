@@ -22,9 +22,26 @@ def test_wiki_ingest_emit_prompt_prints_bundle(tmp_path, capsys):
 
 
 def test_wiki_ingest_recorded_applies_enrichment(tmp_path):
+    # NOTE: fixtures/recorded/ingest-merchant-gpu.json is owned by another lane and still
+    # carries the model-supplied `salience` field that F15 (Lane E) forbids on PageEnrichment
+    # (extra="forbid"); rather than edit that shared fixture, this test builds its own
+    # recorded IngestResult with the current (salience-free) schema, citing a real gated
+    # finding id from the golden fixture (f-nvda-d2) so the F14 citation gate resolves.
+    recorded = tmp_path / "recorded.json"
+    recorded.write_text(json.dumps({
+        "pages": [{
+            "pageId": "entity:nvda",
+            "bodyMarkdown": "## NVIDIA\nData-center momentum strong; see [f-nvda-d2].\n",
+            "state": "accelerating",
+            "trajectory": "steady -> accelerating",
+            "crossRefs": ["entity:amd"],
+            "contradictsThesis": False,
+            "contradictionNote": "",
+        }]
+    }), encoding="utf-8")
     rc = main(["wiki-ingest", "--findings", "fixtures/golden/findings.json",
                "--store", str(tmp_path), "--as-of", "2026-06",
-               "--recorded", "fixtures/recorded/ingest-merchant-gpu.json"])
+               "--recorded", str(recorded)])
     assert rc == 0
     page_md = (tmp_path / "wiki" / "entity" / "nvda.md").read_text(encoding="utf-8")
     assert "accelerating" in page_md

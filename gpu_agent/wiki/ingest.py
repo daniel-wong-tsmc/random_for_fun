@@ -1,18 +1,19 @@
 from __future__ import annotations
 import re
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from gpu_agent.schema.finding import Finding
 from gpu_agent.wiki.store import WikiStore, PageNotFound
+from gpu_agent.wiki.salience import computed_salience
 
 INGEST_SYSTEM = (
     "You curate a per-entity wiki of the GPU market. For each entity page you are given its "
     "standing thesis (current state/trajectory/body) and the day's new GATED findings. Return an "
     "IngestResult: for each page, write a concise markdown body that synthesizes the thesis with "
     "the new findings (every claim must cite a finding id like [f-123]); set a short state and a "
-    "trajectory ('from -> to'); set a salience in [0,1] for how much this page matters now; list "
-    "crossRefs to other entity page ids you mention; and set contradictsThesis=true with a short "
-    "contradictionNote when a new finding opposes the page's current state. Never invent numbers — "
-    "only cite what the findings state. Only enrich pages you were given; do not invent page ids."
+    "trajectory ('from -> to'); list crossRefs to other entity page ids you mention; and set "
+    "contradictsThesis=true with a short contradictionNote when a new finding opposes the page's "
+    "current state. Never invent numbers — only cite what the findings state. Only enrich pages "
+    "you were given; do not invent page ids."
 )
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
@@ -54,11 +55,12 @@ def parse_contradiction_detail(detail: str) -> dict:
 
 
 class PageEnrichment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     pageId: str
     bodyMarkdown: str
     state: str
     trajectory: str
-    salience: float = Field(ge=0.0, le=1.0)
     crossRefs: list[str] = Field(default_factory=list)
     contradictsThesis: bool = False
     contradictionNote: str = ""
@@ -132,9 +134,11 @@ def apply_enrichment(store: WikiStore, result: IngestResult, *, as_of: str) -> N
             raise ValueError(f"enrichment targets non-entity page: {pe.pageId}")
         page = store.get_page(pe.pageId)  # raises PageNotFound (loud) if missing
         store.set_body(pe.pageId, pe.bodyMarkdown, as_of=as_of)  # idempotent
-        if (page.state, page.trajectory, page.salience) != (pe.state, pe.trajectory, pe.salience):
+        salience = computed_salience(store, pe.pageId, as_of=as_of,
+                                     contradiction=pe.contradictsThesis)
+        if (page.state, page.trajectory, page.salience) != (pe.state, pe.trajectory, salience):
             store.record_state(pe.pageId, as_of=as_of, state=pe.state,
-                               trajectory=pe.trajectory, salience=pe.salience)
+                               trajectory=pe.trajectory, salience=salience)
         if page.crossRefs != pe.crossRefs:
             store.update_header(pe.pageId, as_of=as_of, crossRefs=pe.crossRefs)
         if pe.contradictsThesis:

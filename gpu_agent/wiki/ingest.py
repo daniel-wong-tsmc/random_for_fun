@@ -104,10 +104,13 @@ def _numeric_tokens(text: str) -> set[str]:
     return out
 
 
-def _cited_findings_corpus(store: WikiStore, cited_ids: set[str], pe: PageEnrichment) -> str:
-    """Concatenation of everything a cited finding is allowed to justify a number with, plus the
-    enrichment's own state/trajectory strings. Commas are stripped so a comma-formatted number in
-    an excerpt (e.g. '$75,200,000,000') still matches the body's normalized token."""
+def _allowed_numeric_tokens(store: WikiStore, cited_ids: set[str], pe: PageEnrichment) -> set[str]:
+    """The set of numeric tokens a page body may mention: everything extractable from its cited
+    findings (statement, why, value.number renderings, evidence excerpts and dates) plus the
+    enrichment's own state/trajectory strings — tokenized with the SAME regex + normalization
+    used on the body, so the gate compares token to token, never substring to string (a
+    fabricated '20' can no longer ride inside a date like '2026-06-15'). A date tokenizes into
+    its honest components ('2026', '06', '15'), each individually citable."""
     parts = [pe.state, pe.trajectory]
     for fid in sorted(cited_ids):
         if not store.findings.exists(fid):
@@ -116,26 +119,34 @@ def _cited_findings_corpus(store: WikiStore, cited_ids: set[str], pe: PageEnrich
         parts.append(f.statement)
         parts.append(f.why)
         if f.value is not None:
-            parts.append(repr(f.value.number))
-            parts.append(f"{f.value.number:g}")
+            v = f.value.number
+            # Multiple renderings so the body can cite the value however it was written:
+            # f"{v:g}" degrades to scientific notation for large floats ("7.52e+10"), so the
+            # integral form str(int(v)) is included whenever v is a whole number.
+            parts.extend([str(v), repr(v), f"{v:g}"])
+            if v.is_integer():
+                parts.append(str(int(v)))
         for e in f.evidence:
             parts.append(e.excerpt)
             parts.append(e.date)
-    return " ".join(parts).replace(",", "")
+    allowed: set[str] = set()
+    for p in parts:
+        allowed |= _numeric_tokens(p)
+    return allowed
 
 
 def _validate_enrichment_gate(store: WikiStore, pe: PageEnrichment) -> list[str]:
     """F14: every citation must resolve to a gated finding; every number in the body must trace
-    to a cited finding (or the enrichment's own state/trajectory). Returns violation strings;
-    empty means the page is clean."""
+    to a cited finding (or the enrichment's own state/trajectory) by exact token equality.
+    Returns violation strings; empty means the page is clean."""
     violations: list[str] = []
     cited = _cited_finding_ids(pe.bodyMarkdown)
     for token in sorted(cited):
         if not store.findings.exists(token):
             violations.append(f"{pe.pageId}: cites unknown finding {token}")
-    corpus = _cited_findings_corpus(store, cited, pe)
+    allowed = _allowed_numeric_tokens(store, cited, pe)
     for token in sorted(_numeric_tokens(pe.bodyMarkdown)):
-        if token not in corpus:
+        if token not in allowed:
             violations.append(f"{pe.pageId}: uncited number {token}")
     return violations
 

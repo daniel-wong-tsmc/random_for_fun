@@ -9,18 +9,19 @@ from gpu_agent.wiki.ingest import (
     EnrichmentGateError)
 from gpu_agent.wiki.salience import computed_salience
 from gpu_agent.wiki.lifecycle import corroboration
-from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence
+from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence, Value
 
 
 def _store(tmp_path):
     return WikiStore(tmp_path / "wiki", FindingStore(tmp_path / "findings"))
 
 
-def _f(fid, entity, *, indicatorId="D2", asOf="2026-06", evidence=None):
+def _f(fid, entity, *, indicatorId="D2", asOf="2026-06", evidence=None, value=None):
     return Finding(
         id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
         impact=Impact(targets=["x"], direction="negative", mechanism="m"),
-        evidence=evidence or [], confidence=Confidence(level="medium", basis="b"), asOf=asOf,
+        evidence=evidence or [], value=value,
+        confidence=Confidence(level="medium", basis="b"), asOf=asOf,
         indicatorId=indicatorId, side="demand", polarityDemand=1, polaritySupply=0,
         magnitude=2, entity=entity, observedAt=asOf, capturedAt=f"{asOf}-12")
 
@@ -136,6 +137,41 @@ def test_gate_ignores_list_markers_and_matches_year_in_evidence_date(tmp_path):
     body = "## NVDA\n1. Guidance reaffirmed for 2026 [f-1].\n"
     apply_enrichment(ws, _enrich(bodyMarkdown=body), as_of="2026-06-28")
     assert "reaffirmed" in ws.window("entity:nvda", 0).body
+
+
+def test_gate_rejects_fabricated_number_that_is_substring_of_a_date(tmp_path):
+    # Merge-review reproduction: with substring containment, a fabricated "20" passed because
+    # "20" is a substring of the evidence date "2026-06-15". Token equality must reject it.
+    ws = _store(tmp_path)
+    ev = [Evidence(source="10-Q", url="http://sec/nvda", date="2026-06-15",
+                   excerpt="no figures disclosed", tier="primary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    result = _enrich(bodyMarkdown="## NVDA\nGained 20 million new customers [f-1].\n")
+    with pytest.raises(EnrichmentGateError) as ei:
+        apply_enrichment(ws, result, as_of="2026-06-28")
+    assert any("uncited number 20" in v for v in ei.value.violations)
+
+
+def test_gate_allows_large_value_number_by_token_equality(tmp_path):
+    # value.number=75200000000.0: f"{v:g}" degrades to "7.52e+10", so the integral rendering
+    # str(int(v)) must be in the corpus for the body's "75200000000" to match exactly.
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA", value=Value(number=75200000000.0, unit="USD"))],
+                   as_of="2026-06-28")
+    result = _enrich(bodyMarkdown="## NVDA\nRevenue hit 75200000000 [f-1].\n")
+    apply_enrichment(ws, result, as_of="2026-06-28")
+    assert "75200000000" in ws.window("entity:nvda", 0).body
+
+
+def test_gate_allows_honest_date_component_token(tmp_path):
+    # "2026" is an honest token of the evidence date "2026-06-15" and must still pass.
+    ws = _store(tmp_path)
+    ev = [Evidence(source="10-Q", url="http://sec/nvda", date="2026-06-15",
+                   excerpt="no figures disclosed", tier="primary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    apply_enrichment(ws, _enrich(bodyMarkdown="## NVDA\nOutlook firm into 2026 [f-1].\n"),
+                     as_of="2026-06-28")
+    assert "2026" in ws.window("entity:nvda", 0).body
 
 
 # ---------------------------------------------------------------------------

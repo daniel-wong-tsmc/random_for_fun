@@ -30,6 +30,7 @@ class JudgmentBundle(BaseModel):
     narrative: str
     confidence: Confidence
     categoryStatus: CategoryStatus | None = None
+    belowQuorum: list[str] = Field(default_factory=list)
 
 class JudgmentError(Exception):
     def __init__(self, violations: list[str]):
@@ -57,14 +58,20 @@ def _representative_index(results: list[JudgmentResult], winners: dict[str, str]
 
 def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBundle:
     dims = {d for r in results for d in r.dimensions}
+    n = len(results)
+    quorum = n // 2 + 1
     ratings: dict[str, DimensionRating] = {}
     winners: dict[str, str] = {}
+    below_quorum: list[str] = []
     all_unanimous = True
     for d in sorted(dims):
         votes = [r.dimensions[d].rating for r in results if d in r.dimensions]
+        if len(votes) < quorum:
+            below_quorum.append(d)          # F19: 1-of-3 is not unanimity, it is absence
+            continue
         winner, basis = _majority(votes)
         winners[d] = winner
-        unanimous = len(set(votes)) == 1
+        unanimous = len(votes) == n and len(set(votes)) == 1
         all_unanimous = all_unanimous and unanimous
         rep = next(r.dimensions[d] for r in results
                    if d in r.dimensions and r.dimensions[d].rating == winner)
@@ -79,7 +86,8 @@ def aggregate(results: list[JudgmentResult], briefing: Briefing) -> JudgmentBund
     return JudgmentBundle(ratings=ratings, anchors=dict(briefing.anchors),
                           narrative=results[rep_i].narrative,
                           categoryStatus=results[rep_i].categoryStatus,
-                          confidence=confidence)
+                          confidence=confidence,
+                          belowQuorum=below_quorum)
 
 
 def _conflicts(bundle: JudgmentBundle) -> list[str]:

@@ -74,6 +74,14 @@
     font-size:10px;font-weight:700;padding:1px 7px;color:#cdd6e2}
   .node.cat .badge{font-size:9px;padding:0 5px}
 
+  /* build-status overlay (F45): what exists today vs the design target */
+  .stb{display:none;position:absolute;top:-9px;left:-9px;background:#0e131b;border:1px solid var(--line);
+    border-radius:20px;font-size:9px;font-weight:800;letter-spacing:.05em;padding:1px 6px;color:#8b96a5}
+  body.status-on .stb{display:block}
+  .stb.built{color:#21c07a;border-color:#21c07a}
+  .stb.partial{color:#f5b73d;border-color:#f5b73d}
+  body.status-on .node.st-deferred{opacity:.45;border-style:dashed}
+
   /* detail panel */
   .panel{position:absolute;top:0;right:0;bottom:0;width:340px;background:#0e131b;border-left:1px solid var(--line);
     overflow-y:auto;z-index:15;padding:16px}
@@ -103,8 +111,9 @@
 <div class="topbar">
   <span class="logo">TSMC</span>
   <h1>AI Market State — Agent Swarm Knowledge Graph</h1>
-  <span class="sub">3 tiers · 5 cake layers · 34 category agents · companion to <code style="color:#7b8794">docs/agent-swarm-charter.md</code></span>
+  <span class="sub">DESIGN TARGET — 3 tiers · 5 cake layers · 34 category agents · built today: <b style="color:#21c07a">1 category agent live</b> · companion to <code style="color:#7b8794">docs/agent-swarm-charter.md</code></span>
   <div class="controls">
+    <label class="toggle"><input type="checkbox" id="tStatus" checked> Build status</label>
     <label class="toggle"><input type="checkbox" id="tReads" checked> Scoped reads</label>
     <label class="toggle"><input type="checkbox" id="tTools" checked> Tier toolkits</label>
     <label class="toggle"><input type="checkbox" id="tMech" checked> Production mechanisms (19–36)</label>
@@ -304,6 +313,20 @@ const edges = [];   // {from, to, kind} kind: rollup|tool|read|chassis
 
 function add(n){ nodes.push(n); return n.id; }
 
+/* build-status overlay (F45) — honest built-vs-deferred, per the repo's actual state */
+const STATUS = {
+  "cat-merchant-gpu":["built","LIVE — the only built category agent: deterministic gather → extract → gate → judge → score pipeline, temporal store + wiki, brief-first report. Six 2026-06 scorecards in store/chips.merchant-gpu/."],
+  "cat-frontier-closed":["partial","Config-only generalization proof (registry indicators + assignment fixture score without code changes). NOT yet runnable end-to-end — empty weights, no manifest (fix F27)."],
+  "dashboard":["partial","Built today: the deterministic brief-first TEXT report (render_report — a pure projection of the store). The interactive dashboard / SSO product surface is deferred (Part 35)."],
+  "main":["deferred","Design target — no Main-tier agent exists yet (the layer-tier arc comes after the fix backlog + feature track)."]
+};
+function statusOf(n){
+  if(STATUS[n.id]) return STATUS[n.id];
+  if(n.tier==="layer") return ["deferred","Design target — the Layer tier is deferred; only cycle-plan scope resolution (layer:<id>, which lists ready vs SKIPPED categories) exists today."];
+  if(n.tier==="category") return ["deferred","Design target — not yet built (the 34-category fan-out is the deferred layer-tier arc)."];
+  return null;
+}
+
 // consumer + main + layers
 add({id:"dashboard", x:layerX(2), y:60, cls:"dashboard", t:"Dashboard / Product surface", c:"recommendation-first · Part 35", badge:"out", tier:"dashboard"});
 add({id:"main", x:layerX(2), y:180, cls:"main", t:"Main / Orchestrator", c:'"Head of research / CIO"', badge:"×1", tier:"main"});
@@ -376,7 +399,7 @@ bg(40,300,1420,90);  lab(48,305,"Layer tier <span class='hint'>· ×5 sector lea
 bg(40,150,1420,90);  lab(48,150,"Main tier <span class='hint'>· ×1 head of research · owns the market thesis & the 'so what'</span>");
 bg(40,30,1420,90);   lab(48,30,"Consumer <span class='hint'>· recommendation-first dashboard & desk-on-demand</span>");
 bg(150,mechY0-26,worldW-300,worldH-mechY0+16);
-lab(158,mechY0-24,"Run it for real <span class='hint'>· Parts 19–36 · production mechanisms — each reuses, never rebuilds — applied across the swarm</span>");
+lab(158,mechY0-24,"Run it for real <span class='hint'>· Parts 19–36 · production mechanisms — each reuses, never rebuilds — applied across the swarm · DESIGN REFERENCE: per-clause enforcement is tracked in docs/fix-backlog.md (F23 compliance matrix)</span>");
 
 const nodeEls={};
 nodes.forEach(n=>{
@@ -385,6 +408,9 @@ nodes.forEach(n=>{
   el.style.left=n.x+"px"; el.style.top=n.y+"px";
   el.innerHTML = n.rawHtml || (`<div class='t'>${esc(n.t)}</div>`+(n.c?`<div class='c'>${esc(n.c)}</div>`:""));
   if(n.badge){const b=document.createElement("div");b.className="badge";b.textContent=n.badge;el.appendChild(b);}
+  const st=statusOf(n);
+  if(st){el.classList.add("st-"+st[0]);
+    const sb=document.createElement("div");sb.className="stb "+st[0];sb.textContent=st[0].toUpperCase();el.appendChild(sb);}
   el.addEventListener("click",e=>{e.stopPropagation();select(n.id);});
   el.addEventListener("mouseenter",()=>highlight(n.id));
   el.addEventListener("mouseleave",clearHi);
@@ -455,18 +481,25 @@ function tierPanel(T){
     + (T.model&&T.model!=="—"?`<div class="model"><b>Model:</b> ${esc(T.model)}</div>`:"");
 }
 
+function stBox(n){
+  const st=statusOf(n);
+  if(!st)return "";
+  const col=st[0]==="built"?"#21c07a":st[0]==="partial"?"#f5b73d":"#8b96a5";
+  return `<div class="hintbox" style="border-left-color:${col}"><b style="color:${col}">Build status: ${esc(st[0].toUpperCase())}.</b> ${esc(st[1])}</div>`;
+}
 function renderPanel(id){
   const n=nodes.find(x=>x.id===id);
   if(!n){overview();return;}
-  if(n.tier==="dashboard"){panel.innerHTML=tierPanel(TIERS.dashboard);return;}
-  if(n.tier==="main"){panel.innerHTML=tierPanel(TIERS.main);return;}
+  if(n.tier==="dashboard"){panel.innerHTML=stBox(n)+tierPanel(TIERS.dashboard);return;}
+  if(n.tier==="main"){panel.innerHTML=stBox(n)+tierPanel(TIERS.main);return;}
   if(n.tier==="layer"){
-    panel.innerHTML=`<div class="hintbox">Layer agent for <b>${esc(n.layerName)}</b> — an instance of the one Layer template (Part 18). Rolls up the categories below it.</div>`+tierPanel(TIERS.layer);
+    panel.innerHTML=stBox(n)+`<div class="hintbox">Layer agent for <b>${esc(n.layerName)}</b> — an instance of the one Layer template (Part 18). Rolls up the categories below it.</div>`+tierPanel(TIERS.layer);
     return;
   }
   if(n.tier==="category"){
     const T=TIERS.category;
-    panel.innerHTML=`<div class="kind">Category agent (instance) · template: <code>category</code></div>`
+    panel.innerHTML=stBox(n)
+      +`<div class="kind">Category agent (instance) · template: <code>category</code></div>`
       +`<h2>${esc(n.t)}</h2><div class="sub">Cake layer: ${esc(n.layerName)} · id <code>${esc(n.c)}</code></div>`
       +section("Covers",[esc(n.note)])
       +section("Produces",["A <b>scorecard</b>: 6-dimension ratings (momentum · unit economics · competitive structure · moat · bottleneck · strategic risk) + Findings + a one-line implication"])
@@ -500,6 +533,16 @@ function overview(){
    <div class="hintbox">The swarm mirrors a human analyst desk: <b>34 desk analysts</b> (category) roll up into
      <b>5 sector leads</b> (layer), into <b>1 head of research</b> (main), into the executive dashboard.
      Demand flows down the cake; constraints flow up; reads are scoped.</div>
+   <div class="hintbox" style="border-left-color:#21c07a"><b>This graph is the DESIGN TARGET, not the current build.</b>
+     Built today: <b style="color:#21c07a">chips.merchant-gpu</b> (live pipeline + temporal store + brief) and the
+     deterministic text report; <b style="color:#f5b73d">models.frontier-closed</b> is a config-only proof. Everything
+     else — 32 categories, the Layer tier, Main, the dashboard — is deferred. Toggle "Build status" to see it.</div>
+   <h3>Build status (today)</h3>
+   <div class="legend">
+     <div class="row"><span class="dot" style="background:#21c07a"></span>BUILT — live, real scorecards in the store</div>
+     <div class="row"><span class="dot" style="background:#f5b73d"></span>PARTIAL — exists in reduced form (text report · config-only proof)</div>
+     <div class="row"><span class="dot" style="background:#39414e"></span>DEFERRED — design target only (dashed/dimmed on the graph)</div>
+   </div>
    <h3>Tiers</h3>
    <div class="legend">
      <div class="row"><span class="dot" style="background:var(--dash)"></span>Dashboard / product surface (consumer)</div>
@@ -546,6 +589,9 @@ function applyNodeVis(){
 }
 ["tReads","tTools","tMech"].forEach(id=>document.getElementById(id).addEventListener("change",()=>{applyEdgeVis();applyNodeVis();}));
 applyEdgeVis();applyNodeVis();
+function applyStatusVis(){document.body.classList.toggle("status-on",document.getElementById("tStatus").checked);}
+document.getElementById("tStatus").addEventListener("change",applyStatusVis);
+applyStatusVis();
 
 /* ---------------- PAN / ZOOM ---------------- */
 const stage=document.getElementById("stage");

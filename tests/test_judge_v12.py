@@ -3,7 +3,7 @@ import pytest
 from gpu_agent.judgment.briefing import Briefing
 from gpu_agent.judgment.judge import JudgmentResult, DimensionJudgment, aggregate, judge_findings, JudgmentError
 from gpu_agent.schema.scorecard import CategoryStatus, DimensionRating
-from gpu_agent.schema.finding import Confidence, Finding, Impact
+from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.llm.recorded import RecordedClient
 
@@ -104,8 +104,10 @@ def _finding(fid: str, level: str) -> Finding:
         id=fid, statement="s", kind="observed", trend="flat", why="w",
         impact=Impact(targets=["t"], direction="positive", mechanism="m"),
         confidence=Confidence(level=level, basis="b"), asOf="2026-06",
+        evidence=[Evidence(source="src", url="https://x.example/a", date="2026-06-12",
+                           excerpt="e", tier="primary")],
         indicatorId="D2", side="demand", polarityDemand=1, polaritySupply=0,
-        magnitude=2, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+        magnitude=2, entity="E", observedAt="2026-06-12", capturedAt="2026-06-12T00:00:00Z")
 
 
 def _result_with_findings(rating: str, finding_ids: list[str], narrative: str = "n") -> JudgmentResult:
@@ -157,8 +159,10 @@ def _v12_finding(fid: str, indicator: str) -> Finding:
         id=fid, statement="s", kind="observed", trend="flat", why="w",
         impact=Impact(targets=["t"], direction="positive", mechanism="m"),
         confidence=Confidence(level="medium", basis="b"), asOf="2026-06",
+        evidence=[Evidence(source="src", url="https://x.example/a", date="2026-06-12",
+                           excerpt="e", tier="primary")],
         indicatorId=indicator, side="demand", polarityDemand=1, polaritySupply=0,
-        magnitude=2, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+        magnitude=2, entity="E", observedAt="2026-06-12", capturedAt="2026-06-12T00:00:00Z")
 
 
 def _v12_judgment(moat_cites: list[str]) -> str:

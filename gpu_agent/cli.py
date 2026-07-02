@@ -434,7 +434,9 @@ def main(argv=None) -> int:
     ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
-                    help="comma-separated authoritative-source host allowlist")
+                    help="comma-separated authoritative-source host allowlist; a generic "
+                         "filings baseline (sec.gov), NOT GPU-specific - extend per category "
+                         "via the gather skill (F26)")
     ig.add_argument("--as-of", default="",
                     help="cycle asOf stamped as first-seen in the L1 dedup index")
     ig.add_argument("--dedup-store", default=None,
@@ -473,7 +475,7 @@ def main(argv=None) -> int:
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
-    jg.add_argument("--category", default="chips.merchant-gpu", help="indicator category id")
+    jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical judgment prompt + schema (no LLM) and exit")
     pl = sub.add_parser("pipeline")

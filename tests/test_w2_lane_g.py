@@ -201,3 +201,25 @@ def test_route_findings_crash_recoverable_and_idempotent_on_retry(tmp_path):
     assert {o.findingId for o in ws.observations("entity:amd")} == {"f-2"}
     # exactly one new event landed (append-observation for f-3); f-1/f-2 were no-ops
     assert len(ws.log.read()) == n_events_after_crash + 1
+
+
+# --- Task 5: F26 (cli half) — de-GPU'd judge --category default ----------------------
+
+def test_judge_without_category_is_a_clean_usage_error(tmp_path):
+    findings = tmp_path / "findings.json"
+    findings.write_text(json.dumps([{
+        "id": "x-1", "statement": "s", "kind": "observed", "trend": "flat", "why": "w",
+        "impact": {"targets": ["t"], "direction": "positive", "mechanism": "m"},
+        "evidence": [{"source": "S", "url": "u", "date": "2026-06-01", "excerpt": "e",
+                      "tier": "primary"}],
+        "confidence": {"level": "medium", "basis": "b"}, "asOf": "2026-06",
+        "indicatorId": "D2", "side": "demand", "polarityDemand": 1, "polaritySupply": 0,
+        "magnitude": 2, "entity": "E", "observedAt": "2026-06-01",
+        "capturedAt": "2026-06-12T00:00:00Z",
+    }]), "utf-8")
+    out = subprocess.run(
+        [sys.executable, "-m", "gpu_agent.cli", "judge", "--findings", str(findings),
+         "--out", str(tmp_path / "jdg"), "--samples", "3"],
+        capture_output=True, text=True)
+    assert out.returncode == 2, out.stderr   # argparse usage error: missing required --category
+    assert "--category" in out.stderr

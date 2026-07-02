@@ -24,7 +24,8 @@ def test_judge_writes_three_files(tmp_path):
     recorded.write_text(json.dumps([judgment] * 3), "utf-8")
     out = tmp_path / "bundle"
     rc = main(["judge", "--findings", str(findings), "--out", str(out),
-               "--samples", "3", "--recorded", str(recorded)])
+               "--samples", "3", "--recorded", str(recorded),
+               "--category", "chips.merchant-gpu"])
     assert rc == 0
     ratings = json.loads((out / "ratings.json").read_text("utf-8"))
     assert ratings["momentum"]["rating"] == "Strong"

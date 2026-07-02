@@ -120,12 +120,19 @@ def half_life(findings, horizons, config=DEFAULT_LINT_CONFIG):
     return (max(classes) if classes else config.h_med), untagged
 
 
+_MATERIAL_CYCLE_KINDS = {"create-page", "append-observation", "state-change", "ingest"}
+
+
 def quiet_age(store, page_id, as_of) -> int:
     """Number of distinct asOf cycles in the log strictly after the page's last MATERIAL event
     (append-observation or state-change), up to as_of. A body-only edit is not material. A page
-    with no material events decays from its createdAsOf."""
+    with no material events decays from its createdAsOf.
+
+    F32: the CYCLE SET itself is provenance-blind — only a real run (create-page,
+    append-observation, state-change, ingest) mints a decay cycle. Read-only 'lint' events and
+    header-only 'header-change' events cannot age a page just by having run."""
     events = [e for e in store.log.read() if e.asOf <= as_of]
-    cycles = sorted({e.asOf for e in events})
+    cycles = sorted({e.asOf for e in events if e.kind in _MATERIAL_CYCLE_KINDS})
     materials = [e.asOf for e in events
                  if e.pageId == page_id and e.kind in ("append-observation", "state-change")]
     baseline = max(materials) if materials else store.get_page(page_id).createdAsOf
@@ -291,9 +298,13 @@ def _contradictions_for(store, as_of):
     return out
 
 
-def lint(store, *, as_of, prev_as_of=None, registry, horizons, config=DEFAULT_LINT_CONFIG) -> LintReport:
+def lint(store, *, as_of, prev_as_of=None, registry, horizons, config=DEFAULT_LINT_CONFIG,
+        record: bool = True) -> LintReport:
     """The wiki lint / early-warning pass: rank the cycle's material moves, decay quiet threads,
-    surface structural health. Pure, read-only except for one idempotent `lint` provenance event."""
+    surface structural health. Pure, read-only except for one idempotent `lint` provenance event.
+
+    F32: record=False makes this a true read path — NO log write happens, so a caller that just
+    wants to look (e.g. the controller's lifecycle-propose step) cannot age any page by looking."""
     if prev_as_of is None:
         prev_as_of = _auto_prev(store, as_of)
     diff = store.diff(as_of, prev_as_of or "")
@@ -304,7 +315,7 @@ def lint(store, *, as_of, prev_as_of=None, registry, horizons, config=DEFAULT_LI
                             horizons=horizons, config=config)
     report = LintReport(asOf=as_of, prevAsOf=prev_as_of, material=material,
                         dropped=dropped, health=health)
-    if not any(e.kind == "lint" and e.asOf == as_of for e in store.log.read()):
+    if record and not any(e.kind == "lint" and e.asOf == as_of for e in store.log.read()):
         detail = (f"material {len(material)}; dropped {len(dropped)}; stale {len(health.stale)}; "
                   f"orphans {len(health.orphans)}; contradictions {len(health.contradictions)}")
         store.log.append(asOf=as_of, kind="lint", detail=detail)

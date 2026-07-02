@@ -252,3 +252,52 @@ def test_corroboration_empty_netloc_falls_back_to_source(tmp_path):
                    date="2026-06", excerpt="e", tier="secondary")]
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
     assert corroboration(ws, "entity:nvda") == 1
+
+
+# ---------------------------------------------------------------------------
+# Task 5 (F32): read paths don't write; provenance events don't age pages
+# ---------------------------------------------------------------------------
+
+def _reg_hz():
+    from gpu_agent.registry.indicators import IndicatorRegistry
+    from gpu_agent.registry.horizon import IndicatorHorizons
+    return (IndicatorRegistry.load("registry/indicators.json"),
+            IndicatorHorizons.load("registry/indicators.json"))
+
+
+def test_lint_record_false_leaves_log_byte_identical(tmp_path):
+    from gpu_agent.wiki.lint import lint
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    log_len_before = len(ws.log.read())
+    lint(ws, as_of="2026-06-28", registry=reg, horizons=hz, record=False)
+    assert len(ws.log.read()) == log_len_before
+
+
+def test_lint_record_true_appends_exactly_one_lint_event_per_asof(tmp_path):
+    from gpu_agent.wiki.lint import lint
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    lint(ws, as_of="2026-06-28", registry=reg, horizons=hz, record=True)
+    lint(ws, as_of="2026-06-28", registry=reg, horizons=hz, record=True)  # re-run, idempotent
+    lint_events = [e for e in ws.log.read() if e.kind == "lint"]
+    assert len(lint_events) == 1
+
+
+def test_quiet_age_lint_event_mints_no_cycle(tmp_path):
+    from gpu_agent.wiki.lint import lint, quiet_age
+    reg, hz = _reg_hz()
+    ws = _store(tmp_path)
+    ws.create_page("entity:x", "entity", "X", as_of="2026-06-01")
+    lint(ws, as_of="2026-06-02", registry=reg, horizons=hz, record=True)  # only a "lint" event lands at 06-02
+    assert quiet_age(ws, "entity:x", "2026-06-02") == 0
+
+
+def test_quiet_age_ingest_event_mints_a_cycle(tmp_path):
+    from gpu_agent.wiki.lint import quiet_age
+    ws = _store(tmp_path)
+    ws.create_page("entity:x", "entity", "X", as_of="2026-06-01")
+    ws.log.append(asOf="2026-06-02", kind="ingest", detail="enriched 0 page(s)")
+    assert quiet_age(ws, "entity:x", "2026-06-02") == 1

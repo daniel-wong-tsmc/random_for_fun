@@ -5,6 +5,8 @@ import re
 from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from gpu_agent.schema.finding import Finding
+
 # --- models ---
 
 VERDICTS = ("reaffirmed", "strengthened", "weakened", "adjusted", "broken")
@@ -289,3 +291,118 @@ class ThesisStore:
                 f"book.json does not equal the book rebuilt from history.jsonl"
             )
         return on_disk
+
+
+# --- gate ---
+
+# v1 trigger-observable heuristic (spec rule 3): a falsifiableTrigger is deemed to name
+# a checkable observable if it contains one of these calendar-cadence words, in addition
+# to the registered-indicator-id and any-digit checks in _trigger_names_observable below.
+# This is a cheap lexical proxy for "this trigger can be checked against data" — it does
+# not verify the named observable is actually measurable, only that the trigger text
+# gestures at one. Tighten in a later version if it proves too permissive/strict.
+_TRIGGER_KEYWORDS = ("quarter", "qtr", "month", "week", "cycle")
+
+
+def _normalize_statement(statement: str) -> str:
+    """lowercase + whitespace-folded, per spec rule 4's statement-dedup compare."""
+    return " ".join(statement.lower().split())
+
+
+def _trigger_names_observable(trigger: str, registry) -> bool:
+    """True iff `trigger` contains a registered indicator id (case-sensitive substring
+    of `registry.indicators` keys), OR any digit, OR one of _TRIGGER_KEYWORDS
+    (case-insensitive substring)."""
+    if any(indicator_id in trigger for indicator_id in registry.indicators):
+        return True
+    if any(ch.isdigit() for ch in trigger):
+        return True
+    lowered = trigger.lower()
+    return any(keyword in lowered for keyword in _TRIGGER_KEYWORDS)
+
+
+def _gate_citations(label: str, finding_ids: list[str], findings_by_id: dict[str, Finding]) -> list[str]:
+    """Rule 2: findingIds non-empty, and every id resolves in this cycle's findings."""
+    errors: list[str] = []
+    if not finding_ids:
+        errors.append(f"{label}: cites no findings")
+        return errors
+    for fid in finding_ids:
+        if fid not in findings_by_id:
+            errors.append(f"{label}: cites unknown finding {fid}")
+    return errors
+
+
+def _gate_depth_fields(label: str, mechanism: str, trigger: str, sensitivity: str, registry) -> list[str]:
+    """Rule 3: mechanism/falsifiableTrigger/sensitivity non-empty; a non-empty trigger
+    must additionally name an observable per _trigger_names_observable."""
+    errors: list[str] = []
+    if not mechanism.strip():
+        errors.append(f"{label}: missing mechanism")
+    if not sensitivity.strip():
+        errors.append(f"{label}: missing sensitivity")
+    if not trigger.strip():
+        errors.append(f"{label}: missing falsifiableTrigger")
+    elif not _trigger_names_observable(trigger, registry):
+        errors.append(f"{label}: trigger names no observable")
+    return errors
+
+
+def gate_answer(answer: ThesisAnswer, book: ThesisBook,
+                 findings_by_id: dict[str, Finding], registry) -> list[str]:
+    """Pure, no I/O. [] means the answer is clean; every violation is named by one
+    string. Spec rules 1-4:
+      1. exactly one judgment per standing (registered/provisional, not retired) thesis
+         — a judgment naming a non-standing id (retired, or never seen by the book) is
+         "unknown"; a standing id named by >1 judgment is "duplicate"; a standing id
+         named by 0 judgments is "missing".
+      2. every judgment cites >=1 finding, and every cited id resolves in
+         `findings_by_id` (this cycle's gated findings).
+      3. depth fields (mechanism/falsifiableTrigger/sensitivity) are non-empty, and the
+         trigger names an observable (see _trigger_names_observable).
+      4. proposed theses: the slug of the title must not collide with any existing
+         entry id (registered, provisional, or retired); the normalized statement must
+         not equal any existing entry's statement; and proposals are held to the same
+         rule 2/3 citation + depth-field requirements as judgments.
+    """
+    errors: list[str] = []
+
+    standing_ids = [entry.id for entry in book.standing()]
+    standing_id_set = set(standing_ids)
+
+    judged: set[str] = set()
+    for judgment in answer.judgments:
+        if judgment.thesisId not in standing_id_set:
+            errors.append(f"judgment for unknown thesis {judgment.thesisId}")
+        elif judgment.thesisId in judged:
+            errors.append(f"duplicate judgment for {judgment.thesisId}")
+        else:
+            judged.add(judgment.thesisId)
+        errors.extend(_gate_citations(judgment.thesisId, judgment.findingIds, findings_by_id))
+        errors.extend(_gate_depth_fields(
+            judgment.thesisId, judgment.mechanism, judgment.falsifiableTrigger,
+            judgment.sensitivity, registry,
+        ))
+
+    for thesis_id in standing_ids:
+        if thesis_id not in judged:
+            errors.append(f"no judgment for thesis {thesis_id}")
+
+    existing_ids = {entry.id for entry in book.entries}
+    statement_owner: dict[str, str] = {}
+    for entry in book.entries:
+        statement_owner.setdefault(_normalize_statement(entry.statement), entry.id)
+
+    for proposal in answer.proposed:
+        slug = thesis_slug(proposal.title)
+        if slug in existing_ids:
+            errors.append(f"proposal duplicates thesis id {slug}")
+        owner = statement_owner.get(_normalize_statement(proposal.statement))
+        if owner is not None:
+            errors.append(f"proposal duplicates statement of {owner}")
+        errors.extend(_gate_citations(slug, proposal.findingIds, findings_by_id))
+        errors.extend(_gate_depth_fields(
+            slug, proposal.mechanism, proposal.falsifiableTrigger, proposal.sensitivity, registry,
+        ))
+
+    return errors

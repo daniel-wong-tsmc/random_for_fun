@@ -44,7 +44,7 @@ to serve it, versus the category simply growing, versus flattening, versus shrin
 
 | Rating | Definition | Falsifiable marker |
 |---|---|---|
-| Very strong | Growth in the core quantity is outrunning the category's own capacity to keep up — the constraint on growth is demand, not supply. | You should be able to point at a backlog, order book, or lead time that has extended to a new high alongside the growth. |
+| Very strong | Growth in the core quantity is outrunning the category's own capacity to keep up — the binding limit on growth is the capacity to serve, never the demand. | You should be able to point at a backlog, order book, or lead time that has extended to a new high alongside the growth. |
 | Strong | The core quantity is growing faster than the category's own multi-year trend. | You should be able to point at a period-over-period growth figure that beats the trailing average, corroborated by more than one source. |
 | Mixed | Growth continues, but the rate itself has decelerated, or growth diverges across sub-segments or geographies. | You should be able to point at a slower period-over-period growth figure than the prior period, or findings that disagree on whether growth continued. |
 | Weak | The core quantity is flat — growth is at or near zero. | You should be able to point at a reported period-over-period change that rounds to roughly zero. |
@@ -153,4 +153,5 @@ stay category-agnostic and this is the only section where category-specific name
   "Very strong."
 - **Momentum, Very strong (non-chip example)** — grid interconnection queues for new power
   generation stretching to a multi-year record while demand keeps arriving faster than plants can be
-  hooked up: the constraint is demand, not supply, on the category's own core quantity.
+  hooked up: demand keeps arriving faster than the category can serve it, so the binding limit on
+  the core quantity's growth is capacity, not demand.

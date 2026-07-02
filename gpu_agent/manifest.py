@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
@@ -32,6 +33,7 @@ class ExpectedSource(BaseModel):
     id: str
     label: str
     urlPatterns: list[str] = Field(default_factory=list)
+    mirrorPatterns: list[str] = Field(default_factory=list)
     accessMethod: Literal["free-web", "filing", "licensed-api", "mcp", "manual"]
     tier: Literal["primary", "secondary"]
     costUsd: float = 0.0
@@ -106,6 +108,18 @@ def load_manifest(path: str | Path) -> CoverageManifest:
         raise ManifestLoadError(f"Manifest at {p} failed schema validation: {exc}") from exc
 
 
+def _url_matches(url: str, pattern: str) -> bool:
+    """Host-aware: a pattern with no '/' matches when the url's host == pattern or
+    endswith '.'+pattern; a pattern with a path keeps today's substring semantics.
+    """
+    if "/" in pattern:
+        return pattern in url
+    host = urlparse(url).netloc
+    if not host:
+        return False
+    return host == pattern or host.endswith("." + pattern)
+
+
 # ── Gap computation (pure — no I/O) ──────────────────────────────────────────
 
 def compute_coverage_gaps(
@@ -140,8 +154,9 @@ def compute_coverage_gaps(
             ))
             continue  # do not attempt URL match for paywalled sources
 
+        patterns = src.urlPatterns + src.mirrorPatterns
         matched = any(
-            any(pattern in url for pattern in src.urlPatterns)
+            any(_url_matches(url, pattern) for pattern in patterns)
             for url in blob_urls
         )
         if not matched:

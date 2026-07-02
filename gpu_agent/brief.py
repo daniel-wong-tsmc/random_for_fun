@@ -171,7 +171,8 @@ def render_what_moved(movement) -> str:
         cite = f"[{', '.join(row.findingIds)}]" if row.findingIds else "[—]"
         prov = "  (provisional)" if row.provisional else ""
         contra = f"  ({row.contradictionNote})" if row.contradiction and row.contradictionNote else ""
-        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}")
+        trans = f"  {row.stateFrom} → {row.stateTo}" if (row.stateFrom and row.stateTo) else ""
+        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}{trans}")
     if not movement.moved:
         lines.append("  (no material moves this cycle)")
     if movement.foldedCount:

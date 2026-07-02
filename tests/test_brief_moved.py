@@ -41,6 +41,15 @@ def test_moved_tags_and_arrows():
     assert "▼ DOWN   Moat" in out
     assert "= CHANGED Spot" in out
     assert "= MOVED  Lead" in out
+    assert "steady → accelerating" in out          # stateFrom → stateTo suffix (spec §2①)
+    assert "intact → eroding" in out
+
+
+def test_moved_no_transition_suffix_when_states_absent():
+    out = render_what_moved(_mv(moved=[_moved(title="AMD", newThread=True, findingIds=["f-1"])]))
+    # only one rendered move row; with no stateFrom/stateTo it carries no "→" transition suffix
+    row = [ln for ln in out.splitlines() if "AMD" in ln][0]
+    assert "→" not in row
 
 
 def test_moved_citation_tier_and_provisional():

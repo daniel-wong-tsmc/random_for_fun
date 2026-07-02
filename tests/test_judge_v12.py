@@ -1,7 +1,7 @@
 from gpu_agent.judgment.briefing import Briefing
 from gpu_agent.judgment.judge import JudgmentResult, DimensionJudgment, aggregate
 from gpu_agent.schema.scorecard import CategoryStatus, DimensionRating
-from gpu_agent.schema.finding import Confidence
+from gpu_agent.schema.finding import Confidence, Finding, Impact
 
 
 def _result(dims: dict[str, str], narrative: str = "n") -> JudgmentResult:
@@ -91,3 +91,55 @@ def test_dimension_rating_without_vote_spread_still_validates():
         rating="Strong", direction="steady", findingIds=["a"], rationale="r",
         confidence=Confidence(level="high", basis="b"))
     assert r.voteSpread is None
+
+
+# --- Task 3: F20 — propagate finding-level confidence caps to the dimension rating ---
+
+def _finding(fid: str, level: str) -> Finding:
+    return Finding(
+        id=fid, statement="s", kind="observed", trend="flat", why="w",
+        impact=Impact(targets=["t"], direction="positive", mechanism="m"),
+        confidence=Confidence(level=level, basis="b"), asOf="2026-06",
+        indicatorId="D2", side="demand", polarityDemand=1, polaritySupply=0,
+        magnitude=2, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
+
+
+def _result_with_findings(rating: str, finding_ids: list[str], narrative: str = "n") -> JudgmentResult:
+    return JudgmentResult(
+        dimensions={"momentum": DimensionJudgment(
+            rating=rating, direction="steady", findingIds=finding_ids, rationale="r")},
+        categoryStatus=CategoryStatus(
+            rating=rating, direction="steady", bottleneck="momentum", reason="r"),
+        narrative=narrative)
+
+
+def test_confidence_capped_by_worst_cited_finding_confidence():
+    # Vote is unanimous, full coverage -> vote-derived level "high" -- but the only cited
+    # finding is "medium" -> the rating cannot be more confident than its best evidence.
+    results = [_result_with_findings("Strong", ["f1"])] * 3
+    findings_by_id = {"f1": _finding("f1", "medium")}
+    bundle = aggregate(results, _briefing(), findings_by_id=findings_by_id)
+    r = bundle.ratings["momentum"]
+    assert r.confidence.level == "medium"
+    assert "capped by finding confidence" in r.confidence.basis
+
+
+def test_confidence_ceiling_high_when_any_cited_finding_high():
+    results = [_result_with_findings("Strong", ["f1", "f2"])] * 3
+    findings_by_id = {"f1": _finding("f1", "medium"), "f2": _finding("f2", "high")}
+    bundle = aggregate(results, _briefing(), findings_by_id=findings_by_id)
+    assert bundle.ratings["momentum"].confidence.level == "high"
+
+
+def test_confidence_capped_to_low_when_all_cited_findings_low():
+    results = [_result_with_findings("Strong", ["f1"])] * 3
+    findings_by_id = {"f1": _finding("f1", "low")}
+    bundle = aggregate(results, _briefing(), findings_by_id=findings_by_id)
+    assert bundle.ratings["momentum"].confidence.level == "low"
+
+
+def test_confidence_cap_not_applied_when_findings_by_id_omitted():
+    # Legacy call (no findings_by_id) -> behavior unchanged, no cap applied.
+    results = [_result_with_findings("Strong", ["f1"])] * 3
+    bundle = aggregate(results, _briefing())
+    assert bundle.ratings["momentum"].confidence.level == "high"

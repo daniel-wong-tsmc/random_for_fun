@@ -202,7 +202,12 @@ def _extract(args) -> int:
         return _emit_extract_prompt(args)
     docs = _load_docs(args.docs)
     if args.recorded:
-        client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
+        answers = json.loads(pathlib.Path(args.recorded).read_text("utf-8"))
+        if len(answers) != len(docs):
+            print(f"gpu-agent extract: error: recorded answers ({len(answers)}) != documents ({len(docs)})",
+                  file=sys.stderr)
+            return 2
+        client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
     captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()
@@ -249,7 +254,12 @@ def _judge(args) -> int:
     findings = [Finding.model_validate(d)
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
     if args.recorded:
-        client = RecordedClient(json.loads(pathlib.Path(args.recorded).read_text("utf-8")))
+        answers = json.loads(pathlib.Path(args.recorded).read_text("utf-8"))
+        if len(answers) != args.samples:
+            print(f"gpu-agent judge: error: recorded answers ({len(answers)}) != samples ({args.samples})",
+                  file=sys.stderr)
+            return 2
+        client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
     registry, _ = _load_registry()
@@ -270,7 +280,12 @@ def _judge(args) -> int:
 def _pipeline(args) -> int:
     docs = _load_docs(args.docs)
     if args.recorded_extract:
-        ext_client = RecordedClient(json.loads(pathlib.Path(args.recorded_extract).read_text("utf-8")))
+        extract_answers = json.loads(pathlib.Path(args.recorded_extract).read_text("utf-8"))
+        if len(extract_answers) != len(docs):
+            print(f"gpu-agent pipeline: error: recorded answers ({len(extract_answers)}) "
+                  f"!= documents ({len(docs)})", file=sys.stderr)
+            return 2
+        ext_client = RecordedClient(extract_answers)
     else:
         ext_client = make_client(args.backend)
     captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()

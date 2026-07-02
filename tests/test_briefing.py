@@ -20,10 +20,10 @@ def test_anchor_is_mean_of_signed_polarity_magnitude():
     assert b.grouped["momentum"] == ["a", "b"]
 
 def test_supply_track_dim_uses_polarity_supply():
-    # competitiveStructure is supply-track: S9(pS=+1, m=2) -> 1*2/3
+    # bottleneck is the supply-track dim (dimensionTracks): S10(pS=+1, m=2) -> 1*2/3
     reg = IndicatorRegistry.load("registry/indicators.json")
-    b = build_briefing([_f("c", "S9", 0, 1, 2)], reg, "chips.merchant-gpu")
-    assert b.anchors["competitiveStructure"] == pytest.approx(2 / 3)
+    b = build_briefing([_f("c", "S10", 0, 1, 2)], reg, "chips.merchant-gpu")
+    assert b.anchors["bottleneck"] == pytest.approx(2 / 3)
 
 def test_unregistered_indicator_raises():
     reg = IndicatorRegistry.load("registry/indicators.json")

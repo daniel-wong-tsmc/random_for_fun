@@ -4,7 +4,7 @@
     "market-share-pct": { "label": "Market share", "dimension": "moat", "polarityTrack": "demand", "side": "demand", "weight": 0.10, "unit": "pct_segment_rev", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.3, "scoring": true, "comparability": "revenue share; state segment + period; not unit share" },
     "grossMargin": { "label": "Gross margin", "dimension": "unitEconomics", "polarityTrack": "demand", "side": "demand", "weight": 0.10, "unit": "pct", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.3, "scoring": true },
     "D2": { "label": "DC revenue structure", "dimension": "momentum", "polarityTrack": "demand", "side": "demand", "weight": 0.10, "unit": "USD_B", "kind": "measured", "readsLevelOrSlope": "slope", "decayLambda": 0.4, "scoring": true },
-    "D6": { "label": "GPU rental price", "dimension": "momentum", "polarityTrack": "demand", "side": "demand", "weight": 0.12, "unit": "USD_per_gpu_hr", "kind": "measured", "readsLevelOrSlope": "slope", "decayLambda": 0.6, "scoring": true },
+    "D6": { "label": "GPU rental price", "dimension": null, "polarityTrack": null, "side": "price", "weight": 0.0, "unit": "USD_per_gpu_hr", "kind": "measured", "readsLevelOrSlope": "slope", "decayLambda": 0.6, "scoring": false },
     "S9": { "label": "Alternative supply", "dimension": "competitiveStructure", "polarityTrack": "supply", "side": "supply", "weight": 0.04, "unit": "mixed", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.4, "scoring": true },
     "S10": { "label": "Whole-chain inventory", "dimension": "bottleneck", "polarityTrack": "supply", "side": "supply", "weight": 0.08, "unit": "USD_B", "kind": "measured", "readsLevelOrSlope": "level", "decayLambda": 0.4, "scoring": true },
     "perfPerWatt": { "label": "Performance per watt", "dimension": null, "scoring": false, "kind": "measured", "unit": "perf_per_W" },
@@ -253,5 +253,9 @@
     "leadTimes":              { "cadence": "weekly",    "horizon": "coincident" },
     "designWins":             { "cadence": "weekly",    "horizon": "leading"    },
     "gpuSpotPrice":           { "cadence": "daily",     "horizon": "coincident" }
+  },
+  "dimensionTracks": {
+    "momentum": "demand", "unitEconomics": "demand", "competitiveStructure": "demand",
+    "moat": "demand", "bottleneck": "supply", "strategicRisk": "demand"
   }
 }

@@ -12,9 +12,9 @@ def _f(fid: str, indicator: str, pD: int, pS: int, mag: int) -> Finding:
         magnitude=mag, entity="E", observedAt="2026-06", capturedAt="2026-06-12T00:00:00Z")
 
 def test_anchor_is_mean_of_signed_polarity_magnitude():
-    # momentum is a demand-track dim: uses polarityDemand. D2(+1,m=3)=1.0, D6(-1,m=3)=-1.0 -> mean 0.0
+    # momentum is a demand-track dim: uses polarityDemand. D2(+1,m=3)=1.0, apiArr(-1,m=3)=-1.0 -> mean 0.0
     reg = IndicatorRegistry.load("registry/indicators.json")
-    findings = [_f("a", "D2", 1, 0, 3), _f("b", "D6", -1, 0, 3)]
+    findings = [_f("a", "D2", 1, 0, 3), _f("b", "apiArr", -1, 0, 3)]
     b = build_briefing(findings, reg, "chips.merchant-gpu")
     assert b.anchors["momentum"] == pytest.approx(0.0)
     assert b.grouped["momentum"] == ["a", "b"]

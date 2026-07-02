@@ -47,17 +47,17 @@ def test_clean_judgment_produces_gate_valid_bundle():
     assert bundle.narrative == "n"
 
 def test_anchor_conflict_resamples_then_resolves():
-    # negative anchor: D6(-1,m=3) -> momentum -1.0. First 3 say "Strong" (conflict),
+    # negative anchor: apiArr(-1,m=3) -> momentum -1.0. First 3 say "Strong" (conflict),
     # the resample round says "Weak" (consistent) -> resolves on round 2.
     reg = IndicatorRegistry.load("registry/indicators.json")
-    findings = [_f(indicator="D6", pD=-1, mag=3)]
+    findings = [_f(indicator="apiArr", pD=-1, mag=3)]
     client = RecordedClient([_judgment("Strong")] * 3 + [_judgment("Weak")] * 3)
     bundle = judge_findings(findings, client, reg, "chips.merchant-gpu", samples=3, resample_budget=2)
     assert bundle.ratings["momentum"].rating == "Weak"
 
 def test_anchor_conflict_exhausts_budget_then_raises():
     reg = IndicatorRegistry.load("registry/indicators.json")
-    findings = [_f(indicator="D6", pD=-1, mag=3)]            # anchor -1.0
+    findings = [_f(indicator="apiArr", pD=-1, mag=3)]        # anchor -1.0
     client = RecordedClient([_judgment("Strong")] * 9)       # always conflicts
     with pytest.raises(JudgmentError):
         judge_findings(findings, client, reg, "chips.merchant-gpu", samples=3, resample_budget=2)

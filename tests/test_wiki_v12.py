@@ -8,6 +8,7 @@ from gpu_agent.wiki.ingest import (
     apply_enrichment, route_findings, IngestResult, PageEnrichment, INGEST_SYSTEM,
     EnrichmentGateError)
 from gpu_agent.wiki.salience import computed_salience
+from gpu_agent.wiki.lifecycle import corroboration
 from gpu_agent.schema.finding import Finding, Kind, Impact, Confidence, Evidence
 
 
@@ -195,3 +196,59 @@ def test_lint_aggregates_contradictions_from_both_same_asof_ingest_events(tmp_pa
     report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
     contra_ids = {c.pageId for c in report.health.contradictions}
     assert contra_ids == {"entity:nvda", "entity:amd"}
+
+
+# ---------------------------------------------------------------------------
+# Task 4 (F30, F31): promotions logged; corroboration keyed by publisher domain
+# ---------------------------------------------------------------------------
+
+def test_update_header_logs_header_change_event(tmp_path):
+    ws = _store(tmp_path)
+    ws.create_page("entity:nvda", "entity", "NVDA", as_of="2026-06-28")
+    ws.update_header("entity:nvda", as_of="2026-06-29", status="registered")
+    events = [e for e in ws.log.read() if e.kind == "header-change"]
+    assert len(events) == 1
+    assert events[0].detail == "status: provisional -> registered"
+    assert events[0].pageId == "entity:nvda"
+
+
+def test_update_header_unchanged_value_logs_nothing(tmp_path):
+    ws = _store(tmp_path)
+    ws.create_page("entity:nvda", "entity", "NVDA", as_of="2026-06-28", category="chips")
+    ws.update_header("entity:nvda", as_of="2026-06-29", category="chips")  # same value
+    events = [e for e in ws.log.read() if e.kind == "header-change"]
+    assert events == []
+
+
+def test_corroboration_same_publisher_domain_counts_once(tmp_path):
+    ws = _store(tmp_path)
+    ev = [Evidence(source="NVIDIA Newsroom", url="https://nvidianews.nvidia.com/a",
+                   date="2026-06", excerpt="e", tier="secondary"),
+          Evidence(source="NVIDIA press release", url="https://nvidianews.nvidia.com/b",
+                   date="2026-06", excerpt="e", tier="secondary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    assert corroboration(ws, "entity:nvda") == 1
+
+
+def test_corroboration_www_prefix_stripped_and_distinct_domains_counted(tmp_path):
+    ws = _store(tmp_path)
+    ev1 = [Evidence(source="s1", url="https://www.example.com/a",
+                    date="2026-06", excerpt="e", tier="secondary")]
+    ev2 = [Evidence(source="s2", url="https://example.com/b",
+                    date="2026-06", excerpt="e", tier="secondary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev1)], as_of="2026-06-28")
+    route_findings(ws, [_f("f-2", "NVDA", evidence=ev2)], as_of="2026-06-28")
+    assert corroboration(ws, "entity:nvda") == 1  # www.example.com == example.com
+
+    ev3 = [Evidence(source="s3", url="https://other.org/c",
+                    date="2026-06", excerpt="e", tier="secondary")]
+    route_findings(ws, [_f("f-3", "NVDA", evidence=ev3)], as_of="2026-06-28")
+    assert corroboration(ws, "entity:nvda") == 2  # example.com, other.org
+
+
+def test_corroboration_empty_netloc_falls_back_to_source(tmp_path):
+    ws = _store(tmp_path)
+    ev = [Evidence(source="Analyst Call", url="not-a-url",
+                   date="2026-06", excerpt="e", tier="secondary")]
+    route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
+    assert corroboration(ws, "entity:nvda") == 1

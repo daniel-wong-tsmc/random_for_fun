@@ -1,4 +1,5 @@
 from __future__ import annotations
+from urllib.parse import urlparse
 from pydantic import BaseModel, Field
 
 
@@ -53,16 +54,30 @@ def persistence(store, page_id: str) -> int:
     return len({o.asOf for o in store.observations(page_id)})
 
 
+def _publisher_key(evidence) -> str:
+    """F31: corroboration must be keyed by publisher, not by free-text source strings that can
+    name the same publisher two different ways ('NVIDIA Newsroom' vs 'NVIDIA press release').
+    Keys by the evidence URL's registered netloc (www.-stripped, lowercased); falls back to the
+    source string when the URL has no netloc (e.g. a non-URL citation)."""
+    netloc = urlparse(evidence.url).netloc.lower()
+    if netloc.startswith("www."):
+        netloc = netloc[4:]
+    if netloc:
+        return netloc
+    return evidence.source.strip().lower()
+
+
 def corroboration(store, page_id: str) -> int:
-    """Distinct evidence sources across all findings observed on the page (Part 10 corroboration)."""
-    sources: set[str] = set()
+    """Distinct evidence PUBLISHERS (F31) across all findings observed on the page (Part 10
+    corroboration) - two sources at the same publisher domain corroborate each other only once."""
+    publishers: set[str] = set()
     for o in store.observations(page_id):
         if not store.findings.exists(o.findingId):
             continue
         f = store.findings.get(o.findingId)
         for e in f.evidence:
-            sources.add(e.source)
-    return len(sources)
+            publishers.add(_publisher_key(e))
+    return len(publishers)
 
 
 def promotion_candidates(store, config=DEFAULT_LIFECYCLE_CONFIG) -> list[PromotionCandidate]:

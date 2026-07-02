@@ -7,7 +7,16 @@ from pydantic import BaseModel
 class LogEvent(BaseModel):
     seq: int
     asOf: str
-    kind: Literal["create-page", "append-observation", "state-change", "ingest", "query", "lint"]
+    # NOTE (Lane E / F30, 2026-07-02): "header-change" added so store.update_header can log a
+    # provenance event for lifecycle promotions/header edits. This is the one addition to
+    # gpu_agent/wiki/log.py Lane E's plan (docs/superpowers/plans/2026-07-02-lane-e-wiki.md)
+    # required outside its owned files: Task 4's spec requires update_header to append a
+    # kind="header-change" LogEvent, and that value must round-trip through both write
+    # (WikiLog.append) and read (LogEvent.model_validate_json) or the store cannot log it at
+    # all. Purely additive (widens the allowed kind set by one string); no existing kind's
+    # behavior changes.
+    kind: Literal["create-page", "append-observation", "state-change", "ingest", "query", "lint",
+                 "header-change"]
     pageId: Optional[str] = None
     findingId: Optional[str] = None
     state: Optional[str] = None

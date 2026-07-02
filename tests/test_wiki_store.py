@@ -48,8 +48,9 @@ def test_update_header_allowed_fields(tmp_path):
     page = ws.get_page("theme:cowos")
     assert page.status == "registered" and page.crossRefs == ["entity:tsmc"]
     assert page.lastUpdatedAsOf == "2026-06-28"
-    assert len(ws.log.read()) == 1
-    assert ws.log.read()[0].kind == "create-page"
+    # F30: a header change with actual deltas now also leaves a header-change log event.
+    assert [e.kind for e in ws.log.read()] == ["create-page", "header-change"]
+    assert "status: provisional -> registered" in ws.log.read()[1].detail
 
 
 def test_update_header_disallowed_field_raises(tmp_path):

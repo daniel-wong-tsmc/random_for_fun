@@ -109,8 +109,15 @@ class WikiStore:
         if bad:
             raise ValueError(f"update_header: disallowed fields {sorted(bad)}")
         page, body = self._read(page_id)
+        changed = [f"{k}: {getattr(page, k)} -> {fields[k]}"
+                  for k in sorted(fields) if getattr(page, k) != fields[k]]
         page = page.model_copy(update={**fields, "lastUpdatedAsOf": as_of})
         self._write(page, body)
+        if changed:
+            # F30: promotions (and any other header edit) leave a log event instead of
+            # mutating silently.
+            self.log.append(asOf=as_of, kind="header-change", pageId=page_id,
+                            detail=", ".join(changed))
         return page
 
     def append_observation(self, page_id, finding_id, *, as_of) -> WikiPage:

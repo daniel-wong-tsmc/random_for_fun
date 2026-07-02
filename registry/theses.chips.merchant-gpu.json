@@ -1,0 +1,59 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "theses": [
+    {
+      "id": "nvda-demand-durability",
+      "title": "NVDA demand durability",
+      "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
+      "lens": "demand",
+      "mechanism": "NVIDIA's backlog and purchase commitments have grown faster than its shipment volumes, which is the signature of demand pulling ahead of supply rather than supply chasing weak demand.",
+      "falsifiableTrigger": "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters.",
+      "sensitivity": "Sensitive to hyperscaler capex guidance and any broad AI-infrastructure spending slowdown that would let shipments catch up to backlog."
+    },
+    {
+      "id": "supply-constraint-binding",
+      "title": "Supply constraint binding",
+      "statement": "Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.",
+      "lens": "supply",
+      "mechanism": "CoWoS advanced-packaging capacity and HBM memory supply, not wafer starts or end demand, set the ceiling on how many finished GPUs can actually ship in a given quarter.",
+      "falsifiableTrigger": "CoWoS/HBM lead times normalize to historical norms while demand indicators stay positive.",
+      "sensitivity": "Sensitive to packaging and HBM capacity additions announced by TSMC and the memory vendors, which would loosen the binding constraint independent of demand."
+    },
+    {
+      "id": "amd-credible-second-source",
+      "title": "AMD credible second source",
+      "statement": "AMD converts its Instinct roadmap into material datacenter share.",
+      "lens": "competitive",
+      "mechanism": "AMD's Instinct MI-series roadmap and its hyperscaler design-win cadence determine whether it becomes a credible, at-scale alternative to NVIDIA rather than a niche second source.",
+      "falsifiableTrigger": "Two consecutive quarters without a named hyperscaler MI-series deployment at scale.",
+      "sensitivity": "Sensitive to named hyperscaler deployment announcements and AMD's execution against its MI-series shipment cadence."
+    },
+    {
+      "id": "custom-asic-substitution",
+      "title": "Custom ASIC substitution",
+      "statement": "Hyperscaler custom silicon meaningfully displaces merchant-GPU demand growth.",
+      "lens": "competitive",
+      "mechanism": "Hyperscalers' in-house training and inference accelerator programs compete directly with merchant-GPU purchases for the same capex dollars, so their scale-up can substitute for merchant-GPU demand growth.",
+      "falsifiableTrigger": "Hyperscaler capex mix shifts back toward merchant GPUs, or a named ASIC program is cancelled/delayed a generation.",
+      "sensitivity": "Sensitive to hyperscaler capex-mix disclosures and the shipment/deployment cadence of named custom-silicon programs."
+    },
+    {
+      "id": "pricing-power-persistence",
+      "title": "Pricing power persistence",
+      "statement": "GPU rental/spot price levels hold up despite added supply.",
+      "lens": "demand",
+      "mechanism": "Sustained demand for GPU compute keeps rental and spot prices firm even as new capacity comes online, which indicates the market is not yet oversupplied.",
+      "falsifiableTrigger": "The D6 price track shows ≥15% decline across ≥2 providers within a quarter.",
+      "sensitivity": "Sensitive to the D6 rental price track across providers and to the pace at which new GPU capacity enters the rental market."
+    },
+    {
+      "id": "export-control-exposure",
+      "title": "Export control exposure",
+      "statement": "Export-control policy materially constrains addressable merchant-GPU demand.",
+      "lens": "risk",
+      "mechanism": "Export-control restrictions on advanced GPUs limit the addressable market in China and other restricted destinations, redirecting or destroying demand that would otherwise be served.",
+      "falsifiableTrigger": "A full licensing regime rollback, or two quarters with no new policy action and no vendor-reported impact.",
+      "sensitivity": "Sensitive to new export-control rulemaking, licensing decisions, and vendor-reported revenue-impact disclosures tied to restricted destinations."
+    }
+  ]
+}

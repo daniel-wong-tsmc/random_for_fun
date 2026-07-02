@@ -3,7 +3,7 @@ import json
 import pathlib
 import re
 from typing import Literal, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 # --- models ---
 
@@ -129,11 +129,17 @@ def apply_record(book: ThesisBook, record: dict) -> ThesisBook:
     records — so replay is always identical to the write path, by construction.
 
     Judgment records carry the depth fields and (for applied ones) the post-apply
-    `conviction` and `streak` directly, so this function trusts those values rather than
-    re-deriving the anti-whipsaw/streak business logic that produced them; only
-    `lastDirection` (via DIRECTION, applied only when non-zero) and an `adjusted`
-    verdict's new `statement` (parsed from an `"ADJUSTED:"`-prefixed rationale) are
-    derived here, since both are simple, stable rules unlikely to drift.
+    `conviction` directly, so this function trusts those values rather than re-deriving
+    the anti-whipsaw business logic that produced them. Everything else is code-derived
+    here from the prior entry state + the record (the spec: streak is code-computed and
+    the record shape has no streak field):
+      - `streak` (applied records only): reset to 1 when the record's after-conviction
+        differs from the entry's prior conviction, or when the verdict's direction is a
+        non-zero reversal of a non-zero prior lastDirection; otherwise entry.streak + 1.
+        Non-applied records leave streak unchanged.
+      - `lastDirection` via DIRECTION[verdict], applied only when non-zero.
+      - an `adjusted` verdict's new `statement`, parsed from an `"ADJUSTED:"`-prefixed
+        rationale.
     """
     if "event" in record:
         return _apply_lifecycle_record(book, record)
@@ -193,6 +199,10 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
                 prefix = "ADJUSTED:"
                 if rationale.startswith(prefix):
                     statement = rationale[len(prefix):].strip()
+            direction = DIRECTION[verdict]
+            conviction_changed = record["conviction"] != entry.conviction
+            reversal = direction != 0 and entry.lastDirection != 0 and direction != entry.lastDirection
+            streak = 1 if (conviction_changed or reversal) else entry.streak + 1
             updates.update({
                 "statement": statement,
                 "lastVerdict": verdict,
@@ -200,20 +210,25 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
                 "mechanism": record["mechanism"],
                 "falsifiableTrigger": record["falsifiableTrigger"],
                 "sensitivity": record["sensitivity"],
-                "streak": record["streak"],
+                "streak": streak,
                 "lastChangedAsOf": record["asOf"],
                 "pendingChallenge": None,
             })
-            direction = DIRECTION[verdict]
             if direction != 0:
                 updates["lastDirection"] = direction
         else:
-            updates["pendingChallenge"] = {
-                "verdict": record["verdict"],
-                "asOf": record["asOf"],
-                "rationale": record["rationale"],
-                "findingIds": record["findingIds"],
-            }
+            try:
+                updates["pendingChallenge"] = PendingChallenge(
+                    verdict=record["verdict"],
+                    asOf=record["asOf"],
+                    rationale=record["rationale"],
+                    findingIds=record["findingIds"],
+                )
+            except ValidationError as exc:
+                raise ThesisStoreError(
+                    f"invalid pendingChallenge in history record for thesis "
+                    f"{record['thesisId']!r}: {exc}"
+                ) from exc
         return entry.model_copy(update=updates)
 
     return _replace_entry(book, record["thesisId"], transform)

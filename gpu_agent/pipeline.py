@@ -57,12 +57,21 @@ def _index_for(findings, registry, category, weights) -> tuple[DemandSupply, int
     return (DemandSupply(dmiContribution=dmi, smiContribution=smi,
                          sdgi=sdgi, sdgiDirection=_sdgi_direction(sdgi)), count)
 
-def _dimension_status(ratings: dict[str, DimensionRating]) -> dict[str, DimensionStatus]:
+def _dimension_status(ratings: dict[str, DimensionRating],
+                      findings_by_id: dict[str, Finding]) -> dict[str, DimensionStatus]:
     status: dict[str, DimensionStatus] = {}
     for dim in DIMENSIONS:
         r = ratings.get(dim)
         if r is not None:
-            status[dim] = DimensionStatus(evidenceStatus="grounded", findingCount=len(r.findingIds))
+            cited = [findings_by_id[fid] for fid in r.findingIds if fid in findings_by_id]
+            secondary_only = bool(cited) and not any(
+                e.tier == "primary" for f in cited for e in f.evidence)
+            if secondary_only:   # F3: headline protection — no primary evidence under this rating
+                status[dim] = DimensionStatus(
+                    evidenceStatus="grounded", findingCount=len(r.findingIds),
+                    confidenceCap="medium", note="secondary-only evidence")
+            else:
+                status[dim] = DimensionStatus(evidenceStatus="grounded", findingCount=len(r.findingIds))
         else:
             status[dim] = DimensionStatus(
                 evidenceStatus="under-supported", findingCount=0, confidenceCap="low",
@@ -80,9 +89,23 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
                     narrative: str, confidence: Confidence, registry,
                     *, category_status: CategoryStatus | None = None,
                     horizons: IndicatorHorizons | None = None) -> Scorecard:
+    findings_by_id = {f.id: f for f in findings}
+    side_violations = [
+        f"{f.id}: side '{f.side}' contradicts registry side '{spec.side}' for {f.indicatorId}"
+        for f in findings
+        for spec in [registry.resolve(f.indicatorId, assignment.category)]
+        if spec.side is not None and f.side != spec.side]
+    if side_violations:
+        raise GateError(side_violations)   # F37: the registry is the side authority
     dmi, smi = dmi_smi_contribution(findings, registry, assignment.category, assignment.weights)
     sdgi = dmi - smi
-    status = _dimension_status(ratings)
+    status = _dimension_status(ratings, findings_by_id)
+    # F3: cap a grounded rating whose cited findings carry no primary evidence
+    for dim, st in status.items():
+        r = ratings.get(dim)
+        if r is not None and st.confidenceCap == "medium" and r.confidence.level == "high":
+            ratings[dim] = r.model_copy(update={"confidence": Confidence(
+                level="medium", basis=f"{r.confidence.basis}; capped: secondary-only evidence")})
     any_under = any(s.evidenceStatus == "under-supported" for s in status.values())
     indices = None
     if horizons is not None:

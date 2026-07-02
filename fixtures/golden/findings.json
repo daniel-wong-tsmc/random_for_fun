@@ -19,7 +19,7 @@
    "impact": {"targets": ["chips.merchant-gpu"], "direction": "positive", "mechanism": "protects pricing power"},
    "evidence": [{"source": "dev survey", "url": "http://dev", "date": "2026-05-01", "excerpt": "...", "tier": "secondary"}],
    "confidence": {"level": "medium", "basis": "consistent coverage"}, "asOf": "2026-06", "indicatorId": "market-share-pct",
-   "side": "structural", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 1, "entity": "NVDA",
+   "side": "demand", "polarityDemand": 1, "polaritySupply": 0, "magnitude": 1, "entity": "NVDA",
    "observedAt": "2026-05-01", "capturedAt": "2026-06-12"},
   {"id": "f-intc-s10", "statement": "Intel Gaudi channel inventory days are creeping up.",
    "kind": "measured", "value": {"number": 95.0, "unit": "days"}, "trend": "rising", "why": "Soft sell-through.",

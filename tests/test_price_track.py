@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from gpu_agent import reader
 from gpu_agent.price_track import compute_price_track, PriceTrack, PriceSeries
 from gpu_agent.report import render_price_track, render_report
 from gpu_agent.brief import render_state_of_market
@@ -121,7 +122,9 @@ def test_render_price_track_omitted_when_empty():
     assert render_price_track(PriceTrack(series=[], pmi=None, matchedSeries=0)) == ""
 
 
-def test_render_price_track_shows_series_and_no_prior_dash():
+def test_render_price_track_dead_metric_fold_when_no_deltas():
+    # F67 Task 8: when every series lacks a matched-prior delta AND there's no PMI, the
+    # section folds to one honest line instead of per-series "Δ vs prior: —" dash rows.
     track = PriceTrack(series=[
         PriceSeries(indicatorId="D6", unit="USD_per_gpu_hr", publisher="lambda.ai",
                    value=6.69, observedAt="2026-07-02", findingId="f-1"),
@@ -129,10 +132,9 @@ def test_render_price_track_shows_series_and_no_prior_dash():
                    value=6113.0, observedAt="2026-07-02", findingId="f-2"),
     ], pmi=None, matchedSeries=0)
     out = render_price_track(track)
-    assert "PRICE TRACK" in out and "never blended into DMI/SMI" in out
-    assert "D6 [lambda.ai] 6.69 USD_per_gpu_hr" in out
-    assert "gpuSpotPrice [ebay.com] 6113 USD_per_card" in out
-    assert "PMI: — (0 matched series — needs two cycles of the same series)" in out
+    assert out == ("PRICE TRACK\n  2 price series captured; day-over-day change needs "
+                   "two matched cycles")
+    assert "Δ vs prior: —" not in out
 
 
 def test_render_price_track_shows_pmi_when_present():
@@ -148,18 +150,18 @@ def test_render_price_track_shows_pmi_when_present():
 
 # ── render_report wiring: pin (4) position + byte-determinism ─────────────────
 
-def test_render_report_places_price_track_between_storylines_and_entity_panel():
-    # Task 4 (5-2 output surgery): the old DEMAND / SUPPLY MOMENTUM raw-index section
-    # (the previous anchor before PRICE TRACK) is retired from render_report's
-    # composition; STORYLINES is PRICE TRACK's new immediate predecessor in the
-    # pinned page order (... DEMAND|SUPPLY board -> STORYLINES -> PRICE TRACK ->
-    # ENTITY PANEL ...).
+def test_render_report_places_price_track_in_appendix_before_entity_panel():
+    # F67 Task 8: PRICE TRACK now renders in the appendix (below reader.APPENDIX_DIVIDER),
+    # between the DIMENSION RATINGS / raw-index detail and ENTITY PANEL — STORYLINES
+    # stays above the divider and is no longer PRICE TRACK's immediate predecessor.
     sc = _sc(findings=[_price_f("f-cur", number=6.69, evidence=[_ev("Lambda", "https://lambda.ai/x")])])
     out = render_report(sc, None, _reg(), render_ts="fixed")
+    i_divider = out.index(reader.APPENDIX_DIVIDER)
     i_story = out.index("STORYLINES (tracked over time)")
+    i_dims = out.index("DIMENSION RATINGS")
     i_price = out.index("PRICE TRACK")
     i_entity = out.index("ENTITY PANEL")
-    assert i_story < i_price < i_entity
+    assert i_story < i_divider < i_dims < i_price < i_entity
 
 
 def test_render_report_omits_price_track_section_when_no_price_findings():
@@ -189,7 +191,10 @@ def test_state_of_market_no_overlay_line_when_track_empty():
     assert "Price overlay" not in out
 
 
-def test_state_of_market_overlay_line_no_pmi():
+def test_state_of_market_never_shows_overlay_line_with_series_no_pmi():
+    # F67 Task 8: the "Price overlay: … PMI …" line is dropped entirely — PMI is
+    # off-allowlist above reader.APPENDIX_DIVIDER; the price story now lives only in
+    # the appendix PRICE TRACK section, regardless of what track is passed in.
     sc = _sc()
     track = PriceTrack(series=[
         PriceSeries(indicatorId="D6", unit="USD_per_gpu_hr", publisher="lambda.ai",
@@ -198,14 +203,16 @@ def test_state_of_market_overlay_line_no_pmi():
                    value=6113.0, observedAt="2026-07-02", findingId="f-2"),
     ], pmi=None, matchedSeries=0)
     out = render_state_of_market(sc, None, track)
-    assert "  Price overlay: 2 series tracked, PMI —" in out
+    assert "Price overlay" not in out
+    assert "PMI" not in out
 
 
-def test_state_of_market_overlay_line_with_signed_pmi():
+def test_state_of_market_never_shows_overlay_line_with_signed_pmi():
     sc = _sc()
     track = PriceTrack(series=[
         PriceSeries(indicatorId="D6", unit="USD_per_gpu_hr", publisher="lambda.ai",
                    value=7.0, observedAt="2026-07-02", findingId="f-1", delta=0.31, direction="up"),
     ], pmi=1.0, matchedSeries=1)
     out = render_state_of_market(sc, None, track)
-    assert "  Price overlay: 1 series tracked, PMI +1.00 ▲" in out
+    assert "Price overlay" not in out
+    assert "PMI" not in out

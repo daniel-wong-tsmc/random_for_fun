@@ -607,7 +607,8 @@ def _report(args) -> int:
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
                          horizons=horizons, movement=movement,
-                         thesis_book=thesis_book, thesis_last_findings=thesis_last_findings)
+                         thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
+                         daily=getattr(args, "daily", False))
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -738,6 +739,9 @@ def main(argv=None) -> int:
     rp.add_argument("--render-ts", default=None,
                     help="fix the report's render timestamp (ISO-8601) for byte-reproducible output; "
                          "default: current UTC time")
+    rp.add_argument("--daily", action="store_true",
+                    help="daily cadence: lead with WHAT MOVED instead of STATE OF THE MARKET "
+                         "(F67 §4; same renderer/section order otherwise)")
     # --prior and --no-prior are mutually exclusive: passing both is a usage error.
     grp = rp.add_mutually_exclusive_group()
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")

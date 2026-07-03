@@ -23,12 +23,16 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
     (gpu_agent.bands — earned via fixed, retunable thresholds, never an invented
     magnitude — Part 17), the SDGI gap wording, the brain's earned categoryStatus
     headline + binding constraint, and NOW/NEXT + divergence from the two indices.
-    Optional fields degrade cleanly. ``track`` (F49, optional) adds one Price Momentum
-    overlay line after the Gap line, only when it carries series.
+    Optional fields degrade cleanly. ``track`` (F49, optional) is accepted for call-site
+    compatibility but no longer rendered here — see the F67 Task 8 note below.
 
     Task 4 (5-2 output surgery): the raw DMI/SMI/SDGI values + Δ that used to sit in
-    parentheses on these lines have moved to the TRUST & COVERAGE footer's raw-index
-    table (report.render_trust_footer) — this section speaks bands and words only."""
+    parentheses on these lines have moved to the appendix's raw-index table
+    (report.render_raw_indices) — this section speaks bands and words only.
+
+    F67 Task 8: the "Price overlay: … PMI …" line is dropped entirely — PMI is an
+    off-allowlist acronym and the price story now lives in the appendix PRICE TRACK
+    section, never above reader.APPENDIX_DIVIDER."""
     ds = sc.demandSupply
     sdgi = report.compute_sdgi(sc)
     p_dmi = prior.demandSupply.dmiContribution if prior else None
@@ -46,15 +50,6 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
             and ds.smiContribution < 0):
         lines.append("  Note: the supply reading is negative because supply is the "
                      "constraint — a demand-led shortage, not a demand problem.")
-
-    if track is not None and track.series:
-        if track.pmi is None:
-            pmi_str = "PMI —"
-        else:
-            word = report._pmi_word(track.pmi)
-            sign = "+" if track.pmi >= 0 else "−"
-            pmi_str = f"PMI {sign}{abs(track.pmi):.2f} {report._PMI_ARROW[word]}"
-        lines.append(f"  Price overlay: {len(track.series)} series tracked, {pmi_str}")
 
     ix = sc.indices
     if ix is not None:
@@ -149,11 +144,16 @@ def render_demand_supply_board(sc: Scorecard, horizons, registry=None) -> str:
 
 
 def render_market_caveat(sc: Scorecard) -> str:
-    """The one honest trust-footer caveat: the index LEVEL is run-to-run noisy until the
-    4-4 memory stabilizes it, so the brief is a read of DIRECTION and change, not level."""
+    """The one honest trust-footer caveat: the index level is run-to-run noisy until
+    longer history accumulates, so the brief is a read of direction and change, not
+    level. F67 Task 8: reworded to drop internal jargon ("the 4-4 memory") and an
+    off-allowlist all-caps word ("DIRECTION") — this caveat renders above
+    reader.APPENDIX_DIVIDER, so it must pass the same acronym/jargon lint as every
+    other above-the-fold line. The raw DMI/SMI/SDGI table that used to sit below this
+    caveat has moved to its own appendix section (report.render_raw_indices)."""
     return ("TRUST & COVERAGE (caveat)\n"
-            "  index level varies run-to-run until the 4-4 memory stabilizes it — "
-            "read DIRECTION, not level")
+            "  the index level varies run to run until longer history accumulates — "
+            "read direction, not level")
 
 
 # ── store-fed sections (4-5b) ────────────────────────────────────────────────
@@ -236,9 +236,11 @@ _STORYLINE_CAP = 8   # F33: bound per-group render growth; the fold is always di
 def _storyline_group_lines(entries) -> list[str]:
     """Render one STORYLINES group, capped at _STORYLINE_CAP entries (already sorted by
     the caller's (-salience, title) order). When the group is capped, an explicit
-    fold-count line is appended — nothing silent. Empty group -> "(none)"."""
+    fold-count line is appended — nothing silent. Empty group -> "(none tracked yet)"
+    (F67 Task 8: reader words — "(none)" alone reads as an error, not an honest
+    absence)."""
     if not entries:
-        return ["    (none)"]
+        return ["    (none tracked yet)"]
     shown = entries[:_STORYLINE_CAP]
     lines = [_storyline_line(s) for s in shown]
     folded = len(entries) - len(shown)
@@ -249,9 +251,11 @@ def _storyline_group_lines(entries) -> list[str]:
 
 def render_storylines(movement) -> str:
     """STORYLINES: the tracked threads' state → trajectory + last-change, split by
-    partition_canonical into REGISTERED (canonical) and PROVISIONAL (confidence-capped),
-    each ordered by salience desc and capped at the top _STORYLINE_CAP (F33) with an
-    explicit fold count when a group overflows. Pure; movement=None → honest empty-state."""
+    partition_canonical into ESTABLISHED and EARLY (not yet corroborated) — F67 Task 8
+    reader-words relabel of the old REGISTERED (canonical) / PROVISIONAL
+    (confidence-capped) internal-jargon headers — each ordered by salience desc and
+    capped at the top _STORYLINE_CAP (F33) with an explicit fold count when a group
+    overflows. Pure; movement=None → honest empty-state."""
     lines = ["STORYLINES (tracked over time)"]
     if movement is None:
         lines.append("  (no wiki store yet — needs a multi-cycle store from daily cycles)")
@@ -262,9 +266,9 @@ def render_storylines(movement) -> str:
     _key = lambda s: (-s.salience, s.title)   # deterministic display order: salience desc, then title
     registered = sorted((s for s in movement.storylines if not s.provisional), key=_key)
     provisional = sorted((s for s in movement.storylines if s.provisional), key=_key)
-    lines.append("  REGISTERED (canonical)")
+    lines.append("  ESTABLISHED")
     lines.extend(_storyline_group_lines(registered))
-    lines.append("  PROVISIONAL (confidence-capped)")
+    lines.append("  EARLY (not yet corroborated)")
     lines.extend(_storyline_group_lines(provisional))
     return "\n".join(lines)
 
@@ -441,7 +445,7 @@ def _why_contested_label(entry) -> Optional[str]:
     if entry.pendingChallenge is not None:
         return "CHALLENGED ⚠"
     if entry.status == "provisional":
-        return "provisional"
+        return reader.STATUS_LABEL["provisional"]
     if entry.conviction == "low" and entry.lens in ("competitive", "risk"):
         return "low conviction"
     if entry.lens == "competitive":

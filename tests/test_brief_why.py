@@ -7,7 +7,10 @@ from __future__ import annotations
 
 from gpu_agent.thesis import PendingChallenge, ThesisBook, ThesisEntry
 
+from gpu_agent import reader
 from gpu_agent.brief import render_why
+
+PROV_LABEL = reader.STATUS_LABEL["provisional"]   # F67 controller item 2: reader words, not the bare literal
 
 AS_OF_PRIOR = "2026-06-26"
 CATEGORY_ID = "chips.merchant-gpu"
@@ -123,7 +126,7 @@ def test_provisional_entry_lands_in_contested_with_provisional_label():
     entry = _entry("thesis-a", lens="supply", conviction="high", status="provisional")
     out = render_why(_book(entry))
     assert _group(out, "  Contested:") == [
-        "    • thesis-a mechanism  (Thesis A — provisional)  (sources in history)"
+        f"    • thesis-a mechanism  (Thesis A — {PROV_LABEL})  (sources in history)"
     ]
 
 
@@ -195,7 +198,7 @@ def test_precedence_provisional_beats_low_conviction():
     entry = _entry("thesis-a", lens="risk", conviction="low", status="provisional")
     out = render_why(_book(entry))
     assert _group(out, "  Contested:") == [
-        "    • thesis-a mechanism  (Thesis A — provisional)  (sources in history)"
+        f"    • thesis-a mechanism  (Thesis A — {PROV_LABEL})  (sources in history)"
     ]
 
 

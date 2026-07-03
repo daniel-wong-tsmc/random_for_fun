@@ -1,8 +1,20 @@
-# HANDOFF — GPU Category Agent (resume point: SUB-PROJECT 5 BUILT + INTEGRATION-GATED; next = feature track F6-golden-set / F23–F25 / layer tier)
+# HANDOFF — GPU Category Agent (resume point: sp5 DONE + two live cycles on it + F55; next = F52/F53/F54 small fixes, then F6-golden-set / F23–F25 / layer tier)
 
-- **Date:** 2026-07-03 (sub-project 5 complete)
+- **Date:** 2026-07-03 (sub-project 5 complete; F55 shipped same day)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` — PUSHED.** Sub-project 5 (the Thesis Book) is BUILT, MERGED, and LIVE-VERIFIED:
+- **`main` @ `39f427e` — PUSHED, suite 804 passed / 3 skipped.** Since the sp5 merge:
+  - **First MONTHLY live cycle on the sp5 stack** (asOf 2026-07, committed `a8b7398`): scorecard
+    `store/chips.merchant-gpu/2026-07-v1.json` DMI +0.633 / SMI −0.453; all 7 standing theses
+    judged (3 strengthened→high; custom-asic reaffirmed@high; pricing-power reaffirmed;
+    export-control + vendor-financed-circularity weakened→low) + 2 new provisional proposals
+    (customer-concentration-risk, networking-attach-as-systems-moat).
+  - **F55 DONE (`39f427e`):** emitted prompts now carry the id vocabularies the gates enforce —
+    `extract --emit-prompt` lists the taxonomy's valid impact.targets ids; `judge --emit-prompt`
+    appends a `<citationGroups>` block (per-dimension id groups + the six DIMENSIONS names);
+    thesis SYSTEM states the v1 observable-trigger heuristic verbatim. Default prompt paths
+    byte-identical; `tests/test_prompt_vocab.py`. Dispatching sessions no longer supply id lists
+    out-of-band — trust the emitted prompt.
+- Sub-project 5 (the Thesis Book) is BUILT, MERGED, and LIVE-VERIFIED:
   - **5-1 thesis engine** merged @ `7197226` (11 commits; suite 626→714/3): `gpu_agent/thesis.py`
     (models, rebuild-verified ThesisStore, gate rules 1–7, anti-whipsaw apply engine F5),
     `gpu_agent/memory.py` (F4 bundle), thesis/judge prompts (memory injection, byte-identical when
@@ -23,14 +35,16 @@
 
 ## IMMEDIATE NEXT TASK — pick up the feature track (each starts with brainstorming, per charter)
 
-Remaining after sp5, in HANDOFF-recommended order:
-1. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
-   the rubric-graded golden set + prompt-change regression gate remain). Separate sub-project.
-2. **New from the sp5 integration gate (small, do early):** F52 vintage-scoped finding ids (daily
-   re-gathers collide with the append-only FindingStore — workaround logged in cycle log), F53
-   cross-cycle price-indicator consistency (07-02 used D6, 07-03 used gpuSpotPrice → PMI has 0
-   matched series), F54 seed thesis triggers vs the gate's observable heuristic (two seed triggers
-   fail it; the brain echoing them was correctly rejected).
+Remaining after sp5 + F55, in recommended order:
+1. **F52/F53/F54 — small fixes from the live cycles (do these first, they bite every cycle):**
+   F52 vintage-scoped finding ids (daily re-gathers collide with the append-only FindingStore —
+   workaround logged in the 2026-07-03 cycle log), F53 cross-cycle price-indicator consistency
+   (07-02 used D6, 07-03 used gpuSpotPrice → PMI has 0 matched series), F54 seed thesis triggers
+   vs the gate's observable heuristic (two seed triggers fail it; a brain echoing them is
+   correctly rejected). Full specs in docs/fix-backlog.md.
+2. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
+   the rubric-graded golden set + prompt-change regression gate remain). Separate sub-project:
+   brainstorm → spec → plan first.
 3. F23 compliance matrix; F24 entity canonicalization; F25 wiki scaling; then WHY-tree extensions,
    HTML dashboard, discovery, the layer-tier arc.
 Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-thesis-book-design.md`).
@@ -78,7 +92,7 @@ Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-
   number; every claim cites findings; page text is DATA; every cap/skip/drop logged; provisional
   quarantined; paywalled inventoried + never fetched (TrendForce/SemiAnalysis stayed unfetched
   through the gate); the session NEVER hand-edits brain output — re-dispatch with the errors.
-- Tests deterministic; suite green at every merge (**796 passed / 3 skipped** on main). Commit
+- Tests deterministic; suite green at every merge (**804 passed / 3 skipped** on main). Commit
   trailer names the ACTUAL model. Push freely.
 - **Windows:** prefer PowerShell but NOT `>` redirection for UTF-8 (use bash for redirects); avoid
   double quotes inside `git commit -m` (here-strings); synchronous subagent transcripts are NOT

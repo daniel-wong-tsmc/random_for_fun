@@ -62,6 +62,29 @@ def test_record_brain_gate_failure_exits_1(tmp_path):
     (run / "brain-answers.json").write_text(json.dumps({"extract-t-01": "not json"}), "utf-8")
     assert main(["eval", "record-brain", "--cases", str(cases_dir), "--out", str(run)]) == 1
 
+def test_record_steps_missing_stage_input_exit_2(tmp_path, capsys):
+    cases_dir = _write_cases(tmp_path)
+    run = tmp_path / "run"
+    main(["eval", "emit-brain", "--cases", str(cases_dir), "--out", str(run)])
+
+    # record-brain with no brain-answers.json -> operator error (2), not gate failure (1)
+    assert main(["eval", "record-brain", "--cases", str(cases_dir), "--out", str(run)]) == 2
+    err = capsys.readouterr().err
+    assert "brain-answers.json not found" in err
+    assert "emit-brain" in err
+
+    (run / "brain-answers.json").write_text(
+        json.dumps({"extract-t-01": json.dumps({"findings": []})}), "utf-8")
+    assert main(["eval", "record-brain", "--cases", str(cases_dir), "--out", str(run)]) == 0
+    assert main(["eval", "emit-grade", "--cases", str(cases_dir), "--out", str(run)]) == 0
+
+    # record-grade with no grade-answers.json (valid --as-of) -> operator error (2)
+    assert main(["eval", "record-grade", "--cases", str(cases_dir), "--out", str(run),
+                 "--as-of", "2026-07-04", "--baseline", str(tmp_path / "baseline.json")]) == 2
+    err = capsys.readouterr().err
+    assert "grade-answers.json not found" in err
+    assert "emit-grade" in err
+
 def test_record_grade_regression_exits_1(tmp_path):
     cases_dir = _write_cases(tmp_path)
     run = tmp_path / "run"

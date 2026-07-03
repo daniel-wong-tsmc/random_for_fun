@@ -460,7 +460,12 @@ def _eval(args) -> int:
         return 0
 
     if args.action == "record-brain":
-        answers = json.loads((out / "brain-answers.json").read_text("utf-8"))
+        ba = out / "brain-answers.json"
+        if not ba.exists():
+            print(f"gpu-agent eval: error: {ba} not found; "
+                  "run emit-brain and dispatch the brains first", file=sys.stderr)
+            return 2
+        answers = json.loads(ba.read_text("utf-8"))
         gates, failed = {}, []
         for c in cases:
             if c.kind != "positive":
@@ -501,7 +506,12 @@ def _eval(args) -> int:
         return 0
 
     if args.action == "record-grade":
-        grade_answers = json.loads((out / "grade-answers.json").read_text("utf-8"))
+        ga = out / "grade-answers.json"
+        if not ga.exists():
+            print(f"gpu-agent eval: error: {ga} not found; "
+                  "run emit-grade and dispatch the graders first", file=sys.stderr)
+            return 2
+        grade_answers = json.loads(ga.read_text("utf-8"))
         grades, violations = record_grades(cases, grade_answers)
         if violations:
             for cid, v in violations.items():

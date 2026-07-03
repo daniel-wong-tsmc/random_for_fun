@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent.thesis import CONVICTION_RANK, ThesisBook
 from gpu_agent import bands
+from gpu_agent import reader
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
 _ARROW = {"positive": "▲", "negative": "▼", "flat": "="}   # ▲ ▼ =
@@ -22,12 +23,16 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
     (gpu_agent.bands — earned via fixed, retunable thresholds, never an invented
     magnitude — Part 17), the SDGI gap wording, the brain's earned categoryStatus
     headline + binding constraint, and NOW/NEXT + divergence from the two indices.
-    Optional fields degrade cleanly. ``track`` (F49, optional) adds one Price Momentum
-    overlay line after the Gap line, only when it carries series.
+    Optional fields degrade cleanly. ``track`` (F49, optional) is accepted for call-site
+    compatibility but no longer rendered here — see the F67 Task 8 note below.
 
     Task 4 (5-2 output surgery): the raw DMI/SMI/SDGI values + Δ that used to sit in
-    parentheses on these lines have moved to the TRUST & COVERAGE footer's raw-index
-    table (report.render_trust_footer) — this section speaks bands and words only."""
+    parentheses on these lines have moved to the appendix's raw-index table
+    (report.render_raw_indices) — this section speaks bands and words only.
+
+    F67 Task 8: the "Price overlay: … PMI …" line is dropped entirely — PMI is an
+    off-allowlist acronym and the price story now lives in the appendix PRICE TRACK
+    section, never above reader.APPENDIX_DIVIDER."""
     ds = sc.demandSupply
     sdgi = report.compute_sdgi(sc)
     p_dmi = prior.demandSupply.dmiContribution if prior else None
@@ -41,14 +46,10 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
     lines.append(f"  Supply: {bands.band_with_prior(ds.smiContribution, p_smi)}")
     lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}")
 
-    if track is not None and track.series:
-        if track.pmi is None:
-            pmi_str = "PMI —"
-        else:
-            word = report._pmi_word(track.pmi)
-            sign = "+" if track.pmi >= 0 else "−"
-            pmi_str = f"PMI {sign}{abs(track.pmi):.2f} {report._PMI_ARROW[word]}"
-        lines.append(f"  Price overlay: {len(track.series)} series tracked, {pmi_str}")
+    if (cs is not None and cs.rating in ("Strong", "Very strong")
+            and ds.smiContribution < 0):
+        lines.append("  Note: the supply reading is negative because supply is the "
+                     "constraint — a demand-led shortage, not a demand problem.")
 
     ix = sc.indices
     if ix is not None:
@@ -68,8 +69,8 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
             flag = "⚠ " if ix.divergence.state.startswith("diverging") else ""
             lines.append(f"  {flag}DIVERGENCE: {ix.divergence.note}")
 
-    if cs is not None:
-        lines.append(f"  BINDING CONSTRAINT: {cs.bottleneck}")
+    if cs is not None and getattr(cs, "constraintLabel", None):
+        lines.append(f"  BINDING CONSTRAINT: {cs.constraintLabel}")
     return "\n".join(lines)
 
 
@@ -97,7 +98,7 @@ def _publisher(ev) -> str:
     return netloc or ev.source.lower()
 
 
-def _board_rows(findings, side, sc_as_of, horizons):
+def _board_rows(findings, side, sc_as_of, horizons, registry):
     rows = []
     on_side = [f for f in findings if f.side == side]
     latest = _collapse_latest(on_side)
@@ -112,39 +113,47 @@ def _board_rows(findings, side, sc_as_of, horizons):
             if tag is not None and tag.get("horizon") == "leading":
                 tags.append("leading")
         if f.asOf < sc_as_of:
-            tags.append("⚠carried")
+            tags.append("⚠ from a prior cycle")
         # F29: a row backed by exactly one distinct publisher domain (whether that's one
         # evidence item or several from the same outlet) carries a visible warning —
         # honest about corroboration, not just presence of evidence.
         publishers = {_publisher(ev) for ev in f.evidence}
         if len(publishers) == 1:
-            tags.append("⚠single-source")
+            tags.append("⚠ one source")
         suffix = ("  [" + ", ".join(tags) + "]") if tags else ""
-        rows.append(f"    {indicator_id}  {word} {arrow}{suffix}")
+        label = reader.indicator_label(indicator_id, registry)
+        rows.append(f"    {label:<24}  {word} {arrow}{suffix}")
     if not rows:
         rows.append(f"    (no {side} findings)")
     return rows
 
 
-def render_demand_supply_board(sc: Scorecard, horizons) -> str:
+def render_demand_supply_board(sc: Scorecard, horizons, registry=None) -> str:
     """DEMAND | SUPPLY board: findings grouped by side, collapsed to the latest vintage per
-    indicator, each row a _signal_label word (from polarity*magnitude — the same score the
-    entity panel uses) + a trend arrow, with a `leading` tag (when horizons supplied) and a
-    `carried` flag for a stale carry-over. Read-only; deterministic (rows ordered by id)."""
+    indicator, each row a reader.indicator_label (registry label, or the id when no registry
+    is supplied — legacy callers keep today's output) + a _signal_label word (from
+    polarity*magnitude — the same score the entity panel uses) + a trend arrow, with a
+    `leading` tag (when horizons supplied) and a plain-worded flag for a stale carry-over
+    or single-source corroboration. Read-only; deterministic (rows ordered by id)."""
     lines = ["DEMAND | SUPPLY"]
     lines.append("  DEMAND")
-    lines.extend(_board_rows(sc.findings, "demand", sc.asOf, horizons))
+    lines.extend(_board_rows(sc.findings, "demand", sc.asOf, horizons, registry))
     lines.append("  SUPPLY")
-    lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons))
+    lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons, registry))
     return "\n".join(lines)
 
 
 def render_market_caveat(sc: Scorecard) -> str:
-    """The one honest trust-footer caveat: the index LEVEL is run-to-run noisy until the
-    4-4 memory stabilizes it, so the brief is a read of DIRECTION and change, not level."""
+    """The one honest trust-footer caveat: the index level is run-to-run noisy until
+    longer history accumulates, so the brief is a read of direction and change, not
+    level. F67 Task 8: reworded to drop internal jargon ("the 4-4 memory") and an
+    off-allowlist all-caps word ("DIRECTION") — this caveat renders above
+    reader.APPENDIX_DIVIDER, so it must pass the same acronym/jargon lint as every
+    other above-the-fold line. The raw DMI/SMI/SDGI table that used to sit below this
+    caveat has moved to its own appendix section (report.render_raw_indices)."""
     return ("TRUST & COVERAGE (caveat)\n"
-            "  index level varies run-to-run until the 4-4 memory stabilizes it — "
-            "read DIRECTION, not level")
+            "  the index level varies run to run until longer history accumulates — "
+            "read direction, not level")
 
 
 # ── store-fed sections (4-5b) ────────────────────────────────────────────────
@@ -204,13 +213,23 @@ def render_what_moved(movement) -> str:
     lines[0] += f"  (vs {movement.prevAsOf})"
     for row in movement.moved:
         tag, arrow = _moved_tag(row)
-        cite = f"[{', '.join(row.findingIds)}]" if row.findingIds else "[—]"
-        prov = "  (provisional)" if row.provisional else ""
+        # Reader contract (spec §1 row 3): a source COUNT + tier label, never an id dump —
+        # ids live in the appendix citation map. Mirrors THE CALLS' citation pattern.
+        cite = (f"({len(row.findingIds)} source{'s' if len(row.findingIds) != 1 else ''})"
+                if row.findingIds else "(sources in history)")
+        tier_label = reader.TIER_LABEL.get(row.tier, "")
+        tier_part = f", {tier_label}" if tier_label else ""
+        prov = f"  ({reader.STATUS_LABEL['provisional']})" if row.provisional else ""
         contra = f"  ({row.contradictionNote})" if row.contradiction and row.contradictionNote else ""
         trans = f"  {row.stateFrom} → {row.stateTo}" if (row.stateFrom and row.stateTo) else ""
-        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}{trans}")
+        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite}{tier_part}{prov}{contra}{trans}")
     if not movement.moved:
-        lines.append("  (no material moves this cycle)")
+        if movement.foldedCount:
+            lines.append(f"  (no material moves vs {movement.prevAsOf} — "
+                         f"{movement.foldedCount} below-threshold items folded)")
+        else:
+            lines.append(f"  (no material moves vs {movement.prevAsOf} — "
+                         f"nothing new cleared the materiality bar)")
     if movement.foldedCount:
         lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
     return "\n".join(lines)
@@ -227,9 +246,11 @@ _STORYLINE_CAP = 8   # F33: bound per-group render growth; the fold is always di
 def _storyline_group_lines(entries) -> list[str]:
     """Render one STORYLINES group, capped at _STORYLINE_CAP entries (already sorted by
     the caller's (-salience, title) order). When the group is capped, an explicit
-    fold-count line is appended — nothing silent. Empty group -> "(none)"."""
+    fold-count line is appended — nothing silent. Empty group -> "(none tracked yet)"
+    (F67 Task 8: reader words — "(none)" alone reads as an error, not an honest
+    absence)."""
     if not entries:
-        return ["    (none)"]
+        return ["    (none tracked yet)"]
     shown = entries[:_STORYLINE_CAP]
     lines = [_storyline_line(s) for s in shown]
     folded = len(entries) - len(shown)
@@ -240,9 +261,11 @@ def _storyline_group_lines(entries) -> list[str]:
 
 def render_storylines(movement) -> str:
     """STORYLINES: the tracked threads' state → trajectory + last-change, split by
-    partition_canonical into REGISTERED (canonical) and PROVISIONAL (confidence-capped),
-    each ordered by salience desc and capped at the top _STORYLINE_CAP (F33) with an
-    explicit fold count when a group overflows. Pure; movement=None → honest empty-state."""
+    partition_canonical into ESTABLISHED and EARLY (not yet corroborated) — F67 Task 8
+    reader-words relabel of the old REGISTERED (canonical) / PROVISIONAL
+    (confidence-capped) internal-jargon headers — each ordered by salience desc and
+    capped at the top _STORYLINE_CAP (F33) with an explicit fold count when a group
+    overflows. Pure; movement=None → honest empty-state."""
     lines = ["STORYLINES (tracked over time)"]
     if movement is None:
         lines.append("  (no wiki store yet — needs a multi-cycle store from daily cycles)")
@@ -253,9 +276,9 @@ def render_storylines(movement) -> str:
     _key = lambda s: (-s.salience, s.title)   # deterministic display order: salience desc, then title
     registered = sorted((s for s in movement.storylines if not s.provisional), key=_key)
     provisional = sorted((s for s in movement.storylines if s.provisional), key=_key)
-    lines.append("  REGISTERED (canonical)")
+    lines.append("  ESTABLISHED")
     lines.extend(_storyline_group_lines(registered))
-    lines.append("  PROVISIONAL (confidence-capped)")
+    lines.append("  EARLY (not yet corroborated)")
     lines.extend(_storyline_group_lines(provisional))
     return "\n".join(lines)
 
@@ -266,7 +289,6 @@ def render_storylines(movement) -> str:
 _CALLS_ARROW = {
     "strengthened": "▲", "weakened": "▼", "reaffirmed": "=", "adjusted": "~", "broken": "✕",
 }
-_CALLS_STATEMENT_CAP = 90
 
 
 def _calls_entry_key(entry):
@@ -281,49 +303,54 @@ def _calls_headline_line(entry) -> str:
     STATE is CHALLENGED when a pendingChallenge is outstanding, else INTACT. A never-
     judged entry (lastVerdict is None — a freshly seeded book rendered before its first
     cycle; not itself pinned by the spec) gets a neutral "not yet judged" in place of a
-    verdict word/arrow rather than fabricating one. Provisional entries append
-    "  (provisional)" at the end of the line."""
+    verdict word/arrow rather than fabricating one. Provisional entries append the
+    reader-facing label (reader.STATUS_LABEL['provisional'] — an exec-facing phrase, not
+    the internal word "provisional") at the end of the line."""
     state = "CHALLENGED — pending confirmation ⚠" if entry.pendingChallenge is not None else "INTACT"
     if entry.lastVerdict is None:
         verdict_part = "not yet judged"
     else:
         verdict_part = f"{entry.lastVerdict} {_CALLS_ARROW[entry.lastVerdict]}"
-    prov = "  (provisional)" if entry.status == "provisional" else ""
+    prov = f"  ({reader.STATUS_LABEL['provisional']})" if entry.status == "provisional" else ""
     return (f"  ● {entry.title}   {state}, {verdict_part}  "
             f"({entry.conviction}, {entry.streak} cycles){prov}")
 
 
-def _calls_evidence_line(finding_ids, findings_by_id) -> str:
-    """The second line: the entry's latest-judgment finding statement (truncated to 90
-    chars), its findingIds, and a tier tag — `primary` if any resolvable cited finding
-    carries primary evidence, else `secondary`; the tier word is omitted when no cited
-    id resolves. `finding_ids` is None/empty (last_findings has nothing for this thesis)
-    or its first id fails to resolve in this cycle's sc.findings -> the honest
-    `(citations in history)` fallback; never fabricate a statement."""
+def _calls_evidence_line(entry, finding_ids, findings_by_id) -> str:
+    """Second line: the thesis's own statement + a source-count tag (reader contract —
+    ids live in the appendix citation map, never here)."""
     if not finding_ids:
-        return "      (citations in history)"
-    first = findings_by_id.get(finding_ids[0])
-    if first is None:
-        return "      (citations in history)"
-    statement = first.statement[:_CALLS_STATEMENT_CAP]
+        return f"      {entry.statement}  (sources in history)"
     resolved = [findings_by_id[fid] for fid in finding_ids if fid in findings_by_id]
-    tier_suffix = ""
-    if resolved:
-        has_primary = any(ev.tier == "primary" for f in resolved for ev in f.evidence)
-        tier_suffix = " primary" if has_primary else " secondary"
-    return f"      {statement}  [{', '.join(finding_ids)}]{tier_suffix}"
+    n = len(finding_ids)
+    if resolved and any(ev.tier == "primary" for f in resolved for ev in f.evidence):
+        tier = f", incl. {reader.TIER_LABEL['primary']}"
+    else:
+        tier = ""
+    return f"      {entry.statement}  ({n} source{'s' if n != 1 else ''}{tier})"
 
 
 def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
-                      last_findings: Optional[dict[str, list[str]]] = None) -> str:
+                      last_findings: Optional[dict[str, list[str]]] = None,
+                      registry=None) -> str:
     """THE CALLS: the standing thesis book, leading the page with earned deltas only.
     book=None (no thesis cycle has ever run) -> the honest placeholder below. Otherwise:
     standing (registered/provisional) entries ordered per _calls_entry_key, each a
-    three-line block (headline / cited-evidence / falsifiable trigger); a thesis retired
-    THIS cycle (lastChangedAsOf == sc.asOf) renders once as a single BROKEN line, and is
-    omitted in every later cycle — no permanent tombstone. `last_findings` supplies each
-    thesis's latest-judgment findingIds (the book itself does not store them — Task 4
-    reads them from history.jsonl); absent -> the evidence line's honest fallback.
+    three-line block (headline / thesis statement + source count / falsifiable trigger);
+    a thesis retired THIS cycle (lastChangedAsOf == sc.asOf) renders once as a single
+    BROKEN line, and is omitted in every later cycle — no permanent tombstone.
+    `last_findings` supplies each thesis's latest-judgment findingIds (the book itself
+    does not store them — Task 4 reads them from history.jsonl), used only to derive the
+    evidence line's source count and primary-tier tag; the ids themselves never render
+    here (reader contract — they live in the appendix citation map). absent -> the
+    evidence line's honest "(sources in history)" fallback.
+
+    `registry` (optional) feeds the "breaks if:" line's reader.label_ids_in_text
+    display-layer substitution: the thesis GATE requires falsifiableTrigger to name a
+    registered indicator id verbatim (F54), so the book keeps the id, but a reader who
+    never asked for "D6" shouldn't see it above the fold — with a registry supplied, the
+    id is swapped for its human label; without one, the raw trigger text (id included)
+    renders unchanged, same as before this parameter existed.
 
     Nothing-changed headline: apply_record (thesis.py) bumps lastChangedAsOf on every
     APPLIED judgment regardless of verdict word — including a reaffirmed one, since a
@@ -364,8 +391,12 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
     for entry in standing:
         finding_ids = (last_findings or {}).get(entry.id)
         lines.append(_calls_headline_line(entry))
-        lines.append(_calls_evidence_line(finding_ids, findings_by_id))
-        lines.append(f"      breaks if: {entry.falsifiableTrigger}")
+        lines.append(_calls_evidence_line(entry, finding_ids, findings_by_id))
+        # F54 requires the GATE-side falsifiableTrigger to name a registered indicator id
+        # verbatim; this DISPLAY-layer substitution swaps it for its human label so the
+        # rendered line reads like exec prose instead of leaking "D6" above the fold.
+        trigger = reader.label_ids_in_text(entry.falsifiableTrigger, registry)
+        lines.append(f"      breaks if: {trigger}")
 
     for entry in retired_now:
         lines.append(f"  ✕ {entry.title}   BROKEN — retired")
@@ -392,9 +423,10 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
 # aligned to spec: Contested includes every competitive-lens thesis at ANY conviction
 # (not only low) that isn't already a driver, and every driver/Contested line carries a
 # `last_findings` companion-dict lookup (the same pattern render_the_calls uses),
-# falling back to the honest "citations in history" when the thesis has no entry in the
-# dict — never inventing a citation. The risk-lens low-conviction arm of Contested is the
-# plan's own addition and is not itself contradicted by the spec text, so it is kept.
+# falling back to the honest "sources in history" when the thesis has no entry in the
+# dict — never inventing a citation, and never dumping ids (reader contract: a count,
+# not an id list). The risk-lens low-conviction arm of Contested is the plan's own
+# addition and is not itself contradicted by the spec text, so it is kept.
 
 def _why_entry_key(entry):
     """(-CONVICTION_RANK, id) — deterministic display order within a WHY group."""
@@ -404,14 +436,15 @@ def _why_entry_key(entry):
 def _why_finding_suffix(entry_id, last_findings) -> str:
     """Spec §4: 'Every line carries the thesis's latest findingIds' — the same
     companion-dict pattern render_the_calls uses (the book itself does not store
-    findingIds; the caller reads them from history.jsonl and supplies the dict).
-    Present + non-empty -> comma-joined ids in brackets; absent, or present but empty,
-    -> the honest '[citations in history]' fallback — mirroring THE CALLS' convention of
-    never fabricating a citation."""
+    findingIds; the caller reads them from history.jsonl and supplies the dict). Reader
+    contract: a source COUNT, never an id dump — ids live in the appendix citation map.
+    Present + non-empty -> '  (<N> sources)'; absent, or present but empty, -> the honest
+    '  (sources in history)' fallback — mirroring THE CALLS' convention of never
+    fabricating a citation."""
     ids = (last_findings or {}).get(entry_id)
     if ids:
-        return f"  [{', '.join(ids)}]"
-    return "  [citations in history]"
+        return f"  ({len(ids)} source{'s' if len(ids) != 1 else ''})"
+    return "  (sources in history)"
 
 
 def _why_driver_line(entry, last_findings) -> str:
@@ -434,7 +467,7 @@ def _why_contested_label(entry) -> Optional[str]:
     if entry.pendingChallenge is not None:
         return "CHALLENGED ⚠"
     if entry.status == "provisional":
-        return "provisional"
+        return reader.STATUS_LABEL["provisional"]
     if entry.conviction == "low" and entry.lens in ("competitive", "risk"):
         return "low conviction"
     if entry.lens == "competitive":
@@ -471,8 +504,9 @@ def render_why(book: Optional[ThesisBook],
 
     `last_findings` (optional dict[thesisId, list[findingId]], same companion-dict
     pattern as render_the_calls) feeds every driver AND Contested line's trailing
-    findingIds citation per spec §4 — present+non-empty -> '  [id, id]'; otherwise the
-    honest '  [citations in history]' fallback (_why_finding_suffix).
+    source-count tag per spec §4 — present+non-empty -> '  (<N> sources)'; otherwise the
+    honest '  (sources in history)' fallback (_why_finding_suffix). Reader contract: a
+    count, never an id dump — ids live in the appendix citation map.
 
     Two literal-rule gaps this leaves on the table (by design — WHY shows drivers,
     constraints, and contested claims, not the whole book): a registered demand/supply

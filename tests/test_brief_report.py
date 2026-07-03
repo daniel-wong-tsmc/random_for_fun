@@ -74,19 +74,20 @@ def _rich_sc():
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 def test_render_report_is_brief_first():
-    # Task 4 (5-2 output surgery) page order: THE CALLS leads, then STATE OF THE
-    # MARKET, then WHY, then the WHAT MOVED -> DEMAND|SUPPLY board drill-down
-    # (note: WHAT MOVED now comes BEFORE the board — swapped from the old order),
-    # then the detail sections, with the trust footer caveat last.
+    # F67 Task 8 (inverted pyramid) page order: STATE OF THE MARKET leads (words-first
+    # BLUF), then WHAT MOVED (the diff), then THE CALLS, then WHY, then the
+    # DEMAND|SUPPLY board, then the trust footer caveat — all above
+    # reader.APPENDIX_DIVIDER; the detail sections (e.g. ENTITY PANEL) now render in
+    # the appendix, after the caveat.
     out = render_report(_rich_sc(), None, _reg(), render_ts="2026-07-01T00:00:00+00:00")
-    i_calls = out.index("THE CALLS")
     i_state = out.index("STATE OF THE MARKET")
-    i_why = out.index("WHY")
     i_moved = out.index("WHAT MOVED SINCE LAST RUN")
+    i_calls = out.index("THE CALLS")
+    i_why = out.index("WHY")
     i_board = out.index("DEMAND | SUPPLY")
+    i_caveat = out.index("read direction, not level")
     i_detail = out.index("ENTITY PANEL")         # an existing detailed section
-    i_caveat = out.index("read DIRECTION, not level")
-    assert i_calls < i_state < i_why < i_moved < i_board < i_detail < i_caveat
+    assert i_state < i_moved < i_calls < i_why < i_board < i_caveat < i_detail
 
 
 def test_render_report_honesty_invariant():
@@ -131,15 +132,15 @@ def _story_movement():
 
 def test_render_report_composes_store_sections_brief_first():
     out = render_report(_rich_sc(), None, _reg(), render_ts="t", movement=_story_movement())
-    i_calls = out.index("THE CALLS")
     i_state = out.index("STATE OF THE MARKET")
-    i_why = out.index("WHY")
     i_moved = out.index("WHAT MOVED SINCE LAST RUN")
+    i_calls = out.index("THE CALLS")
+    i_why = out.index("WHY")
     i_board = out.index("DEMAND | SUPPLY")
     i_story = out.index("STORYLINES (tracked over time)")
+    i_caveat = out.index("read direction, not level")
     i_detail = out.index("ENTITY PANEL")
-    i_caveat = out.index("read DIRECTION, not level")
-    assert i_calls < i_state < i_why < i_moved < i_board < i_story < i_detail < i_caveat
+    assert i_state < i_moved < i_calls < i_why < i_board < i_story < i_caveat < i_detail
     assert "• AMD  on-track → accelerating" in out   # real storyline, not the stub
 
 

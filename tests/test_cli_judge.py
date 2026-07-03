@@ -58,7 +58,10 @@ def test_judge_writes_status_json(tmp_path):
     out = tmp_path / "jdg"
     rc = main(["judge", "--findings", str(findings_path),
                "--category", "chips.merchant-gpu", "--samples", "3",
-               "--recorded", "fixtures/recorded/judge-nvda.json", "--out", str(out)])
+               "--recorded", "fixtures/recorded/judge-nvda.json", "--out", str(out),
+               # F67: this fixture's committed prose (NVDA/DC) predates the analyst-voice
+               # lint and isn't rewritten here -- this test exercises the gate, not the voice.
+               "--no-voice-lint"])
     assert rc == 0
     status = json.loads((out / "status.json").read_text("utf-8"))
     assert status["bottleneck"] in {

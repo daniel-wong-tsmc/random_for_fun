@@ -75,7 +75,7 @@ def _sc(as_of="2026-06", findings=None) -> Scorecard:
 def test_board_single_evidence_finding_is_tagged():
     sc = _sc(findings=[_finding(evidence=[_ev("https://www.ebay.com/x")])])
     out = render_demand_supply_board(sc, None)
-    assert "⚠single-source" in out
+    assert "⚠ one source" in out
 
 
 def test_board_two_different_domains_not_tagged():
@@ -83,7 +83,7 @@ def test_board_two_different_domains_not_tagged():
         _ev("https://www.ebay.com/x"), _ev("https://www.lambda.ai/y"),
     ])])
     out = render_demand_supply_board(sc, None)
-    assert "⚠single-source" not in out
+    assert "⚠ one source" not in out
 
 
 def test_board_two_same_domain_evidence_is_tagged():
@@ -91,7 +91,7 @@ def test_board_two_same_domain_evidence_is_tagged():
         _ev("https://www.ebay.com/x"), _ev("https://www.ebay.com/y"),
     ])])
     out = render_demand_supply_board(sc, None)
-    assert "⚠single-source" in out
+    assert "⚠ one source" in out
 
 
 # ── Task 3 (F33): bound STORYLINES growth ──────────────────────────────────────

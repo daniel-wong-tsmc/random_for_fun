@@ -122,9 +122,18 @@ def test_full_cycle_report_leads_with_the_thesis_book(tmp_path):
     # rendering for this cycle shape; it replaces, not omits, the per-thesis detail.
     assert "Nothing changed this cycle. (6 theses reaffirmed)" in out
 
-    i_calls = out.index("THE CALLS")
+    # F67 Task 8 (inverted pyramid) reordered the page: STATE OF THE MARKET now leads,
+    # then WHAT MOVED, then THE CALLS, then WHY, then the DEMAND|SUPPLY board, with
+    # TRUST & COVERAGE last (all above reader.APPENDIX_DIVIDER).
     i_state = out.index("STATE OF THE MARKET")
-    calls_section = out[i_calls:i_state]
+    i_moved = out.index("WHAT MOVED SINCE LAST RUN")
+    i_calls = out.index("THE CALLS")
+    i_why = out.index("WHY")
+    i_board = out.index("DEMAND | SUPPLY")
+    i_trust = out.index("TRUST & COVERAGE")
+    assert i_state < i_moved < i_calls < i_why < i_board < i_trust
+
+    calls_section = out[i_calls:i_why]
     compact_lines = [ln for ln in calls_section.splitlines() if ln.startswith("  ● ")]
     assert len(compact_lines) == 6, calls_section
 
@@ -137,8 +146,7 @@ def test_full_cycle_report_leads_with_the_thesis_book(tmp_path):
         ), (entry["id"], calls_section)
 
     # --- STATE OF THE MARKET: words-first band, not a raw number ---------------------
-    i_why = out.index("WHY")
-    state_section = out[i_state:i_why]
+    state_section = out[i_state:i_moved]
     assert "Demand: " in state_section
     assert any(marker in state_section for marker in ("(was ", "(no prior)"))
     demand_line = next(ln for ln in state_section.splitlines() if "Demand: " in ln)
@@ -146,16 +154,14 @@ def test_full_cycle_report_leads_with_the_thesis_book(tmp_path):
     assert "DMI" not in demand_line
 
     # --- WHY: all three group headers present -----------------------------------------
-    i_what_moved = out.index("WHAT MOVED")
-    why_section = out[i_why:i_what_moved]
+    why_section = out[i_why:i_board]
     assert "Pulling demand:" in why_section
     assert "Capping supply:" in why_section
     assert "Contested:" in why_section
 
     # --- raw DMI value demoted below the fold: only after TRUST & COVERAGE ------------
-    i_trust = out.index("TRUST & COVERAGE")
     dmi_occurrences = _find_all(out, "DMI 0.")
-    assert dmi_occurrences, "expected the raw DMI value in the trust footer table"
+    assert dmi_occurrences, "expected the raw DMI value in the appendix raw-index table"
     for idx in dmi_occurrences:
         assert idx > i_trust, (
             f"raw 'DMI 0.' value leaked before the TRUST & COVERAGE heading at index {idx}"

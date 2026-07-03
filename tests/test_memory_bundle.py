@@ -176,6 +176,7 @@ def test_build_memory_bundle_prior_category_status_and_indices(tmp_path):
         "direction": "worsening",
         "bottleneck": "CoWoS",
         "reason": "advanced packaging still gates supply",
+        "constraintLabel": None,   # F67 additive-optional field, absent from the recorded fixture
     }
     assert bundle.priorRatings == {
         "momentum": {"rating": "Strong", "direction": "worsening", "confidence": "high"}

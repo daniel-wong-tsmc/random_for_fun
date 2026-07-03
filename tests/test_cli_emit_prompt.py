@@ -48,7 +48,10 @@ def test_emit_then_recorded_round_trips_through_gate_and_judge(tmp_path):
     jdir = tmp_path / "judge"
     out = _run("judge", "--findings", str(findings),
                "--recorded", "fixtures/recorded/judge-nvda.json",
-               "--category", "chips.merchant-gpu", "--out", str(jdir))
+               "--category", "chips.merchant-gpu", "--out", str(jdir),
+               # F67: this fixture's committed prose (NVDA/DC) predates the analyst-voice
+               # lint and isn't rewritten here -- this test exercises the gate round-trip, not the voice.
+               "--no-voice-lint")
     assert out.returncode == 0, out.stderr
     ratings = json.loads((jdir / "ratings.json").read_text("utf-8"))
     assert ratings  # non-empty dimension ratings produced from the recorded answer

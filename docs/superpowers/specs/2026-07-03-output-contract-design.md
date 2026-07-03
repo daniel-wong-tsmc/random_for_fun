@@ -135,6 +135,23 @@ Same renderer path and section order, two cadences:
   "grounded", "under-supported", "provisional" are rendered via the label map).
 - **No-duplicate test:** rendered output contains the status reason exactly once.
 
+## Deviations & deferrals recorded at implementation (2026-07-04, final review)
+
+- **Banner source-gap count:** not-covered/paywalled expected-source counts live in
+  gather-log.json, not the scorecard; the header banner ships vintage + confidence only
+  (plan self-review note). Revisit only if a `--gather-log` argument is ever justified.
+- **Thesis-prose deterministic lint deferred:** §2b's thesis slice ships as prompt rules
+  (thesis SYSTEM VOICE paragraph); a thesis-side lint symmetrical to the judgment one is a
+  follow-up backlog item. Indicator ids remain REQUIRED in `falsifiableTrigger` (the F54
+  observable heuristic); the renderer maps them to registry labels at display time
+  (`reader.label_ids_in_text`), so the book keeps ids and the page speaks labels.
+- **Citation map renders the first evidence item per finding** (not all items) — follow-up.
+- **BLUF reconciliation note** keys off `rating + smiContribution < 0`; keying off
+  `sdgiDirection` would be more precise — follow-up.
+- **Pre-existing live-store prose** (seed thesis text written before this contract) may
+  carry off-allowlist tokens (`MI`, `GB300`); cleans up as entries are re-judged under the
+  new prompts, or when the thesis lint lands.
+
 ## Out of scope
 
 - The HTML dashboard (Part 35 pull surface) — after the Markdown content model is proven.

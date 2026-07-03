@@ -3,6 +3,7 @@ calibrate, compare against baseline. A gate rejection of a fresh answer is SIGNA
 candidate prompt produces invalid output), not an eval bug."""
 from __future__ import annotations
 import json
+import pathlib
 from pydantic import BaseModel, ConfigDict, ValidationError
 from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput, EvalCase
 from gpu_agent.evals.emit import emit_brain_bundle
@@ -132,3 +133,58 @@ def score_cases(cases: list[EvalCase], grades: dict[str, GradeResult]) -> dict:
             total = scores[c.caseId]["total"]
             calibration[c.caseId] = {"score": total, "max": limit, "ok": total <= limit}
     return {"scores": scores, "seamMeans": seam_means, "calibration": calibration}
+
+
+_EPS = 1e-9
+
+
+def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_hashes: dict, baseline: dict | None, as_of: str) -> dict:
+    report = score_cases(cases, grades)
+    report["promptHashes"] = dict(prompt_hashes)
+    report["asOf"] = as_of
+    reasons: list[str] = []
+    ok = True
+    for cid, cal in report["calibration"].items():
+        if not cal["ok"]:
+            ok = False
+            reasons.append(f"grader miscalibrated: negative case '{cid}' scored "
+                           f"{cal['score']} > {cal['max']}")
+    if baseline is None:
+        reasons.append("bootstrap: no baseline — comparison skipped; rebaseline to establish one")
+    else:
+        for seam, incumbent in baseline.get("seamMeans", {}).items():
+            new = report["seamMeans"].get(seam)
+            if new is None:
+                ok = False
+                reasons.append(f"seam '{seam}' has a baseline mean but no scored positive cases")
+            elif new < incumbent + _EPS:
+                ok = False
+                reasons.append(f"regression on '{seam}': {new:.3f} < incumbent {incumbent:.3f}")
+    report["verdict"] = {"pass": ok, "reasons": reasons}
+    return report
+
+
+def load_baseline(path) -> dict | None:
+    p = pathlib.Path(path)
+    if not p.exists():
+        return None
+    return json.loads(p.read_text("utf-8"))
+
+
+def rebaseline(report: dict, baseline_path, force_reason: str | None = None,
+               human_review: str = "") -> dict:
+    if not report["verdict"]["pass"] and not force_reason:
+        raise ValueError("refusing to rebaseline from a failing run "
+                         f"({'; '.join(report['verdict']['reasons'])}); "
+                         "pass force_reason to override — it is stored permanently")
+    baseline = {
+        "promptHashes": report["promptHashes"],
+        "cases": report["scores"],
+        "seamMeans": report["seamMeans"],
+        "provenance": {"asOf": report["asOf"], "graderModel": "opus",
+                       "forceReason": force_reason, "humanReview": human_review},
+    }
+    p = pathlib.Path(baseline_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(baseline, indent=2, sort_keys=True), "utf-8")
+    return baseline

@@ -54,6 +54,34 @@ def test_judge_recorded_fixture_answer_gates(reg):
     result = gate_brain_answer("judge", si, answers[0], registry, taxonomy)
     assert result.ok, result.violations
 
+def test_judge_voice_violation_rejects(reg):
+    # F67 follow-up: the live judge gate voice-lints every recorded answer by default (cli.py
+    # _voice_lint_samples), so the eval gate must mirror it. Take the known-good judge-nvda
+    # fixture sample (passes the citation gate cleanly, see
+    # test_judge_recorded_fixture_answer_gates above) and inject a banned word ('robust', see
+    # gpu_agent/reader.py BANNED_WORDS) into its rationale -- the answer still gates clean on
+    # citations, but must now fail on voice.
+    registry, taxonomy = reg
+    from gpu_agent.evals.cases import JudgeInput
+    finding = {
+        "id": "doc-nvda-1", "statement": "s", "kind": "observed", "trend": "flat", "why": "w",
+        "impact": {"targets": ["t"], "direction": "positive", "mechanism": "m"},
+        "evidence": [{"source": "S", "url": "u", "date": "2026-06-01", "excerpt": "e",
+                      "tier": "primary"}],
+        "confidence": {"level": "medium", "basis": "b"}, "asOf": "2026-06",
+        "indicatorId": "D2", "side": "demand", "polarityDemand": 1, "polaritySupply": 0,
+        "magnitude": 2, "entity": "E", "observedAt": "2026-06-01",
+        "capturedAt": "2026-06-12T00:00:00Z",
+    }
+    si = JudgeInput(findings=[finding], category="chips.merchant-gpu", memoryText=None)
+    answers = json.loads(pathlib.Path("fixtures/recorded/judge-nvda.json").read_text("utf-8"))
+    sample = json.loads(answers[0])
+    sample["dimensions"]["momentum"]["rationale"] = "DC growth is robust but decelerating"
+    result = gate_brain_answer("judge", si, json.dumps(sample), registry, taxonomy)
+    assert not result.ok
+    assert any("voice" in v.lower() or "lint" in v.lower() or "banned word" in v.lower()
+               for v in result.violations), result.violations
+
 def test_thesis_invalid_json_rejects(reg):
     registry, taxonomy = reg
     si = load_hash_input(HASH_INPUT)["thesis"]

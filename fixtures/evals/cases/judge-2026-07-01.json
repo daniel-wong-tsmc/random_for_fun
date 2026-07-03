@@ -3191,7 +3191,7 @@
   "checks": {
     "mustMention": [],
     "citationsResolve": true,
-    "gateOutcome": "pass"
+    "gateOutcome": "reject"
   },
-  "notes": "Monthly (2026-07) single judge sample over 72 gated findings. A strong judgment names the crux (physical supply — CoWoS/HBM allocation — as the binding constraint while demand and unit economics run very strong), builds an explicit causal chain from cited findings to each dimension rating, keeps ratings inside their anchors, and states what would flip the call. Reward citation discipline (each rating grounded only in its indicator-group findings) and a bottleneck read that follows from the named crux, not a rating average."
+  "notes": "Monthly (2026-07) single judge sample over 72 gated findings. A strong judgment names the crux (physical supply — CoWoS/HBM allocation — as the binding constraint while demand and unit economics run very strong), builds an explicit causal chain from cited findings to each dimension rating, keeps ratings inside their anchors, and states what would flip the call. Reward citation discipline (each rating grounded only in its indicator-group findings) and a bottleneck read that follows from the named crux, not a rating average. The frozen answer is pre-F67 voice (off-allowlist acronyms / rationale length) and now rejects under the current gate's voice lint; fresh answers at baseline time are produced by post-F67 prompts and must gate clean."
 }

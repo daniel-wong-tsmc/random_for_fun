@@ -46,7 +46,14 @@ def gate_brain_answer(seam: str, seam_input, answer_text: str, registry, taxonom
             return BrainGate(ok=False, violations=[str(x) for x in v])
         except Exception as e:
             return BrainGate(ok=False, violations=[f"judge parse error: {e}"])
-        return BrainGate(ok=True, violations=[])
+        # F67: the live judge gate (`judge --recorded` / `pipeline --recorded-judge`) voice-lints
+        # every recorded answer by default before it reaches a scorecard; mirror that here so an
+        # eval run can't baseline a prompt whose answers the live gate would reject. Lazy import:
+        # cli.py imports gpu_agent.evals at module level, so a top-level import here would be
+        # circular.
+        from gpu_agent.cli import _voice_lint_samples
+        violations = _voice_lint_samples([answer_text])
+        return BrainGate(ok=not violations, violations=violations)
     if seam == "thesis":
         assert isinstance(seam_input, ThesisInput)
         try:

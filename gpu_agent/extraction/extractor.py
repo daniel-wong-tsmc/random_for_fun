@@ -102,6 +102,14 @@ def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
             dropped.append(DroppedFinding(id=fid, violations=[f"unregistered indicator: {draft.indicatorId}"]))
             continue
         violations: list[str] = []
+        if (spec.side == "price" and draft.value is not None and spec.unit
+                and draft.value.unit != spec.unit):
+            # F53: price series match cross-cycle on (indicatorId, publisher, unit) —
+            # a drifting unit string (or a mislabeled indicator, whose canonical unit
+            # then mismatches) silently kills the PMI. Reject loud -> re-dispatch.
+            violations.append(
+                f"{fid}: price unit '{draft.value.unit}' != registered unit "
+                f"'{spec.unit}' for {draft.indicatorId}")
         if draft.value is not None and not math.isfinite(draft.value.number):
             violations.append(f"{fid}: non-finite value")
         for e in draft.evidence:

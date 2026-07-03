@@ -41,6 +41,11 @@ from gpu_agent.registry.structure import Taxonomy
 from gpu_agent.registry.validate import validate_assignment
 from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
 from gpu_agent.report import load_scorecard, find_prior, render_report
+from gpu_agent.evals.cases import load_cases, CaseError
+from gpu_agent.evals.harness import (
+    build_grade_prompt, build_report, gate_brain_answer, load_baseline,
+    rebaseline as evals_rebaseline, record_grades)
+from gpu_agent.evals.prompt_hash import compute_prompt_hashes
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -409,6 +414,113 @@ def _thesis(args) -> int:
           file=sys.stderr)
     return 2
 
+def _eval(args) -> int:
+    """F6 eval harness driver. Emit/record cycle mirrors extract/judge/thesis; run-dir files
+    (brain-prompts/brain-answers/brain-gates/grade-prompts/grade-answers/report.json) are the
+    contract the run-eval skill scripts against."""
+    out = pathlib.Path(args.out)
+    if args.action == "rebaseline":
+        report_path = out / "report.json"
+        if not report_path.exists():
+            print("gpu-agent eval: error: no report.json in --out; run record-grade first",
+                  file=sys.stderr)
+            return 1
+        report = json.loads(report_path.read_text("utf-8"))
+        try:
+            evals_rebaseline(report, args.baseline,
+                             force_reason=args.reason if args.force else None,
+                             human_review=args.human_review)
+        except ValueError as e:
+            print(f"gpu-agent eval: {e}", file=sys.stderr)
+            return 1
+        print(f"baseline written -> {args.baseline}")
+        return 0
+
+    if args.action == "record-grade" and not args.as_of:
+        print("gpu-agent eval: error: --as-of is required for record-grade", file=sys.stderr)
+        return 2
+
+    try:
+        cases = load_cases(pathlib.Path(args.cases))
+    except CaseError as e:
+        print(f"gpu-agent eval: case error: {e}", file=sys.stderr)
+        return 1
+    if not cases:
+        print(f"gpu-agent eval: no cases in {args.cases}", file=sys.stderr)
+        return 1
+    registry, taxonomy = _load_registry()
+    from gpu_agent.evals.emit import emit_brain_bundle
+    out.mkdir(parents=True, exist_ok=True)
+
+    if args.action == "emit-brain":
+        prompts = {c.caseId: emit_brain_bundle(c.seam, c.seam_input(), registry, taxonomy)
+                   for c in cases if c.kind == "positive"}
+        (out / "brain-prompts.json").write_text(json.dumps(prompts, indent=2), "utf-8")
+        print(f"emitted {len(prompts)} brain prompts -> {out / 'brain-prompts.json'}")
+        return 0
+
+    if args.action == "record-brain":
+        answers = json.loads((out / "brain-answers.json").read_text("utf-8"))
+        gates, failed = {}, []
+        for c in cases:
+            if c.kind != "positive":
+                continue
+            if c.caseId not in answers:
+                gates[c.caseId] = {"ok": False, "violations": ["missing brain answer"]}
+                failed.append(c.caseId)
+                continue
+            g = gate_brain_answer(c.seam, c.seam_input(), answers[c.caseId], registry, taxonomy)
+            gates[c.caseId] = g.model_dump()
+            if not g.ok:
+                failed.append(c.caseId)
+        (out / "brain-gates.json").write_text(json.dumps(gates, indent=2), "utf-8")
+        for cid in failed:
+            print(f"BRAIN GATE FAILED {cid}:", *gates[cid]["violations"],
+                  sep="\n  ", file=sys.stderr)
+        print(f"gated {len(gates)} answers, {len(failed)} failed -> {out / 'brain-gates.json'}")
+        return 1 if failed else 0
+
+    if args.action == "emit-grade":
+        answers = {}
+        ba = out / "brain-answers.json"
+        if ba.exists():
+            answers = json.loads(ba.read_text("utf-8"))
+        prompts, missing = {}, []
+        for c in cases:
+            text = c.recordedAnswer if c.kind == "negative" else answers.get(c.caseId)
+            if text is None:
+                missing.append(c.caseId)
+                continue
+            prompts[c.caseId] = build_grade_prompt(c, text, registry, taxonomy)
+        if missing:
+            print("gpu-agent eval: error: no fresh brain answer for: " + ", ".join(missing),
+                  file=sys.stderr)
+            return 1
+        (out / "grade-prompts.json").write_text(json.dumps(prompts, indent=2), "utf-8")
+        print(f"emitted {len(prompts)} grade prompts -> {out / 'grade-prompts.json'}")
+        return 0
+
+    if args.action == "record-grade":
+        grade_answers = json.loads((out / "grade-answers.json").read_text("utf-8"))
+        grades, violations = record_grades(cases, grade_answers)
+        if violations:
+            for cid, v in violations.items():
+                print(f"GRADE GATE FAILED {cid}:", *v, sep="\n  ", file=sys.stderr)
+            return 1
+        hashes = compute_prompt_hashes(registry, taxonomy,
+                                       pathlib.Path("fixtures/evals/hash-input.json"))
+        baseline = load_baseline(args.baseline)
+        report = build_report(cases, grades, hashes, baseline, as_of=args.as_of)
+        (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True), "utf-8")
+        print(f"{'PASS' if report['verdict']['pass'] else 'FAIL'}  seams: " +
+              "  ".join(f"{s}={m:.2f}" for s, m in sorted(report["seamMeans"].items())))
+        for r in report["verdict"]["reasons"]:
+            print(f"  - {r}")
+        return 0 if report["verdict"]["pass"] else 1
+
+    print(f"gpu-agent eval: unknown action '{args.action}'", file=sys.stderr)
+    return 2
+
 def _pipeline(args) -> int:
     docs = _load_docs(args.docs)
     if args.recorded_extract:
@@ -656,6 +768,16 @@ def main(argv=None) -> int:
                     help="seed file path for a first run (default: registry/theses.<category>.json)")
     th.add_argument("--persona", default=None,
                     help="analyst persona for the emitted system prompt (default: GPU market)")
+    ev = sub.add_parser("eval", help="F6 eval harness: golden-set emit/record + rebaseline")
+    ev.add_argument("action", choices=["emit-brain", "record-brain", "emit-grade",
+                                       "record-grade", "rebaseline"])
+    ev.add_argument("--cases", default="fixtures/evals/cases")
+    ev.add_argument("--out", required=True)
+    ev.add_argument("--as-of", default="", help="required for record-grade (report provenance)")
+    ev.add_argument("--baseline", default="fixtures/evals/baseline.json")
+    ev.add_argument("--force", action="store_true")
+    ev.add_argument("--reason", default="")
+    ev.add_argument("--human-review", default="")
     pl = sub.add_parser("pipeline")
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)
@@ -711,6 +833,12 @@ def main(argv=None) -> int:
     if args.cmd == "thesis":
         try:
             return _thesis(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+    if args.cmd == "eval":
+        try:
+            return _eval(args)
         except RegistryError as e:
             print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
             return 1

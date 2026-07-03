@@ -41,6 +41,11 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
     lines.append(f"  Supply: {bands.band_with_prior(ds.smiContribution, p_smi)}")
     lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}")
 
+    if (cs is not None and cs.rating in ("Strong", "Very strong")
+            and ds.smiContribution < 0):
+        lines.append("  Note: the supply reading is negative because supply is the "
+                     "constraint — a demand-led shortage, not a demand problem.")
+
     if track is not None and track.series:
         if track.pmi is None:
             pmi_str = "PMI —"
@@ -68,8 +73,8 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
             flag = "⚠ " if ix.divergence.state.startswith("diverging") else ""
             lines.append(f"  {flag}DIVERGENCE: {ix.divergence.note}")
 
-    if cs is not None:
-        lines.append(f"  BINDING CONSTRAINT: {cs.bottleneck}")
+    if cs is not None and getattr(cs, "constraintLabel", None):
+        lines.append(f"  BINDING CONSTRAINT: {cs.constraintLabel}")
     return "\n".join(lines)
 
 

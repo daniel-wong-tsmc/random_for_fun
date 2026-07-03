@@ -195,21 +195,21 @@ def render_overall_status(sc: Scorecard) -> str:
         ]
     else:
         # cs may be a typed CategoryStatus model or a plain dict.
+        # F67: reason is no longer read here — it renders exactly once, in the
+        # STATE OF THE MARKET headline (brief.render_state_of_market).
         if isinstance(cs, dict):
             rating = cs.get("rating", "—")
             direction = cs.get("direction", "—")
             bottleneck = cs.get("bottleneck", "—")
-            reason = cs.get("reason", "—")
         else:
             rating = getattr(cs, "rating", "—")
             direction = getattr(cs, "direction", "—")
             bottleneck = getattr(cs, "bottleneck", "—")
-            reason = getattr(cs, "reason", "—")
         arrow = DIRECTION_ARROW.get(str(direction), "")
         lines += [
             f"  Status:     {rating}  {arrow} {direction}".rstrip(),
             f"  Bottleneck: {bottleneck}",
-            f"  Reason:     {reason}",
+            "  Reason:     see State of the Market above",
         ]
     return "\n".join(lines)
 

@@ -55,7 +55,8 @@ def _indices(*, mom=(0.07, 0.05), out=(0.0, 0.0), div_state="insufficient-covera
 def _catstat():
     return CategoryStatus(rating="Strong", direction="improving",
                           bottleneck="advanced packaging (CoWoS)",
-                          reason="demand outruns the packaging ramp")
+                          reason="demand outruns the packaging ramp",
+                          constraintLabel="advanced packaging (CoWoS)")
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -112,3 +113,31 @@ def test_no_unearned_magnitude_word_on_demand_supply_lines():
     for banned in ("strong", "weak", "slight", "moderate"):
         assert banned not in demand_line.lower()
     assert "ACCELERATING" in demand_line     # earned via the >= 0.30 threshold, not invented
+
+
+# ── F67 Task 5: BLUF constraint noun + reconciliation note ──────────────────
+
+def test_constraint_line_uses_label_never_dimension():
+    # constraintLabel is the plain-language physical/market constraint name; the
+    # binding-constraint line must render it, never the dimension-name bottleneck.
+    cs = CategoryStatus(rating="Strong", direction="improving", bottleneck="bottleneck",
+                        reason="r", constraintLabel="CoWoS/HBM3E advanced packaging")
+    sc = _sc(category_status=cs)
+    out = render_state_of_market(sc, None)
+    assert "BINDING CONSTRAINT: CoWoS/HBM3E advanced packaging" in out
+
+
+def test_constraint_line_omitted_without_label():
+    cs = CategoryStatus(rating="Strong", direction="improving", bottleneck="bottleneck",
+                        reason="r")   # no constraintLabel
+    sc = _sc(category_status=cs)
+    out = render_state_of_market(sc, None)
+    assert "BINDING CONSTRAINT" not in out          # honest omission, no jargon leak
+
+
+def test_reconciliation_note_when_strong_but_supply_negative():
+    cs = CategoryStatus(rating="Strong", direction="improving", bottleneck="bottleneck",
+                        reason="r")
+    sc = _sc(smi=-0.45, category_status=cs)
+    out = render_state_of_market(sc, None)
+    assert "supply is the constraint" in out

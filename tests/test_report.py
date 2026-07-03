@@ -193,14 +193,20 @@ def test_render_overall_status_absent_shows_not_available():
 
 
 def test_render_overall_status_present_shows_rating():
-    """Post-B scorecard (categoryStatus present) → rating + bottleneck appear."""
+    """Post-B scorecard (categoryStatus present) → rating + bottleneck appear.
+
+    F67: the reason is no longer duplicated here — it renders exactly once, in
+    STATE OF THE MARKET (see tests/test_report_no_duplicate.py) — so this section
+    points there instead of repeating the reason text.
+    """
     from gpu_agent.report import render_overall_status
     sc = _load(POSTB)  # categoryStatus: Strong / worsening / bottleneck=momentum
     out = render_overall_status(sc)
     assert "OVERALL CATEGORY STATUS" in out
     assert "Strong" in out
     assert "momentum" in out  # the bottleneck value
-    assert "DC growth solid but decelerating" in out  # the reason
+    assert "see State of the Market above" in out
+    assert "DC growth solid but decelerating" not in out  # no longer duplicated (F67)
 
 
 # ── render_dimensions ────────────────────────────────────────────────────────

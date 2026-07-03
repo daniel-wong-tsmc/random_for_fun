@@ -33,7 +33,8 @@ def build_system(persona: str = DEFAULT_PERSONA) -> str:
 
 SYSTEM = build_system()   # byte-identical to the prior hardcoded constant — pinned by a test
 
-def build_user_prompt(briefing: Briefing, memory_text: str | None = None) -> str:
+def build_user_prompt(briefing: Briefing, memory_text: str | None = None,
+                      include_groups: bool = False) -> str:
     lines = ["Anchors (sign bounds your rating; absent = no numeric bound):"]
     for dim, a in sorted(briefing.anchors.items()):
         lines.append(f"  {dim}: {a:+.2f}")
@@ -45,6 +46,21 @@ def build_user_prompt(briefing: Briefing, memory_text: str | None = None) -> str
             f"(demand={f.polarityDemand:+d} supply={f.polaritySupply:+d} "
             f"mag={f.magnitude} conf={f.confidence.level})")
     body = "<briefing>\n" + "\n".join(lines) + "\n</briefing>\n"
+    # F55: the emit path appends the code-computed citation groups so the brain sees the exact
+    # per-dimension id vocabulary the aggregation conflict-check enforces. Default False keeps
+    # every existing caller (incl. the frozen judge_findings internal path) byte-identical.
+    if include_groups:
+        from gpu_agent.schema.scorecard import DIMENSIONS   # frozen source of the six names
+        glines = ["<citationGroups>",
+                  "A rated dimension may cite ONLY finding ids from its own group below; "
+                  "OMIT any dimension not listed (it has no findings this cycle and is marked "
+                  "under-supported by code).",
+                  "The six dimensions (categoryStatus.bottleneck must be one of these): "
+                  + ", ".join(DIMENSIONS) + "."]
+        for dim in sorted(briefing.grouped):
+            glines.append(f"  {dim}: {', '.join(briefing.grouped[dim])}")
+        glines.append("</citationGroups>")
+        body = body + "\n" + "\n".join(glines) + "\n"
     # F5: additive memory injection — None keeps the prior byte-identical return, unchanged.
     if memory_text is None:
         return body

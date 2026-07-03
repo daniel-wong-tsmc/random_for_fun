@@ -212,8 +212,14 @@ def _emit_extract_prompt(args) -> int:
     uniform prompt, the agent reasons, code gates the result."""
     docs = _load_docs(args.docs)
     persona = getattr(args, "persona", None)
+    # F55: bake the taxonomy's impact.targets vocabulary into the emitted system prompt — the
+    # same id set the gate enforces (taxonomy.categories) — so the dispatched brain never
+    # depends on a coordinator-supplied id list.
+    _, taxonomy = _load_registry()
+    valid_targets = sorted(taxonomy.categories)
     bundle = {
-        "system": build_extract_system(persona) if persona else EXTRACT_SYSTEM,
+        "system": build_extract_system(persona, valid_targets=valid_targets) if persona
+                  else build_extract_system(valid_targets=valid_targets),
         "schema": ExtractionResult.model_json_schema(),
         "docs": [{"id": doc.id, "user": build_extract_user_prompt(doc)} for doc in docs],
     }
@@ -274,7 +280,9 @@ def _emit_judge_prompt(args) -> int:
     bundle = {
         "system": build_judge_system(persona) if persona else JUDGE_SYSTEM,
         "schema": JudgmentResult.model_json_schema(),
-        "user": build_judge_user_prompt(briefing, memory_text=memory_text),
+        # F55: include_groups appends the code-computed per-dimension citation groups (and the
+        # six dimension names) so the brains see the exact vocabulary the conflict-check enforces.
+        "user": build_judge_user_prompt(briefing, memory_text=memory_text, include_groups=True),
         "samples": args.samples,
     }
     print(json.dumps(bundle, indent=2))

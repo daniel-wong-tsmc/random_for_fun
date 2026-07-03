@@ -207,6 +207,17 @@
   across the two cycles and PMI renders `—`. Pin ONE indicator id per price-source class in
   extraction guidance (or normalize at price-track level) so day-over-day deltas can ever compute.
   *(Next wave)*
+- [x] **F55 — Emitted prompts carry the id vocabularies the gates enforce. DONE (session,
+  2026-07-03).** Born from BOTH live cycles on the sp5 stack: each coordinating session had to
+  hand the brains the valid taxonomy ids (extraction impact.targets) and the judge citation
+  groups out-of-band, and each got them wrong first try — one full re-dispatch wave per cycle.
+  Now `extract --emit-prompt` appends the taxonomy's category ids to the system prompt
+  (`build_system(valid_targets=...)`, sourced from the same `taxonomy.categories` the gate
+  checks), `judge --emit-prompt` appends a `<citationGroups>` block (code-computed per-dimension
+  id groups + the six DIMENSIONS names, `build_user_prompt(include_groups=True)`), and the
+  thesis SYSTEM states the v1 observable heuristic verbatim instead of letting the brain
+  discover it by rejection. All default paths byte-identical (F26/F4 additive pattern);
+  `judge_findings`' frozen internal path untouched. tests/test_prompt_vocab.py. *(DONE)*
 - [ ] **F54 — Seed thesis triggers should pass the gate heuristic they will be judged under**
   (born from the same gate). Two committed seed triggers (`supply-constraint-binding`,
   `custom-asic-substitution`) name no observable under the thesis gate's v1 heuristic; the brain

@@ -680,7 +680,7 @@ _THESIS_SYSTEM_TEMPLATE = """You are a <PERSONA> analyst maintaining a standing 
 
 You must judge EVERY standing thesis in <book> below exactly once, choosing a verdict from reaffirmed, strengthened, weakened, adjusted, or broken, grounded only in the findings in <findings>. An adjusted verdict must restate the thesis's new statement in its rationale, prefixed exactly "ADJUSTED: " (e.g. rationale="ADJUSTED: <the new statement text>").
 
-Every judgment needs mechanism, falsifiableTrigger, and sensitivity: mechanism states the causal link driving the thesis; falsifiableTrigger names a concrete, checkable observable that would prove the thesis wrong (EXAMPLE: "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters."); sensitivity names what the thesis is most sensitive to. A trigger that names no observable will be rejected.
+Every judgment needs mechanism, falsifiableTrigger, and sensitivity: mechanism states the causal link driving the thesis; falsifiableTrigger names a concrete, checkable observable that would prove the thesis wrong (EXAMPLE: "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters."); sensitivity names what the thesis is most sensitive to. A trigger that names no observable will be rejected. The observable check is deterministic (v1): a falsifiableTrigger passes ONLY if it contains a registered indicator id verbatim, a digit, or one of the words quarter, qtr, month, week, cycle.
 
 Anti-whipsaw: a reversal without primary evidence is recorded but not applied — judge honestly regardless of that consequence; do not soften a verdict merely because you lack primary evidence for it.
 

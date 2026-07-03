@@ -454,6 +454,28 @@ def _cycle_plan(args) -> int:
             print(f"SKIPPED {e.category_id}: {e.status}", file=sys.stderr)
     return 0
 
+def _latest_thesis_findings(history_path: pathlib.Path) -> dict:
+    """Per-thesis findingIds from the LATEST history judgment record for each thesisId.
+
+    Judgment records are the ones carrying a 'verdict' key (lifecycle records — seeded/
+    proposed/promoted/retired/challenge-lapsed — do not and are skipped). history.jsonl
+    is append-only chronological, so a plain forward scan that overwrites on every
+    matching line naturally leaves the last (most recent) record per thesisId.
+    """
+    latest: dict = {}
+    if not history_path.exists():
+        return latest
+    with history_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            record = json.loads(line)
+            if "verdict" in record:
+                latest[record["thesisId"]] = record["findingIds"]
+    return latest
+
+
 def _report(args) -> int:
     """Handler for `gpu-agent report`: load scorecard + optional prior → render."""
     try:
@@ -461,6 +483,18 @@ def _report(args) -> int:
     except (ValueError, FileNotFoundError) as e:
         print(f"gpu-agent report: error: {e}", file=sys.stderr)
         return 1
+
+    # Task 4 (5-2 output surgery): THE CALLS / WHY are pure projections of the standing
+    # thesis book. Absent store -> both stay None and brief.render_the_calls/render_why
+    # degrade to their honest empty-state lines. A present-but-drifted book raises
+    # ThesisStoreError, uncaught here -- fail loud, never silently trust a bad book
+    # (mirrors the existing convention of not swallowing RegistryError in this handler).
+    tstore = ThesisStore(pathlib.Path(args.store) / "theses" / sc.categoryId)
+    thesis_book = None
+    thesis_last_findings = None
+    if tstore.exists():
+        thesis_book = tstore.load()
+        thesis_last_findings = _latest_thesis_findings(tstore.history_path)
 
     prior = None
     if not args.no_prior:
@@ -506,7 +540,8 @@ def _report(args) -> int:
                                     registry=registry, horizons=horizons)
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
-                         horizons=horizons, movement=movement)
+                         horizons=horizons, movement=movement,
+                         thesis_book=thesis_book, thesis_last_findings=thesis_last_findings)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).

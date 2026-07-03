@@ -148,13 +148,18 @@ def test_render_price_track_shows_pmi_when_present():
 
 # ── render_report wiring: pin (4) position + byte-determinism ─────────────────
 
-def test_render_report_places_price_track_between_momentum_and_entity_panel():
+def test_render_report_places_price_track_between_storylines_and_entity_panel():
+    # Task 4 (5-2 output surgery): the old DEMAND / SUPPLY MOMENTUM raw-index section
+    # (the previous anchor before PRICE TRACK) is retired from render_report's
+    # composition; STORYLINES is PRICE TRACK's new immediate predecessor in the
+    # pinned page order (... DEMAND|SUPPLY board -> STORYLINES -> PRICE TRACK ->
+    # ENTITY PANEL ...).
     sc = _sc(findings=[_price_f("f-cur", number=6.69, evidence=[_ev("Lambda", "https://lambda.ai/x")])])
     out = render_report(sc, None, _reg(), render_ts="fixed")
-    i_mom = out.index("DEMAND / SUPPLY MOMENTUM")
+    i_story = out.index("STORYLINES (tracked over time)")
     i_price = out.index("PRICE TRACK")
     i_entity = out.index("ENTITY PANEL")
-    assert i_mom < i_price < i_entity
+    assert i_story < i_price < i_entity
 
 
 def test_render_report_omits_price_track_section_when_no_price_findings():

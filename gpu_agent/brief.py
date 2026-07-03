@@ -7,6 +7,7 @@ from typing import Optional
 from urllib.parse import urlparse
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent.thesis import CONVICTION_RANK, ThesisBook
+from gpu_agent import bands
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
 _ARROW = {"positive": "▲", "negative": "▼", "flat": "="}   # ▲ ▼ =
@@ -17,29 +18,28 @@ def _dir_arrow(value: float) -> str:
 
 
 def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None) -> str:
-    """STATE OF THE MARKET (BLUF): demand/supply momentum as direction + Δ (never an
-    invented magnitude word on the unscaled index — Part 17), the SDGI gap wording, the
-    brain's earned categoryStatus headline + binding constraint, and NOW/NEXT + divergence
-    from the two indices. Optional fields degrade cleanly. ``track`` (F49, optional) adds
-    one Price Momentum overlay line after the Gap line, only when it carries series."""
+    """STATE OF THE MARKET (BLUF): demand/supply momentum as a words-first band
+    (gpu_agent.bands — earned via fixed, retunable thresholds, never an invented
+    magnitude — Part 17), the SDGI gap wording, the brain's earned categoryStatus
+    headline + binding constraint, and NOW/NEXT + divergence from the two indices.
+    Optional fields degrade cleanly. ``track`` (F49, optional) adds one Price Momentum
+    overlay line after the Gap line, only when it carries series.
+
+    Task 4 (5-2 output surgery): the raw DMI/SMI/SDGI values + Δ that used to sit in
+    parentheses on these lines have moved to the TRUST & COVERAGE footer's raw-index
+    table (report.render_trust_footer) — this section speaks bands and words only."""
     ds = sc.demandSupply
     sdgi = report.compute_sdgi(sc)
     p_dmi = prior.demandSupply.dmiContribution if prior else None
     p_smi = prior.demandSupply.smiContribution if prior else None
-    p_sdgi = report.compute_sdgi(prior) if prior else None
 
     lines = ["STATE OF THE MARKET"]
     cs = sc.categoryStatus
     if cs is not None:
         lines.append(f"  {cs.rating}, {cs.direction} — {cs.reason}")
-    lines.append(f"  Demand momentum: {report._momentum_word(ds.dmiContribution)} "
-                 f"{_dir_arrow(ds.dmiContribution)}   "
-                 f"(DMI {ds.dmiContribution:.3f}, Δ {report._fmt_delta(ds.dmiContribution, p_dmi)})")
-    lines.append(f"  Supply momentum: {report._momentum_word(ds.smiContribution)} "
-                 f"{_dir_arrow(ds.smiContribution)}   "
-                 f"(SMI {ds.smiContribution:.3f}, Δ {report._fmt_delta(ds.smiContribution, p_smi)})")
-    lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}   "
-                 f"(SDGI {sdgi:.3f}, Δ {report._fmt_delta(sdgi, p_sdgi)})")
+    lines.append(f"  Demand: {bands.band_with_prior(ds.dmiContribution, p_dmi)}")
+    lines.append(f"  Supply: {bands.band_with_prior(ds.smiContribution, p_smi)}")
+    lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}")
 
     if track is not None and track.series:
         if track.pmi is None:

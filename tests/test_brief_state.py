@@ -61,15 +61,19 @@ def _catstat():
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 def test_state_header_full():
+    # Task 4 (5-2 output surgery): Demand/Supply lines are now words-first bands
+    # (gpu_agent.bands.band_with_prior) — the raw "DMI 0.070, Δ +0.030" parenthetical
+    # this test used to pin here has moved to the TRUST & COVERAGE footer table
+    # (see tests/test_report_surgery.py's DMI-only-in-footer scenario).
     prior = _sc(dmi=0.04, smi=0.05)
     sc = _sc(dmi=0.07, smi=0.05, indices=_indices(), category_status=_catstat())
     out = render_state_of_market(sc, prior)
     assert "STATE OF THE MARKET" in out
     assert "Strong, improving" in out                 # categoryStatus headline
     assert "demand outruns the packaging ramp" in out
-    assert "Demand momentum: positive" in out         # _momentum_word(0.07) == positive
-    assert "Supply momentum: positive" in out         # _momentum_word(0.05) == positive (smi 0.05 > 0)
-    assert "DMI 0.070" in out and "Δ +0.030" in out   # Δ vs prior 0.04
+    assert "Demand: FIRM ▲ (was FLAT)" in out          # band_word(0.07)=firm, band_word(0.04)=flat, rose
+    assert "Supply: FIRM = (was FIRM)" in out          # band_word(0.05)=firm both cycles, unchanged
+    assert "Gap: Demand and supply roughly balanced" in out
     assert "BINDING CONSTRAINT: advanced packaging (CoWoS)" in out
 
 
@@ -92,15 +96,19 @@ def test_degrades_without_categorystatus_or_indices():
     sc = _sc()  # no indices, no categoryStatus
     out = render_state_of_market(sc, None)
     assert "STATE OF THE MARKET" in out
-    assert "Demand momentum:" in out         # scorecard demandSupply still renders
+    assert "Demand: " in out                 # scorecard demandSupply still renders (band word)
     assert "NOW (Momentum)" not in out       # no indices -> no NOW/NEXT
     assert "BINDING CONSTRAINT" not in out   # no categoryStatus -> no binding line
 
 
-def test_no_magnitude_word_on_indices():
-    # Honesty: the DMI/SMI momentum lines carry NO magnitude adjective.
-    sc = _sc(dmi=0.9, smi=0.9, category_status=_catstat())  # large values, still only direction
+def test_no_unearned_magnitude_word_on_demand_supply_lines():
+    # Honesty (Part 17, band-map release): the Demand/Supply band word is now earned
+    # via gpu_agent.bands' fixed, retunable thresholds — "accelerating" is a legitimate
+    # band word (dmi/smi=0.9 lands at/above the 0.30 floor), never an ad-hoc adjective
+    # like "strong"/"weak"/"slight"/"moderate", which bands.py never produces.
+    sc = _sc(dmi=0.9, smi=0.9, category_status=_catstat())  # large values -> ACCELERATING band
     out = render_state_of_market(sc, None)
-    demand_line = [ln for ln in out.splitlines() if "Demand momentum:" in ln][0]
-    for banned in ("strong", "accelerating", "weak", "slight", "moderate"):
+    demand_line = [ln for ln in out.splitlines() if "Demand: " in ln][0]
+    for banned in ("strong", "weak", "slight", "moderate"):
         assert banned not in demand_line.lower()
+    assert "ACCELERATING" in demand_line     # earned via the >= 0.30 threshold, not invented

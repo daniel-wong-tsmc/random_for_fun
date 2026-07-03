@@ -14,6 +14,7 @@ from typing import Optional
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.price_track import PriceTrack, compute_price_track
+from gpu_agent import bands
 from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -576,14 +577,43 @@ def render_coverage_gaps(sc: Scorecard) -> str:
     return "\n".join(lines)
 
 
+def render_trust_footer(sc: Scorecard, prior: Optional[Scorecard]) -> str:
+    """TRUST & COVERAGE: the existing caveat (brief.render_market_caveat, untouched) plus
+    a small raw-index table — DMI/SMI/SDGI value, Δ vs prior, and the prior cycle's band
+    word (gpu_agent.bands) — appended below it.
+
+    Task 4 (5-2 output surgery): STATE OF THE MARKET now speaks bands only (Part 17,
+    words first); this footer table is the ONLY place the raw DMI/SMI/SDGI numbers
+    appear anywhere in the report, so a reader who wants the underlying number instead
+    of the word still has it, just demoted below the fold.
+    """
+    caveat = brief.render_market_caveat(sc)
+    dmi = sc.demandSupply.dmiContribution
+    smi = sc.demandSupply.smiContribution
+    sdgi = compute_sdgi(sc)
+    p_dmi = prior.demandSupply.dmiContribution if prior is not None else None
+    p_smi = prior.demandSupply.smiContribution if prior is not None else None
+    p_sdgi = compute_sdgi(prior) if prior is not None else None
+
+    lines = [caveat, "  Raw indices (DMI/SMI/SDGI):"]
+    for label, value, prior_value in (
+        ("DMI", dmi, p_dmi), ("SMI", smi, p_smi), ("SDGI", sdgi, p_sdgi),
+    ):
+        was = f"(was {bands.band_word(prior_value).upper()})" if prior_value is not None else "(no prior)"
+        lines.append(f"    {label} {value:.3f}  Δ {_fmt_delta(value, prior_value)}  {was}")
+    return "\n".join(lines)
+
+
 def render_report(
     sc: Scorecard,
     prior: Optional[Scorecard],
     registry: IndicatorRegistry,
-    render_ts: Optional[str] = None,
     *,
+    render_ts: Optional[str] = None,
     horizons=None,
     movement=None,
+    thesis_book=None,
+    thesis_last_findings=None,
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -591,10 +621,14 @@ def render_report(
     with a blank line. ``render_ts`` is injected (the clock is only read here when
     the caller passes None) so output is byte-identical for identical inputs.
 
-    The Market-State brief sections (render_state_of_market, render_demand_supply_board,
-    render_what_moved, render_storylines) are prepended after the header; render_market_caveat is
-    appended as the trust footer. ``horizons`` is an optional IndicatorHorizons instance
-    passed to render_demand_supply_board for leading-indicator tagging.
+    Task 4 (5-2 output surgery) page order — "the page tells you something": HEADER ->
+    THE CALLS (the standing thesis book, leading) -> STATE OF THE MARKET (words-first
+    BLUF) -> WHY (drivers -> constraints, projected from the same book) -> WHAT MOVED ->
+    DEMAND|SUPPLY board -> STORYLINES -> PRICE TRACK -> ENTITY PANEL -> EVIDENCE QUALITY
+    -> SOURCES -> COVERAGE GAPS -> TRUST & COVERAGE (+ the raw index table). The legacy
+    OVERALL CATEGORY STATUS / DIMENSION RATINGS detail sections still render (unchanged),
+    slotted after PRICE TRACK; the old DEMAND / SUPPLY MOMENTUM raw-index section is
+    retired — its numbers now live only in the TRUST & COVERAGE footer table.
 
     Args:
         sc: the current scorecard to render.
@@ -604,6 +638,11 @@ def render_report(
         horizons: optional IndicatorHorizons for the demand/supply board leading tags.
         movement: optional MarketMovement (from wiki.movement.collect_movement) feeding
             the WHAT MOVED / STORYLINES sections; None renders their honest empty-state.
+        thesis_book: optional ThesisBook (gpu_agent.thesis) feeding THE CALLS / WHY;
+            None renders their honest empty-state (no thesis cycle has ever run yet).
+        thesis_last_findings: optional dict of thesisId -> latest-judgment findingIds
+            (read from theses/<categoryId>/history.jsonl by the caller — the book itself
+            does not store them); feeds THE CALLS' cited-evidence line.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
@@ -612,18 +651,19 @@ def render_report(
 
     sections = [
         render_header(sc, render_ts),
-        brief.render_state_of_market(sc, prior, track),    # NEW — BLUF
-        brief.render_demand_supply_board(sc, horizons),   # NEW
-        brief.render_what_moved(movement),        # was render_deferred_stubs (part 1)
-        brief.render_storylines(movement),        # was render_deferred_stubs (part 2)
+        brief.render_the_calls(thesis_book, sc, thesis_last_findings),   # NEW — leads the page
+        brief.render_state_of_market(sc, prior, track),    # words-first BLUF rework
+        brief.render_why(thesis_book),                     # NEW — drivers -> constraints
+        brief.render_what_moved(movement),
+        brief.render_demand_supply_board(sc, horizons),
+        brief.render_storylines(movement),
+        render_price_track(track),                # F49, omitted (returns "") with no price series
         render_overall_status(sc),
         render_dimensions(sc, prior),
-        render_dmi_smi_sdgi(sc, prior),
-        render_price_track(track),                # NEW — F49, omitted (returns "") with no price series
         render_entity_panel(sc),
         render_evidence_quality(sc, registry),
         render_sources(sc),
         render_coverage_gaps(sc),
-        brief.render_market_caveat(sc),                   # NEW — trust footer caveat
+        render_trust_footer(sc, prior),                   # trust footer caveat + raw index table
     ]
     return "\n\n".join(s for s in sections if s)

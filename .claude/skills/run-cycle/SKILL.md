@@ -149,6 +149,8 @@ thesis stage have run for this category, render and surface the board-ready repo
   --scorecard store/<id>/<asOf>-v<n>.json \
   --store store
 ```
+THE CALLS, the page's lead section, is loaded straight from `--store`'s just-updated thesis book (why the
+report step must run after the thesis stage above) — with no theses store yet it renders its honest empty state.
 This prints the full board-ready report to the session — the overall category status, all six dimensions
 (with any `under-supported` dimension shown, never dropped — Part 18 #8), DMI/SMI/**SDGI** with a plain-language
 read and **Δ vs the prior cycle**, the per-entity panel, evidence quality per dimension, the sources list, and

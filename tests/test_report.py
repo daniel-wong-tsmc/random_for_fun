@@ -562,22 +562,32 @@ def test_render_coverage_gaps_no_orphan_note_when_clean():
 # ── render_report (integration) ───────────────────────────────────────────────
 
 def test_render_report_contains_all_eight_section_headers():
-    """render_report output contains all 8 canonical section headers."""
+    """render_report output contains all canonical section headers.
+
+    Task 4 (5-2 output surgery): THE CALLS / STATE OF THE MARKET / WHY / TRUST &
+    COVERAGE now lead/close the page; the old DEMAND / SUPPLY MOMENTUM raw-index
+    section is retired from composition — its DMI/SMI/SDGI numbers now live only in
+    the TRUST & COVERAGE footer table (see test_report_surgery.py for that pin).
+    """
     from gpu_agent.report import render_report
     registry = IndicatorRegistry.load(REGISTRY_PATH)
     sc = _load(V3)
     out = render_report(sc, prior=None, registry=registry, render_ts="2026-06-27T00:00:00Z")
     for header in [
         "CATEGORY REPORT",
+        "THE CALLS",
+        "STATE OF THE MARKET",
+        "WHY",
         "OVERALL CATEGORY STATUS",
         "DIMENSION RATINGS",
-        "DEMAND / SUPPLY MOMENTUM",
         "ENTITY PANEL",
         "EVIDENCE QUALITY",
         "SOURCES",
         "COVERAGE / SKIP GAPS",
+        "TRUST & COVERAGE",
     ]:
         assert header in out, f"Section header {header!r} missing from report"
+    assert "DEMAND / SUPPLY MOMENTUM" not in out
 
 
 def test_render_report_deterministic_same_output_on_two_calls():

@@ -31,13 +31,16 @@ PRIOR_CHAIN = Path(FIX) / "prior-chain"  # 2026-06-v{1,2,3}.json (categoryless d
 
 SECTION_HEADERS = [
     "CATEGORY REPORT",
+    "THE CALLS",
+    "STATE OF THE MARKET",
+    "WHY",
     "OVERALL CATEGORY STATUS",
     "DIMENSION RATINGS",
-    "DEMAND / SUPPLY MOMENTUM",
     "ENTITY PANEL",
     "EVIDENCE QUALITY",
     "SOURCES",
     "COVERAGE / SKIP GAPS",
+    "TRUST & COVERAGE",
 ]
 
 
@@ -69,11 +72,18 @@ def _make_chain_store(tmp_path, versions):
 
 
 def test_cli_report_exits_zero_with_all_section_headers():
-    """Basic smoke test: exit 0, all 8 section headers in output."""
+    """Basic smoke test: exit 0, all canonical section headers in output.
+
+    Task 4 (5-2 output surgery): the legacy DEMAND / SUPPLY MOMENTUM raw-index
+    section is retired from render_report's composition — its DMI/SMI/SDGI values
+    now live only in the TRUST & COVERAGE footer table (this fixture has no theses
+    store, so THE CALLS/WHY render their honest empty states, which still carry
+    their headers)."""
     result = _run("report", "--scorecard", CURRENT, "--no-prior")
     assert result.returncode == 0, result.stderr
     for header in SECTION_HEADERS:
         assert header in result.stdout, f"Missing section header: {header!r}"
+    assert "DEMAND / SUPPLY MOMENTUM" not in result.stdout
 
 
 def test_cli_report_with_explicit_prior_shows_delta():

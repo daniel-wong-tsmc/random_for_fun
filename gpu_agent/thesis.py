@@ -398,6 +398,15 @@ def gate_answer(answer: ThesisAnswer, book: ThesisBook,
     for entry in book.entries:
         statement_owner.setdefault(_normalize_statement(entry.statement), entry.id)
 
+    # Cross-proposal dedup (within THIS answer, not just against the book): without this,
+    # two proposals sharing a title/statement both pass the gate individually, and
+    # apply_answer then appends duplicate ids to the book. Tracks only slugs contributed
+    # by EARLIER proposals in this loop, separately from the book's existing_ids/
+    # statement_owner above, so the reported owner in a within-answer collision is always
+    # the earlier colliding proposal's slug, never the book's.
+    seen_proposal_ids: dict[str, str] = {}
+    seen_proposal_statements: dict[str, str] = {}
+
     for proposal in answer.proposed:
         # The gate's contract is to enumerate violations, never crash: an
         # all-punctuation/whitespace title slugifies to '' and thesis_slug raises —
@@ -411,9 +420,19 @@ def gate_answer(answer: ThesisAnswer, book: ThesisBook,
         else:
             if label in existing_ids:
                 errors.append(f"proposal duplicates thesis id {label}")
-            owner = statement_owner.get(_normalize_statement(proposal.statement))
+            elif label in seen_proposal_ids:
+                errors.append(f"proposal duplicates thesis id {seen_proposal_ids[label]}")
+            else:
+                seen_proposal_ids[label] = label
+
+            normalized_statement = _normalize_statement(proposal.statement)
+            owner = statement_owner.get(normalized_statement)
             if owner is not None:
                 errors.append(f"proposal duplicates statement of {owner}")
+            elif normalized_statement in seen_proposal_statements:
+                errors.append(f"proposal duplicates statement of {seen_proposal_statements[normalized_statement]}")
+            else:
+                seen_proposal_statements[normalized_statement] = label
         errors.extend(_gate_citations(label, proposal.findingIds, findings_by_id))
         errors.extend(_gate_depth_fields(
             label, proposal.mechanism, proposal.falsifiableTrigger, proposal.sensitivity, registry,
@@ -608,7 +627,7 @@ def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
         if judgment_record["applied"] and judgment_record["verdict"] == "broken":
             retired_record = {
                 "asOf": as_of, "event": "retired", "thesisId": entry.id, "detail": None,
-                "note": f"{entry.id}: broken with primary evidence -> retired",
+                "note": f"{entry.id}: broken -> retired",
             }
             records.append(retired_record)
             working_book = apply_record(working_book, retired_record)

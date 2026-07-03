@@ -262,3 +262,50 @@ def test_proposal_citation_and_depth_field_rules_apply():
     assert "fresh-angle: missing mechanism" in violations
     assert "fresh-angle: missing falsifiableTrigger" in violations
     assert "fresh-angle: missing sensitivity" in violations
+
+
+# --- rule 4: within-answer proposal-vs-proposal dedup (not just proposal-vs-book) ---
+
+
+def test_two_proposals_with_same_title_collide_within_answer():
+    """Neither proposal collides with the BOOK, so only cross-proposal tracking catches
+    this: two 'Same Title' proposals both slugify to 'same-title', and apply_answer would
+    append that id to the book twice if the gate let them through."""
+    book = _book()
+    answer = ThesisAnswer(
+        judgments=[_judgment("thesis-a"), _judgment("thesis-b")],
+        proposed=[
+            _proposal(title="Same Title", statement="First distinct statement."),
+            _proposal(title="Same Title", statement="Second distinct statement."),
+        ],
+    )
+    violations = gate_answer(answer, book, FINDINGS, REGISTRY)
+    assert "proposal duplicates thesis id same-title" in violations
+
+
+def test_two_proposals_with_same_statement_collide_within_answer():
+    """Different titles (so no id collision), but statements are identical once
+    normalized (case/whitespace-folded) -> statement dedup must catch this across
+    proposals in the same answer, not just against the book."""
+    book = _book()
+    answer = ThesisAnswer(
+        judgments=[_judgment("thesis-a"), _judgment("thesis-b")],
+        proposed=[
+            _proposal(title="Title One", statement="A Shared Statement."),
+            _proposal(title="Title Two", statement="  a shared   statement.  "),
+        ],
+    )
+    violations = gate_answer(answer, book, FINDINGS, REGISTRY)
+    assert "proposal duplicates statement of title-one" in violations
+
+
+def test_two_distinct_proposals_in_one_answer_still_pass():
+    book = _book()
+    answer = ThesisAnswer(
+        judgments=[_judgment("thesis-a"), _judgment("thesis-b")],
+        proposed=[
+            _proposal(title="Title One", statement="First distinct statement."),
+            _proposal(title="Title Two", statement="Second distinct statement."),
+        ],
+    )
+    assert gate_answer(answer, book, FINDINGS, REGISTRY) == []

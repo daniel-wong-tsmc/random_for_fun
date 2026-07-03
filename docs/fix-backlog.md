@@ -396,7 +396,11 @@
   lint**, one re-dispatch then fail loud); plus a run-cycle session rule (final message = brief
   verbatim + ≤3-line run-health footer, logs by path only) and a shared daily shell (daily
   leads with what-moved; calls section becomes F64's trigger-watch when it lands). Absorbs
-  **F61**; reserves **F65**'s slot.
+  **F61**; reserves **F65**'s slot. **Reader contract (user-directed 2026-07-03):** the reader
+  is a TSMC executive — internal/doctrine/repo vocabulary is banned above the appendix (label
+  map for tier/status jargon; index acronyms words-first), an industry-standard acronym
+  allowlist is lint-enforced, brain prompts embed the stop-slop pattern rules (tool-less
+  brains can't invoke skills), and the session runs stop-slop on its final message.
 
 ---
 

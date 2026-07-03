@@ -64,6 +64,32 @@ Global renderer rules:
 
 ## 2. Analyst-voice guideline — brain-side, lintable
 
+### 2a. Reader contract (added 2026-07-03, user-directed)
+
+**The reader is a TSMC executive with zero knowledge of this repo.** If a term needs this
+project to understand, it does not ship above the appendix:
+
+- **Internal/doctrine/repo vocabulary is banned from the rendered surface** — not just ids:
+  index acronyms (DMI/SMI/SDGI/PMI — the word band leads, the acronym may appear once,
+  parenthesized, in the appendix), tier jargon ("primary/secondary" renders as "company
+  filing / official post" vs "press / analyst report"), status jargon ("grounded" → 
+  "well-evidenced", "under-supported" → "thin evidence", "provisional" → "early — not yet
+  corroborated"), and process words (gate, vintage, dedup, manifest, registry, lane, cycle
+  log). The renderer applies these as a **label map** (code); the brains are instructed the
+  same way (prompt).
+- **Acronym allowlist, enforced:** only industry-standard acronyms an exec already knows —
+  GPU, HBM, CoWoS, ASIC, TPU, AI, capex, YoY, Q1/FY, IR, SEC, 10-Q/10-K, and peers —
+  maintained as DATA (one small allowlist the lint reads). Deterministic check: any all-caps
+  token in rendered prose above the appendix must be on the allowlist.
+- **All prose passes stop-slop.** The tool-less judgment/thesis brains cannot invoke skills,
+  so the prompt builders **embed the stop-slop pattern rules** (no "delve / crucial / pivotal /
+  robust / landscape", no "not just X but Y", no rule-of-three filler, active voice, concrete
+  nouns — the skill's list is the source of truth at plan time); the banned-word subset is
+  linted deterministically. The coordinating session **invokes the stop-slop skill** on its
+  final human-facing message before surfacing it.
+
+### 2b. Depth rules per field
+
 Lives in the judgment/thesis prompt builders (`--emit-prompt` paths), operationalizing a subset
 of Action Item 1's Depth Rubric per output field:
 
@@ -102,7 +128,11 @@ Same renderer path and section order, two cadences:
   `fixtures/report/`).
 - **Empty-state test:** a scorecard with no prior, no theses, no price series, no moves — every
   section folds to its one-line honest state; no `—` orphans, no "(none)".
-- **Lint unit tests:** banned-id regexes, sentence caps, the re-dispatch path.
+- **Lint unit tests:** banned-id regexes, sentence caps, the re-dispatch path, the
+  stop-slop banned-word subset, and the **acronym-allowlist check** (an all-caps token not on
+  the allowlist above the appendix fails the render test).
+- **Label-map test:** tier/status jargon never appears above the appendix ("secondary",
+  "grounded", "under-supported", "provisional" are rendered via the label map).
 - **No-duplicate test:** rendered output contains the status reason exactly once.
 
 ## Out of scope

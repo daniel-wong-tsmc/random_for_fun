@@ -3,6 +3,7 @@
 only, never invented citations, honest empty/never-judged states."""
 from __future__ import annotations
 
+from gpu_agent import reader
 from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact, Kind
 from gpu_agent.schema.scorecard import DemandSupply, Scorecard
 from gpu_agent.thesis import PendingChallenge, ThesisBook, ThesisEntry
@@ -18,10 +19,11 @@ CATEGORY_ID = "chips.merchant-gpu"
 
 def _entry(entry_id, *, title=None, status="registered", conviction="medium",
            lastVerdict=None, streak=0, pendingChallenge=None,
-           lastChangedAsOf=AS_OF_PRIOR, trigger="Reassessed next quarter."):
+           lastChangedAsOf=AS_OF_PRIOR, trigger="Reassessed next quarter.",
+           statement=None):
     return ThesisEntry(
         id=entry_id, title=title or entry_id.replace("-", " ").title(),
-        statement="Original statement.", lens="demand", status=status,
+        statement=statement or "Original statement.", lens="demand", status=status,
         conviction=conviction, lastVerdict=lastVerdict, streak=streak,
         pendingChallenge=pendingChallenge, mechanism="mechanism",
         falsifiableTrigger=trigger, sensitivity="sensitivity",
@@ -174,16 +176,17 @@ def test_not_nothing_changed_when_a_verdict_differs():
     assert "Nothing changed" not in out
 
 
-# ── provisional tag ──────────────────────────────────────────────────────────
+# ── provisional tag (reader-facing label, not the internal word) ───────────
 
-def test_provisional_entries_tagged():
+def test_calls_provisional_renders_reader_label():
     entry = _entry("thesis-c", status="provisional", conviction="low", lastVerdict="strengthened")
     book = _book(entry)
 
     out = render_the_calls(book, _sc())
 
     line = _calls_lines(out)[0]
-    assert line.rstrip().endswith("(provisional)")
+    assert line.rstrip().endswith(f"  ({reader.STATUS_LABEL['provisional']})")
+    assert "(provisional)" not in out
 
 
 def test_registered_entries_not_tagged_provisional():
@@ -192,6 +195,20 @@ def test_registered_entries_not_tagged_provisional():
 
     out = render_the_calls(book, _sc())
 
+    assert "(provisional)" not in out
+    assert reader.STATUS_LABEL["provisional"] not in out
+
+
+def test_nothing_changed_path_uses_reader_provisional_label():
+    """The compact 'nothing changed' path renders only headline lines — verify the
+    reader-facing provisional label flows there too, not just the full three-line block."""
+    entry = _entry("thesis-a", status="provisional", lastVerdict="reaffirmed", lastChangedAsOf=AS_OF)
+    book = _book(entry)
+
+    out = render_the_calls(book, _sc())
+
+    assert "Nothing changed" in out
+    assert f"  ({reader.STATUS_LABEL['provisional']})" in out
     assert "(provisional)" not in out
 
 
@@ -203,7 +220,7 @@ def test_missing_citations_fallback_when_last_findings_is_none():
 
     out = render_the_calls(book, _sc(), last_findings=None)
 
-    assert "      (citations in history)" in out
+    assert "      Original statement.  (sources in history)" in out
 
 
 def test_missing_citations_fallback_when_entry_absent_from_last_findings():
@@ -212,20 +229,38 @@ def test_missing_citations_fallback_when_entry_absent_from_last_findings():
 
     out = render_the_calls(book, _sc(), last_findings={})
 
-    assert "      (citations in history)" in out
+    assert "      Original statement.  (sources in history)" in out
 
 
-def test_missing_citations_fallback_when_first_citation_unresolvable():
+def test_calls_evidence_counts_unresolvable_finding_without_leaking_its_id():
+    """A citation id that doesn't resolve against this cycle's sc.findings still
+    contributes to the honest source count (the line carries the entry's own statement,
+    not the finding's) — but the id itself must never leak into the rendered line."""
     entry = _entry("thesis-a", lastVerdict="strengthened")
     book = _book(entry)
 
     out = render_the_calls(book, _sc(findings=[]), last_findings={"thesis-a": ["f-ghost"]})
 
-    assert "      (citations in history)" in out
+    assert "      Original statement.  (1 source)" in out
     assert "f-ghost" not in out   # never invented — no fabricated citation reference either
 
 
-# ── evidence line: tier tag + truncation ─────────────────────────────────────
+# ── calls line: thesis statement + source counts, no id dumps ───────────────
+
+def test_calls_line_uses_thesis_statement_and_source_counts():
+    entry = _entry("thesis-a", lastVerdict="strengthened")
+    book = _book(entry)
+    findings = [_finding("f-1"), _finding("f-2"), _finding("f-3")]
+    sc = _sc(findings=findings)
+
+    out = render_the_calls(book, sc, last_findings={"thesis-a": ["f-1", "f-2", "f-3"]})
+
+    assert "3 sources" in out
+    assert "[" not in out.split("breaks if")[0]     # no id dumps anywhere in the block
+    assert entry.statement[:40] in out               # full statement, not an excerpt
+
+
+# ── evidence line: tier tag (no truncation — one authored sentence) ─────────
 
 def test_evidence_line_tier_primary_when_any_cited_finding_has_primary_evidence():
     entry = _entry("thesis-a", lastVerdict="strengthened")
@@ -235,8 +270,8 @@ def test_evidence_line_tier_primary_when_any_cited_finding_has_primary_evidence(
 
     out = render_the_calls(book, sc, last_findings={"thesis-a": ["f-1"]})
 
-    line = [ln for ln in out.splitlines() if ln.startswith("      A finding statement")][0]
-    assert line == "      A finding statement.  [f-1] primary"
+    line = [ln for ln in out.splitlines() if ln.startswith("      Original statement.")][0]
+    assert line == f"      Original statement.  (1 source, incl. {reader.TIER_LABEL['primary']})"
 
 
 def test_evidence_line_tier_secondary_when_no_primary_evidence():
@@ -247,23 +282,20 @@ def test_evidence_line_tier_secondary_when_no_primary_evidence():
 
     out = render_the_calls(book, sc, last_findings={"thesis-a": ["f-1"]})
 
-    line = [ln for ln in out.splitlines() if ln.startswith("      A finding statement")][0]
-    assert line == "      A finding statement.  [f-1] secondary"
+    line = [ln for ln in out.splitlines() if ln.startswith("      Original statement.")][0]
+    assert line == "      Original statement.  (1 source)"
 
 
-def test_evidence_line_truncated_to_exactly_90_chars():
+def test_evidence_line_not_truncated_full_statement_used():
     long_stmt = "x" * 150
-    entry = _entry("thesis-a", lastVerdict="strengthened")
+    entry = _entry("thesis-a", lastVerdict="strengthened", statement=long_stmt)
     book = _book(entry)
-    finding = _finding("f-1", statement=long_stmt)
+    finding = _finding("f-1")
     sc = _sc(findings=[finding])
 
     out = render_the_calls(book, sc, last_findings={"thesis-a": ["f-1"]})
 
-    line = [ln for ln in out.splitlines() if ln.strip().startswith("x")][0]
-    stmt_part = line.strip().split("  [")[0]
-    assert stmt_part == "x" * 90
-    assert len(stmt_part) == 90
+    assert f"      {long_stmt}  (1 source)" in out
 
 
 # ── never-judged entry (lastVerdict None) ───────────────────────────────────

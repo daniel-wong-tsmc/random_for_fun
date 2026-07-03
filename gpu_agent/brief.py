@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent.thesis import CONVICTION_RANK, ThesisBook
 from gpu_agent import bands
+from gpu_agent import reader
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
 _ARROW = {"positive": "▲", "negative": "▼", "flat": "="}   # ▲ ▼ =
@@ -271,7 +272,6 @@ def render_storylines(movement) -> str:
 _CALLS_ARROW = {
     "strengthened": "▲", "weakened": "▼", "reaffirmed": "=", "adjusted": "~", "broken": "✕",
 }
-_CALLS_STATEMENT_CAP = 90
 
 
 def _calls_entry_key(entry):
@@ -286,37 +286,31 @@ def _calls_headline_line(entry) -> str:
     STATE is CHALLENGED when a pendingChallenge is outstanding, else INTACT. A never-
     judged entry (lastVerdict is None — a freshly seeded book rendered before its first
     cycle; not itself pinned by the spec) gets a neutral "not yet judged" in place of a
-    verdict word/arrow rather than fabricating one. Provisional entries append
-    "  (provisional)" at the end of the line."""
+    verdict word/arrow rather than fabricating one. Provisional entries append the
+    reader-facing label (reader.STATUS_LABEL['provisional'] — an exec-facing phrase, not
+    the internal word "provisional") at the end of the line."""
     state = "CHALLENGED — pending confirmation ⚠" if entry.pendingChallenge is not None else "INTACT"
     if entry.lastVerdict is None:
         verdict_part = "not yet judged"
     else:
         verdict_part = f"{entry.lastVerdict} {_CALLS_ARROW[entry.lastVerdict]}"
-    prov = "  (provisional)" if entry.status == "provisional" else ""
+    prov = f"  ({reader.STATUS_LABEL['provisional']})" if entry.status == "provisional" else ""
     return (f"  ● {entry.title}   {state}, {verdict_part}  "
             f"({entry.conviction}, {entry.streak} cycles){prov}")
 
 
-def _calls_evidence_line(finding_ids, findings_by_id) -> str:
-    """The second line: the entry's latest-judgment finding statement (truncated to 90
-    chars), its findingIds, and a tier tag — `primary` if any resolvable cited finding
-    carries primary evidence, else `secondary`; the tier word is omitted when no cited
-    id resolves. `finding_ids` is None/empty (last_findings has nothing for this thesis)
-    or its first id fails to resolve in this cycle's sc.findings -> the honest
-    `(citations in history)` fallback; never fabricate a statement."""
+def _calls_evidence_line(entry, finding_ids, findings_by_id) -> str:
+    """Second line: the thesis's own statement + a source-count tag (reader contract —
+    ids live in the appendix citation map, never here)."""
     if not finding_ids:
-        return "      (citations in history)"
-    first = findings_by_id.get(finding_ids[0])
-    if first is None:
-        return "      (citations in history)"
-    statement = first.statement[:_CALLS_STATEMENT_CAP]
+        return f"      {entry.statement}  (sources in history)"
     resolved = [findings_by_id[fid] for fid in finding_ids if fid in findings_by_id]
-    tier_suffix = ""
-    if resolved:
-        has_primary = any(ev.tier == "primary" for f in resolved for ev in f.evidence)
-        tier_suffix = " primary" if has_primary else " secondary"
-    return f"      {statement}  [{', '.join(finding_ids)}]{tier_suffix}"
+    n = len(finding_ids)
+    if resolved and any(ev.tier == "primary" for f in resolved for ev in f.evidence):
+        tier = f", incl. {reader.TIER_LABEL['primary']}"
+    else:
+        tier = ""
+    return f"      {entry.statement}  ({n} source{'s' if n != 1 else ''}{tier})"
 
 
 def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
@@ -324,11 +318,14 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
     """THE CALLS: the standing thesis book, leading the page with earned deltas only.
     book=None (no thesis cycle has ever run) -> the honest placeholder below. Otherwise:
     standing (registered/provisional) entries ordered per _calls_entry_key, each a
-    three-line block (headline / cited-evidence / falsifiable trigger); a thesis retired
-    THIS cycle (lastChangedAsOf == sc.asOf) renders once as a single BROKEN line, and is
-    omitted in every later cycle — no permanent tombstone. `last_findings` supplies each
-    thesis's latest-judgment findingIds (the book itself does not store them — Task 4
-    reads them from history.jsonl); absent -> the evidence line's honest fallback.
+    three-line block (headline / thesis statement + source count / falsifiable trigger);
+    a thesis retired THIS cycle (lastChangedAsOf == sc.asOf) renders once as a single
+    BROKEN line, and is omitted in every later cycle — no permanent tombstone.
+    `last_findings` supplies each thesis's latest-judgment findingIds (the book itself
+    does not store them — Task 4 reads them from history.jsonl), used only to derive the
+    evidence line's source count and primary-tier tag; the ids themselves never render
+    here (reader contract — they live in the appendix citation map). absent -> the
+    evidence line's honest "(sources in history)" fallback.
 
     Nothing-changed headline: apply_record (thesis.py) bumps lastChangedAsOf on every
     APPLIED judgment regardless of verdict word — including a reaffirmed one, since a
@@ -369,7 +366,7 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
     for entry in standing:
         finding_ids = (last_findings or {}).get(entry.id)
         lines.append(_calls_headline_line(entry))
-        lines.append(_calls_evidence_line(finding_ids, findings_by_id))
+        lines.append(_calls_evidence_line(entry, finding_ids, findings_by_id))
         lines.append(f"      breaks if: {entry.falsifiableTrigger}")
 
     for entry in retired_now:
@@ -397,9 +394,10 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
 # aligned to spec: Contested includes every competitive-lens thesis at ANY conviction
 # (not only low) that isn't already a driver, and every driver/Contested line carries a
 # `last_findings` companion-dict lookup (the same pattern render_the_calls uses),
-# falling back to the honest "citations in history" when the thesis has no entry in the
-# dict — never inventing a citation. The risk-lens low-conviction arm of Contested is the
-# plan's own addition and is not itself contradicted by the spec text, so it is kept.
+# falling back to the honest "sources in history" when the thesis has no entry in the
+# dict — never inventing a citation, and never dumping ids (reader contract: a count,
+# not an id list). The risk-lens low-conviction arm of Contested is the plan's own
+# addition and is not itself contradicted by the spec text, so it is kept.
 
 def _why_entry_key(entry):
     """(-CONVICTION_RANK, id) — deterministic display order within a WHY group."""
@@ -409,14 +407,15 @@ def _why_entry_key(entry):
 def _why_finding_suffix(entry_id, last_findings) -> str:
     """Spec §4: 'Every line carries the thesis's latest findingIds' — the same
     companion-dict pattern render_the_calls uses (the book itself does not store
-    findingIds; the caller reads them from history.jsonl and supplies the dict).
-    Present + non-empty -> comma-joined ids in brackets; absent, or present but empty,
-    -> the honest '[citations in history]' fallback — mirroring THE CALLS' convention of
-    never fabricating a citation."""
+    findingIds; the caller reads them from history.jsonl and supplies the dict). Reader
+    contract: a source COUNT, never an id dump — ids live in the appendix citation map.
+    Present + non-empty -> '  (<N> sources)'; absent, or present but empty, -> the honest
+    '  (sources in history)' fallback — mirroring THE CALLS' convention of never
+    fabricating a citation."""
     ids = (last_findings or {}).get(entry_id)
     if ids:
-        return f"  [{', '.join(ids)}]"
-    return "  [citations in history]"
+        return f"  ({len(ids)} source{'s' if len(ids) != 1 else ''})"
+    return "  (sources in history)"
 
 
 def _why_driver_line(entry, last_findings) -> str:
@@ -476,8 +475,9 @@ def render_why(book: Optional[ThesisBook],
 
     `last_findings` (optional dict[thesisId, list[findingId]], same companion-dict
     pattern as render_the_calls) feeds every driver AND Contested line's trailing
-    findingIds citation per spec §4 — present+non-empty -> '  [id, id]'; otherwise the
-    honest '  [citations in history]' fallback (_why_finding_suffix).
+    source-count tag per spec §4 — present+non-empty -> '  (<N> sources)'; otherwise the
+    honest '  (sources in history)' fallback (_why_finding_suffix). Reader contract: a
+    count, never an id dump — ids live in the appendix citation map.
 
     Two literal-rule gaps this leaves on the table (by design — WHY shows drivers,
     constraints, and contested claims, not the whole book): a registered demand/supply

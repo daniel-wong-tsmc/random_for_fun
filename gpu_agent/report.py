@@ -7,7 +7,7 @@ Same scorecard + prior → byte-identical report. The only injected time input i
 from __future__ import annotations
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -124,15 +124,57 @@ def compute_sdgi(sc: Scorecard) -> float:
 
 # ── Section renderers ────────────────────────────────────────────────────────
 
+def _as_of_date(as_of: str) -> str:
+    """Normalize a possibly-partial date string (YYYY, YYYY-MM, or YYYY-MM-DD)
+    to a full YYYY-MM-DD so it can be parsed by date.fromisoformat. Partial
+    dates round to the coarsest boundary (Jan 1 / the 1st) so they never read
+    as artificially fresher than they are."""
+    if len(as_of) == 4:
+        return f"{as_of}-01-01"
+    if len(as_of) == 7:
+        return f"{as_of}-01"
+    return as_of
+
+
+def evidence_vintage(sc: Scorecard) -> tuple[Optional[str], Optional[str], float]:
+    """(median_date, oldest_date, share_older_than_42d) over all evidence dates.
+
+    Pure string/date math; no clock — staleness is measured against sc.asOf,
+    never against wall-clock "now". Evidence dates may be year, month, or day
+    grain; each is normalized to a full date only for the ordinal comparison —
+    the returned median/oldest strings are the original (possibly partial)
+    values. Empty findings -> (None, None, 0.0)."""
+    dates = sorted(ev.date for f in sc.findings for ev in f.evidence if ev.date)
+    if not dates:
+        return None, None, 0.0
+    median = dates[len(dates) // 2]
+    cutoff = date.fromisoformat(_as_of_date(sc.asOf)).toordinal() - 42
+    stale = sum(1 for d in dates if date.fromisoformat(_as_of_date(d)).toordinal() < cutoff)
+    return median, dates[0], stale / len(dates)
+
+
 def render_header(sc: Scorecard, render_ts: str) -> str:
-    """Render the report banner with category id, cycle, and render timestamp.
+    """Render the report banner with category id, cycle, render timestamp,
+    evidence vintage, and an honestly-labeled confidence line.
 
     ``render_ts`` is the only time input — supplied by the caller, never read
     from the clock here — so the header is byte-identical for equal inputs.
     """
     title = f"CATEGORY REPORT: {sc.categoryId}  |  Cycle: {sc.asOf}  |  {render_ts}"
     bar = "=" * max(len(title) + 4, 65)
-    return f"{bar}\n{title}\n{bar}"
+    lines = [bar, title, bar]
+
+    median, oldest, stale_share = evidence_vintage(sc)
+    if median is not None:
+        lines.append(f" Evidence: median {median} · oldest {oldest} · "
+                     f"{round(stale_share * 100)}% older than 6 weeks")
+
+    basis = sc.confidence.basis or ""
+    m = re.search(r"(\d+)", basis)
+    votes = f" ({m.group(1)} votes)" if m else ""
+    lines.append(f" Confidence: vote agreement {sc.confidence.level}{votes} — "
+                 f"agreement between raters, not evidence freshness")
+    return "\n".join(lines)
 
 
 def render_overall_status(sc: Scorecard) -> str:

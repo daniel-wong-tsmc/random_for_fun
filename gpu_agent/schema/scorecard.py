@@ -24,6 +24,10 @@ class CategoryStatus(BaseModel):
     direction: Literal["improving", "steady", "worsening"]
     bottleneck: str
     reason: str
+    # F67 (additive-optional): plain-language name of the physical/market constraint,
+    # e.g. "CoWoS/HBM3E advanced packaging" — never a dimension name. The renderer
+    # omits the BLUF constraint line when absent; nothing downstream requires it.
+    constraintLabel: Optional[str] = None
 
 class DemandSupply(BaseModel):
     dmiContribution: float

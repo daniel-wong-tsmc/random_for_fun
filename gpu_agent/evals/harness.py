@@ -157,7 +157,7 @@ def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_h
             if new is None:
                 ok = False
                 reasons.append(f"seam '{seam}' has a baseline mean but no scored positive cases")
-            elif new < incumbent + _EPS:
+            elif new < incumbent - _EPS:
                 ok = False
                 reasons.append(f"regression on '{seam}': {new:.3f} < incumbent {incumbent:.3f}")
     report["verdict"] = {"pass": ok, "reasons": reasons}

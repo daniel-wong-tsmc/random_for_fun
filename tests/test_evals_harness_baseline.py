@@ -37,16 +37,26 @@ def test_bootstrap_report_passes_with_reason():
     assert report["promptHashes"] == HASHES
 
 def test_regression_fails_and_improvement_passes():
-    cases, grades = _scored()
-    high = {"seamMeans": {"extract": 8.0}, "cases": {}, "promptHashes": HASHES,
+    # Positive case scored 1 per criterion (total 4, seam mean 4.0) so regression,
+    # improvement, AND tie are all exercisable. Negative stays 0 so calibration is ok.
+    cases = [_case("extract-t-01"), _case("extract-t-02", kind="negative")]
+    grades, _ = record_grades(cases, {
+        "extract-t-01": _grade_json("extract-t-01", 1),
+        "extract-t-02": _grade_json("extract-t-02", 0),
+    })
+    high = {"seamMeans": {"extract": 6.0}, "cases": {}, "promptHashes": HASHES,
             "provenance": {}}
     report = build_report(cases, grades, HASHES, baseline=high, as_of="2026-07-04")
     assert report["verdict"]["pass"] is False
     assert any("extract" in r for r in report["verdict"]["reasons"])
-    low = {"seamMeans": {"extract": 5.0}, "cases": {}, "promptHashes": HASHES,
+    low = {"seamMeans": {"extract": 3.0}, "cases": {}, "promptHashes": HASHES,
            "provenance": {}}
     report2 = build_report(cases, grades, HASHES, baseline=low, as_of="2026-07-04")
     assert report2["verdict"]["pass"] is True
+    tie = {"seamMeans": {"extract": 4.0}, "cases": {}, "promptHashes": HASHES,
+           "provenance": {}}
+    report3 = build_report(cases, grades, HASHES, baseline=tie, as_of="2026-07-04")
+    assert report3["verdict"]["pass"] is True  # ties PASS per spec comparison rule
 
 def test_miscalibration_fails_verdict():
     cases = [_case("extract-t-01"), _case("extract-t-02", kind="negative")]

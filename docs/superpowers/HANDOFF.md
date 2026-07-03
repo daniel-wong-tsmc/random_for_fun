@@ -1,8 +1,26 @@
-# HANDOFF — GPU Category Agent (resume point: F52/F53/F54 small-fix wave MERGED; next = F6-golden-set / F23–F25 / layer tier)
+# HANDOFF — GPU Category Agent (resume point: F52–F54 merged; F57–F67 review logged with an APPROVED SEQUENCE; a second instance is actively working the output contract F67)
 
-- **Date:** 2026-07-03 (F52/F53/F54 shipped, same day as sp5 completion + F55)
+- **Date:** 2026-07-03 (third handoff refresh today)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` @ the F52–F54 merge — suite 828 passed / 3 skipped.** Newest first:
+- **Suite 828 passed / 3 skipped — verified on main @ `19db04f` before this refresh.**
+
+## ⚠ CONCURRENT-INSTANCE COORDINATION (read before touching anything)
+
+A SECOND Claude Code instance is actively engineering the GPU-agent OUTPUT in this same
+checkout (F67 — reader contract: TSMC-exec vocabulary, acronym allowlist lint, stop-slop in
+brain prompts; spec `docs/superpowers/specs/2026-07-03-output-contract-design.md`, committed
+`bbbe61e` + `19db04f`). Until it finishes:
+- **Do NOT touch the output surface:** `gpu_agent/brief.py`, `gpu_agent/report.py`, prompt
+  files, or anything the F67 spec claims. That includes holding off on **F61** (it edits
+  report.py — likely partially subsumed by F67 anyway; re-scope F61 after F67 lands).
+- **Completion signal:** it writes `.superpowers/handoffs/output-engineering-DONE.md` as its
+  last step. If that file exists, read it + `git log` before planning; F67's landed state may
+  re-scope F61/F64/F65.
+- Safe to work meanwhile: anything off the output surface (F6 eval harness scoping, F56, F23–F25
+  prep) — check `git log` for its commits before every commit of your own; expect docs churn in
+  `docs/fix-backlog.md` and the specs dir.
+
+## Newest state (newest first)
   - **F52/F53/F54 DONE (branch f52-f53-f54 merged, 5 commits `2a2dae7..2c070f4`; final opus
     review: Ready to merge, no Critical/Important).** F52: docIds vintage-scoped at the gather
     seam (`{slug}-{digest}-{asOf}`; `ingest --as-of` required; finding ids inherit; L1 url+hash
@@ -16,10 +34,8 @@
     recommended options + prior precedent. Spec flags this in its Decision-provenance note:
     docs/superpowers/specs/2026-07-03-f52-f53-f54-small-fixes-design.md. Relitigate there if any
     pick is wrong.
-  - **VERIFY NEXT CYCLE (spec criterion #6, needs live cycles to observe):** re-gathered URLs
-    mint vintage ids (no FindingStore collision, no ingest exclusions); price rows carry
-    D6/gpuSpotPrice with canonical units; PMI matches ≥1 series once TWO post-fix cycles exist;
-    thesis brain echoing seed triggers passes the gate.
+  - (F52–F54 live verification criteria: see VERIFY NEXT LIVE CYCLES under the approved
+    sequence below.)
   - **First MONTHLY live cycle on the sp5 stack** (asOf 2026-07, committed `a8b7398`): scorecard
     `store/chips.merchant-gpu/2026-07-v1.json` DMI +0.633 / SMI −0.453; all 7 standing theses
     judged (3 strengthened→high; custom-asic reaffirmed@high; pricing-power reaffirmed;
@@ -50,15 +66,34 @@
     MEMORY block fed both brains live; judged direction moved vs prior (Strong/steady, was
     Strong/improving; bottleneck rotated competitiveStructure→moat).
 
-## IMMEDIATE NEXT TASK — pick up the feature track (each starts with brainstorming, per charter)
+## IMMEDIATE NEXT TASK — the APPROVED SEQUENCE (user-approved 2026-07-03; full context in
+## docs/fix-backlog.md's F57–F66 section header — do not re-derive or re-ask)
 
-Remaining after sp5 + F55 + F52/F53/F54, in recommended order:
-1. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
-   the rubric-graded golden set + prompt-change regression gate remain). Separate sub-project:
-   brainstorm → spec → plan first.
-2. F23 compliance matrix; F24 entity canonicalization; F25 wiki scaling; then WHY-tree extensions,
-   HTML dashboard, discovery, the layer-tier arc. (F56 is a tiny backlog item — fold into any wave.)
-Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-thesis-book-design.md`).
+Quick wins, independent: **F61** (staleness banner — BUT held until F67 lands, see coordination
+above) and **F56** (tiny, --as-of shape validation).
+Then in order — each feature starts with brainstorming, per charter:
+0. **F6 second half (STEP 0 — gates all prompt changes downstream):** eval harness — ~20
+   recorded-cycle golden set graded by a brief rubric + prompt-change regression gate.
+   Separate sub-project: brainstorm → spec → plan.
+1. **F62** — flagship consumes the daily store (highest-leverage; the monthly brief currently
+   discards everything the dailies learned). Interacts with F52 vintage ids + L2 dedup.
+2. **F63** — corroboration doctrine (N independent secondary publishers move one bounded step)
+   + evidence-sufficiency gate counterweight. Charter Part-37 amendment, migration discipline.
+3. **F57/F58/F59** — gather freshness wave (headline/forward slices + per-class doc floors;
+   live-mode recency window ~45d; primary allowlist = charter's "filings, official posts").
+4. **F60** — let fresh/leading indicators score (registry weights are DATA = safe; any
+   scoring.py change ships only as a versioned migration, Part 33).
+5. **F64** — trigger-first daily brief + Brier scoring. 6. **F65** — "So what for TSMC"
+   section. 7. **F66** — post-hoc citation audit (low priority).
+Standing feature track (slot in as capacity allows): F23 compliance matrix, F24 entity
+canonicalization, F25 wiki scaling (hard prereq for 34-category fan-out); then WHY-tree,
+HTML dashboard, discovery, layer tier, Main roll-up.
+REJECTED (user-approved, do not resurrect): SEC-EDGAR/sec-api pipeline; search-API/scraper
+benchmarking. Do NOT relitigate sp5 design decisions
+(spec `docs/superpowers/specs/2026-07-02-thesis-book-design.md`).
+**VERIFY NEXT LIVE CYCLES (F52–F54 criterion #6):** re-gathered URLs mint vintage ids (no
+FindingStore collision/exclusions); price rows carry D6/gpuSpotPrice with canonical units;
+PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed triggers pass.
 
 ## THE BIG DECISIONS ALREADY MADE (do not relitigate without reason)
 

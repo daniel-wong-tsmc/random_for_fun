@@ -698,7 +698,7 @@ def render_report(
         brief.render_state_of_market(sc, prior, track),    # words-first BLUF rework
         brief.render_why(thesis_book, thesis_last_findings),  # NEW — drivers -> constraints
         brief.render_what_moved(movement),
-        brief.render_demand_supply_board(sc, horizons),
+        brief.render_demand_supply_board(sc, horizons, registry=registry),
         brief.render_storylines(movement),
         render_price_track(track),                # F49, omitted (returns "") with no price series
         render_overall_status(sc),

@@ -103,7 +103,7 @@ def _publisher(ev) -> str:
     return netloc or ev.source.lower()
 
 
-def _board_rows(findings, side, sc_as_of, horizons):
+def _board_rows(findings, side, sc_as_of, horizons, registry):
     rows = []
     on_side = [f for f in findings if f.side == side]
     latest = _collapse_latest(on_side)
@@ -118,30 +118,33 @@ def _board_rows(findings, side, sc_as_of, horizons):
             if tag is not None and tag.get("horizon") == "leading":
                 tags.append("leading")
         if f.asOf < sc_as_of:
-            tags.append("⚠carried")
+            tags.append("⚠ from a prior cycle")
         # F29: a row backed by exactly one distinct publisher domain (whether that's one
         # evidence item or several from the same outlet) carries a visible warning —
         # honest about corroboration, not just presence of evidence.
         publishers = {_publisher(ev) for ev in f.evidence}
         if len(publishers) == 1:
-            tags.append("⚠single-source")
+            tags.append("⚠ one source")
         suffix = ("  [" + ", ".join(tags) + "]") if tags else ""
-        rows.append(f"    {indicator_id}  {word} {arrow}{suffix}")
+        label = reader.indicator_label(indicator_id, registry)
+        rows.append(f"    {label:<24}  {word} {arrow}{suffix}")
     if not rows:
         rows.append(f"    (no {side} findings)")
     return rows
 
 
-def render_demand_supply_board(sc: Scorecard, horizons) -> str:
+def render_demand_supply_board(sc: Scorecard, horizons, registry=None) -> str:
     """DEMAND | SUPPLY board: findings grouped by side, collapsed to the latest vintage per
-    indicator, each row a _signal_label word (from polarity*magnitude — the same score the
-    entity panel uses) + a trend arrow, with a `leading` tag (when horizons supplied) and a
-    `carried` flag for a stale carry-over. Read-only; deterministic (rows ordered by id)."""
+    indicator, each row a reader.indicator_label (registry label, or the id when no registry
+    is supplied — legacy callers keep today's output) + a _signal_label word (from
+    polarity*magnitude — the same score the entity panel uses) + a trend arrow, with a
+    `leading` tag (when horizons supplied) and a plain-worded flag for a stale carry-over
+    or single-source corroboration. Read-only; deterministic (rows ordered by id)."""
     lines = ["DEMAND | SUPPLY"]
     lines.append("  DEMAND")
-    lines.extend(_board_rows(sc.findings, "demand", sc.asOf, horizons))
+    lines.extend(_board_rows(sc.findings, "demand", sc.asOf, horizons, registry))
     lines.append("  SUPPLY")
-    lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons))
+    lines.extend(_board_rows(sc.findings, "supply", sc.asOf, horizons, registry))
     return "\n".join(lines)
 
 

@@ -5,10 +5,11 @@ Task 2 of sub-project 4-5: per-category Market-State brief render.
 from __future__ import annotations
 
 from gpu_agent.schema.scorecard import Scorecard, DemandSupply
-from gpu_agent.schema.finding import Finding, Confidence
+from gpu_agent.schema.finding import Finding, Confidence, Evidence
 
 from gpu_agent.brief import render_demand_supply_board
 from gpu_agent.registry.horizon import IndicatorHorizons
+from gpu_agent.registry.indicators import IndicatorRegistry
 
 
 # ── Test helpers ─────────────────────────────────────────────────────────────
@@ -19,10 +20,11 @@ def _ds(dmi: float = 0.05, smi: float = 0.02) -> DemandSupply:
 
 def _f(fid: str = "f-001", *, side: str = "demand", indicatorId: str = "D2",
        trend: str = "flat", polDemand: int = 1, polSupply: int = 0,
-       magnitude: int = 2, asOf: str = "2026-06") -> Finding:
+       magnitude: int = 2, asOf: str = "2026-06", evidence: list | None = None) -> Finding:
     return Finding(
         id=fid, statement="s", kind="observed", trend=trend, why="w",
         impact={"targets": ["t"], "direction": "positive", "mechanism": "m"},
+        evidence=evidence or [],
         confidence={"level": "medium", "basis": "b"},
         asOf=asOf, indicatorId=indicatorId, side=side,
         polarityDemand=polDemand, polaritySupply=polSupply,
@@ -79,14 +81,42 @@ def test_board_no_leading_tag_without_horizons():
 
 
 def test_board_flags_carried_finding():
-    # finding.asOf predates the scorecard asOf -> a stale carry-over
+    # finding.asOf predates the scorecard asOf -> a stale carry-over, worded
+    # plainly for the reader (was the internal "⚠carried" jargon).
     sc = _sc(as_of="2026-07", findings=[
         _f("d1", side="demand", indicatorId="rpoBacklog", asOf="2026-05")])
     out = render_demand_supply_board(sc, None)
-    assert "⚠carried" in out
+    assert "⚠ from a prior cycle" in out
 
 
 def test_board_empty_side_note():
     sc = _sc(findings=[_f("d1", side="demand", indicatorId="rpoBacklog")])
     out = render_demand_supply_board(sc, None)
     assert "no supply findings" in out
+
+
+# ── Task 7 (F67): registry labels + reader-worded tags ───────────────────────
+
+def test_board_rows_use_registry_labels():
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    sc = _sc(as_of="2026-07", findings=[
+        _f("d1", side="demand", indicatorId="rpoBacklog", asOf="2026-05",
+           evidence=[Evidence(source="Src", url="https://www.ebay.com/x",
+                               date="2026-06-30", excerpt="e", tier="secondary")]),
+    ])
+    out = render_demand_supply_board(sc, None, registry=reg)
+    assert "Backlog" in out or "Guidance" in out    # labels from registry
+    assert "rpoBacklog" not in out
+    assert " D2 " not in out
+    assert "⚠ one source" in out
+    assert "single-source" not in out
+    assert "⚠ from a prior cycle" in out
+    assert "⚠carried" not in out
+
+
+def test_board_rows_id_fallback_without_registry():
+    # Legacy callers passing no registry keep today's id-rendering behavior —
+    # indicator_label(id, None) falls back to the raw id.
+    sc = _sc(findings=[_f("d1", side="demand", indicatorId="rpoBacklog")])
+    out = render_demand_supply_board(sc, None)
+    assert "rpoBacklog" in out

@@ -374,3 +374,102 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
         lines.append("  (no standing theses)")
 
     return "\n".join(lines)
+
+
+# ── WHY (sub-project 5-2 Task 3) ─────────────────────────────────────────────
+# The standing thesis book projected by lens: drivers (Pulling demand / Capping supply)
+# vs constraints held up for scrutiny (Contested). A pure projection — no new number, no
+# LLM call — and the three groups partition the standing book with no overlap: a
+# thesis's line, if it has one, appears in exactly one group.
+#
+# NOTE (discrepancy flagged for review): the sub-project plan's spec §4 says every WHY
+# line carries the thesis's latest findingIds, but the binding Interfaces block pins
+# `render_why(book)` with no findings/last_findings parameter, and the pinned line format
+# `    • <mechanism>  (<title>)` has no id slot. This implementation follows the
+# Interfaces block + line format (they win for this task) and drops findingIds from the
+# v1 WHY line — flagging the mismatch rather than silently resolving it.
+
+def _why_entry_key(entry):
+    """(-CONVICTION_RANK, id) — deterministic display order within a WHY group."""
+    return (-CONVICTION_RANK[entry.conviction], entry.id)
+
+
+def _why_driver_line(entry) -> str:
+    return f"    • {entry.mechanism}  ({entry.title})"
+
+
+def _why_contested_label(entry) -> Optional[str]:
+    """The strongest true reason a standing thesis is Contested, or None when it is not
+    contested at all. Precedence when more than one reason applies: CHALLENGED ⚠ >
+    provisional > low conviction — pick the single strongest, never stack labels."""
+    if entry.pendingChallenge is not None:
+        return "CHALLENGED ⚠"
+    if entry.status == "provisional":
+        return "provisional"
+    if entry.lens in ("competitive", "risk") and entry.conviction == "low":
+        return "low conviction"
+    return None
+
+
+def _why_group_lines(entries, line_fn) -> list[str]:
+    if not entries:
+        return ["    (none)"]
+    return [line_fn(entry) for entry in sorted(entries, key=_why_entry_key)]
+
+
+def render_why(book: Optional[ThesisBook]) -> str:
+    """WHY (drivers -> constraints): a pure projection of the standing thesis book by
+    lens. None/empty book (no thesis cycle has ever run, or a freshly seeded book with
+    no entries at all) -> the honest placeholder 'WHY\\n  (no thesis book yet)' — a bare
+    header, not the full '(drivers -> constraints)' one, since there is nothing to
+    project yet. Otherwise every retired entry is dropped first (retired entries appear
+    nowhere), then the remaining standing entries are partitioned:
+
+      - Pulling demand / Capping supply: lens=="demand"/"supply", conviction >= medium,
+        status=="registered", no pendingChallenge. These criteria's own "no
+        pendingChallenge" and "status registered" clauses already make membership here
+        disjoint from Contested (which requires pendingChallenge, OR provisional, OR a
+        competitive/risk lens) — the partition is airtight by construction, not by a
+        second de-dup pass.
+      - Contested: pendingChallenge OR status=="provisional" OR (lens in
+        {"competitive","risk"} AND conviction=="low"); the label picks the strongest
+        true reason per _why_contested_label.
+
+    Two literal-rule gaps this leaves on the table (by design — WHY shows drivers,
+    constraints, and contested claims, not the whole book): a competitive/risk thesis at
+    medium/high conviction with no outstanding challenge lands in no group; a registered
+    demand/supply thesis at low conviction with no outstanding challenge also lands in no
+    group (low conviction alone is not itself a Contested reason for a demand/supply
+    lens — only for competitive/risk).
+
+    Empty groups render '    (none)'. Order within a group: (-CONVICTION_RANK, id)."""
+    if book is None or not book.entries:
+        return "WHY\n  (no thesis book yet)"
+
+    standing = book.standing()
+
+    def _is_driver(entry, lens) -> bool:
+        return (
+            entry.lens == lens
+            and CONVICTION_RANK[entry.conviction] >= CONVICTION_RANK["medium"]
+            and entry.status == "registered"
+            and entry.pendingChallenge is None
+        )
+
+    demand = [e for e in standing if _is_driver(e, "demand")]
+    supply = [e for e in standing if _is_driver(e, "supply")]
+
+    contested_labels = {e.id: _why_contested_label(e) for e in standing}
+    contested = [e for e in standing if contested_labels[e.id] is not None]
+
+    lines = ["WHY (drivers -> constraints)"]
+    lines.append("  Pulling demand:")
+    lines.extend(_why_group_lines(demand, _why_driver_line))
+    lines.append("  Capping supply:")
+    lines.extend(_why_group_lines(supply, _why_driver_line))
+    lines.append("  Contested:")
+    lines.extend(_why_group_lines(
+        contested,
+        lambda e: f"    • {e.mechanism}  ({e.title} — {contested_labels[e.id]})",
+    ))
+    return "\n".join(lines)

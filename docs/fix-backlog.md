@@ -247,6 +247,159 @@
 
 ---
 
+## From the 2026-07-03 freshness & exec-gap review (F57–F65)
+
+> Source: three parallel deep explorations (design docs, live-output source audit, gather
+> fan-out trace) prompted by the observation that briefs lean on lagging 10-Q data. Evidence,
+> verified against the live store:
+>
+> - Flagship `store/chips.merchant-gpu/2026-07-v1.json`: 72 findings, **32 (44%) from the
+>   Apr–May Q1 earnings cycle** (10-Q + releases + transcripts, 6–10 weeks stale at run time).
+>   The only sub-week evidence is 12 weight-0 vendor price levels. Zero fresh headlines back any
+>   of the six dimensions; the Apr-26 NVDA 10-Q is the sole primary/high-confidence evidence.
+> - `work/live-2026-07/gather-log.json`: the 20-doc cap tripped in round 2 with 60+ fresh leads
+>   logged "not chased" (TechCrunch Anthropic–Samsung 2nm, Tom's Hardware ASIC roundup, NVIDIA
+>   blog posts); `open-web-asic` and `open-web-gpu-share` ended "not-covered".
+> - The standard live gather has **no news/headline slice at all** ("news" appears once in the
+>   skills, inside Daily mode) and seeds filing URLs first; the recency window is Daily-only.
+> - The daily runs DO capture fresh signal (`store/findings/`: Anthropic–Samsung 2nm, NVIDIA
+>   vendor-financing, Digitimes 2H26 order boom) — but the standard live path never reads the
+>   wiki/findings store back (`run-cycle/SKILL.md:219`), so the flagship re-derives from its own
+>   ≤20 docs and discards it. Smoking gun: `vendor-financed-demand-circularity` was proposed
+>   from the July-1 NVIDIA newsroom announcement in the morning daily and demoted to conviction
+>   low by the evening flagship **the same day** ("no primary support") — even though the
+>   evidence is NVIDIA's own official post, stamped secondary because the primary allowlist is
+>   just `sec.gov,investor.nvidia.com`, narrower than the charter's "filings, official posts".
+>
+> Exec-lens verdict: the brief reads as a well-organized summary of last quarter's earnings
+> season, not an intelligence product. F57–F61 make it **current**; F62–F65 make it a
+> **product**. Priority order (user-approved 2026-07-03, amended same day after report
+> reconciliation): **step 0 = the F6-second-half rubric eval → F62 → F63 → F57/F58/F59 → F60 →
+> F64 → F65 → F66**, with F61 shippable immediately (cheap, independent). Roadmap items
+> surfaced by the same review (more categories, layer tier, Main roll-up) are not re-logged
+> here — they are the existing deferred build.
+>
+> **Reconciled 2026-07-03 with the deep-research report**
+> (`docs/2026-07-03-agent-best-practices-research.md`), which independently converged on the
+> same gather-aim diagnosis. Adopted: **step 0 is the eval harness** (F6 second half / Action
+> Item 1's Depth Bar, scoped as ~20 recorded-cycle cases graded by a brief rubric — it gates
+> every prompt change in F57/F58); the evidence-sufficiency gate folds into F63; Brier scoring
+> folds into F64; the citation-audit pass is F66. Graphiti = architecture reference for F24
+> when it runs (its benchmark claims are refuted — see report §7). **Considered and REJECTED
+> (user-approved 2026-07-03 — do not resurrect without new evidence):** (a) the SEC EDGAR
+> structured pipeline / sec-api.io spend — it deepens the filings strength while the leading
+> pipeline is the weakness; only F59's tier-classifier fix survives; (b) the
+> search-API/scraper-stack benchmark (Tavily/Exa/Firecrawl…) — the headline gap is aim +
+> doctrine, not fetch tech (the gatherers found the right stories; the system didn't chase or
+> use them); revisit only if fetch failures remain the binding constraint after F57/F58.
+
+### Fixes (bounded — lane-style)
+
+- [ ] **F57 — Headline + forward-signal slices in the standard gather.** Round-1 seeds in
+  `.claude/skills/gather-category/SKILL.md` contain no news angle; the only open-web query is
+  one `"<entity-names> <source.label>"` per free-web source, and the entity×metric slices
+  append "latest official filing / 10-Q / 10-K / investor relations". Add per-entity headline
+  slices ("<entity> news / announcements past N days") and forward-signal slices (guidance
+  revisions, lead-time drift, design wins), **interleaved with — not after — the filing URL
+  seeds**, and partition `maxDocuments` into per-class floors (filing / news / forward) so
+  filings cannot starve the open web. Skill prose + manifest data; the gather-log's coverage
+  classes prove the fix. Two additions adopted from the research report's companion diagnosis:
+  **cap price-page fetches at 2–3 per cycle** (the class floors set news/forward minimums; this
+  sets the price-class maximum — dailies currently burn ~half their findings on weight-0 price
+  scrapes), and **stop re-fetching already-seen filings mid-quarter** (thread the L1 seen-doc
+  filter, today daily-only, into the standard live path for filing URLs, or skip known-hash
+  filing seeds).
+- [ ] **F58 — Recency window in live mode.** `recencyDays`, "since <date> / past week"
+  qualifiers, and the date-window lead drop exist only in Daily mode; the standard live path
+  has no freshness bias at all — which is how a 2026-07 flagship's freshest substantive doc was
+  an April filing. Add a live-mode recency dial (wider than daily's 7, e.g. 45 days; filing
+  seeds exempt) applied to seed queries and the on-topic filter.
+- [ ] **F59 — Primary allowlist matches the charter's definition of primary.** Charter says
+  primary = "filings, **official posts**", but ingest stamps primary only for
+  `--primary-sources sec.gov,investor.nvidia.com` (gather-category SKILL.md:114; `cli.py:590`
+  defaults to `sec.gov`). So `blogs.nvidia.com`, `nvidianews.nvidia.com`, `ir.amd.com`,
+  `intc.com` — the vendors' own announcements — land secondary → confidence-capped → "no
+  primary support" demotions for claims the vendor itself made. Extend the allowlist to
+  official IR/newsroom domains, driven per-category from the manifest's source inventory
+  instead of a hardcoded flag value. Regression case: the July-1 vendor-financing announcement.
+- [ ] **F60 — Let fresh signal score.** Every fresh-cadence indicator is excluded from
+  DMI/SMI: `gpuSpotPrice`/`D6` are `side:"price"`, `designWins` is `side:"structural"` (both
+  skipped by `scoring.py`'s dmi_smi_contribution); `leadTimes` scores but its deep source is
+  paywalled; and the two "leading" scoring indicators (`rpoBacklog`, `vendorRevenueGuidance`)
+  are themselves 10-Q/earnings-sourced. Result in the flagship: outlook ran 5 findings vs
+  momentum's 34 with `smiContribution: 0.0`. Give the leading set real weight in
+  `registry/indicators.json` and/or admit a news-sourced leading indicator. **Frozen-contract
+  caveat:** registry-weight changes are DATA and safe; any `scoring.py`/side-semantics change
+  ships only as a versioned migration (Part 33), never piecemeal.
+- [ ] **F61 — Staleness & coverage banner; honest confidence label.** The brief renders
+  "confidence: high (self-consistency over 3 samples)" — vote agreement, not evidence currency
+  — atop evidence with a ~6-week median age, while the gather-log quietly records
+  TrendForce / SemiAnalysis / channel-checks as not-covered. Render an evidence-vintage line
+  (median + oldest evidence date vs `asOf`, share older than N weeks) and the coverage gaps in
+  the brief header, and relabel the confidence basis. `report.py` only — pure projection,
+  replayable for $0.
+
+### Features (per repo convention: brainstorming → spec → plan, own sub-project — not lane work)
+
+- [ ] **F62 — Flagship consumes the daily store.** Daily mode WRITES fresh findings into the
+  wiki (`wiki-ingest`, run-cycle SKILL.md:209) but the standard path never READS the wiki or
+  `store/findings/` back (SKILL.md:219): the monthly brief is a projection of one cycle's ≤20
+  docs, so everything the dailies learn is discarded at exactly the moment someone reads the
+  output. Make the accumulated store a first-class input corpus to flagship extraction /
+  judgment / thesis, demoting the web gather to top-up. **Highest-leverage item of this
+  review.** Interacts with F52 (vintage-scoped ids) and L2 dedup.
+- [ ] **F63 — Corroboration doctrine for secondary evidence.** Secondary evidence is
+  confidence-capped at medium (extraction prompt + gate F2e) and secondary-only findings may
+  not move headline status (Part 37) — so no quantity of independent open-web reporting can
+  move status or conviction until a filing confirms it. The desk resolves at filing cadence;
+  the exec decides at headline cadence. Amend the doctrine: **N independent secondary sources
+  (distinct publishers, not syndication) within the window may move status/conviction one
+  bounded step**, logged with the corroboration set; the next filing remains the confirm/deny
+  checkpoint. Touches charter Part 37, gate rule F2e, thesis judging — a charter amendment,
+  handled with migration discipline. **Counterweight (adopted from the research report §3,
+  MAST Insight 3 — same spec, ships together):** a deterministic **evidence-sufficiency gate**
+  — "is there enough fresh, corroborated evidence to justify *changing* the binding constraint
+  / a dimension rating this cycle?" — so corroborated news can move ratings and insufficient
+  news cannot. Loosening without the tightening half reintroduces the whipsaw the anti-whipsaw
+  machinery exists to prevent.
+- [ ] **F64 — Trigger-first daily brief.** The thesis book's falsifiable triggers are the one
+  asset an exec cannot get from a news terminal, but the daily output leads with findings and
+  trigger matching stays implicit inside judging. Lead the daily brief with a trigger-watch:
+  which standing theses' `falsifiableTrigger`s did today's findings touch, which conviction
+  moved, and why. Render + a thesis-engine step. **Include Brier discipline (adopted from the
+  research report §5):** log every thesis judgment as a probabilistic call and Brier-score it
+  as triggers resolve — conviction language earns a track record instead of assuming the
+  judgment is calibrated.
+- [ ] **F65 — "So what for TSMC" section.** The charter's north star is a prioritized
+  recommendation, but the brief states everything market-facing and draws no implication even
+  where it concludes TSMC is the binding constraint of the category. Add a judgment step +
+  render section translating category state into TSMC decision variables (wafer starts by
+  node, CoWoS/SoIC allocation, N2 customer mix, pricing leverage, foundry-competitive events —
+  e.g. Anthropic–Samsung 2nm). Per-category now; becomes the Main-tier roll-up input later.
+- [ ] **F66 — Post-hoc citation audit pass (low priority).** Adopted from the research report
+  §1: citation integrity is enforced at write time (the gate checks findingIds/excerpts), but
+  nothing re-verifies the *finished* brief's claims against the findings they cite — the
+  production pattern (Anthropic's Research system) runs a dedicated citation-verification
+  stage after generation. Add a tool-less audit subagent (or deterministic excerpt-match where
+  the claim is numeric) over the rendered brief that flags claims whose cited finding does not
+  actually support them. Pairs naturally with F61's render surface. Do after the higher items —
+  our write-time gating already covers the worst failure mode.
+- [ ] **F67 — The output contract: renderer structure + analyst voice.** User-approved design at
+  `docs/superpowers/specs/2026-07-03-output-contract-design.md` (spec written — next step is a
+  writing-plans implementation plan). Two layers: (1) `report.py` renders one fixed
+  inverted-pyramid section order (staleness-banner header → ≤8-line BLUF with the constraint
+  *named* via a new additive-optional `constraintLabel` → what-moved with honest empty states →
+  compressed calls → why-tree → human-labeled demand/supply board → F65 slot → trust footer →
+  appendix), no raw ids above the appendix, no duplicated paragraphs, dead metrics folded;
+  (2) an analyst-voice guideline in the judgment/thesis prompt builders (3-sentence narrative =
+  state/crux/watch-item, ≤2-sentence rationales, banned-id + sentence-cap **deterministic
+  lint**, one re-dispatch then fail loud); plus a run-cycle session rule (final message = brief
+  verbatim + ≤3-line run-health footer, logs by path only) and a shared daily shell (daily
+  leads with what-moved; calls section becomes F64's trigger-watch when it lands). Absorbs
+  **F61**; reserves **F65**'s slot.
+
+---
+
 ## Execution model — parallel lanes, 5 at a time
 
 **The constraint that shapes everything:** superpowers' subagent-driven-development forbids

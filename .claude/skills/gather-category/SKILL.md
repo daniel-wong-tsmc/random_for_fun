@@ -111,7 +111,7 @@ loaded, `coverageGaps` is an empty list `[]`.
 **6. Run the brain** (deterministic CLI; from repo root):
 ```
 .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
-  --primary-sources sec.gov,investor.nvidia.com
+  --primary-sources sec.gov,investor.nvidia.com --as-of <asOf>
 .venv/Scripts/python -m gpu_agent.cli pipeline --docs work/docs \
   --assignment fixtures/asg.chips.merchant-gpu.json --as-of <asOf> \
   --captured-at <ISO-8601 UTC> --out store

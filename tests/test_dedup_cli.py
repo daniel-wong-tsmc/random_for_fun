@@ -29,7 +29,7 @@ def test_ingest_dedup_store_drops_known_docs(tmp_path, capsys):
     store = tmp_path / "store"
     out1 = tmp_path / "out1"
     rc = main(["ingest", "--blobs", str(blobs), "--out", str(out1),
-               "--primary-sources", "sec.gov", "--dedup-store", str(store)])
+               "--primary-sources", "sec.gov", "--dedup-store", str(store), "--as-of", "2026-06"])
     assert rc == 0
     log1 = json.loads((out1 / "gather-log.json").read_text("utf-8"))
     assert log1["documents"] == 2 and log1.get("droppedKnown", 0) == 0
@@ -37,7 +37,7 @@ def test_ingest_dedup_store_drops_known_docs(tmp_path, capsys):
     capsys.readouterr()
     out2 = tmp_path / "out2"
     main(["ingest", "--blobs", str(blobs), "--out", str(out2),
-          "--primary-sources", "sec.gov", "--dedup-store", str(store)])
+          "--primary-sources", "sec.gov", "--dedup-store", str(store), "--as-of", "2026-06"])
     log2 = json.loads((out2 / "gather-log.json").read_text("utf-8"))
     assert log2["documents"] == 0 and log2["droppedKnown"] == 2
 
@@ -47,7 +47,8 @@ def test_ingest_without_dedup_store_unchanged(tmp_path):
     blobs = tmp_path / "blobs.json"
     blobs.write_text(json.dumps([_blob("http://x/a"), _blob("http://x/b", content="two")]), "utf-8")
     out = tmp_path / "out"
-    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out), "--primary-sources", "sec.gov"])
+    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out), "--primary-sources", "sec.gov",
+               "--as-of", "2026-06"])
     assert rc == 0
     log = json.loads((out / "gather-log.json").read_text("utf-8"))
     assert log["documents"] == 2 and "droppedKnown" not in log

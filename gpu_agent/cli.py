@@ -67,7 +67,7 @@ def _ingest(args) -> int:
         rounds = payload.get("rounds", 0)
         skipped = payload.get("skipped", [])
     primary_sources = [s.strip() for s in args.primary_sources.split(",") if s.strip()]
-    outcome = normalize_documents(blobs, primary_sources=primary_sources)
+    outcome = normalize_documents(blobs, primary_sources=primary_sources, as_of=args.as_of)
     docs = outcome.documents
     dropped_known = []
     if getattr(args, "dedup_store", None):
@@ -591,8 +591,8 @@ def main(argv=None) -> int:
                     help="comma-separated authoritative-source host allowlist; a generic "
                          "filings baseline (sec.gov), NOT GPU-specific - extend per category "
                          "via the gather skill (F26)")
-    ig.add_argument("--as-of", default="",
-                    help="cycle asOf stamped as first-seen in the L1 dedup index")
+    ig.add_argument("--as-of", required=True,
+                    help="run vintage (YYYY-MM or YYYY-MM-DD); scopes document/finding ids (F52) and keys the L1 seen-index")
     ig.add_argument("--dedup-store", default=None,
                     help="store root for cross-run L1 seen-document dedup (holds seen_docs.jsonl)")
     wi = sub.add_parser("wiki-ingest")

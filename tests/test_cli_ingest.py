@@ -1,4 +1,5 @@
 import json
+import pytest
 from gpu_agent.cli import main
 from gpu_agent.schema.raw_document import RawDocument
 
@@ -18,7 +19,7 @@ def test_ingest_writes_docs_and_log(tmp_path):
     }), "utf-8")
     out = tmp_path / "docs"
     rc = main(["ingest", "--blobs", str(blobs), "--out", str(out),
-               "--primary-sources", "sec.gov"])
+               "--primary-sources", "sec.gov", "--as-of", "2026-06"])
     assert rc == 0
 
     doc_files = sorted(p for p in out.glob("*.json") if p.name != "gather-log.json")
@@ -38,7 +39,8 @@ def test_ingest_accepts_bare_array(tmp_path):
     blobs = tmp_path / "blobs.json"
     blobs.write_text(json.dumps([_blob("https://www.sec.gov/a")]), "utf-8")
     out = tmp_path / "docs"
-    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out), "--primary-sources", "sec.gov"])
+    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out), "--primary-sources", "sec.gov",
+               "--as-of", "2026-06"])
     assert rc == 0
     log = json.loads((out / "gather-log.json").read_text("utf-8"))
     assert log["rounds"] == 0 and log["documents"] == 1 and log["skipped"] == []
@@ -49,7 +51,8 @@ def test_extract_ignores_gather_log(tmp_path):
     blobs = tmp_path / "blobs.json"
     blobs.write_text(json.dumps([_blob("https://www.sec.gov/nvda/10q")]), "utf-8")
     docs = tmp_path / "docs"
-    rc = main(["ingest", "--blobs", str(blobs), "--out", str(docs), "--primary-sources", "sec.gov"])
+    rc = main(["ingest", "--blobs", str(blobs), "--out", str(docs), "--primary-sources", "sec.gov",
+               "--as-of", "2026-06"])
     assert rc == 0
     assert (docs / "gather-log.json").exists(), "ingest must have written gather-log.json"
 
@@ -78,3 +81,27 @@ def test_extract_ignores_gather_log(tmp_path):
     assert rc == 0, "extract crashed (likely tried to parse gather-log.json as a RawDocument)"
     findings = json.loads(out_file.read_text("utf-8"))
     assert len(findings) >= 1, "extract produced no findings"
+
+
+def test_ingest_requires_as_of(tmp_path):
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text("[]", encoding="utf-8")
+    with pytest.raises(SystemExit) as e:
+        main(["ingest", "--blobs", str(blobs), "--out", str(tmp_path / "docs"),
+              "--primary-sources", "sec.gov"])
+    assert e.value.code == 2   # argparse: required --as-of missing
+
+
+def test_ingest_snapshot_filenames_carry_the_vintage(tmp_path):
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text(json.dumps([{
+        "url": "https://www.sec.gov/nvda/10q", "entity": "nvidia",
+        "source": "NVIDIA 10-Q", "date": "2026-07", "content": "DC revenue grew 8% QoQ.",
+    }]), encoding="utf-8")
+    out = tmp_path / "docs"
+    rc = main(["ingest", "--blobs", str(blobs), "--out", str(out),
+               "--primary-sources", "sec.gov", "--as-of", "2026-07-03"])
+    assert rc == 0
+    snaps = [p.name for p in out.glob("*.json") if p.name != "gather-log.json"]
+    assert len(snaps) == 1
+    assert snaps[0].endswith("-2026-07-03.json")

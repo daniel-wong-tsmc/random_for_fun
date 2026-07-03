@@ -35,7 +35,8 @@ def _judge(finding_id):
 def test_snapshot_feeds_brain_to_gate_valid_scorecard(tmp_path):
     docs = tmp_path / "docs"
     # 1) gather snapshot -> ingest -> validated RawDocument folder
-    rc = main(["ingest", "--blobs", BLOBS, "--out", str(docs), "--primary-sources", "sec.gov"])
+    rc = main(["ingest", "--blobs", BLOBS, "--out", str(docs), "--primary-sources", "sec.gov",
+               "--as-of", "2026-06"])
     assert rc == 0
     doc_files = [p for p in docs.glob("*.json") if p.name != "gather-log.json"]
     assert len(doc_files) == 1
@@ -73,7 +74,7 @@ def test_live_gather_smoke_ingests_real_blobs():
     path = os.environ.get("GPU_AGENT_GATHER_BLOBS", BLOBS)
     payload = json.loads(pathlib.Path(path).read_text("utf-8"))
     blobs = payload["blobs"] if isinstance(payload, dict) else payload
-    out = normalize_documents(blobs, primary_sources=["sec.gov", "investor.nvidia.com"])
+    out = normalize_documents(blobs, primary_sources=["sec.gov", "investor.nvidia.com"], as_of="2026-06")
     assert out.documents, "live gather produced no valid documents"
     for d in out.documents:
         RawDocument.model_validate(d.model_dump())   # every gathered doc is schema-valid

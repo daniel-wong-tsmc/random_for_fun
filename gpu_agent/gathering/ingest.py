@@ -36,13 +36,18 @@ def _tier(url: str, primary_sources: list[str]) -> str:
             return "primary"
     return "secondary"
 
-def _doc_id(normalized_url: str) -> str:
+def _doc_id(normalized_url: str, as_of: str) -> str:
     host = urlparse(normalized_url).netloc.lower()
     slug = re.sub(r"[^a-z0-9]+", "-", host).strip("-") or "doc"
     digest = hashlib.sha256(normalized_url.encode("utf-8")).hexdigest()[:8]
-    return f"{slug}-{digest}"
+    return f"{slug}-{digest}-{as_of}"   # F52: vintage-scoped — a re-gathered URL on a
+                                        # later asOf is a NEW snapshot, so downstream
+                                        # {docId}-{n} finding ids never collide cross-day
 
-def normalize_documents(blobs: list[dict], *, primary_sources: list[str]) -> IngestOutcome:
+def normalize_documents(blobs: list[dict], *, primary_sources: list[str],
+                        as_of: str) -> IngestOutcome:
+    if not as_of.strip():
+        raise ValueError("normalize_documents: as_of is required (F52 vintage-scoped ids)")
     documents: list[RawDocument] = []
     dropped: list[Dropped] = []
     duplicates = 0
@@ -59,6 +64,6 @@ def normalize_documents(blobs: list[dict], *, primary_sources: list[str]) -> Ing
             continue
         seen.add(norm)
         documents.append(RawDocument(
-            id=_doc_id(norm), source=blob["source"], url=blob["url"], date=blob["date"],
+            id=_doc_id(norm, as_of), source=blob["source"], url=blob["url"], date=blob["date"],
             tier=_tier(blob["url"], primary_sources), entity=blob["entity"], content=blob["content"]))
     return IngestOutcome(documents=documents, dropped=dropped, duplicates=duplicates)

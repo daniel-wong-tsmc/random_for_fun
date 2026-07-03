@@ -16,7 +16,7 @@
       "statement": "Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.",
       "lens": "supply",
       "mechanism": "CoWoS advanced-packaging capacity and HBM memory supply, not wafer starts or end demand, set the ceiling on how many finished GPUs can actually ship in a given quarter.",
-      "falsifiableTrigger": "CoWoS/HBM lead times normalize to historical norms while demand indicators stay positive.",
+      "falsifiableTrigger": "CoWoS/HBM lead times normalize to historical norms for 2 consecutive quarters while demand indicators stay positive.",
       "sensitivity": "Sensitive to announced advanced-packaging and HBM capacity additions from the packaging and memory vendors, which would loosen the binding constraint independent of demand."
     },
     {
@@ -34,7 +34,7 @@
       "statement": "Hyperscaler custom silicon meaningfully displaces merchant-GPU demand growth.",
       "lens": "competitive",
       "mechanism": "Hyperscalers' in-house training and inference accelerator programs compete directly with merchant-GPU purchases for the same capex dollars, so their scale-up can substitute for merchant-GPU demand growth.",
-      "falsifiableTrigger": "Hyperscaler capex mix shifts back toward merchant GPUs, or a named ASIC program is cancelled/delayed a generation.",
+      "falsifiableTrigger": "Hyperscaler capex mix shifts back toward merchant GPUs for 2 consecutive quarters, or a named ASIC program is cancelled or delayed by a full generation.",
       "sensitivity": "Sensitive to hyperscaler capex-mix disclosures and the shipment/deployment cadence of named custom-silicon programs."
     },
     {

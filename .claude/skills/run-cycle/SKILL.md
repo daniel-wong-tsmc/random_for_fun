@@ -114,10 +114,13 @@ scores, and writes the scorecard:
 ```
 Expected: `wrote store/<id>/<asOf>-v<n>.json  DMI=... SMI=...`. Record the path + DMI/SMI.
 
-If `pipeline` (or `judge --recorded`) exits non-zero with `voice-lint:` lines, re-dispatch the judgment
-subagent ONCE with those lines appended to its prompt ("fix these violations; change nothing else"). If it
-fails the lint again, run the same command with `--no-voice-lint`, log `voice-lint: bypassed` in the cycle
-log, and continue — the lint never blocks a scorecard, it only demands one rewrite attempt.
+If the scorecard command exits non-zero with `voice-lint:` lines (`pipeline --recorded-judge` in
+the live path; `judge --recorded` when used standalone), re-dispatch ONLY the violating sample(s),
+each as its own SEPARATE tool-less subagent (never one subagent covering multiple samples — the
+F38 anti-correlation rule above still applies), with the `voice-lint:` lines appended to the
+prompt ("fix these violations; change nothing else"). If the lint fails again, run the same
+command with `--no-voice-lint`, log `voice-lint: bypassed` in the cycle log, and continue — the
+lint never blocks a scorecard, it only demands one rewrite attempt.
 
 **(e) Thesis — Claude Code is the brain.** After the scorecard is written, emit the canonical thesis-book
 prompt from this cycle's gated findings (this seeds the store with the category's standing theses on its
@@ -169,6 +172,13 @@ new/update/duplicate, caps tripped or stages failed). Reference gather logs, pro
 and dedup detail by file path only — never paste them. Before sending, apply the
 stop-slop skill's rules to any prose the session itself writes around the report (the
 report text is deterministic and must not be edited).
+
+Scope note: for a single-category run, the final message is that category's rendered report
+verbatim, the ≤3 run-health lines, and Step 7's status items (scope, thesis stage status,
+deferred stages) folded into ONE compact footer list. For `layer:`/`all` runs, the final message
+is each category's rendered report verbatim in sequence, followed by Step 7's aggregate summary
+as the closing section — the per-report verbatim rule and Step 7's aggregate view compose, they
+do not replace each other.
 
 If the gate or judgment rejects the answer (non-zero exit / `JudgmentError`), **re-dispatch** the relevant
 brain subagent with the error once or twice; if it still fails, mark this category **failed (logged)** in the

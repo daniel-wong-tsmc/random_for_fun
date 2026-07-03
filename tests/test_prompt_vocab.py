@@ -107,3 +107,34 @@ def test_thesis_system_states_the_observable_heuristic():
     for word in ("quarter", "qtr", "month", "week", "cycle"):
         assert word in THESIS_SYSTEM
     assert "digit" in THESIS_SYSTEM
+
+
+# --- extraction: price-indicator vocabulary (F53) ---
+
+def test_extract_system_byte_identical_without_price_indicators():
+    assert extraction_prompt.build_system(price_indicators=None) == extraction_prompt.SYSTEM
+
+
+def test_extract_system_lists_price_vocabulary_when_given():
+    s = extraction_prompt.build_system(price_indicators=[
+        {"id": "D6", "label": "GPU rental price", "unit": "USD_per_gpu_hr",
+         "comparability": ""},
+        {"id": "gpuSpotPrice", "label": "Merchant-GPU hardware spot/resale price",
+         "unit": "USD_per_gpu", "comparability": "secondary-market hardware price"},
+    ])
+    assert "Price-level rows (side=price) use EXACTLY one of these indicator ids" in s
+    assert "D6 — GPU rental price, unit USD_per_gpu_hr" in s
+    assert ("gpuSpotPrice — Merchant-GPU hardware spot/resale price, unit USD_per_gpu "
+            "(secondary-market hardware price)") in s
+    assert s.startswith(extraction_prompt.SYSTEM)   # extends, never rewrites
+
+
+def test_extract_emit_prompt_carries_price_vocabulary_from_registry():
+    out = _run("extract", "--emit-prompt", "--docs", "fixtures/raw", "--as-of", "2026-06")
+    assert out.returncode == 0, out.stderr
+    bundle = json.loads(out.stdout)
+    assert "D6 — GPU rental price, unit USD_per_gpu_hr" in bundle["system"]
+    assert "gpuSpotPrice — Merchant-GPU hardware spot/resale price, unit USD_per_gpu" \
+        in bundle["system"]
+    # composes with F55: targets vocabulary still present
+    assert "Valid impact.targets category ids" in bundle["system"]

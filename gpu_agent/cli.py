@@ -214,12 +214,20 @@ def _emit_extract_prompt(args) -> int:
     persona = getattr(args, "persona", None)
     # F55: bake the taxonomy's impact.targets vocabulary into the emitted system prompt — the
     # same id set the gate enforces (taxonomy.categories) — so the dispatched brain never
-    # depends on a coordinator-supplied id list.
-    _, taxonomy = _load_registry()
+    # depends on a coordinator-supplied id list. F53: same pattern for the price-side
+    # indicator ids + canonical units the extractor seam now enforces.
+    registry, taxonomy = _load_registry()
     valid_targets = sorted(taxonomy.categories)
+    price_indicators = [
+        {"id": ind_id, "label": spec.label, "unit": spec.unit,
+         "comparability": spec.comparability}
+        for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
+        if spec.side == "price"
+    ]
+    kwargs = {"valid_targets": valid_targets, "price_indicators": price_indicators}
     bundle = {
-        "system": build_extract_system(persona, valid_targets=valid_targets) if persona
-                  else build_extract_system(valid_targets=valid_targets),
+        "system": build_extract_system(persona, **kwargs) if persona
+                  else build_extract_system(**kwargs),
         "schema": ExtractionResult.model_json_schema(),
         "docs": [{"id": doc.id, "user": build_extract_user_prompt(doc)} for doc in docs],
     }

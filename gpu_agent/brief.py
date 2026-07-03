@@ -382,32 +382,63 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
 # LLM call — and the three groups partition the standing book with no overlap: a
 # thesis's line, if it has one, appears in exactly one group.
 #
-# NOTE (discrepancy flagged for review): the sub-project plan's spec §4 says every WHY
-# line carries the thesis's latest findingIds, but the binding Interfaces block pins
-# `render_why(book)` with no findings/last_findings parameter, and the pinned line format
-# `    • <mechanism>  (<title>)` has no id slot. This implementation follows the
-# Interfaces block + line format (they win for this task) and drops findingIds from the
-# v1 WHY line — flagging the mismatch rather than silently resolving it.
+# SPEC-WINS RESOLUTION (final whole-branch review): an earlier revision of this file
+# followed the sub-project plan's Interfaces block, which had pinned a narrower
+# `render_why(book)` (no findings parameter) and a Contested rule limited to
+# low-conviction competitive/risk lenses — both of which contradicted spec §4
+# ("Contested: = challenged/provisional/competitive-lens mechanisms with their state
+# labeled" and "every [WHY] line carries the thesis's latest findingIds"). The project's
+# standing rule is THE SPEC WINS where the plan and spec disagree, so both points are now
+# aligned to spec: Contested includes every competitive-lens thesis at ANY conviction
+# (not only low) that isn't already a driver, and every driver/Contested line carries a
+# `last_findings` companion-dict lookup (the same pattern render_the_calls uses),
+# falling back to the honest "citations in history" when the thesis has no entry in the
+# dict — never inventing a citation. The risk-lens low-conviction arm of Contested is the
+# plan's own addition and is not itself contradicted by the spec text, so it is kept.
 
 def _why_entry_key(entry):
     """(-CONVICTION_RANK, id) — deterministic display order within a WHY group."""
     return (-CONVICTION_RANK[entry.conviction], entry.id)
 
 
-def _why_driver_line(entry) -> str:
-    return f"    • {entry.mechanism}  ({entry.title})"
+def _why_finding_suffix(entry_id, last_findings) -> str:
+    """Spec §4: 'Every line carries the thesis's latest findingIds' — the same
+    companion-dict pattern render_the_calls uses (the book itself does not store
+    findingIds; the caller reads them from history.jsonl and supplies the dict).
+    Present + non-empty -> comma-joined ids in brackets; absent, or present but empty,
+    -> the honest '[citations in history]' fallback — mirroring THE CALLS' convention of
+    never fabricating a citation."""
+    ids = (last_findings or {}).get(entry_id)
+    if ids:
+        return f"  [{', '.join(ids)}]"
+    return "  [citations in history]"
+
+
+def _why_driver_line(entry, last_findings) -> str:
+    return f"    • {entry.mechanism}  ({entry.title}){_why_finding_suffix(entry.id, last_findings)}"
 
 
 def _why_contested_label(entry) -> Optional[str]:
     """The strongest true reason a standing thesis is Contested, or None when it is not
-    contested at all. Precedence when more than one reason applies: CHALLENGED ⚠ >
-    provisional > low conviction — pick the single strongest, never stack labels."""
+    contested at all — this function doubles as the Contested predicate itself (a thesis
+    is contested iff it returns non-None). Precedence when more than one reason applies:
+    CHALLENGED ⚠ > provisional > low conviction > "<conviction> conviction" (the spec-§4
+    fallback for a competitive-lens thesis that is medium/high conviction and not
+    otherwise challenged/provisional) — pick the single strongest, never stack labels.
+
+    Spec §4: "Contested: = challenged/provisional/competitive-lens mechanisms with their
+    state labeled" — a competitive-lens thesis is contested at ANY conviction, not only
+    low. The risk-lens low-conviction arm is the plan's addition (not contradicted by the
+    spec text, so kept); risk lens at medium/high conviction is NOT itself a Contested
+    reason — see render_why's docstring for the resulting residual gap."""
     if entry.pendingChallenge is not None:
         return "CHALLENGED ⚠"
     if entry.status == "provisional":
         return "provisional"
-    if entry.lens in ("competitive", "risk") and entry.conviction == "low":
+    if entry.conviction == "low" and entry.lens in ("competitive", "risk"):
         return "low conviction"
+    if entry.lens == "competitive":
+        return f"{entry.conviction} conviction"
     return None
 
 
@@ -417,7 +448,8 @@ def _why_group_lines(entries, line_fn) -> list[str]:
     return [line_fn(entry) for entry in sorted(entries, key=_why_entry_key)]
 
 
-def render_why(book: Optional[ThesisBook]) -> str:
+def render_why(book: Optional[ThesisBook],
+               last_findings: Optional[dict[str, list[str]]] = None) -> str:
     """WHY (drivers -> constraints): a pure projection of the standing thesis book by
     lens. None/empty book (no thesis cycle has ever run, or a freshly seeded book with
     no entries at all) -> the honest placeholder 'WHY\\n  (no thesis book yet)' — a bare
@@ -429,18 +461,28 @@ def render_why(book: Optional[ThesisBook]) -> str:
         status=="registered", no pendingChallenge. These criteria's own "no
         pendingChallenge" and "status registered" clauses already make membership here
         disjoint from Contested (which requires pendingChallenge, OR provisional, OR a
-        competitive/risk lens) — the partition is airtight by construction, not by a
-        second de-dup pass.
-      - Contested: pendingChallenge OR status=="provisional" OR (lens in
-        {"competitive","risk"} AND conviction=="low"); the label picks the strongest
-        true reason per _why_contested_label.
+        competitive lens at any conviction, OR a risk lens at low conviction) — the
+        partition is airtight by construction, not by a second de-dup pass: a driver is
+        always demand/supply lens, and none of Contested's non-challenge/non-provisional
+        paths ever select a demand/supply lens.
+      - Contested (spec §4): pendingChallenge OR status=="provisional" OR
+        lens=="competitive" (any conviction) OR (lens=="risk" AND conviction=="low");
+        the label picks the strongest true reason per _why_contested_label.
+
+    `last_findings` (optional dict[thesisId, list[findingId]], same companion-dict
+    pattern as render_the_calls) feeds every driver AND Contested line's trailing
+    findingIds citation per spec §4 — present+non-empty -> '  [id, id]'; otherwise the
+    honest '  [citations in history]' fallback (_why_finding_suffix).
 
     Two literal-rule gaps this leaves on the table (by design — WHY shows drivers,
-    constraints, and contested claims, not the whole book): a competitive/risk thesis at
-    medium/high conviction with no outstanding challenge lands in no group; a registered
-    demand/supply thesis at low conviction with no outstanding challenge also lands in no
-    group (low conviction alone is not itself a Contested reason for a demand/supply
-    lens — only for competitive/risk).
+    constraints, and contested claims, not the whole book): a registered demand/supply
+    thesis at low conviction with no outstanding challenge lands in no group (low
+    conviction alone is not itself a Contested reason for a demand/supply lens); and,
+    residually, a registered risk-lens thesis at medium/high conviction with no
+    outstanding challenge also lands in no group — spec §4 names only the competitive
+    lens for the any-conviction Contested widening, not risk. This is a real, literal gap
+    on the committed seed book: export-control-exposure (risk, medium, intact) appears in
+    no WHY group.
 
     Empty groups render '    (none)'. Order within a group: (-CONVICTION_RANK, id)."""
     if book is None or not book.entries:
@@ -464,12 +506,13 @@ def render_why(book: Optional[ThesisBook]) -> str:
 
     lines = ["WHY (drivers -> constraints)"]
     lines.append("  Pulling demand:")
-    lines.extend(_why_group_lines(demand, _why_driver_line))
+    lines.extend(_why_group_lines(demand, lambda e: _why_driver_line(e, last_findings)))
     lines.append("  Capping supply:")
-    lines.extend(_why_group_lines(supply, _why_driver_line))
+    lines.extend(_why_group_lines(supply, lambda e: _why_driver_line(e, last_findings)))
     lines.append("  Contested:")
     lines.extend(_why_group_lines(
         contested,
-        lambda e: f"    • {e.mechanism}  ({e.title} — {contested_labels[e.id]})",
+        lambda e: (f"    • {e.mechanism}  ({e.title} — {contested_labels[e.id]})"
+                   f"{_why_finding_suffix(e.id, last_findings)}"),
     ))
     return "\n".join(lines)

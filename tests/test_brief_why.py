@@ -66,13 +66,17 @@ def test_header_line_for_populated_book():
 def test_demand_entry_meeting_criteria_lands_in_pulling_demand():
     entry = _entry("thesis-a", lens="demand", conviction="high", status="registered")
     out = render_why(_book(entry))
-    assert _group(out, "  Pulling demand:") == ["    • thesis-a mechanism  (Thesis A)"]
+    assert _group(out, "  Pulling demand:") == [
+        "    • thesis-a mechanism  (Thesis A)  [citations in history]"
+    ]
 
 
 def test_supply_entry_meeting_criteria_lands_in_capping_supply():
     entry = _entry("thesis-b", lens="supply", conviction="medium", status="registered")
     out = render_why(_book(entry))
-    assert _group(out, "  Capping supply:") == ["    • thesis-b mechanism  (Thesis B)"]
+    assert _group(out, "  Capping supply:") == [
+        "    • thesis-b mechanism  (Thesis B)  [citations in history]"
+    ]
 
 
 def test_demand_entry_excluded_when_conviction_low():
@@ -110,32 +114,68 @@ def test_challenged_entry_lands_in_contested_with_challenged_label():
     entry = _entry("thesis-a", lens="demand", conviction="high", status="registered",
                     pendingChallenge=_challenge())
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — CHALLENGED ⚠)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — CHALLENGED ⚠)  [citations in history]"
+    ]
 
 
 def test_provisional_entry_lands_in_contested_with_provisional_label():
     entry = _entry("thesis-a", lens="supply", conviction="high", status="provisional")
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — provisional)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — provisional)  [citations in history]"
+    ]
 
 
 def test_competitive_low_conviction_lands_in_contested_with_low_conviction_label():
     entry = _entry("thesis-a", lens="competitive", conviction="low", status="registered")
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — low conviction)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — low conviction)  [citations in history]"
+    ]
 
 
 def test_risk_low_conviction_lands_in_contested_with_low_conviction_label():
     entry = _entry("thesis-a", lens="risk", conviction="low", status="registered")
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — low conviction)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — low conviction)  [citations in history]"
+    ]
 
 
-def test_competitive_medium_conviction_no_challenge_lands_in_no_group():
-    """Documented literal-rule gap: a competitive/risk thesis at medium+ conviction with
-    no outstanding challenge is neither a driver nor Contested — WHY shows drivers,
-    constraints, and contested claims, not the whole book."""
+def test_competitive_medium_conviction_lands_in_contested_with_medium_label():
+    """Spec §4: "Contested: = challenged/provisional/competitive-lens mechanisms with
+    their state labeled" — a competitive-lens thesis is contested at ANY conviction, not
+    only low. A medium-conviction competitive thesis with no outstanding challenge is
+    still not a driver (drivers are demand/supply lens only), so it surfaces in Contested
+    labeled with its bare conviction word."""
     entry = _entry("thesis-a", lens="competitive", conviction="medium", status="registered")
+    out = render_why(_book(entry))
+    assert _group(out, "  Pulling demand:") == ["    (none)"]
+    assert _group(out, "  Capping supply:") == ["    (none)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — medium conviction)  [citations in history]"
+    ]
+
+
+def test_competitive_high_conviction_lands_in_contested_with_high_label():
+    """Same rule at the top of the conviction scale: a high-conviction competitive thesis
+    is still Contested (spec names the lens, not a conviction ceiling)."""
+    entry = _entry("thesis-a", lens="competitive", conviction="high", status="registered")
+    out = render_why(_book(entry))
+    assert _group(out, "  Pulling demand:") == ["    (none)"]
+    assert _group(out, "  Capping supply:") == ["    (none)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — high conviction)  [citations in history]"
+    ]
+
+
+def test_risk_medium_conviction_still_lands_in_no_group():
+    """Residual literal-rule gap (spec names only the competitive lens for the
+    any-conviction widening): a risk-lens thesis at medium/high conviction with no
+    outstanding challenge is neither a driver nor Contested. This is the shape of the
+    committed seed book's export-control-exposure entry (risk, medium, intact)."""
+    entry = _entry("thesis-a", lens="risk", conviction="medium", status="registered")
     out = render_why(_book(entry))
     assert _group(out, "  Pulling demand:") == ["    (none)"]
     assert _group(out, "  Capping supply:") == ["    (none)"]
@@ -146,13 +186,17 @@ def test_precedence_challenged_beats_provisional():
     entry = _entry("thesis-a", lens="demand", conviction="high", status="provisional",
                     pendingChallenge=_challenge())
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — CHALLENGED ⚠)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — CHALLENGED ⚠)  [citations in history]"
+    ]
 
 
 def test_precedence_provisional_beats_low_conviction():
     entry = _entry("thesis-a", lens="risk", conviction="low", status="provisional")
     out = render_why(_book(entry))
-    assert _group(out, "  Contested:") == ["    • thesis-a mechanism  (Thesis A — provisional)"]
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — provisional)  [citations in history]"
+    ]
 
 
 # ── partition airtightness ────────────────────────────────────────────────────
@@ -177,7 +221,8 @@ def test_no_thesis_appears_in_two_groups():
         _entry("s-med", lens="supply", conviction="medium", status="registered"),
         _entry("prov", lens="demand", conviction="high", status="provisional"),
         _entry("comp-low", lens="competitive", conviction="low", status="registered"),
-        _entry("comp-med", lens="risk", conviction="medium", status="registered"),
+        _entry("comp-med", lens="competitive", conviction="medium", status="registered"),
+        _entry("risk-med", lens="risk", conviction="medium", status="registered"),
         _entry("d-low", lens="demand", conviction="low", status="registered"),
     ]
     out = render_why(_book(*entries))
@@ -191,14 +236,17 @@ def test_no_thesis_appears_in_two_groups():
 
     assert demand_ids == ["d-high"]
     assert supply_ids == ["s-med"]
-    # comp-low (competitive, low conviction) is also a Contested reason
-    assert sorted(contested_ids) == ["comp-low", "d-challenged", "prov"]
+    # comp-low (competitive, low conviction) and comp-med (competitive, medium — the
+    # spec-§4 any-conviction widening) are both Contested reasons
+    assert sorted(contested_ids) == ["comp-low", "comp-med", "d-challenged", "prov"]
     # every id appears in at most one group
     all_seen = demand_ids + supply_ids + contested_ids
     assert len(all_seen) == len(set(all_seen))
-    # d-low and comp-med land in no group at all (documented literal-rule gaps)
+    # d-low and risk-med land in no group at all (documented literal-rule gaps: low
+    # conviction alone is not a Contested reason for a demand/supply lens, and the
+    # any-conviction widening names only the competitive lens, not risk)
     assert "d-low" not in all_seen
-    assert "comp-med" not in all_seen
+    assert "risk-med" not in all_seen
 
 
 def test_retired_entries_appear_nowhere_even_if_they_would_otherwise_match():
@@ -218,7 +266,11 @@ def test_retired_entries_appear_nowhere_even_if_they_would_otherwise_match():
 # ── empty groups ──────────────────────────────────────────────────────────────
 
 def test_all_groups_none_when_book_has_only_non_matching_entries():
-    entry = _entry("thesis-a", lens="competitive", conviction="medium", status="registered")
+    """A competitive-lens entry no longer belongs here post spec-alignment (it is now
+    Contested at any conviction) — a risk-lens thesis at medium conviction is the residual
+    literal-rule gap that still lands in no group (the committed seed book's
+    export-control-exposure shape)."""
+    entry = _entry("thesis-a", lens="risk", conviction="medium", status="registered")
     out = render_why(_book(entry))
     assert out == (
         "WHY (drivers -> constraints)\n"
@@ -252,6 +304,57 @@ def test_ordering_within_contested_by_conviction_desc_then_id():
     lines = _group(out, "  Contested:")
     ids_in_order = [ln.split("•")[1].split("mechanism")[0].strip() for ln in lines]
     assert ids_in_order == ["a-thesis", "z-thesis"]
+
+
+# ── findingIds (spec §4: "Every line carries the thesis's latest findingIds") ────
+
+def test_driver_line_carries_findingids_when_present_in_last_findings():
+    entry = _entry("thesis-a", lens="demand", conviction="high", status="registered")
+    out = render_why(_book(entry), last_findings={"thesis-a": ["f-1", "f-2"]})
+    assert _group(out, "  Pulling demand:") == [
+        "    • thesis-a mechanism  (Thesis A)  [f-1, f-2]"
+    ]
+
+
+def test_driver_line_falls_back_to_citations_in_history_when_last_findings_is_none():
+    entry = _entry("thesis-a", lens="demand", conviction="high", status="registered")
+    out = render_why(_book(entry))   # last_findings=None -> honest fallback, never invent
+    assert _group(out, "  Pulling demand:") == [
+        "    • thesis-a mechanism  (Thesis A)  [citations in history]"
+    ]
+
+
+def test_driver_line_falls_back_when_thesis_id_missing_from_last_findings():
+    entry = _entry("thesis-a", lens="supply", conviction="high", status="registered")
+    out = render_why(_book(entry), last_findings={"some-other-thesis": ["f-9"]})
+    assert _group(out, "  Capping supply:") == [
+        "    • thesis-a mechanism  (Thesis A)  [citations in history]"
+    ]
+
+
+def test_driver_line_falls_back_when_last_findings_entry_is_empty_list():
+    entry = _entry("thesis-a", lens="demand", conviction="high", status="registered")
+    out = render_why(_book(entry), last_findings={"thesis-a": []})
+    assert _group(out, "  Pulling demand:") == [
+        "    • thesis-a mechanism  (Thesis A)  [citations in history]"
+    ]
+
+
+def test_contested_line_carries_findingids_when_present_in_last_findings():
+    entry = _entry("thesis-a", lens="demand", conviction="high", status="registered",
+                    pendingChallenge=_challenge())
+    out = render_why(_book(entry), last_findings={"thesis-a": ["f-9"]})
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — CHALLENGED ⚠)  [f-9]"
+    ]
+
+
+def test_contested_line_falls_back_to_citations_in_history_when_missing():
+    entry = _entry("thesis-a", lens="competitive", conviction="medium", status="registered")
+    out = render_why(_book(entry), last_findings={})
+    assert _group(out, "  Contested:") == [
+        "    • thesis-a mechanism  (Thesis A — medium conviction)  [citations in history]"
+    ]
 
 
 # ── byte-stability ────────────────────────────────────────────────────────────

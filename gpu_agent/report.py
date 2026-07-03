@@ -642,7 +642,8 @@ def render_report(
             None renders their honest empty-state (no thesis cycle has ever run yet).
         thesis_last_findings: optional dict of thesisId -> latest-judgment findingIds
             (read from theses/<categoryId>/history.jsonl by the caller — the book itself
-            does not store them); feeds THE CALLS' cited-evidence line.
+            does not store them); feeds THE CALLS' cited-evidence line and, per spec §4,
+            every WHY driver/Contested line's trailing findingIds citation.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
@@ -653,7 +654,7 @@ def render_report(
         render_header(sc, render_ts),
         brief.render_the_calls(thesis_book, sc, thesis_last_findings),   # NEW — leads the page
         brief.render_state_of_market(sc, prior, track),    # words-first BLUF rework
-        brief.render_why(thesis_book),                     # NEW — drivers -> constraints
+        brief.render_why(thesis_book, thesis_last_findings),  # NEW — drivers -> constraints
         brief.render_what_moved(movement),
         brief.render_demand_supply_board(sc, horizons),
         brief.render_storylines(movement),

@@ -34,7 +34,7 @@ and why.
 Return ONLY a JSON object of the form:
 {"dimensions": {"<dimension>": {"rating","direction","findingIds","rationale"}, ...},
  "categoryStatus": {"rating","direction","bottleneck","reason","constraintLabel"},
- "narrative": "<two or three sentences>"}
+ "narrative": "<exactly three sentences>"}
 rating uses the five-word scale; direction is one of improving|steady|worsening; bottleneck is one
 of the six dimension names. Do not invent findings or numbers; cite only ids present below. Output
 JSON only, no prose, no code fences.

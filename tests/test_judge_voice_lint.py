@@ -65,6 +65,17 @@ def test_bad_prose_fails_loud(tmp_path):
     assert "voice-lint:" in out.stderr
 
 
+def test_bad_prose_violations_are_indexed_by_sample(tmp_path):
+    """F67 review fix: each violation is prefixed 'sample {i+1}: ' so a --samples 3+
+    failure names WHICH recorded answer to re-dispatch, not just what broke. All 3
+    recorded samples here are byte-identical, so all 3 indices must appear."""
+    rec = _recorded_file(tmp_path, BAD_NARRATIVE)
+    out = _run(*_judge_args(tmp_path, rec))
+    assert out.returncode != 0
+    for i in (1, 2, 3):
+        assert f"voice-lint: sample {i}: " in out.stderr
+
+
 def test_good_prose_passes(tmp_path):
     rec = _recorded_file(tmp_path, GOOD_NARRATIVE)
     out = _run(*_judge_args(tmp_path, rec))

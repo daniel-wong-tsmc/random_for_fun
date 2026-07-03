@@ -304,27 +304,44 @@ def _voice_lint_samples(raw_answers: list) -> list[str]:
     build_scorecard, so both must gate brain-written prose BEFORE it reaches a scorecard or
     the lint is dead code in the live cycle (which never calls `judge --recorded` directly --
     see .claude/skills/run-cycle/SKILL.md). Returns violations only; callers decide how to
-    report/exit so both call sites keep their own `voice-lint:` stderr framing."""
+    report/exit so both call sites keep their own `voice-lint:` stderr framing.
+
+    Final-review addition: each violation is prefixed with `sample {i+1}: ` (1-based,
+    dispatch order) so a multi-sample failure (--samples 3+) tells the coordinating
+    session WHICH recorded answer to re-dispatch, not just what the violation was."""
     from gpu_agent import reader
     from gpu_agent.schema.scorecard import DIMENSIONS
     violations: list[str] = []
-    for raw in raw_answers:
+    for i, raw in enumerate(raw_answers):
         sample = json.loads(raw)
-        violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
-                                        max_sentences=3)
+        prefix = f"sample {i + 1}: "
+        sample_violations: list[str] = []
+        sample_violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
+                                               max_sentences=3)
         for dim, d in (sample.get("dimensions") or {}).items():
-            violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
-                                            max_sentences=2)
+            sample_violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
+                                                    max_sentences=2)
         cs = sample.get("categoryStatus") or {}
-        violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
+        sample_violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
         label = cs.get("constraintLabel")
         if label:
             if label in DIMENSIONS or "bottleneck" in label.lower():
-                violations.append("categoryStatus.constraintLabel: must name the concrete "
-                                  "constraint, not a dimension")
+                sample_violations.append("categoryStatus.constraintLabel: must name the concrete "
+                                         "constraint, not a dimension")
             if len(label.split()) > 6:
-                violations.append("categoryStatus.constraintLabel: over 6 words")
+                sample_violations.append("categoryStatus.constraintLabel: over 6 words")
+        violations += [prefix + v for v in sample_violations]
     return violations
+
+
+def _report_voice_violations(violations: list[str]) -> int:
+    """Print every voice-lint violation (one `voice-lint: ` line each -- the run-cycle skill
+    greps that prefix) and return the shared failure exit code. Extracted from the two
+    `judge --recorded` / `pipeline --recorded-judge` call sites, which were otherwise
+    identical four-line print+return-1 blocks."""
+    for v in violations:
+        print(f"voice-lint: {v}", file=sys.stderr)
+    return 1
 
 
 def _judge(args) -> int:
@@ -347,9 +364,7 @@ def _judge(args) -> int:
         if not args.no_voice_lint:
             violations = _voice_lint_samples(answers)
             if violations:
-                for v in violations:
-                    print(f"voice-lint: {v}", file=sys.stderr)
-                return 1
+                return _report_voice_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
@@ -479,9 +494,7 @@ def _pipeline(args) -> int:
         if not args.no_voice_lint:
             violations = _voice_lint_samples(judge_answers)
             if violations:
-                for v in violations:
-                    print(f"voice-lint: {v}", file=sys.stderr)
-                return 1
+                return _report_voice_violations(violations)
         jdg_client = RecordedClient(judge_answers)
     else:
         jdg_client = make_client(args.backend)

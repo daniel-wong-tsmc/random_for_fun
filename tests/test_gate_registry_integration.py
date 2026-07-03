@@ -9,7 +9,8 @@ def test_pipeline_rejects_unregistered_metric(tmp_path):
         [sys.executable, "-m", "gpu_agent.cli", "pipeline", "--docs", "fixtures/raw",
          "--assignment", str(p), "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z",
          "--recorded-extract", "fixtures/recorded/extract-nvda.json",
-         "--recorded-judge", "fixtures/recorded/judge-nvda.json", "--out", str(tmp_path / "store")],
+         "--recorded-judge", "fixtures/recorded/judge-nvda.json", "--no-voice-lint",
+         "--out", str(tmp_path / "store")],
         capture_output=True, text=True)
     assert out.returncode != 0
     assert "totallyMadeUp" in (out.stderr + out.stdout)

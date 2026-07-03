@@ -8,7 +8,7 @@ def test_pipeline_extract_judge_score(tmp_path):
                "--assignment", "fixtures/asg.chips.merchant-gpu.json",
                "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z", "--samples", "3",
                "--recorded-extract", "fixtures/recorded/extract-nvda.json",
-               "--recorded-judge", "fixtures/recorded/judge-nvda.json",
+               "--recorded-judge", "fixtures/recorded/judge-nvda.json", "--no-voice-lint",
                "--out", str(store)])
     assert rc == 0
     written = list((store / "chips.merchant-gpu").glob("2026-06-v*.json"))

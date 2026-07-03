@@ -297,6 +297,36 @@ def _emit_judge_prompt(args) -> int:
     return 0
 
 
+def _voice_lint_samples(raw_answers: list) -> list[str]:
+    """F67: analyst-voice lint over a batch of recorded JudgmentResult samples (each a JSON
+    string -- RecordedClient's replay shape). Shared by `judge --recorded` and
+    `pipeline --recorded-judge`: both replay the same brain-answer shape into judge_findings/
+    build_scorecard, so both must gate brain-written prose BEFORE it reaches a scorecard or
+    the lint is dead code in the live cycle (which never calls `judge --recorded` directly --
+    see .claude/skills/run-cycle/SKILL.md). Returns violations only; callers decide how to
+    report/exit so both call sites keep their own `voice-lint:` stderr framing."""
+    from gpu_agent import reader
+    from gpu_agent.schema.scorecard import DIMENSIONS
+    violations: list[str] = []
+    for raw in raw_answers:
+        sample = json.loads(raw)
+        violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
+                                        max_sentences=3)
+        for dim, d in (sample.get("dimensions") or {}).items():
+            violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
+                                            max_sentences=2)
+        cs = sample.get("categoryStatus") or {}
+        violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
+        label = cs.get("constraintLabel")
+        if label:
+            if label in DIMENSIONS or "bottleneck" in label.lower():
+                violations.append("categoryStatus.constraintLabel: must name the concrete "
+                                  "constraint, not a dimension")
+            if len(label.split()) > 6:
+                violations.append("categoryStatus.constraintLabel: over 6 words")
+    return violations
+
+
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
@@ -315,25 +345,7 @@ def _judge(args) -> int:
         # (judge_findings below) so a violating recorded answer fails loud instead of
         # silently producing exec-facing copy that breaks the analyst-voice rules.
         if not args.no_voice_lint:
-            from gpu_agent import reader
-            from gpu_agent.schema.scorecard import DIMENSIONS
-            violations: list[str] = []
-            for raw in answers:
-                sample = json.loads(raw)
-                violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
-                                                max_sentences=3)
-                for dim, d in (sample.get("dimensions") or {}).items():
-                    violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
-                                                    max_sentences=2)
-                cs = sample.get("categoryStatus") or {}
-                violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
-                label = cs.get("constraintLabel")
-                if label:
-                    if label in DIMENSIONS or "bottleneck" in label.lower():
-                        violations.append("categoryStatus.constraintLabel: must name the concrete "
-                                          "constraint, not a dimension")
-                    if len(label.split()) > 6:
-                        violations.append("categoryStatus.constraintLabel: over 6 words")
+            violations = _voice_lint_samples(answers)
             if violations:
                 for v in violations:
                     print(f"voice-lint: {v}", file=sys.stderr)
@@ -459,7 +471,18 @@ def _pipeline(args) -> int:
     if dropped:
         print(f"gate dropped {len(dropped)} finding(s)", file=sys.stderr)
     if args.recorded_judge:
-        jdg_client = RecordedClient(json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8")))
+        judge_answers = json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8"))
+        # F67: the live cycle never calls `judge --recorded` directly -- it produces the
+        # scorecard via this --recorded-judge path (see .claude/skills/run-cycle/SKILL.md),
+        # so the analyst-voice lint has to gate here too, before judge_findings/build_scorecard
+        # below, or the lint added in judge --recorded never runs in production.
+        if not args.no_voice_lint:
+            violations = _voice_lint_samples(judge_answers)
+            if violations:
+                for v in violations:
+                    print(f"voice-lint: {v}", file=sys.stderr)
+                return 1
+        jdg_client = RecordedClient(judge_answers)
     else:
         jdg_client = make_client(args.backend)
     a = load_assignment(args.assignment)
@@ -696,6 +719,8 @@ def main(argv=None) -> int:
     pl.add_argument("--backend", default="claude_code")
     pl.add_argument("--recorded-extract", default=None)
     pl.add_argument("--recorded-judge", default=None)
+    pl.add_argument("--no-voice-lint", action="store_true",
+                    help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
     cp = sub.add_parser("cycle-plan")
     cp.add_argument("--scope", required=True,
                     help="category:<id> | layer:<id> | all")

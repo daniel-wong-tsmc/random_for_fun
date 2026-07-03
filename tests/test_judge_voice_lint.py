@@ -75,3 +75,44 @@ def test_bypass_flag(tmp_path):
     rec = _recorded_file(tmp_path, BAD_NARRATIVE)
     out = _run(*_judge_args(tmp_path, rec), "--no-voice-lint")
     assert out.returncode == 0, out.stderr
+
+
+# ── pipeline --recorded-judge: the LIVE cycle's actual path (it never calls
+# `judge --recorded` directly -- see .claude/skills/run-cycle/SKILL.md). The lint's whole
+# purpose is to gate brain-written prose before it reaches a scorecard, so it must be wired
+# here too, sharing _voice_lint_samples with the `judge --recorded` path above (same replay
+# shape: a JSON array of serialized JudgmentResult strings). doc-nvda-1 is the finding id the
+# extractor stamps for fixtures/raw/doc-nvda.json (docId + "-1"), matching _clean_finding's
+# default and _judgment's findingIds so the recorded judge answer cites a real finding.
+
+def _pipeline_recorded_judge_file(tmp_path, narrative):
+    p = tmp_path / "rec-judge.json"
+    p.write_text(json.dumps([json.dumps(_judgment(narrative))] * 3), "utf-8")
+    return p
+
+
+def _pipeline_args(tmp_path, recorded_judge, *extra):
+    return ("pipeline", "--docs", "fixtures/raw",
+            "--assignment", "fixtures/asg.chips.merchant-gpu.json",
+            "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z", "--samples", "3",
+            "--recorded-extract", "fixtures/recorded/extract-nvda.json",
+            "--recorded-judge", str(recorded_judge), "--out", str(tmp_path / "store"), *extra)
+
+
+def test_pipeline_recorded_judge_bad_prose_fails_loud(tmp_path):
+    rec = _pipeline_recorded_judge_file(tmp_path, BAD_NARRATIVE)
+    out = _run(*_pipeline_args(tmp_path, rec))
+    assert out.returncode != 0
+    assert "voice-lint:" in out.stderr
+
+
+def test_pipeline_recorded_judge_good_prose_passes(tmp_path):
+    rec = _pipeline_recorded_judge_file(tmp_path, GOOD_NARRATIVE)
+    out = _run(*_pipeline_args(tmp_path, rec))
+    assert out.returncode == 0, out.stderr
+
+
+def test_pipeline_recorded_judge_bypass_flag(tmp_path):
+    rec = _pipeline_recorded_judge_file(tmp_path, BAD_NARRATIVE)
+    out = _run(*_pipeline_args(tmp_path, rec, "--no-voice-lint"))
+    assert out.returncode == 0, out.stderr

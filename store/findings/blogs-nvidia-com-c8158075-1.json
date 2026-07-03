@@ -1,0 +1,46 @@
+{
+  "id": "blogs-nvidia-com-c8158075-1",
+  "statement": "NVIDIA plans to produce up to $500 billion of AI infrastructure in the U.S. with partners including TSMC, Foxconn, Wistron, Corning, Lumentum, Coherent and Amkor.",
+  "kind": "measured",
+  "value": {
+    "number": 500.0,
+    "unit": "USD billion"
+  },
+  "trend": "rising",
+  "why": "A $500B U.S. manufacturing buildout with TSMC (Blackwell in Phoenix) and packaging/optics partners expands domestic NVIDIA GPU supply capacity and supply-chain resilience.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.foundry-packaging",
+      "chips.hbm-memory"
+    ],
+    "direction": "positive",
+    "mechanism": "Domestic fabrication and system assembly (TSMC Phoenix Blackwell, Foxconn/Wistron systems) increases NVIDIA GPU production capacity."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA official newsroom press release",
+      "url": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+      "date": "2026-07-01",
+      "excerpt": "NVIDIA plans to produce up to $500 billion of AI infrastructure in the U.S. with partners including TSMC, Foxconn, Wistron, Corning, Lumentum, Coherent and Amkor.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary NVIDIA newsroom press release; forward-looking plan, not a filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-03",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

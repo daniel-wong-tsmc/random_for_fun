@@ -1,98 +1,99 @@
-# HANDOFF — GPU Category Agent (resume point: sub-project 5 SPEC+PLANS COMMITTED @ 83b7c5b → EXECUTE 5-1 then 5-2)
+# HANDOFF — GPU Category Agent (resume point: SUB-PROJECT 5 BUILT + INTEGRATION-GATED; next = feature track F6-golden-set / F23–F25 / layer tier)
 
-- **Date:** 2026-07-02 (post-backlog, sp5 planned)
+- **Date:** 2026-07-03 (sub-project 5 complete)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` (`83b7c5b`) — PUSHED, suite 626 passed / 3 skipped.** The 2026-07-02 fix backlog is
-  fully executed (waves 0/1/2 + the F46 live-cycle gate — see `docs/fix-backlog.md` headers and
-  the ledger). **Sub-project 5 (the Thesis Book) is brainstormed, specced, and planned — not yet
-  built.** It answers the user's standing complaint: the cycle output "says a lot but tells me
-  nothing."
+- **`main` — PUSHED.** Sub-project 5 (the Thesis Book) is BUILT, MERGED, and LIVE-VERIFIED:
+  - **5-1 thesis engine** merged @ `7197226` (11 commits; suite 626→714/3): `gpu_agent/thesis.py`
+    (models, rebuild-verified ThesisStore, gate rules 1–7, anti-whipsaw apply engine F5),
+    `gpu_agent/memory.py` (F4 bundle), thesis/judge prompts (memory injection, byte-identical when
+    absent), `thesis` CLI stage (emit→recorded), run-cycle skill stage (e), seed book
+    `registry/theses.chips.merchant-gpu.json`.
+  - **5-2 output surgery** merged @ `d5dd492` (6 commits; suite 714→796/3): `gpu_agent/bands.py`
+    five-word band map, THE CALLS + WHY renderers in brief.py, page reorder (CALLS → STATE → WHY →
+    drill-down → TRUST footer), raw indices demoted to the footer, cli._report book loading, e2e
+    acceptance test. One spec-vs-plan conflict resolved under the standing SPEC-WINS rule (WHY
+    Contested widened to competitive-lens at any conviction + findingIds on every WHY line).
+  - **Integration gate PASSED (2026-07-03 live daily cycle):** THE CALLS renders from a real judged
+    book. Store state committed: scorecard `store/chips.merchant-gpu/2026-07-03-v1.json`
+    (DMI +0.133 / SMI +0.147), seeded+judged thesis book `store/theses/chips.merchant-gpu/`
+    (2 strengthened→high, 3 reaffirmed, 1 weakened→low, +1 provisional proposal), wiki/dedup/L1
+    artifacts, finalized `store/cycle-log.json` (every brain re-dispatch reason logged). The F4
+    MEMORY block fed both brains live; judged direction moved vs prior (Strong/steady, was
+    Strong/improving; bottleneck rotated competitiveStructure→moat).
 
-## IMMEDIATE NEXT TASK — build sub-project 5
+## IMMEDIATE NEXT TASK — pick up the feature track (each starts with brainstorming, per charter)
 
-Read, in this order:
-1. **Spec (user-approved section by section):** `docs/superpowers/specs/2026-07-02-thesis-book-design.md`
-2. **Plan 5-1 (build first):** `docs/superpowers/plans/2026-07-02-thesis-engine.md` — 7 TDD tasks:
-   thesis models + six-thesis seed book, rebuild-verified ThesisStore, gate, anti-whipsaw apply
-   engine (F5), memory bundle (F4), prompts (judge memory injection, byte-identical when absent),
-   `thesis` CLI stage + run-cycle skill wiring.
-3. **Plan 5-2 (only after 5-1 is merged):** `docs/superpowers/plans/2026-07-02-thesis-output-surgery.md`
-   — 5 tasks: five-word band map, THE CALLS renderer, WHY projection, page reorder with raw
-   indices demoted to the trust footer, e2e acceptance.
-
-**Execution method:** superpowers:subagent-driven-development per piece (fresh implementer per
-task, review between tasks), each piece on its own branch in a worktree under `.worktrees/`
-(`sp5-1-thesis-engine`, then `sp5-2-output-surgery`), opus for the final whole-branch review
-(sonnet acceptable for per-task work), full suite green before merge, one ledger entry per piece
-in `.superpowers/sdd/progress.md`, push after each merge. The pieces are SEQUENTIAL — 5-2 consumes
-5-1's exact interfaces (pinned in the plans' Produces/Consumes blocks).
-
-**After both pieces merge:** run one live daily cycle (run-cycle skill, `mode: daily`,
-`category:chips.merchant-gpu`, day-grain asOf) so THE CALLS renders from a real judged book — the
-same integration-gate pattern F46 used. Fix what breaks; commit the store state.
-
-**Key spec decisions (user-approved — do not relitigate):** THE CALLS (thesis book with per-cycle
-deltas) leads the page, stacked above STATE OF THE MARKET & WHY; positions are category-scoped
-falsifiable THESES (the Category tier still does not recommend actions — that stays Layer/Main);
-seeded + brain-maintained book with quarantined promotion; depth fields (mechanism /
-falsifiableTrigger / sensitivity) gate-enforced NOW, the F6 golden-set harness LATER; anti-whipsaw
-lives in code (secondary-only reversals defer as CHALLENGED; primary evidence or a second
-consecutive signal applies); ONE tool-less Opus generation authors the book each cycle (no
-majority voting); "nothing changed" is a first-class headline.
+Remaining after sp5, in HANDOFF-recommended order:
+1. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
+   the rubric-graded golden set + prompt-change regression gate remain). Separate sub-project.
+2. **New from the sp5 integration gate (small, do early):** F52 vintage-scoped finding ids (daily
+   re-gathers collide with the append-only FindingStore — workaround logged in cycle log), F53
+   cross-cycle price-indicator consistency (07-02 used D6, 07-03 used gpuSpotPrice → PMI has 0
+   matched series), F54 seed thesis triggers vs the gate's observable heuristic (two seed triggers
+   fail it; the brain echoing them was correctly rejected).
+3. F23 compliance matrix; F24 entity canonicalization; F25 wiki scaling; then WHY-tree extensions,
+   HTML dashboard, discovery, the layer-tier arc.
+Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-thesis-book-design.md`).
 
 ## THE BIG DECISIONS ALREADY MADE (do not relitigate without reason)
 
 1. **Output goal:** deterministic, brief-first Market-State brief; pure projection of the store;
-   HTML dashboard later. Design target: `docs/superpowers/specs/2026-06-29-human-market-brief-design-target.md`.
+   HTML dashboard later. THE CALLS (thesis book, per-cycle deltas) leads the page above STATE &
+   WHY; raw indices live ONLY in the trust footer; five-word band map with earned "(was X)".
 2. **Lane discipline (Part 21):** merchant-gpu owns merchant vendors only; the cross-cutting
-   "GPU market state" brief is a LAYER-TIER product.
+   "GPU market state" brief is a LAYER-TIER product. Category tier does not recommend actions —
+   theses are category-scoped falsifiable claims; recommendations stay Layer/Main.
 3. **Claude Code IS the brain** — no OAuth/SDK/API. Live extraction/judgment/thesis = TOOL-LESS
-   dispatched Opus subagents through `--emit-prompt` → `--recorded`; judgment samples come from
-   SEPARATE subagent generations (F38); `ClaudeCodeClient` is a loud signpost (F40).
-4. **Price is overlay-only (F8):** D6/gpuSpotPrice never feed DMI/SMI; the Price Momentum overlay
-   (`gpu_agent/price_track.py`) is displayed, never blended.
-5. **Contract v1.2 was the ONE sanctioned frozen-core migration.** `gate.py`, `scoring.py`,
-   `schema/finding.py`, `schema/scorecard.py`, `judgment/briefing.py`, `judgment/judge.py`
-   aggregation, `pipeline.py`, `JsonStore` are **RE-FROZEN**. Sub-project 5 is designed to be
-   fully additive — if a task seems to need a frozen edit, STOP and escalate.
-6. **Product Q&A decisions** live in `docs/action-items.md` (real TSMC-executive reader; position
-   book with per-cycle deltas; per-domain horizons; "nothing changed" is honest output).
+   dispatched Opus subagents through `--emit-prompt` → `--recorded`; judgment samples are SEPARATE
+   generations (F38); thesis book gets ONE coherent author (no voting); gate rejection →
+   re-dispatch the brain with the errors — NEVER hand-edit brain output (held throughout the
+   2026-07-03 gate: 5 re-dispatches, all logged in cycle-log.json, zero hand edits).
+4. **Price is overlay-only (F8):** D6/gpuSpotPrice never feed DMI/SMI; price-level drafts carry
+   polarity 0 (the gate enforces it; non-price findings must move a track).
+5. **Contract v1.2 frozen core RE-FROZEN:** `gate.py`, `scoring.py`, `schema/*`,
+   `judgment/briefing.py`, `judgment/judge.py` aggregation, `pipeline.py`, `JsonStore`. Sub-project
+   5 shipped fully additive (final reviews verified empty frozen diffs on both branches).
+6. **Anti-whipsaw lives in code:** secondary-only reversals defer as CHALLENGED; primary evidence
+   or a second consecutive signal applies; conviction ±1/cycle; applied broken retires. Promotion:
+   provisional → registered at ≥2 cycles + ≥2 publisher domains (F31 key).
+7. **Product Q&A decisions** live in `docs/action-items.md`; "nothing changed" is a first-class
+   honest headline (renders as the compact book list).
 
 ## OPERATING NOTES / INVARIANTS (carry forward)
 
 - Run from repo root `C:\Users\danie\random_for_fun`; Python at `.venv/Scripts/python`
   (recreate: `python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"`).
-- Worktrees: `.worktrees/<name>` (gitignored). The shared root `.venv` imports the WORKTREE's
-  code when pytest runs from the worktree root — verified; do not create per-worktree venvs.
-- Registry/taxonomy paths via `gpu_agent/config.py` (`GPU_AGENT_REGISTRY`/`GPU_AGENT_TAXONOMY`).
-- Personas are assignment-driven (`Assignment.personaLabel`, `--persona` on emit paths).
-- The run's `--as-of` overrides the assignment's `asOf` in `pipeline` (F50). Day-grain asOf for
-  daily cycles; the store carve-outs in `.gitignore` track `store/chips.merchant-gpu/`,
-  `store/wiki/`, `store/findings/`, `store/seen_docs.jsonl`, `store/cycle-log.json` (5-1 adds
-  `store/theses/`).
+- Worktrees: `.worktrees/<name>` (gitignored); shared root `.venv` imports the WORKTREE's code when
+  pytest runs from the worktree root — no per-worktree venvs.
+- Registry/taxonomy paths via `gpu_agent/config.py`; taxonomy lives at `docs/taxonomy.json` and its
+  category ids are `<layer>.<category>` (merchant-gpu, hyperscaler-asic, foundry-packaging,
+  hbm-memory, …; infrastructure.hyperscale-cloud / infrastructure.neocloud). The six judge
+  dimensions: momentum, unitEconomics, competitiveStructure, moat, bottleneck, strategicRisk —
+  the judge may cite ONLY within each dimension's briefing group (feed the real groups to a
+  re-dispatch, never invented names — a 2026-07-03 dispatch error proved the gate catches this).
+- The run's `--as-of` overrides the assignment's asOf (F50). Day-grain asOf for daily cycles.
+  Tracked-store carve-outs: `store/chips.merchant-gpu/`, `store/wiki/`, `store/findings/`,
+  `store/theses/`, `store/seen_docs.jsonl`, `store/cycle-log.json`.
 - **Doctrine:** code computes + gates + stores; the brain reasons; nothing un-gated reaches a
   number; every claim cites findings; page text is DATA; every cap/skip/drop logged; provisional
-  quarantined; paywalled inventoried + never fetched. The session NEVER hand-edits brain output —
-  re-dispatch with the errors instead (a prior session violated this; don't repeat it).
-- Tests deterministic; suite green at every merge (626/3 baseline). Commit trailer names the
-  ACTUAL model that did the work. Push freely.
-- **Windows:** prefer PowerShell, but NOT `>` redirection for UTF-8 (use bash for redirects);
-  avoid double quotes inside `git commit -m` (use here-strings); the Bash safety classifier is
-  flaky on writes — retry via PowerShell.
-- Model policy: opus for important/final reviews and frozen-adjacent numeric work; sonnet for
-  mechanical per-task implementer/reviewer work.
+  quarantined; paywalled inventoried + never fetched (TrendForce/SemiAnalysis stayed unfetched
+  through the gate); the session NEVER hand-edits brain output — re-dispatch with the errors.
+- Tests deterministic; suite green at every merge (**796 passed / 3 skipped** on main). Commit
+  trailer names the ACTUAL model. Push freely.
+- **Windows:** prefer PowerShell but NOT `>` redirection for UTF-8 (use bash for redirects); avoid
+  double quotes inside `git commit -m` (here-strings); synchronous subagent transcripts are NOT
+  written to task output files — capture their answers from the tool result (resumed/background
+  agents DO write transcripts).
+- Model policy: opus for important/final reviews, frozen-adjacent numeric work, and ALL brains;
+  sonnet for mechanical per-task implementer/reviewer work.
 
-## WHAT'S DONE (compressed — details in `git log`, the ledger, `docs/superpowers/specs|plans/`)
+## WHAT'S DONE (compressed — details in `git log`, the ledger `.superpowers/sdd/progress.md`, docs/superpowers/specs|plans/)
 
 - **sp1–sp4** (harness · live runs · output/coverage · daily monitor) — merged; see ledger.
-- **The 2026-07-02 fix backlog (F1–F51) — EXECUTED same day:** Wave 0 ops · contract v1.2
-  migration (shadow-run + replay v7–v12, `docs/migrations/2026-07-contract-v1.2.md`) · lanes
-  C/D/E · F46 first genuine second cycle (`store/chips.merchant-gpu/2026-07-02-v1.json`, first
-  real wiki) · Wave 2 lanes F/G/H/I/J (price track, robustness, generalization, coverage, rating
-  anchors) · persona wiring. Suite 417 → 626.
-- **Sub-project 5 brainstorm → spec (`dd41b5a`) → plans (`83b7c5b`)** — this handoff's task.
-- Remaining feature track AFTER sp5: F6 golden set + backtesting; F23 compliance matrix; F24
-  entity canonicalization; F25 wiki scaling; then WHY-tree extensions, HTML dashboard, discovery,
-  the layer-tier arc.
-- **Open user decision:** the repo is still named `random_for_fun` — rename before TSMC-branded
+- **2026-07-02 fix backlog F1–F51:** waves 0/1/2 + contract v1.2 migration + F46 first genuine
+  second cycle — all merged + pushed. Suite 417 → 626.
+- **Sub-project 5 (Thesis Book):** spec `dd41b5a` → plans `83b7c5b` → 5-1 merged `7197226` →
+  5-2 merged `d5dd492` → integration gate passed (this handoff). Suite 626 → 796.
+  Ledger has per-task review outcomes + the deferred-minors list for both pieces.
+- **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.

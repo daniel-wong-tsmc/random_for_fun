@@ -11,3 +11,13 @@
 {"seq":10,"asOf":"2026-07-02","kind":"append-observation","pageId":"entity:market","findingId":"www-digitimes-com-f88ca4e6-2","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":11,"asOf":"2026-07-02","kind":"append-observation","pageId":"entity:market","findingId":"www-digitimes-com-f88ca4e6-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":12,"asOf":"2026-07-02","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 3; dropped 0; stale 0; orphans 3; contradictions 0"}
+{"seq":13,"asOf":"2026-07-03","kind":"create-page","pageId":"entity:multi","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":14,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:multi","findingId":"techcrunch-com-6b79ddb7-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":15,"asOf":"2026-07-03","kind":"create-page","pageId":"entity:nvidia","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":16,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"blogs-nvidia-com-c8158075-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":17,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"blogs-nvidia-com-c8158075-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":18,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"blogs-nvidia-com-817f7ea6-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":19,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-5","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":20,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":21,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":22,"asOf":"2026-07-03","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 1; dropped 1; stale 3; orphans 5; contradictions 0"}

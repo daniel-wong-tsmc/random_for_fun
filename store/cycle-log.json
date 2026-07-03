@@ -1,52 +1,73 @@
 {
   "scope": "category:chips.merchant-gpu",
-  "asOf": "2026-07-02",
+  "asOf": "2026-07-03",
   "mode": "daily",
-  "startedBy": "run-cycle skill (F46 integration gate)",
   "entries": [
     {
       "category_id": "chips.merchant-gpu",
-      "assignment_path": "work/gather-daily-2026-07-02/asg.chips.merchant-gpu.daily.json",
-      "assignment_note": "run-scoped copy of fixtures/asg.chips.merchant-gpu.json with asOf=2026-07-02; the committed fixture pins asOf=2026-06 and Scorecard.asOf comes from the assignment, not --as-of (logged as integration finding F50)",
+      "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
       "status": "done",
-      "scorecard": "store/chips.merchant-gpu/2026-07-02-v1.json",
-      "dmi": 0.227,
-      "smi": 0.053,
-      "priorForDelta": "store/chips.merchant-gpu/2026-06-v12.json (v1.2 replay of v6 - continuity via the contract-v1.2 replay)",
-      "gather": {
-        "blobs": "work/gather-daily-2026-07-02/blobs-daily.json",
-        "docs": "work/docs-daily-2026-07-02 (10 docs, snapshots + gather-log.json with 19 coverageGaps)",
+      "scorecard": "store/chips.merchant-gpu/2026-07-03-v1.json",
+      "dmi": 0.133,
+      "smi": 0.147,
+      "artifacts": {
+        "blobs": "work/daily-2026-07-03/blobs.json",
+        "gatherLog": "work/daily-2026-07-03/gather-log.json",
+        "docs": "work/daily-2026-07-03/docs",
+        "extractAnswer": "work/daily-2026-07-03/extract-answer.json",
+        "findings": "work/daily-2026-07-03/findings.json",
+        "dedupReport": "store/chips.merchant-gpu/dedup-2026-07-03.json",
+        "dedupedFindings": "work/daily-2026-07-03/deduped.json",
+        "ingestExclusions": "work/daily-2026-07-03/ingest-exclusions.json",
+        "judgeAnswer": "work/daily-2026-07-03/judge-answer.json",
+        "thesisAnswer": "work/daily-2026-07-03/thesis-answer.json"
+      },
+      "daily": {
+        "gathered": 9,
         "droppedKnown": 0,
-        "note": "first daily run - L1 seen-doc index seeded at store/seen_docs.jsonl (10 entries)"
+        "dedup": { "new": 9, "update": 0, "duplicate": 11 },
+        "wikiIngestExcluded": ["www-digitimes-com-f88ca4e6-1", "lambda-ai-845323fc-1"],
+        "wikiIngestExclusionReason": "cross-cycle docId collision: URL re-gathered from 2026-07-02 with excerpt-variant content hash defeated L1; finding ids docId-<n> reuse prior-cycle ids in the append-only FindingStore (fail-loud collision caught it). Backlog: vintage-scoped finding ids."
       },
-      "dedupL2": {
-        "report": "store/chips.merchant-gpu/dedup-2026-07-02.json",
-        "new": 9,
-        "update": 0,
-        "duplicate": 8
+      "brainRedispatches": {
+        "extract": 3,
+        "extractReasons": [
+          "price-level drafts omitted (over-applied non-price polarity rule; gate rule text supplied)",
+          "answer elements 5/6 swapped vs document order",
+          "impact targets used non-taxonomy ids (coordinator supplied wrong id list; real taxonomy ids supplied)"
+        ],
+        "judge": 1,
+        "judgeReasons": [
+          "citation-group conflicts + two invented dimension names in the coordinator dispatch (optionality/capitalIntensity); real DIMENSIONS + code-computed groups supplied; 3 fresh independent samples re-emitted"
+        ],
+        "thesis": 1,
+        "thesisReasons": [
+          "3 falsifiableTriggers named no observable per the v1 heuristic (two were the seed book's own trigger texts echoed back; reworded with quarter counts / indicator ids)"
+        ]
       },
-      "wiki": {
-        "routed": "9 findings -> 3 entity pages (entity:nvda, entity:amd, entity:market) under store/wiki/",
-        "lint": "work/gather-daily-2026-07-02/lint-report.json (3 material, 0 dropped)",
-        "enrichment": "not run (daily mode routes + lints only; brain enrichment is the standard-mode wiki-ingest --recorded path)"
+      "stages": {
+        "category": "done",
+        "thesis": "done",
+        "layer": "deferred",
+        "main": "deferred"
       },
-      "brainArtifacts": {
-        "extractPrompt": "work/gather-daily-2026-07-02/extract-prompt.json",
-        "extractAnswer": "work/gather-daily-2026-07-02/extract-answer.json (1 re-dispatch: impact.direction 'neutral' not in enum, corrected to schema)",
-        "judgePrompt": "work/gather-daily-2026-07-02/judge-prompt.json",
-        "judgeAnswer": "work/gather-daily-2026-07-02/judge-answer.json (3 SEPARATE tool-less opus generations, F38; unanimous Strong/improving, bottleneck competitiveStructure)"
-      },
-      "report": "work/gather-daily-2026-07-02/report-2026-07-02.txt"
+      "thesis": {
+        "seeded": 6,
+        "judgments": {
+          "nvda-demand-durability": "strengthened applied=True conviction=high",
+          "supply-constraint-binding": "reaffirmed applied=True conviction=medium",
+          "amd-credible-second-source": "reaffirmed applied=True conviction=medium",
+          "custom-asic-substitution": "strengthened applied=True conviction=high",
+          "pricing-power-persistence": "reaffirmed applied=True conviction=medium",
+          "export-control-exposure": "weakened applied=True conviction=low"
+        },
+        "proposed": ["vendor-financed-demand-circularity (provisional, low)"]
+      }
     }
   ],
   "stages": [
     { "tier": "category", "status": "done" },
     { "tier": "layer", "status": "deferred" },
     { "tier": "main", "status": "deferred" }
-  ],
-  "integrationFindings": [
-    "F50 (new): Scorecard.asOf comes from assignment.asOf, not the run's --as-of - a daily cycle mislabels its scorecard into the assignment's month (first pipeline run wrote 2026-06-v13, removed; re-run with run-scoped assignment). Fix: run asOf must override or validate against assignment.asOf.",
-    "F51 (new): L2 dedup keys price findings by (entity, indicatorId) - all NVDA D6 rows across providers/SKUs (B200 vs H100, Lambda vs CoreWeave vs Runpod) collapse to one rep with dispersion. F49's price track needs a finer series key (SKU/provider).",
-    "Note: WHAT MOVED/STORYLINES rows show 'no-state' because daily mode routes without brain enrichment - states/trajectories only exist after a standard-mode enrichment pass."
   ]
 }

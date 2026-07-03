@@ -1,0 +1,45 @@
+{
+  "id": "www-coreweave-com-eb7fcb71-5",
+  "statement": "CoreWeave on-demand price for an NVIDIA GH200 instance (1 GPU) is $6.50 per instance-hour in North America; static level, no baseline stated.",
+  "kind": "measured",
+  "value": {
+    "number": 6.5,
+    "unit": "USD/instance-hr (1x GPU)"
+  },
+  "trend": "unknown",
+  "why": "Current rental price level for the Grace Hopper GH200 on a major neocloud; part of the datacenter GPU price overlay.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "On-demand GH200 instance price level serves as a display overlay reference; no baseline stated, so no momentum inferred."
+  },
+  "evidence": [
+    {
+      "source": "CoreWeave",
+      "url": "https://www.coreweave.com/pricing",
+      "date": "2026-07-03",
+      "excerpt": "NVIDIA GH200: 1 GPU, $6.50 / Hour.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary open-web pricing page read on 2026-07-03."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-03",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-03",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

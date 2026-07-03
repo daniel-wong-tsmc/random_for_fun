@@ -1,0 +1,46 @@
+{
+  "id": "blogs-nvidia-com-817f7ea6-3",
+  "statement": "Firmus is building a 360 MW DSX AI factory campus in Batam, Indonesia, with up to 170,000 NVIDIA GPUs.",
+  "kind": "measured",
+  "value": {
+    "number": 170000.0,
+    "unit": "GPUs"
+  },
+  "trend": "rising",
+  "why": "A 360 MW, 170,000-GPU AI factory is a large committed deployment of NVIDIA GPUs, signaling strong infrastructure demand.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "infrastructure.neocloud"
+    ],
+    "direction": "positive",
+    "mechanism": "A multi-hundred-MW campus with 170,000 NVIDIA GPUs expands merchant-GPU and HBM demand and cloud AI capacity."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA official newsroom press release",
+      "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+      "date": "2026-07-01",
+      "excerpt": "Firmus is constructing a DSX AI factory campus in Batam, Indonesia, expected to reach 360 megawatts with up to 170,000 NVIDIA GPUs.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary NVIDIA newsroom source; deployment figure stated as 'up to'."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: NVIDIA Blog, NVIDIA official newsroom press release",
+  "asOf": "2026-07-03",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

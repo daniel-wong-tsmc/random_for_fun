@@ -1,0 +1,43 @@
+{
+  "id": "techcrunch-com-6b79ddb7-1",
+  "statement": "Anthropic is in early-stage talks with Samsung to manufacture a custom AI chip on Samsung's 2nm process, part of a broader diversification away from merchant GPUs.",
+  "kind": "hypothesis",
+  "value": null,
+  "trend": "unknown",
+  "why": "Early-stage exploration of an Anthropic custom chip on Samsung 2nm could, if realized, shift some compute off merchant GPUs and add Samsung foundry demand, though the chip's purpose and power are undecided.",
+  "impact": {
+    "targets": [
+      "chips.hyperscaler-asic",
+      "chips.merchant-gpu",
+      "chips.foundry-packaging"
+    ],
+    "direction": "mixed",
+    "mechanism": "A successful Anthropic custom chip on Samsung 2nm would move some inference/training compute from merchant GPUs to custom ASIC and add advanced-node foundry demand at Samsung."
+  },
+  "evidence": [
+    {
+      "source": "TechCrunch",
+      "url": "https://techcrunch.com/2026/07/02/anthropic-is-discussing-a-new-custom-chip-with-samsung/",
+      "date": "2026-07-02",
+      "excerpt": "Anthropic was in contact with Samsung to explore a collaboration around the pending chip.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": "Talks are described as early-stage and Anthropic has not decided the chip's purpose, form factor, or performance, so the near-term effect on merchant-GPU demand is uncertain; the article notes a diversified stack including Nvidia remains pivotal, capping downside, while sustained custom-silicon efforts point to gradual, longer-term erosion of merchant-GPU share.",
+  "confidence": {
+    "level": "low",
+    "basis": "Early-stage talks reported by a single secondary press source with the chip's use undecided."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> unknown); sources: TechCrunch",
+  "asOf": "2026-07-03",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "multi",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

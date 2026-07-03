@@ -1,0 +1,169 @@
+{
+  "asOf": "2026-07-03",
+  "docsDroppedKnown": [],
+  "findingsNew": [
+    {
+      "findingId": "www-digitimes-com-f88ca4e6-1",
+      "entity": "multi",
+      "indicatorId": "D2",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "techcrunch-com-6b79ddb7-1",
+      "entity": "multi",
+      "indicatorId": "market-share-pct",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "blogs-nvidia-com-c8158075-2",
+      "entity": "nvidia",
+      "indicatorId": "D2",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "blogs-nvidia-com-c8158075-1",
+      "entity": "nvidia",
+      "indicatorId": "S10",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "blogs-nvidia-com-817f7ea6-3",
+      "entity": "nvidia",
+      "indicatorId": "designWins",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-5",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-1",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-2",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "lambda-ai-845323fc-1",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    }
+  ],
+  "findingsUpdate": [],
+  "findingsDuplicate": [
+    {
+      "findingId": "techcrunch-com-6b79ddb7-2",
+      "entity": "multi",
+      "indicatorId": "market-share-pct",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "blogs-nvidia-com-817f7ea6-1",
+      "entity": "nvidia",
+      "indicatorId": "D2",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-digitimes-com-34ca59cc-1",
+      "entity": "nvidia",
+      "indicatorId": "D2",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "blogs-nvidia-com-817f7ea6-2",
+      "entity": "nvidia",
+      "indicatorId": "designWins",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "blogs-nvidia-com-0d320457-1",
+      "entity": "nvidia",
+      "indicatorId": "designWins",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-3",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-4",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-2",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-3",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-4",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-5",
+      "entity": "nvidia",
+      "indicatorId": "gpuSpotPrice",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    }
+  ]
+}

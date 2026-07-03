@@ -1,0 +1,45 @@
+{
+  "id": "blogs-nvidia-com-c8158075-2",
+  "statement": "NVIDIA states its AI demand will contribute $485 billion to U.S. GDP in 2026 and support over 100,000 jobs.",
+  "kind": "measured",
+  "value": {
+    "number": 485.0,
+    "unit": "USD billion"
+  },
+  "trend": "rising",
+  "why": "A stated $485B GDP contribution from NVIDIA-driven AI demand in 2026 signals the scale and momentum of AI infrastructure demand.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Large economy-wide AI demand attributed to NVIDIA chips reflects strong merchant-GPU and cloud AI infrastructure pull."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA official newsroom press release",
+      "url": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+      "date": "2026-07-01",
+      "excerpt": "In 2026 alone, NVIDIA-driven AI demand will contribute $485 billion to the U.S.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary NVIDIA newsroom press release; company-stated projection, not audited."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: DigiTimes, NVIDIA official newsroom press release",
+  "asOf": "2026-07-03",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

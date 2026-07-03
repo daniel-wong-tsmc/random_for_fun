@@ -1,0 +1,45 @@
+{
+  "id": "www-coreweave-com-eb7fcb71-2",
+  "statement": "CoreWeave on-demand price for an NVIDIA HGX B200 instance (8 GPUs) is $68.80 per instance-hour in North America; page states per-instance pricing, not per-GPU; static level, no baseline stated.",
+  "kind": "measured",
+  "value": {
+    "number": 68.8,
+    "unit": "USD/instance-hr (8x GPU)"
+  },
+  "trend": "unknown",
+  "why": "Current rental price level for NVIDIA's B200 HGX class on a major neocloud; feeds the price overlay for Blackwell-generation capacity.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "On-demand HGX B200 instance price level serves as a display overlay reference; no baseline stated, so no momentum inferred."
+  },
+  "evidence": [
+    {
+      "source": "CoreWeave",
+      "url": "https://www.coreweave.com/pricing",
+      "date": "2026-07-03",
+      "excerpt": "NVIDIA HGX B200: 8 GPUs, $68.80 / Hour.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary open-web pricing page read on 2026-07-03; per-single-GPU basis not confirmed by the page."
+  },
+  "dispersion": "conflicting same-key reports: value 50.44 -> 68.8 (tol 1%); sources: CoreWeave",
+  "asOf": "2026-07-03",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-03",
+  "capturedAt": "2026-07-03T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

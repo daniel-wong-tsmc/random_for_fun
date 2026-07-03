@@ -41,16 +41,22 @@
 - [x] **F3 — Enforce the Part-37 headline-protection rule.** A dimension rating resting solely on
   secondary sources must be confidence-capped + flagged. v6's `bottleneck` and `moat` each rest on
   one blog yet report `grounded` / `confidenceCap: null` (`pipeline.py:60-76`). *(Lane B)*
-- [ ] **F4 — Wire memory into judgment.** Feed the judge the prior scorecard + relevant wiki state;
-  stop asking for `direction: improving/worsening` with zero temporal input (`judgment/judge.py:103-120`,
-  `judgment/prompt.py`). The charter Part 4 loop — pull history → interrogate the change — does not
-  exist today. *(Feature track — brainstorm → spec → plan first)*
-- [ ] **F5 — Anti-whipsaw check.** A categoryStatus/direction reversal vs. prior must clear a
-  persistence/corroboration bar or be flagged; today nothing compares to the prior cycle at all.
-  *(Feature track, with F4)*
-- [ ] **F6 — Depth Rubric + Golden Set** (recorded Action Item 1). Author the rubric, grade v6
-  against it, write corrected exemplars → the per-archetype golden set + regression gate for every
-  prompt change (charter Part 24). *(Feature track)*
+- [x] **F4 — Wire memory into judgment. DONE (sub-project 5-1, merged 7197226).** `gpu_agent/memory.py`
+  builds the prior-state bundle (prior scorecard summary, thesis book, wiki states, price series, cycle
+  chronology) and renders the fenced MEMORY block; injected additively into the judge emit path
+  (`judge --emit-prompt --store`) and the thesis prompt — byte-identical prompts when absent. Verified
+  live in the 2026-07-03 daily cycle: the judge received MEMORY and judged direction vs the 07-02 prior
+  (category direction steady vs prior improving). *(Feature track)*
+- [x] **F5 — Anti-whipsaw check. DONE (sub-project 5-1, merged 7197226).** Code-owned in
+  `gpu_agent/thesis.py` apply engine: a secondary-only reversal defers as a pendingChallenge
+  (`CHALLENGED — pending confirmation ⚠` in THE CALLS); primary evidence or a second consecutive
+  same-direction signal applies; conviction moves ≤1 level per applied cycle; applied `broken` retires.
+  All branches test-pinned (scenarios a–k). *(Feature track)*
+- [ ] **F6 — Depth Rubric + Golden Set** (recorded Action Item 1). **HALF DONE (sub-project 5-1):**
+  depth fields (mechanism / falsifiableTrigger / sensitivity) are now carried on every thesis judgment
+  and GATE-ENFORCED (non-empty + trigger must name an observable — v1 heuristic: registered indicator
+  id, digit, or quarter/qtr/month/week/cycle). REMAINING: the rubric-grading golden set + regression
+  gate for every prompt change (charter Part 24) — a separate later sub-project. *(Feature track)*
 - [x] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
   AMD erase each other per indicator. Bucket by `(entity, indicatorId)`. *(Lane B, contract v1.2)*
 - [x] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to
@@ -186,6 +192,28 @@
   rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
   blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.
   *(Wave 2, Lane F)*
+- [ ] **F52 — Vintage-scoped finding ids** (born from the sub-project-5 integration gate,
+  2026-07-03 daily cycle). Finding ids are `docId-<n>` and docIds derive from the URL, so a URL
+  re-gathered on a later day (a daily price page, a re-excerpted news article) reuses prior-cycle
+  finding ids; when content differs, the append-only FindingStore's collision check fails loud in
+  `route_findings` (observed: `www-digitimes-com-f88ca4e6-1`, `lambda-ai-845323fc-1`). L1's
+  url+hash known-check cannot catch it because gatherer excerpts vary run-to-run. Scope the finding
+  id (or docId) by asOf/vintage, or make L1 url-aware for static-content sources. The 2026-07-03
+  cycle worked around it with a logged wiki-ingest exclusion (`work/daily-2026-07-03/
+  ingest-exclusions.json`); scorecard path unaffected. *(Next wave)*
+- [ ] **F53 — Cross-cycle indicator consistency for price rows** (born from the same gate). The
+  07-02 extraction labeled marketplace price levels `D6`; 07-03's labeled them `gpuSpotPrice` —
+  both registered price indicators, so the F49/F51 per-series price track finds 0 matched series
+  across the two cycles and PMI renders `—`. Pin ONE indicator id per price-source class in
+  extraction guidance (or normalize at price-track level) so day-over-day deltas can ever compute.
+  *(Next wave)*
+- [ ] **F54 — Seed thesis triggers should pass the gate heuristic they will be judged under**
+  (born from the same gate). Two committed seed triggers (`supply-constraint-binding`,
+  `custom-asic-substitution`) name no observable under the thesis gate's v1 heuristic; the brain
+  echoing them back verbatim was correctly rejected and had to reword (e.g. "lead times" does not
+  match the id `leadTimes`). Either upgrade the seed data's trigger prose to heuristic-passing
+  form, or document that seeds are grandfathered DATA and only judgments are gated. One-file data
+  fix + a seed-lint test. *(Next wave — small)*
 
 ---
 

@@ -311,6 +311,33 @@ def _judge(args) -> int:
             print(f"gpu-agent judge: error: recorded answers ({len(answers)}) != samples ({args.samples})",
                   file=sys.stderr)
             return 2
+        # F67: lint each recorded sample's brain-written prose BEFORE the gate/apply
+        # (judge_findings below) so a violating recorded answer fails loud instead of
+        # silently producing exec-facing copy that breaks the analyst-voice rules.
+        if not args.no_voice_lint:
+            from gpu_agent import reader
+            from gpu_agent.schema.scorecard import DIMENSIONS
+            violations: list[str] = []
+            for raw in answers:
+                sample = json.loads(raw)
+                violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
+                                                max_sentences=3)
+                for dim, d in (sample.get("dimensions") or {}).items():
+                    violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
+                                                    max_sentences=2)
+                cs = sample.get("categoryStatus") or {}
+                violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
+                label = cs.get("constraintLabel")
+                if label:
+                    if label in DIMENSIONS or "bottleneck" in label.lower():
+                        violations.append("categoryStatus.constraintLabel: must name the concrete "
+                                          "constraint, not a dimension")
+                    if len(label.split()) > 6:
+                        violations.append("categoryStatus.constraintLabel: over 6 words")
+            if violations:
+                for v in violations:
+                    print(f"voice-lint: {v}", file=sys.stderr)
+                return 1
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
@@ -637,6 +664,8 @@ def main(argv=None) -> int:
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
+    jg.add_argument("--no-voice-lint", action="store_true",
+                    help="skip the F67 analyst-voice lint (legacy recorded fixtures)")
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--persona", default=None,
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")

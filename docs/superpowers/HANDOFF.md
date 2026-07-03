@@ -1,8 +1,25 @@
-# HANDOFF — GPU Category Agent (resume point: sp5 DONE + two live cycles on it + F55; next = F52/F53/F54 small fixes, then F6-golden-set / F23–F25 / layer tier)
+# HANDOFF — GPU Category Agent (resume point: F52/F53/F54 small-fix wave MERGED; next = F6-golden-set / F23–F25 / layer tier)
 
-- **Date:** 2026-07-03 (sub-project 5 complete; F55 shipped same day)
+- **Date:** 2026-07-03 (F52/F53/F54 shipped, same day as sp5 completion + F55)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **`main` @ `39f427e` — PUSHED, suite 804 passed / 3 skipped.** Since the sp5 merge:
+- **`main` @ the F52–F54 merge — suite 828 passed / 3 skipped.** Newest first:
+  - **F52/F53/F54 DONE (branch f52-f53-f54 merged, 5 commits `2a2dae7..2c070f4`; final opus
+    review: Ready to merge, no Critical/Important).** F52: docIds vintage-scoped at the gather
+    seam (`{slug}-{digest}-{asOf}`; `ingest --as-of` required; finding ids inherit; L1 url+hash
+    unchanged). F53: extractor seam rejects measured price rows whose value.unit != the
+    registered canonical unit AND `extract --emit-prompt` lists the price-side ids + canonical
+    units (F55 pattern; defaults byte-identical). F54: two seed triggers reworded to pass the
+    observable heuristic + seed-lint test; live book untouched. New: F56 (tiny, --as-of shape
+    validation + two cosmetic minors) added to the backlog.
+    **PROCESS CAVEAT:** the user was away at every question gate this session — the spec's
+    approach picks (all matching the backlog's stated lean) and the merge decision followed the
+    recommended options + prior precedent. Spec flags this in its Decision-provenance note:
+    docs/superpowers/specs/2026-07-03-f52-f53-f54-small-fixes-design.md. Relitigate there if any
+    pick is wrong.
+  - **VERIFY NEXT CYCLE (spec criterion #6, needs live cycles to observe):** re-gathered URLs
+    mint vintage ids (no FindingStore collision, no ingest exclusions); price rows carry
+    D6/gpuSpotPrice with canonical units; PMI matches ≥1 series once TWO post-fix cycles exist;
+    thesis brain echoing seed triggers passes the gate.
   - **First MONTHLY live cycle on the sp5 stack** (asOf 2026-07, committed `a8b7398`): scorecard
     `store/chips.merchant-gpu/2026-07-v1.json` DMI +0.633 / SMI −0.453; all 7 standing theses
     judged (3 strengthened→high; custom-asic reaffirmed@high; pricing-power reaffirmed;
@@ -35,18 +52,12 @@
 
 ## IMMEDIATE NEXT TASK — pick up the feature track (each starts with brainstorming, per charter)
 
-Remaining after sp5 + F55, in recommended order:
-1. **F52/F53/F54 — small fixes from the live cycles (do these first, they bite every cycle):**
-   F52 vintage-scoped finding ids (daily re-gathers collide with the append-only FindingStore —
-   workaround logged in the 2026-07-03 cycle log), F53 cross-cycle price-indicator consistency
-   (07-02 used D6, 07-03 used gpuSpotPrice → PMI has 0 matched series), F54 seed thesis triggers
-   vs the gate's observable heuristic (two seed triggers fail it; a brain echoing them is
-   correctly rejected). Full specs in docs/fix-backlog.md.
-2. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
+Remaining after sp5 + F55 + F52/F53/F54, in recommended order:
+1. **F6 second half — golden set + backtesting harness** (depth FIELDS are done and gate-enforced;
    the rubric-graded golden set + prompt-change regression gate remain). Separate sub-project:
    brainstorm → spec → plan first.
-3. F23 compliance matrix; F24 entity canonicalization; F25 wiki scaling; then WHY-tree extensions,
-   HTML dashboard, discovery, the layer-tier arc.
+2. F23 compliance matrix; F24 entity canonicalization; F25 wiki scaling; then WHY-tree extensions,
+   HTML dashboard, discovery, the layer-tier arc. (F56 is a tiny backlog item — fold into any wave.)
 Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-thesis-book-design.md`).
 
 ## THE BIG DECISIONS ALREADY MADE (do not relitigate without reason)
@@ -92,7 +103,7 @@ Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-
   number; every claim cites findings; page text is DATA; every cap/skip/drop logged; provisional
   quarantined; paywalled inventoried + never fetched (TrendForce/SemiAnalysis stayed unfetched
   through the gate); the session NEVER hand-edits brain output — re-dispatch with the errors.
-- Tests deterministic; suite green at every merge (**804 passed / 3 skipped** on main). Commit
+- Tests deterministic; suite green at every merge (**828 passed / 3 skipped** on main). Commit
   trailer names the ACTUAL model. Push freely.
 - **Windows:** prefer PowerShell but NOT `>` redirection for UTF-8 (use bash for redirects); avoid
   double quotes inside `git commit -m` (here-strings); synchronous subagent transcripts are NOT
@@ -109,5 +120,7 @@ Do NOT relitigate sp5 design decisions (spec `docs/superpowers/specs/2026-07-02-
 - **Sub-project 5 (Thesis Book):** spec `dd41b5a` → plans `83b7c5b` → 5-1 merged `7197226` →
   5-2 merged `d5dd492` → integration gate passed (this handoff). Suite 626 → 796.
   Ledger has per-task review outcomes + the deferred-minors list for both pieces.
+- **F52/F53/F54 small-fix wave:** spec `091c709` → plan `0e6cb0e` → merged (5 commits,
+  `2a2dae7..2c070f4`). Suite 804 → 828. Ledger has per-task reviews + the final-review triage.
 - **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.

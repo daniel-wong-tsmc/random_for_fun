@@ -235,6 +235,15 @@
   — semantics preserved, observables named ("2 consecutive quarters");
   tests/test_seed_thesis_lint.py locks every seed trigger + depth field. Live store book
   untouched: history.jsonl's seeded event embeds the entries.)*
+- [ ] **F56 — Validate `--as-of` shape at the seams** (born from the F52/F53/F54 final review,
+  2026-07-03). `--as-of` is required everywhere but any non-empty string is accepted, and F52 now
+  embeds it in doc ids → snapshot + FindingStore filenames; a fat-fingered `2026/07/03` would mint
+  a path-unsafe id. Pre-existing convention (asOf already flowed unvalidated into the dedup index
+  and wiki stamps; the skills always pass ISO dates), so defense-in-depth only: validate
+  `^\d{4}-\d{2}(-\d{2})?$` once at the seam. Also fold in two deferred cosmetic minors from the
+  same review: the seed-lint depth-fields comment overclaims "mirrors gate rule 3" (rule 3 doesn't
+  check statement), and `build_system(price_indicators=[])` renders a malformed trailing "shown: ."
+  sentence (unreachable while the registry has price-side indicators). *(Next wave — tiny)*
 
 ---
 

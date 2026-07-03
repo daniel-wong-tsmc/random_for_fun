@@ -1,5 +1,8 @@
 from gpu_agent.brief import render_what_moved
 from gpu_agent.wiki.movement import MarketMovement, MovedRow, StorylineRow
+from gpu_agent import reader
+
+PROV_LABEL = reader.STATUS_LABEL["provisional"]
 
 
 def _moved(**kw):
@@ -57,7 +60,9 @@ def test_moved_citation_tier_and_provisional():
                            newThread=True, provisional=True)])
     out = render_what_moved(mv)
     assert "[f-1, f-2] secondary" in out
-    assert "(provisional)" in out
+    assert f"({PROV_LABEL})" in out
+    # F67 review fix: bare word "provisional" must not leak into WHAT MOVED (lead section)
+    assert "provisional" not in out
 
 
 def test_moved_folded_footer():

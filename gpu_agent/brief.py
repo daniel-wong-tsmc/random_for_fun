@@ -214,7 +214,7 @@ def render_what_moved(movement) -> str:
     for row in movement.moved:
         tag, arrow = _moved_tag(row)
         cite = f"[{', '.join(row.findingIds)}]" if row.findingIds else "[—]"
-        prov = "  (provisional)" if row.provisional else ""
+        prov = f"  ({reader.STATUS_LABEL['provisional']})" if row.provisional else ""
         contra = f"  ({row.contradictionNote})" if row.contradiction and row.contradictionNote else ""
         trans = f"  {row.stateFrom} → {row.stateTo}" if (row.stateFrom and row.stateTo) else ""
         lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}{trans}")

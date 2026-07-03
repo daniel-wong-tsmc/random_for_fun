@@ -4,6 +4,7 @@ only, never invented citations, honest empty/never-judged states."""
 from __future__ import annotations
 
 from gpu_agent import reader
+from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact, Kind
 from gpu_agent.schema.scorecard import DemandSupply, Scorecard
 from gpu_agent.thesis import PendingChallenge, ThesisBook, ThesisEntry
@@ -13,6 +14,7 @@ from gpu_agent.brief import render_the_calls
 AS_OF = "2026-07-03"
 AS_OF_PRIOR = "2026-06-26"
 CATEGORY_ID = "chips.merchant-gpu"
+REG = IndicatorRegistry.load("registry/indicators.json")
 
 
 # ── fixture helpers (mirrors tests/test_thesis_apply.py's builders) ──────────
@@ -310,6 +312,30 @@ def test_never_judged_entry_renders_neutral_no_verdict_word():
     assert "not yet judged" in line
     assert "reaffirmed" not in line
     assert "None" not in line
+
+
+# ── "breaks if:" display-layer id labeling (registry param) ────────────────
+
+def test_breaks_if_line_labels_indicator_id_when_registry_supplied():
+    entry = _entry("thesis-a", lastVerdict="strengthened",
+                    trigger="The D6 price track shows a 15% decline across providers.")
+    book = _book(entry)
+
+    out = render_the_calls(book, _sc(), registry=REG)
+
+    assert "GPU rental price" in out
+    assert "D6" not in out
+
+
+def test_breaks_if_line_unchanged_without_registry():
+    entry = _entry("thesis-a", lastVerdict="strengthened",
+                    trigger="The D6 price track shows a 15% decline across providers.")
+    book = _book(entry)
+
+    out = render_the_calls(book, _sc())   # no registry -> default None
+
+    assert "breaks if: The D6 price track shows a 15% decline across providers." in out
+    assert "GPU rental price" not in out
 
 
 # ── byte-stability ───────────────────────────────────────────────────────────

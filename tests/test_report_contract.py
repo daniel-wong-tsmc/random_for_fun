@@ -1,5 +1,4 @@
 """F67 output-contract integration tests over committed fixtures (no store/, no LLM)."""
-import json
 from gpu_agent import reader
 from gpu_agent.report import load_scorecard, render_report
 from gpu_agent.registry.indicators import IndicatorRegistry

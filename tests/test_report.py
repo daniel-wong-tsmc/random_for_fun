@@ -565,6 +565,36 @@ def test_render_coverage_gaps_no_orphan_note_when_clean():
     assert "COVERAGE / SKIP GAPS" in out
 
 
+# ── render_trust_footer ──────────────────────────────────────────────────────
+
+def test_render_trust_footer_evidence_line_counts_findings_and_tiers():
+    from gpu_agent.report import render_trust_footer
+    from gpu_agent import reader
+    sc = _load(CURRENT)
+    out = render_trust_footer(sc)
+    assert "Evidence:" in out
+    assert reader.TIER_LABEL["primary"] in out
+    assert reader.TIER_LABEL["secondary"] in out
+    assert f"{len(sc.findings)} finding" in out
+
+
+def test_render_trust_footer_thin_evidence_line_when_dims_under_supported():
+    """CURRENT is missing bottleneck + strategicRisk from dimensionRatings — 2 of 6
+    under-supported (see test_render_dimensions_coverage_summary)."""
+    from gpu_agent.report import render_trust_footer
+    sc = _load(CURRENT)
+    out = render_trust_footer(sc)
+    assert "Thin evidence: 2 of 6 dimensions (detail in appendix)" in out
+
+
+def test_render_trust_footer_no_bare_jargon_words():
+    from gpu_agent.report import render_trust_footer
+    sc = _load(CURRENT)
+    out = render_trust_footer(sc)
+    for banned in ("primary", "secondary", "under-supported"):
+        assert banned not in out
+
+
 # ── render_report (integration) ───────────────────────────────────────────────
 
 def test_render_report_contains_all_eight_section_headers():

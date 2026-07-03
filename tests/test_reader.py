@@ -48,3 +48,25 @@ def test_lint_acronyms_uses_allowlist():
     assert reader.lint_acronyms("CoWoS and HBM3E are tight") == []
     errs = reader.lint_acronyms("SDGI is demand-led and PMI is flat")
     assert sorted(errs) == ["PMI", "SDGI"]
+
+
+def test_lint_acronyms_does_not_snag_a_trailing_hyphen():
+    # F67 review fix: the old _ALLCAPS_RE matched "HBM-" (trailing hyphen included) on
+    # "HBM-constrained" — a false positive, since "HBM" alone is on the allowlist.
+    assert reader.lint_acronyms("HBM-constrained packaging output") == []
+    assert reader.lint_acronyms("DC-GPU rows") == []
+
+
+def test_label_ids_in_text_replaces_whole_token_indicator_ids():
+    out = reader.label_ids_in_text("The D6 price track shows a decline.", REG)
+    assert "GPU rental price" in out
+    assert "D6" not in out
+
+
+def test_label_ids_in_text_no_registry_is_unchanged():
+    text = "The D6 price track shows a decline."
+    assert reader.label_ids_in_text(text, None) == text
+
+
+def test_label_ids_in_text_empty_text_is_unchanged():
+    assert reader.label_ids_in_text("", REG) == ""

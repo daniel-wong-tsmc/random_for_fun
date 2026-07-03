@@ -638,8 +638,29 @@ def render_trust_footer(sc: Scorecard) -> str:
     the caveat has moved to its own appendix section (render_raw_indices, below the
     divider) — DMI/SMI/SDGI are off the exec acronym allowlist and never belonged above
     the fold in the first place.
+
+    Final-review addition (spec §1 row 8): two evidence-trust lines below the caveat,
+    both reader.TIER_LABEL-worded (never the bare "primary"/"secondary" words, which the
+    above-the-fold jargon lint bans) — an Evidence line (finding count + evidence-item
+    tier split) always renders; a Thin evidence line (counts only, no dimension names,
+    no jargon words) renders only when at least one of the six dimensions is not grounded,
+    reusing the exact is_grounded rule render_dimensions/render_coverage_gaps use.
     """
-    return brief.render_market_caveat(sc)
+    lines = [brief.render_market_caveat(sc)]
+    n = len(sc.findings)
+    primary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "primary")
+    secondary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "secondary")
+    lines.append(
+        f"  Evidence: {n} finding{'s' if n != 1 else ''} — {primary_n} evidence items "
+        f"from {reader.TIER_LABEL['primary']}, {secondary_n} from {reader.TIER_LABEL['secondary']}"
+    )
+    under_count = sum(
+        1 for dim in DIMENSIONS
+        if not (_dim_evidence_status(sc, dim)[0] == "grounded" and sc.dimensionRatings.get(dim) is not None)
+    )
+    if under_count:
+        lines.append(f"  Thin evidence: {under_count} of 6 dimensions (detail in appendix)")
+    return "\n".join(lines)
 
 
 def render_raw_indices(sc: Scorecard, prior: Optional[Scorecard]) -> str:
@@ -744,7 +765,7 @@ def render_report(
         render_header(sc, render_ts),
         brief.render_state_of_market(sc, prior, track),       # words-first BLUF
         brief.render_what_moved(movement),
-        brief.render_the_calls(thesis_book, sc, thesis_last_findings),
+        brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
         brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
         brief.render_demand_supply_board(sc, horizons, registry=registry),
         brief.render_storylines(movement),

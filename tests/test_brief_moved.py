@@ -59,8 +59,12 @@ def test_moved_citation_tier_and_provisional():
     mv = _mv(moved=[_moved(title="AMD", findingIds=["f-1", "f-2"], tier="secondary",
                            newThread=True, provisional=True)])
     out = render_what_moved(mv)
-    assert "[f-1, f-2] secondary" in out
+    # Reader-contract fix: a source COUNT + tier LABEL, never an id dump — matches
+    # THE CALLS' citation pattern (reader.TIER_LABEL, not the bare internal word).
+    assert f"(2 sources), {reader.TIER_LABEL['secondary']}" in out
     assert f"({PROV_LABEL})" in out
+    assert "[" not in out               # no id dumps anywhere in WHAT MOVED
+    assert "secondary" not in out       # bare internal tier word must not leak
     # F67 review fix: bare word "provisional" must not leak into WHAT MOVED (lead section)
     assert "provisional" not in out
 
@@ -84,5 +88,13 @@ def test_moved_no_prior_note():
 
 
 def test_moved_empty_when_no_moves():
+    # F67 review fix: the empty state names WHY (spec §1 row 3) instead of a bare
+    # "no material moves this cycle" — foldedCount=0 -> the "nothing cleared the bar" wording.
     out = render_what_moved(_mv(prevAsOf="2026-06", moved=[], foldedCount=0))
-    assert "(no material moves this cycle)" in out
+    assert "(no material moves vs 2026-06 — nothing new cleared the materiality bar)" in out
+    assert "this cycle)" not in out
+
+
+def test_moved_empty_with_folded_count_names_the_count():
+    out = render_what_moved(_mv(prevAsOf="2026-06", moved=[], foldedCount=2))
+    assert "(no material moves vs 2026-06 — 2 below-threshold items folded)" in out

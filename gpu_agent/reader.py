@@ -29,7 +29,7 @@ BANNED_WORDS = (
 )
 # Finding ids look like `<slug>-<8 hex>-<n>` (see gathering ids in store/findings/).
 _FINDING_ID_RE = re.compile(r"\b[a-z0-9][a-z0-9-]*-[0-9a-f]{8}-\d+\b")
-_ALLCAPS_RE = re.compile(r"\b[A-Z][A-Z0-9&-]{1,}\b")
+_ALLCAPS_RE = re.compile(r"\b[A-Z][A-Z0-9&]+(?:-[A-Z0-9&]+)*\b")
 # Sentence split: end punctuation followed by whitespace+capital; decimals survive.
 _SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(\"'0-9])")
 
@@ -59,6 +59,22 @@ def indicator_label(indicator_id: str, registry) -> str:
     if isinstance(spec, dict):
         return spec.get("label") or indicator_id
     return indicator_id
+
+
+def label_ids_in_text(text: str, registry) -> str:
+    """Replace whole-token registry indicator ids with their human labels (display only).
+
+    The thesis GATE requires indicator ids in falsifiableTrigger (F54 observable
+    heuristic), so the BOOK keeps ids verbatim; this display-layer substitution is what
+    lets THE CALLS' "breaks if:" line read like exec prose instead of leaking an id like
+    "D6" above reader.APPENDIX_DIVIDER. registry=None or empty text -> unchanged."""
+    if registry is None or not text:
+        return text
+    for ind_id in sorted(registry.indicators, key=len, reverse=True):
+        label = indicator_label(ind_id, registry)
+        if label != ind_id:
+            text = re.sub(rf"\b{re.escape(ind_id)}\b", label, text)
+    return text
 
 
 def split_sentences(text: str) -> list[str]:

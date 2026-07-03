@@ -213,13 +213,23 @@ def render_what_moved(movement) -> str:
     lines[0] += f"  (vs {movement.prevAsOf})"
     for row in movement.moved:
         tag, arrow = _moved_tag(row)
-        cite = f"[{', '.join(row.findingIds)}]" if row.findingIds else "[—]"
+        # Reader contract (spec §1 row 3): a source COUNT + tier label, never an id dump —
+        # ids live in the appendix citation map. Mirrors THE CALLS' citation pattern.
+        cite = (f"({len(row.findingIds)} source{'s' if len(row.findingIds) != 1 else ''})"
+                if row.findingIds else "(sources in history)")
+        tier_label = reader.TIER_LABEL.get(row.tier, "")
+        tier_part = f", {tier_label}" if tier_label else ""
         prov = f"  ({reader.STATUS_LABEL['provisional']})" if row.provisional else ""
         contra = f"  ({row.contradictionNote})" if row.contradiction and row.contradictionNote else ""
         trans = f"  {row.stateFrom} → {row.stateTo}" if (row.stateFrom and row.stateTo) else ""
-        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite} {row.tier}{prov}{contra}{trans}")
+        lines.append(f"  {arrow} {tag:<6} {row.title}  {cite}{tier_part}{prov}{contra}{trans}")
     if not movement.moved:
-        lines.append("  (no material moves this cycle)")
+        if movement.foldedCount:
+            lines.append(f"  (no material moves vs {movement.prevAsOf} — "
+                         f"{movement.foldedCount} below-threshold items folded)")
+        else:
+            lines.append(f"  (no material moves vs {movement.prevAsOf} — "
+                         f"nothing new cleared the materiality bar)")
     if movement.foldedCount:
         lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
     return "\n".join(lines)
@@ -321,7 +331,8 @@ def _calls_evidence_line(entry, finding_ids, findings_by_id) -> str:
 
 
 def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
-                      last_findings: Optional[dict[str, list[str]]] = None) -> str:
+                      last_findings: Optional[dict[str, list[str]]] = None,
+                      registry=None) -> str:
     """THE CALLS: the standing thesis book, leading the page with earned deltas only.
     book=None (no thesis cycle has ever run) -> the honest placeholder below. Otherwise:
     standing (registered/provisional) entries ordered per _calls_entry_key, each a
@@ -333,6 +344,13 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
     evidence line's source count and primary-tier tag; the ids themselves never render
     here (reader contract — they live in the appendix citation map). absent -> the
     evidence line's honest "(sources in history)" fallback.
+
+    `registry` (optional) feeds the "breaks if:" line's reader.label_ids_in_text
+    display-layer substitution: the thesis GATE requires falsifiableTrigger to name a
+    registered indicator id verbatim (F54), so the book keeps the id, but a reader who
+    never asked for "D6" shouldn't see it above the fold — with a registry supplied, the
+    id is swapped for its human label; without one, the raw trigger text (id included)
+    renders unchanged, same as before this parameter existed.
 
     Nothing-changed headline: apply_record (thesis.py) bumps lastChangedAsOf on every
     APPLIED judgment regardless of verdict word — including a reaffirmed one, since a
@@ -374,7 +392,11 @@ def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
         finding_ids = (last_findings or {}).get(entry.id)
         lines.append(_calls_headline_line(entry))
         lines.append(_calls_evidence_line(entry, finding_ids, findings_by_id))
-        lines.append(f"      breaks if: {entry.falsifiableTrigger}")
+        # F54 requires the GATE-side falsifiableTrigger to name a registered indicator id
+        # verbatim; this DISPLAY-layer substitution swaps it for its human label so the
+        # rendered line reads like exec prose instead of leaking "D6" above the fold.
+        trigger = reader.label_ids_in_text(entry.falsifiableTrigger, registry)
+        lines.append(f"      breaks if: {trigger}")
 
     for entry in retired_now:
         lines.append(f"  ✕ {entry.title}   BROKEN — retired")

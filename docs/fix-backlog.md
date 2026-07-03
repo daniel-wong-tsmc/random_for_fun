@@ -55,8 +55,7 @@
 - [ ] **F6 — Depth Rubric + Golden Set** (recorded Action Item 1). **HALF DONE (sub-project 5-1):**
   depth fields (mechanism / falsifiableTrigger / sensitivity) are now carried on every thesis judgment
   and GATE-ENFORCED (non-empty + trigger must name an observable — v1 heuristic: registered indicator
-  id, digit, or quarter/qtr/month/week/cycle). REMAINING: the rubric-grading golden set + regression
-  gate for every prompt change (charter Part 24) — a separate later sub-project. *(Feature track)*
+  id, digit, or quarter/qtr/month/week/cycle). BUILT on branch f6-eval-harness: harness (gpu_agent/evals/ + eval CLI), 18-case golden set, hash-pin gate test, run-eval skill; spec docs/superpowers/specs/2026-07-04-f6-eval-harness-design.md; pending ONLY the Task-10 live baseline run (held until F67 lands). *(Feature track)*
 - [x] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
   AMD erase each other per indicator. Bucket by `(entity, indicatorId)`. *(Lane B, contract v1.2)*
 - [x] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to

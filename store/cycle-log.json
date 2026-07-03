@@ -1,50 +1,105 @@
 {
   "scope": "category:chips.merchant-gpu",
-  "asOf": "2026-07-03",
-  "mode": "daily",
   "entries": [
     {
       "category_id": "chips.merchant-gpu",
       "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
       "status": "done",
-      "scorecard": "store/chips.merchant-gpu/2026-07-03-v1.json",
-      "dmi": 0.133,
-      "smi": 0.147,
+      "scorecard": "store/chips.merchant-gpu/2026-07-v1.json",
+      "dmi": 0.633,
+      "smi": -0.453,
       "artifacts": {
-        "blobs": "work/daily-2026-07-03/blobs.json",
-        "gatherLog": "work/daily-2026-07-03/gather-log.json",
-        "docs": "work/daily-2026-07-03/docs",
-        "extractAnswer": "work/daily-2026-07-03/extract-answer.json",
-        "findings": "work/daily-2026-07-03/findings.json",
-        "dedupReport": "store/chips.merchant-gpu/dedup-2026-07-03.json",
-        "dedupedFindings": "work/daily-2026-07-03/deduped.json",
-        "ingestExclusions": "work/daily-2026-07-03/ingest-exclusions.json",
-        "judgeAnswer": "work/daily-2026-07-03/judge-answer.json",
-        "thesisAnswer": "work/daily-2026-07-03/thesis-answer.json"
+        "blobs": "work/live-2026-07/blobs.json",
+        "gatherLog": "work/live-2026-07/gather-log.json",
+        "docs": "work/live-2026-07/docs",
+        "extractPrompt": "work/live-2026-07/extract-prompt.json",
+        "extractAnswer": "work/live-2026-07/extract-answer.json",
+        "findings": "work/live-2026-07/findings.json",
+        "judgePrompt": "work/live-2026-07/judge-prompt.json",
+        "judgeAnswer": "work/live-2026-07/judge-answer.json",
+        "thesisPrompt": "work/live-2026-07/thesis-prompt.json",
+        "thesisAnswer": "work/live-2026-07/thesis-answer.json"
       },
-      "daily": {
-        "gathered": 9,
-        "droppedKnown": 0,
-        "dedup": { "new": 9, "update": 0, "duplicate": 11 },
-        "wikiIngestExcluded": ["www-digitimes-com-f88ca4e6-1", "lambda-ai-845323fc-1"],
-        "wikiIngestExclusionReason": "cross-cycle docId collision: URL re-gathered from 2026-07-02 with excerpt-variant content hash defeated L1; finding ids docId-<n> reuse prior-cycle ids in the append-only FindingStore (fail-loud collision caught it). Backlog: vintage-scoped finding ids."
+      "gather": {
+        "documentsGathered": 20,
+        "rounds": 2,
+        "primaryDomainBlobs": 9,
+        "secondaryDomainBlobs": 11,
+        "duplicatesDropped": 0,
+        "skipped": [
+          "round 3 not spawned: maxDocuments (20) reached with 20 unique blobs after round 2",
+          "lead 'NVIDIA FY2026 10-K full risk factors (EDGAR)' not chased: maxDocuments reached",
+          "lead 'AMD Q1 2026 10-Q RPO/backlog detail (stocktitan mirror)' not chased: maxDocuments reached",
+          "lead 'tomshardware.com custom-ASIC state-of-play roundup (fetch truncated)' not chased: maxDocuments reached",
+          "lead 'vast.ai live pricing table (JS-rendered)' not chased: needs browser; aggregate index used instead",
+          "lead 'ebay.com H100 listings' not chased: fetch blocked (ECONNRESET/timeout); gpudeals.net tracker used instead",
+          "digitimes.com articles paywalled: logged as leads, never fetched (Foxconn AI-server shipments, ODM margin squeeze)"
+        ],
+        "coverageGaps": [
+          {
+            "type": "source",
+            "id": "trendforce-gpu-tracker",
+            "priority": "required",
+            "acquisitionStatus": "paywalled",
+            "reason": "Source 'TrendForce GPU market share tracker' requires a paid license (costUsd=5000.0).",
+            "paywalledNote": "TrendForce GPU tracker requires a subscription (~$5k/yr). Until licensed, market-share-pct runs at estimate-grade via open-web proxy sources."
+          },
+          {
+            "type": "source",
+            "id": "open-web-gpu-share",
+            "priority": "required",
+            "acquisitionStatus": "not-covered",
+            "reason": "Source 'Open-web analyst notes / trade press on GPU market share' was not fetched. URL patterns: ['tomshardware.com', 'anandtech.com', 'techpowerup.com', 'semianalysis.com']",
+            "paywalledNote": null
+          },
+          {
+            "type": "source",
+            "id": "open-web-asic",
+            "priority": "required",
+            "acquisitionStatus": "not-covered",
+            "reason": "Source 'Open-web reporting on hyperscaler custom ASICs (competitive alternatives)' was not fetched. URL patterns: ['blog.google', 'aws.amazon.com/machine-learning', 'techcrunch.com', 'semianalysis.com']",
+            "paywalledNote": null
+          },
+          {
+            "type": "source",
+            "id": "channel-checks",
+            "priority": "required",
+            "acquisitionStatus": "not-covered",
+            "reason": "Source 'Open-web channel checks: lead times, inventory notes from distributors' was not fetched. URL patterns: ['digitimes.com', 'tomshardware.com']",
+            "paywalledNote": null
+          },
+          {
+            "type": "source",
+            "id": "semianalysis",
+            "priority": "required",
+            "acquisitionStatus": "paywalled",
+            "reason": "Source 'SemiAnalysis channel-check lead-time data (deep tier)' requires a paid license (costUsd=0.0).",
+            "paywalledNote": "SemiAnalysis publishes free headlines; deep channel-check lead-time data is behind a subscription. Paywalled portions are inventoried + labeled estimate, never scraped (Part 22)."
+          },
+          {
+            "type": "source",
+            "id": "gpu-marketplaces",
+            "priority": "required",
+            "acquisitionStatus": "not-covered",
+            "reason": "Source 'GPU marketplaces / resale listings (secondary-market spot price)' was not fetched. URL patterns: ['ebay.com', 'amazon.com', 'newegg.com']",
+            "paywalledNote": null
+          }
+        ]
       },
       "brainRedispatches": {
-        "extract": 3,
+        "extract": 2,
         "extractReasons": [
-          "price-level drafts omitted (over-applied non-price polarity rule; gate rule text supplied)",
-          "answer elements 5/6 swapped vs document order",
-          "impact targets used non-taxonomy ids (coordinator supplied wrong id list; real taxonomy ids supplied)"
+          "impact.direction 'neutral' not in schema (positive|negative|mixed) on 16 price-level drafts; brain re-emitted the 5 affected elements with 'mixed'",
+          "impact targets used unprefixed taxonomy ids (coordinator supplied wrong id list; real layer-prefixed ids supplied; brain returned the 13-id mapping, applied mechanically to 151 target refs)"
         ],
         "judge": 1,
         "judgeReasons": [
-          "citation-group conflicts + two invented dimension names in the coordinator dispatch (optionality/capitalIntensity); real DIMENSIONS + code-computed groups supplied; 3 fresh independent samples re-emitted"
+          "citation-group conflicts in all 3 samples (moat/competitiveStructure cited findings outside their code-computed indicator groups; sample 3 also strategicRisk); real groups supplied; 3 corrected samples re-emitted by the same independent judges"
         ],
-        "thesis": 1,
-        "thesisReasons": [
-          "3 falsifiableTriggers named no observable per the v1 heuristic (two were the seed book's own trigger texts echoed back; reworded with quarter counts / indicator ids)"
-        ]
+        "thesis": 0,
+        "thesisReasons": []
       },
+      "transportNote": "extraction answer exceeded the tool-result size limit; recovered by having the same tool-less brain re-emit its answer in 5 chunks of 4 elements, reassembled by the session (HTML entities from transport unescaped)",
       "stages": {
         "category": "done",
         "thesis": "done",
@@ -52,22 +107,36 @@
         "main": "deferred"
       },
       "thesis": {
-        "seeded": 6,
         "judgments": {
           "nvda-demand-durability": "strengthened applied=True conviction=high",
-          "supply-constraint-binding": "reaffirmed applied=True conviction=medium",
-          "amd-credible-second-source": "reaffirmed applied=True conviction=medium",
-          "custom-asic-substitution": "strengthened applied=True conviction=high",
+          "supply-constraint-binding": "strengthened applied=True conviction=high",
+          "amd-credible-second-source": "strengthened applied=True conviction=high",
+          "custom-asic-substitution": "reaffirmed applied=True conviction=high",
           "pricing-power-persistence": "reaffirmed applied=True conviction=medium",
-          "export-control-exposure": "weakened applied=True conviction=low"
+          "export-control-exposure": "weakened applied=True conviction=low",
+          "vendor-financed-demand-circularity": "weakened applied=True conviction=low"
         },
-        "proposed": ["vendor-financed-demand-circularity (provisional, low)"]
+        "proposed": [
+          "customer-concentration-risk",
+          "networking-attach-as-systems-moat"
+        ]
       }
     }
   ],
   "stages": [
-    { "tier": "category", "status": "done" },
-    { "tier": "layer", "status": "deferred" },
-    { "tier": "main", "status": "deferred" }
-  ]
+    {
+      "tier": "category",
+      "status": "done"
+    },
+    {
+      "tier": "layer",
+      "status": "deferred"
+    },
+    {
+      "tier": "main",
+      "status": "deferred"
+    }
+  ],
+  "asOf": "2026-07",
+  "mode": "live"
 }

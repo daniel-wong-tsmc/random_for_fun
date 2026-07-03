@@ -90,12 +90,20 @@ def test_render_report_is_brief_first():
 
 
 def test_render_report_honesty_invariant():
-    # magnitude words appear only on the categoryStatus headline, never on the DMI/SMI lines
+    # Unearned magnitude adjectives never appear on the STATE section's Demand/Supply
+    # lines. Task 4 re-anchor: the lines are now "Demand: <BAND> ..." / "Supply: ..."
+    # and speak gpu_agent.bands' five earned band words — "accelerating" (an earned,
+    # threshold-derived band word) left the banned set; everything else the renderer
+    # could only have invented (strong/weak/slight/moderate + surging/collapsing)
+    # stays banned. The matched-line count is asserted so this test can never go
+    # silently vacuous again if the line format shifts under it.
     out = render_report(_rich_sc(), None, _reg(), render_ts="t")
-    for ln in out.splitlines():
-        if "Demand momentum:" in ln or "Supply momentum:" in ln:
-            for banned in ("strong", "accelerating", "weak", "slight", "moderate"):
-                assert banned not in ln.lower()
+    state_lines = [ln for ln in out.splitlines()
+                   if ln.strip().startswith(("Demand: ", "Supply: "))]
+    assert len(state_lines) == 2, f"STATE Demand:/Supply: lines not found in:\n{out}"
+    for ln in state_lines:
+        for banned in ("strong", "weak", "slight", "moderate", "surging", "collapsing"):
+            assert banned not in ln.lower(), f"unearned magnitude word {banned!r} in {ln!r}"
 
 
 def test_render_report_byte_stable():

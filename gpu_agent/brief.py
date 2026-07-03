@@ -6,6 +6,7 @@ import re
 from typing import Optional
 from urllib.parse import urlparse
 from gpu_agent.schema.scorecard import Scorecard
+from gpu_agent.thesis import CONVICTION_RANK, ThesisBook
 from gpu_agent import report   # module ref, resolved at call-time — avoids the report<->brief cycle
 
 _ARROW = {"positive": "▲", "negative": "▼", "flat": "="}   # ▲ ▼ =
@@ -256,4 +257,120 @@ def render_storylines(movement) -> str:
     lines.extend(_storyline_group_lines(registered))
     lines.append("  PROVISIONAL (confidence-capped)")
     lines.extend(_storyline_group_lines(provisional))
+    return "\n".join(lines)
+
+
+# ── THE CALLS (sub-project 5-2 Task 2) ──────────────────────────────────────
+# The thesis book leads the page: earned deltas only, never an invented citation.
+
+_CALLS_ARROW = {
+    "strengthened": "▲", "weakened": "▼", "reaffirmed": "=", "adjusted": "~", "broken": "✕",
+}
+_CALLS_STATEMENT_CAP = 90
+
+
+def _calls_entry_key(entry):
+    """registered before provisional, then (-CONVICTION_RANK[conviction], id) — the
+    spec §4 ordering rule. status != "registered" sorts False(0) before True(1)."""
+    return (entry.status != "registered", -CONVICTION_RANK[entry.conviction], entry.id)
+
+
+def _calls_headline_line(entry) -> str:
+    """The three-line block's first line:
+      `  ● <title>   <STATE>, <lastVerdict> <arrow>  (<conviction>, <streak> cycles)`
+    STATE is CHALLENGED when a pendingChallenge is outstanding, else INTACT. A never-
+    judged entry (lastVerdict is None — a freshly seeded book rendered before its first
+    cycle; not itself pinned by the spec) gets a neutral "not yet judged" in place of a
+    verdict word/arrow rather than fabricating one. Provisional entries append
+    "  (provisional)" at the end of the line."""
+    state = "CHALLENGED — pending confirmation ⚠" if entry.pendingChallenge is not None else "INTACT"
+    if entry.lastVerdict is None:
+        verdict_part = "not yet judged"
+    else:
+        verdict_part = f"{entry.lastVerdict} {_CALLS_ARROW[entry.lastVerdict]}"
+    prov = "  (provisional)" if entry.status == "provisional" else ""
+    return (f"  ● {entry.title}   {state}, {verdict_part}  "
+            f"({entry.conviction}, {entry.streak} cycles){prov}")
+
+
+def _calls_evidence_line(finding_ids, findings_by_id) -> str:
+    """The second line: the entry's latest-judgment finding statement (truncated to 90
+    chars), its findingIds, and a tier tag — `primary` if any resolvable cited finding
+    carries primary evidence, else `secondary`; the tier word is omitted when no cited
+    id resolves. `finding_ids` is None/empty (last_findings has nothing for this thesis)
+    or its first id fails to resolve in this cycle's sc.findings -> the honest
+    `(citations in history)` fallback; never fabricate a statement."""
+    if not finding_ids:
+        return "      (citations in history)"
+    first = findings_by_id.get(finding_ids[0])
+    if first is None:
+        return "      (citations in history)"
+    statement = first.statement[:_CALLS_STATEMENT_CAP]
+    resolved = [findings_by_id[fid] for fid in finding_ids if fid in findings_by_id]
+    tier_suffix = ""
+    if resolved:
+        has_primary = any(ev.tier == "primary" for f in resolved for ev in f.evidence)
+        tier_suffix = " primary" if has_primary else " secondary"
+    return f"      {statement}  [{', '.join(finding_ids)}]{tier_suffix}"
+
+
+def render_the_calls(book: Optional[ThesisBook], sc: Scorecard,
+                      last_findings: Optional[dict[str, list[str]]] = None) -> str:
+    """THE CALLS: the standing thesis book, leading the page with earned deltas only.
+    book=None (no thesis cycle has ever run) -> the honest placeholder below. Otherwise:
+    standing (registered/provisional) entries ordered per _calls_entry_key, each a
+    three-line block (headline / cited-evidence / falsifiable trigger); a thesis retired
+    THIS cycle (lastChangedAsOf == sc.asOf) renders once as a single BROKEN line, and is
+    omitted in every later cycle — no permanent tombstone. `last_findings` supplies each
+    thesis's latest-judgment findingIds (the book itself does not store them — Task 4
+    reads them from history.jsonl); absent -> the evidence line's honest fallback.
+
+    Nothing-changed headline: apply_record (thesis.py) bumps lastChangedAsOf on every
+    APPLIED judgment regardless of verdict word — including a reaffirmed one, since a
+    reaffirmed verdict is never a reversal and so is always applied. That means
+    "lastChangedAsOf == sc.asOf" is true for every standing entry precisely in the
+    all-reaffirmed cycle this headline exists to name, so it cannot be the signal that
+    something material happened. What actually changed the entry's substance is the verdict
+    word: read "no entry changed this cycle" as "no standing entry's lastVerdict differs
+    from reaffirmed and none has an outstanding pendingChallenge" (a deferred reversal
+    always leaves a pendingChallenge, so that case is already caught), plus "no thesis was
+    retired this cycle" (retirement is a book-shape change the standing-only reaffirmed
+    check can't see, since a retired entry drops out of standing()). Under that reading the
+    headline is followed by the compact one-line-per-thesis book (the same headline line
+    each entry would otherwise open its three-line block with)."""
+    if book is None:
+        return "THE CALLS\n  (no thesis book yet - runs after the first thesis cycle)"
+
+    findings_by_id = {f.id: f for f in sc.findings}
+    standing = sorted(book.standing(), key=_calls_entry_key)
+    retired_now = sorted(
+        (e for e in book.entries if e.status == "retired" and e.lastChangedAsOf == sc.asOf),
+        key=lambda e: e.id,
+    )
+
+    lines = ["THE CALLS"]
+
+    nothing_changed = (
+        bool(standing)
+        and not retired_now
+        and all(e.pendingChallenge is None for e in standing)
+        and all(e.lastVerdict == "reaffirmed" for e in standing)
+    )
+    if nothing_changed:
+        lines.append(f"  Nothing changed this cycle. ({len(standing)} theses reaffirmed)")
+        lines.extend(_calls_headline_line(entry) for entry in standing)
+        return "\n".join(lines)
+
+    for entry in standing:
+        finding_ids = (last_findings or {}).get(entry.id)
+        lines.append(_calls_headline_line(entry))
+        lines.append(_calls_evidence_line(finding_ids, findings_by_id))
+        lines.append(f"      breaks if: {entry.falsifiableTrigger}")
+
+    for entry in retired_now:
+        lines.append(f"  ✕ {entry.title}   BROKEN — retired")
+
+    if not standing and not retired_now:
+        lines.append("  (no standing theses)")
+
     return "\n".join(lines)

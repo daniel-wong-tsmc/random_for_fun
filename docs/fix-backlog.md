@@ -384,9 +384,22 @@
   the claim is numeric) over the rendered brief that flags claims whose cited finding does not
   actually support them. Pairs naturally with F61's render surface. Do after the higher items —
   our write-time gating already covers the worst failure mode.
-- [ ] **F67 — The output contract: renderer structure + analyst voice.** User-approved design at
-  `docs/superpowers/specs/2026-07-03-output-contract-design.md` (spec written — next step is a
-  writing-plans implementation plan). Two layers: (1) `report.py` renders one fixed
+- [x] **F67 — The output contract: renderer structure + analyst voice. DONE (merged to main
+  `b0e8061`, 2026-07-04; suite 828→873/3).** Executed via subagent-driven development from plan
+  `docs/superpowers/plans/2026-07-03-f67-output-contract.md` (9 tasks, all task-reviewed; final
+  whole-branch review found 1 Critical + 5 Important, all fixed and re-review-verified against
+  LIVE store renders — daily and monthly both clean above the `── APPENDIX ──` divider).
+  Delivered: `gpu_agent/reader.py` + `registry/acronyms.json` (label maps, allowlist, prose
+  lint), `constraintLabel` (additive-optional), voice lint on `judge --recorded` AND
+  `pipeline --recorded-judge` (live path) with per-sample indexing + `--no-voice-lint`,
+  staleness banner + vote-agreement confidence label, single-reason BLUF with constraint noun,
+  calls/why/board/what-moved speak statements + source counts + registry labels,
+  `reader.label_ids_in_text` maps indicator ids to labels in "breaks if" display (book keeps
+  ids per F54), section reorder + appendix fold + citation map + raw-index table below the
+  fold, price dead-metric fold, `report --daily`, run-cycle session-output rule (F38-safe
+  re-dispatch, composes with Step 7). Deviations recorded in the spec's 2026-07-04 section.
+  Execution ledger + per-task reports: `.superpowers/sdd-f67/` (untracked scratch).
+  Original scope, for reference: (1) `report.py` renders one fixed
   inverted-pyramid section order (staleness-banner header → ≤8-line BLUF with the constraint
   *named* via a new additive-optional `constraintLabel` → what-moved with honest empty states →
   compressed calls → why-tree → human-labeled demand/supply board → F65 slot → trust footer →
@@ -401,6 +414,18 @@
   map for tier/status jargon; index acronyms words-first), an industry-standard acronym
   allowlist is lint-enforced, brain prompts embed the stop-slop pattern rules (tool-less
   brains can't invoke skills), and the session runs stop-slop on its final message.
+- [ ] **F68 — F67 follow-ups (born from the F67 final review, 2026-07-04).** Bundle of small
+  deferred items, none merge-blocking: **(a)** thesis-prose deterministic lint (spec §2b thesis
+  slice ships as prompt rules only; add a lint symmetrical to the judgment one — statement ≤1
+  sentence, mechanism ≤1, ids only in `falsifiableTrigger`); **(b)** citation map renders only
+  each finding's first evidence item — render all; **(c)** BLUF reconciliation note keys off
+  `rating + smiContribution < 0` — key off `sdgiDirection`; **(d)** what-moved empty state
+  duplicates the folded count with the pre-existing "lower-materiality items folded" line when
+  both render — collapse to one; **(e)** `reader.label_ids_in_text` iterative substitution has
+  a latent chaining fragility if a future registry label contains another id as a token (no
+  collision today — add a registry lint or single-pass substitution); **(f)** pre-existing live
+  thesis-store prose carries off-allowlist tokens (`MI`, `GB300`) — cleans up as entries are
+  re-judged under the new prompts, or allowlist them if they persist.
 
 ---
 

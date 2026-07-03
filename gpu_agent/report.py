@@ -7,7 +7,7 @@ Same scorecard + prior → byte-identical report. The only injected time input i
 from __future__ import annotations
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -15,6 +15,7 @@ from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import bands
+from gpu_agent import reader
 from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -124,15 +125,57 @@ def compute_sdgi(sc: Scorecard) -> float:
 
 # ── Section renderers ────────────────────────────────────────────────────────
 
+def _as_of_date(as_of: str) -> str:
+    """Normalize a possibly-partial date string (YYYY, YYYY-MM, or YYYY-MM-DD)
+    to a full YYYY-MM-DD so it can be parsed by date.fromisoformat. Partial
+    dates round to the coarsest boundary (Jan 1 / the 1st) so they never read
+    as artificially fresher than they are."""
+    if len(as_of) == 4:
+        return f"{as_of}-01-01"
+    if len(as_of) == 7:
+        return f"{as_of}-01"
+    return as_of
+
+
+def evidence_vintage(sc: Scorecard) -> tuple[Optional[str], Optional[str], float]:
+    """(median_date, oldest_date, share_older_than_42d) over all evidence dates.
+
+    Pure string/date math; no clock — staleness is measured against sc.asOf,
+    never against wall-clock "now". Evidence dates may be year, month, or day
+    grain; each is normalized to a full date only for the ordinal comparison —
+    the returned median/oldest strings are the original (possibly partial)
+    values. Empty findings -> (None, None, 0.0)."""
+    dates = sorted(ev.date for f in sc.findings for ev in f.evidence if ev.date)
+    if not dates:
+        return None, None, 0.0
+    median = dates[len(dates) // 2]
+    cutoff = date.fromisoformat(_as_of_date(sc.asOf)).toordinal() - 42
+    stale = sum(1 for d in dates if date.fromisoformat(_as_of_date(d)).toordinal() < cutoff)
+    return median, dates[0], stale / len(dates)
+
+
 def render_header(sc: Scorecard, render_ts: str) -> str:
-    """Render the report banner with category id, cycle, and render timestamp.
+    """Render the report banner with category id, cycle, render timestamp,
+    evidence vintage, and an honestly-labeled confidence line.
 
     ``render_ts`` is the only time input — supplied by the caller, never read
     from the clock here — so the header is byte-identical for equal inputs.
     """
     title = f"CATEGORY REPORT: {sc.categoryId}  |  Cycle: {sc.asOf}  |  {render_ts}"
     bar = "=" * max(len(title) + 4, 65)
-    return f"{bar}\n{title}\n{bar}"
+    lines = [bar, title, bar]
+
+    median, oldest, stale_share = evidence_vintage(sc)
+    if median is not None:
+        lines.append(f" Evidence: median {median} · oldest {oldest} · "
+                     f"{round(stale_share * 100)}% older than 6 weeks")
+
+    basis = sc.confidence.basis or ""
+    m = re.search(r"(\d+)", basis)
+    votes = f" ({m.group(1)} votes)" if m else ""
+    lines.append(f" Confidence: vote agreement {sc.confidence.level}{votes} — "
+                 f"agreement between raters, not evidence freshness")
+    return "\n".join(lines)
 
 
 def render_overall_status(sc: Scorecard) -> str:
@@ -153,21 +196,21 @@ def render_overall_status(sc: Scorecard) -> str:
         ]
     else:
         # cs may be a typed CategoryStatus model or a plain dict.
+        # F67: reason is no longer read here — it renders exactly once, in the
+        # STATE OF THE MARKET headline (brief.render_state_of_market).
         if isinstance(cs, dict):
             rating = cs.get("rating", "—")
             direction = cs.get("direction", "—")
             bottleneck = cs.get("bottleneck", "—")
-            reason = cs.get("reason", "—")
         else:
             rating = getattr(cs, "rating", "—")
             direction = getattr(cs, "direction", "—")
             bottleneck = getattr(cs, "bottleneck", "—")
-            reason = getattr(cs, "reason", "—")
         arrow = DIRECTION_ARROW.get(str(direction), "")
         lines += [
             f"  Status:     {rating}  {arrow} {direction}".rstrip(),
             f"  Bottleneck: {bottleneck}",
-            f"  Reason:     {reason}",
+            "  Reason:     see State of the Market above",
         ]
     return "\n".join(lines)
 
@@ -342,9 +385,18 @@ def render_price_track(track: PriceTrack) -> str:
     """Render PRICE TRACK — the Price Momentum overlay (F49): per-series levels + Δ vs
     prior, and a PMI computed over matched series only. Displayed beside DMI/SMI, never
     blended into them. Omit the whole section when the scorecard has no price series —
-    honest absence, not a placeholder (render_report drops the resulting empty string)."""
+    honest absence, not a placeholder (render_report drops the resulting empty string).
+
+    F67 Task 8 (dead-metric fold): when every series lacks a matched-prior delta AND
+    there is no PMI (i.e. nothing has two matched cycles yet), the per-series dash rows
+    ("Δ vs prior: —" on every line) are dead weight — fold them into one honest line
+    instead. The moment at least one series has a matched delta (track.pmi is no longer
+    None), the detailed per-series rows return."""
     if not track.series:
         return ""
+    if track.pmi is None and all(s.delta is None for s in track.series):
+        return (f"PRICE TRACK\n  {len(track.series)} price series captured; "
+                f"day-over-day change needs two matched cycles")
     lines = ["PRICE TRACK  (overlay — displayed, never blended into DMI/SMI)"]
     for s in track.series:
         if s.delta is None:
@@ -577,17 +629,47 @@ def render_coverage_gaps(sc: Scorecard) -> str:
     return "\n".join(lines)
 
 
-def render_trust_footer(sc: Scorecard, prior: Optional[Scorecard]) -> str:
-    """TRUST & COVERAGE: the existing caveat (brief.render_market_caveat, untouched) plus
-    a small raw-index table — DMI/SMI/SDGI value, Δ vs prior, and the prior cycle's band
-    word (gpu_agent.bands) — appended below it.
+def render_trust_footer(sc: Scorecard) -> str:
+    """TRUST & COVERAGE: the one honest caveat (brief.render_market_caveat) — read
+    direction, not level. Renders above reader.APPENDIX_DIVIDER, so it carries no raw
+    index numbers or off-allowlist acronyms.
 
-    Task 4 (5-2 output surgery): STATE OF THE MARKET now speaks bands only (Part 17,
-    words first); this footer table is the ONLY place the raw DMI/SMI/SDGI numbers
-    appear anywhere in the report, so a reader who wants the underlying number instead
-    of the word still has it, just demoted below the fold.
+    F67 Task 8 (controller item 1): the raw-index table this footer used to carry below
+    the caveat has moved to its own appendix section (render_raw_indices, below the
+    divider) — DMI/SMI/SDGI are off the exec acronym allowlist and never belonged above
+    the fold in the first place.
+
+    Final-review addition (spec §1 row 8): two evidence-trust lines below the caveat,
+    both reader.TIER_LABEL-worded (never the bare "primary"/"secondary" words, which the
+    above-the-fold jargon lint bans) — an Evidence line (finding count + evidence-item
+    tier split) always renders; a Thin evidence line (counts only, no dimension names,
+    no jargon words) renders only when at least one of the six dimensions is not grounded,
+    reusing the exact is_grounded rule render_dimensions/render_coverage_gaps use.
     """
-    caveat = brief.render_market_caveat(sc)
+    lines = [brief.render_market_caveat(sc)]
+    n = len(sc.findings)
+    primary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "primary")
+    secondary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "secondary")
+    lines.append(
+        f"  Evidence: {n} finding{'s' if n != 1 else ''} — {primary_n} evidence items "
+        f"from {reader.TIER_LABEL['primary']}, {secondary_n} from {reader.TIER_LABEL['secondary']}"
+    )
+    under_count = sum(
+        1 for dim in DIMENSIONS
+        if not (_dim_evidence_status(sc, dim)[0] == "grounded" and sc.dimensionRatings.get(dim) is not None)
+    )
+    if under_count:
+        lines.append(f"  Thin evidence: {under_count} of 6 dimensions (detail in appendix)")
+    return "\n".join(lines)
+
+
+def render_raw_indices(sc: Scorecard, prior: Optional[Scorecard]) -> str:
+    """Appendix-only: the raw DMI/SMI/SDGI numbers — value, Δ vs prior, and the prior
+    cycle's band word (gpu_agent.bands) — one row per index. Renders below
+    reader.APPENDIX_DIVIDER (F67 Task 8 split out of render_trust_footer): DMI/SMI/SDGI
+    are off the exec acronym allowlist, so a reader who wants the underlying number
+    instead of the band word finds it here, demoted below the fold; content is
+    unchanged from the table this replaces in the old trust footer."""
     dmi = sc.demandSupply.dmiContribution
     smi = sc.demandSupply.smiContribution
     sdgi = compute_sdgi(sc)
@@ -595,12 +677,30 @@ def render_trust_footer(sc: Scorecard, prior: Optional[Scorecard]) -> str:
     p_smi = prior.demandSupply.smiContribution if prior is not None else None
     p_sdgi = compute_sdgi(prior) if prior is not None else None
 
-    lines = [caveat, "  Raw indices (DMI/SMI/SDGI):"]
+    lines = ["Raw indices (DMI/SMI/SDGI):"]
     for label, value, prior_value in (
         ("DMI", dmi, p_dmi), ("SMI", smi, p_smi), ("SDGI", sdgi, p_sdgi),
     ):
         was = f"(was {bands.band_word(prior_value).upper()})" if prior_value is not None else "(no prior)"
         lines.append(f"    {label} {value:.3f}  Δ {_fmt_delta(value, prior_value)}  {was}")
+    return "\n".join(lines)
+
+
+def render_citation_map(sc: Scorecard) -> str:
+    """Appendix-only CITATION MAP (spec §1 row 9): one line per finding id -> the tier,
+    date, and (truncated) source of that finding's FIRST evidence item, sorted by
+    finding id. This is where the full finding-id -> source/date/tier map lives — THE
+    CALLS / WHY compress citations to counts above the fold (reader contract: never dump
+    ids), so a reader who wants to trace a specific id back to its source finds it here.
+    "" when there are no findings (render_report drops the resulting empty string)."""
+    if not sc.findings:
+        return ""
+    lines = ["CITATION MAP"]
+    for f in sorted(sc.findings, key=lambda f: f.id):
+        if not f.evidence:
+            continue
+        ev = f.evidence[0]
+        lines.append(f"  {f.id}  {ev.tier}  {ev.date}  {ev.source[:60]}")
     return "\n".join(lines)
 
 
@@ -614,6 +714,7 @@ def render_report(
     movement=None,
     thesis_book=None,
     thesis_last_findings=None,
+    daily: bool = False,
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -621,14 +722,23 @@ def render_report(
     with a blank line. ``render_ts`` is injected (the clock is only read here when
     the caller passes None) so output is byte-identical for identical inputs.
 
-    Task 4 (5-2 output surgery) page order — "the page tells you something": HEADER ->
-    THE CALLS (the standing thesis book, leading) -> STATE OF THE MARKET (words-first
-    BLUF) -> WHY (drivers -> constraints, projected from the same book) -> WHAT MOVED ->
-    DEMAND|SUPPLY board -> STORYLINES -> PRICE TRACK -> ENTITY PANEL -> EVIDENCE QUALITY
-    -> SOURCES -> COVERAGE GAPS -> TRUST & COVERAGE (+ the raw index table). The legacy
-    OVERALL CATEGORY STATUS / DIMENSION RATINGS detail sections still render (unchanged),
-    slotted after PRICE TRACK; the old DEMAND / SUPPLY MOMENTUM raw-index section is
-    retired — its numbers now live only in the TRUST & COVERAGE footer table.
+    F67 Task 8 (output contract, inverted pyramid) page order — the brief is one fixed
+    section order, everything either earns its place above the fold or folds to one
+    honest line: HEADER -> STATE OF THE MARKET (words-first BLUF) -> WHAT MOVED (the
+    diff vs prior) -> THE CALLS (the standing thesis book) -> WHY (drivers ->
+    constraints, projected from the same book) -> DEMAND|SUPPLY board -> STORYLINES ->
+    TRUST & COVERAGE (the one honest caveat) -> reader.APPENDIX_DIVIDER -> OVERALL
+    CATEGORY STATUS -> DIMENSION RATINGS -> the raw DMI/SMI/SDGI index table -> PRICE
+    TRACK -> ENTITY PANEL -> EVIDENCE QUALITY -> SOURCES -> COVERAGE GAPS -> the full
+    CITATION MAP. Everything below the divider is internal/technical detail (raw index
+    acronyms, ids); everything above it passes reader.lint_acronyms + the label-map
+    jargon ban (spec §2a) — a TSMC executive with zero repo knowledge can read the top
+    half start to finish.
+
+    ``daily`` (F67 §4): the daily cadence shares this exact renderer/order — "one
+    renderer, so monthly and daily cannot drift apart" — but swaps STATE OF THE MARKET
+    and WHAT MOVED so the daily leads with the diff (its natural content); everything
+    else, including the appendix, is untouched.
 
     Args:
         sc: the current scorecard to render.
@@ -644,27 +754,36 @@ def render_report(
             (read from theses/<categoryId>/history.jsonl by the caller — the book itself
             does not store them); feeds THE CALLS' cited-evidence line and, per spec §4,
             every WHY driver/Contested line's trailing findingIds citation.
+        daily: when True, lead with WHAT MOVED instead of STATE OF THE MARKET (F67 §4).
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
 
     track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
 
-    sections = [
+    top = [
         render_header(sc, render_ts),
-        brief.render_the_calls(thesis_book, sc, thesis_last_findings),   # NEW — leads the page
-        brief.render_state_of_market(sc, prior, track),    # words-first BLUF rework
-        brief.render_why(thesis_book, thesis_last_findings),  # NEW — drivers -> constraints
+        brief.render_state_of_market(sc, prior, track),       # words-first BLUF
         brief.render_what_moved(movement),
-        brief.render_demand_supply_board(sc, horizons),
+        brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
+        brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
+        brief.render_demand_supply_board(sc, horizons, registry=registry),
         brief.render_storylines(movement),
-        render_price_track(track),                # F49, omitted (returns "") with no price series
+        render_trust_footer(sc),                              # the one honest caveat
+    ]
+    if daily:   # F67 §4: the daily's headline is the diff
+        top[1], top[2] = top[2], top[1]
+
+    appendix = [
+        reader.APPENDIX_DIVIDER,
         render_overall_status(sc),
         render_dimensions(sc, prior),
+        render_raw_indices(sc, prior),      # off-allowlist DMI/SMI/SDGI, demoted below the fold
+        render_price_track(track),          # F49, omitted (returns "") with no price series
         render_entity_panel(sc),
         render_evidence_quality(sc, registry),
         render_sources(sc),
         render_coverage_gaps(sc),
-        render_trust_footer(sc, prior),                   # trust footer caveat + raw index table
+        render_citation_map(sc),            # spec §1 row 9: full finding id -> source/date/tier map
     ]
-    return "\n\n".join(s for s in sections if s)
+    return "\n\n".join(s for s in top + appendix if s)

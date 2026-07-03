@@ -110,9 +110,12 @@ def _find_all(haystack: str, needle: str) -> list[int]:
 # ── 1. section order ──────────────────────────────────────────────────────────
 
 def test_section_order_calls_state_why_moved_trust():
+    # F67 Task 8 superseded this order: STATE OF THE MARKET now leads (words-first
+    # BLUF), then WHAT MOVED, THE CALLS, WHY, then TRUST & COVERAGE last (all above
+    # reader.APPENDIX_DIVIDER).
     out = render_report(_rich_sc(), None, _reg(), render_ts="fixed", thesis_book=_book())
-    assert (out.index("THE CALLS") < out.index("STATE OF THE MARKET")
-            < out.index("WHY") < out.index("WHAT MOVED") < out.index("TRUST & COVERAGE"))
+    assert (out.index("STATE OF THE MARKET") < out.index("WHAT MOVED")
+            < out.index("THE CALLS") < out.index("WHY") < out.index("TRUST & COVERAGE"))
 
 
 # ── 2. raw index demotion + words-first STATE ─────────────────────────────────

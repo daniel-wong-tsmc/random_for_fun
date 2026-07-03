@@ -297,6 +297,53 @@ def _emit_judge_prompt(args) -> int:
     return 0
 
 
+def _voice_lint_samples(raw_answers: list) -> list[str]:
+    """F67: analyst-voice lint over a batch of recorded JudgmentResult samples (each a JSON
+    string -- RecordedClient's replay shape). Shared by `judge --recorded` and
+    `pipeline --recorded-judge`: both replay the same brain-answer shape into judge_findings/
+    build_scorecard, so both must gate brain-written prose BEFORE it reaches a scorecard or
+    the lint is dead code in the live cycle (which never calls `judge --recorded` directly --
+    see .claude/skills/run-cycle/SKILL.md). Returns violations only; callers decide how to
+    report/exit so both call sites keep their own `voice-lint:` stderr framing.
+
+    Final-review addition: each violation is prefixed with `sample {i+1}: ` (1-based,
+    dispatch order) so a multi-sample failure (--samples 3+) tells the coordinating
+    session WHICH recorded answer to re-dispatch, not just what the violation was."""
+    from gpu_agent import reader
+    from gpu_agent.schema.scorecard import DIMENSIONS
+    violations: list[str] = []
+    for i, raw in enumerate(raw_answers):
+        sample = json.loads(raw)
+        prefix = f"sample {i + 1}: "
+        sample_violations: list[str] = []
+        sample_violations += reader.lint_prose(sample.get("narrative", ""), "narrative",
+                                               max_sentences=3)
+        for dim, d in (sample.get("dimensions") or {}).items():
+            sample_violations += reader.lint_prose(d.get("rationale", ""), f"{dim}.rationale",
+                                                    max_sentences=2)
+        cs = sample.get("categoryStatus") or {}
+        sample_violations += reader.lint_prose(cs.get("reason", ""), "categoryStatus.reason")
+        label = cs.get("constraintLabel")
+        if label:
+            if label in DIMENSIONS or "bottleneck" in label.lower():
+                sample_violations.append("categoryStatus.constraintLabel: must name the concrete "
+                                         "constraint, not a dimension")
+            if len(label.split()) > 6:
+                sample_violations.append("categoryStatus.constraintLabel: over 6 words")
+        violations += [prefix + v for v in sample_violations]
+    return violations
+
+
+def _report_voice_violations(violations: list[str]) -> int:
+    """Print every voice-lint violation (one `voice-lint: ` line each -- the run-cycle skill
+    greps that prefix) and return the shared failure exit code. Extracted from the two
+    `judge --recorded` / `pipeline --recorded-judge` call sites, which were otherwise
+    identical four-line print+return-1 blocks."""
+    for v in violations:
+        print(f"voice-lint: {v}", file=sys.stderr)
+    return 1
+
+
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
@@ -311,6 +358,13 @@ def _judge(args) -> int:
             print(f"gpu-agent judge: error: recorded answers ({len(answers)}) != samples ({args.samples})",
                   file=sys.stderr)
             return 2
+        # F67: lint each recorded sample's brain-written prose BEFORE the gate/apply
+        # (judge_findings below) so a violating recorded answer fails loud instead of
+        # silently producing exec-facing copy that breaks the analyst-voice rules.
+        if not args.no_voice_lint:
+            violations = _voice_lint_samples(answers)
+            if violations:
+                return _report_voice_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
@@ -432,7 +486,16 @@ def _pipeline(args) -> int:
     if dropped:
         print(f"gate dropped {len(dropped)} finding(s)", file=sys.stderr)
     if args.recorded_judge:
-        jdg_client = RecordedClient(json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8")))
+        judge_answers = json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8"))
+        # F67: the live cycle never calls `judge --recorded` directly -- it produces the
+        # scorecard via this --recorded-judge path (see .claude/skills/run-cycle/SKILL.md),
+        # so the analyst-voice lint has to gate here too, before judge_findings/build_scorecard
+        # below, or the lint added in judge --recorded never runs in production.
+        if not args.no_voice_lint:
+            violations = _voice_lint_samples(judge_answers)
+            if violations:
+                return _report_voice_violations(violations)
+        jdg_client = RecordedClient(judge_answers)
     else:
         jdg_client = make_client(args.backend)
     a = load_assignment(args.assignment)
@@ -557,7 +620,8 @@ def _report(args) -> int:
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
                          horizons=horizons, movement=movement,
-                         thesis_book=thesis_book, thesis_last_findings=thesis_last_findings)
+                         thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
+                         daily=getattr(args, "daily", False))
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -637,6 +701,8 @@ def main(argv=None) -> int:
     jg.add_argument("--model", default="claude-opus-4-8")
     jg.add_argument("--backend", default="claude_code")
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
+    jg.add_argument("--no-voice-lint", action="store_true",
+                    help="skip the F67 analyst-voice lint (legacy recorded fixtures)")
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--persona", default=None,
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")
@@ -667,6 +733,8 @@ def main(argv=None) -> int:
     pl.add_argument("--backend", default="claude_code")
     pl.add_argument("--recorded-extract", default=None)
     pl.add_argument("--recorded-judge", default=None)
+    pl.add_argument("--no-voice-lint", action="store_true",
+                    help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
     cp = sub.add_parser("cycle-plan")
     cp.add_argument("--scope", required=True,
                     help="category:<id> | layer:<id> | all")
@@ -684,6 +752,9 @@ def main(argv=None) -> int:
     rp.add_argument("--render-ts", default=None,
                     help="fix the report's render timestamp (ISO-8601) for byte-reproducible output; "
                          "default: current UTC time")
+    rp.add_argument("--daily", action="store_true",
+                    help="daily cadence: lead with WHAT MOVED instead of STATE OF THE MARKET "
+                         "(F67 §4; same renderer/section order otherwise)")
     # --prior and --no-prior are mutually exclusive: passing both is a usage error.
     grp = rp.add_mutually_exclusive_group()
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")

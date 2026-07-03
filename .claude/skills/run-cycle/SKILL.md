@@ -114,6 +114,14 @@ scores, and writes the scorecard:
 ```
 Expected: `wrote store/<id>/<asOf>-v<n>.json  DMI=... SMI=...`. Record the path + DMI/SMI.
 
+If the scorecard command exits non-zero with `voice-lint:` lines (`pipeline --recorded-judge` in
+the live path; `judge --recorded` when used standalone), re-dispatch ONLY the violating sample(s),
+each as its own SEPARATE tool-less subagent (never one subagent covering multiple samples — the
+F38 anti-correlation rule above still applies), with the `voice-lint:` lines appended to the
+prompt ("fix these violations; change nothing else"). If the lint fails again, run the same
+command with `--no-voice-lint`, log `voice-lint: bypassed` in the cycle log, and continue — the
+lint never blocks a scorecard, it only demands one rewrite attempt.
+
 **(e) Thesis — Claude Code is the brain.** After the scorecard is written, emit the canonical thesis-book
 prompt from this cycle's gated findings (this seeds the store with the category's standing theses on its
 first run):
@@ -149,7 +157,7 @@ thesis stage have run for this category, render and surface the board-ready repo
   --scorecard store/<id>/<asOf>-v<n>.json \
   --store store
 ```
-THE CALLS, the page's lead section, is loaded straight from `--store`'s just-updated thesis book (why the
+THE CALLS section is loaded straight from `--store`'s just-updated thesis book (why the
 report step must run after the thesis stage above) — with no theses store yet it renders its honest empty state.
 This prints the full board-ready report to the session — the overall category status, all six dimensions
 (with any `under-supported` dimension shown, never dropped — Part 18 #8), DMI/SMI/**SDGI** with a plain-language
@@ -157,6 +165,20 @@ read and **Δ vs the prior cycle**, the per-entity panel, evidence quality per d
 the coverage/skip gaps. Surface the report text alongside the scorecard path in the cycle log. It is a pure
 projection of the saved scorecard (`report` never edits canonical state — Part 35), so it replays for $0.
 *(If `gpu-agent report` is unavailable in an older checkout, skip this step and log it as deferred.)*
+
+**Session-output rule (F67).** The session's FINAL message for a cycle is the rendered
+report VERBATIM plus at most three run-health lines (docs gathered/kept, dedup
+new/update/duplicate, caps tripped or stages failed). Reference gather logs, prompts,
+and dedup detail by file path only — never paste them. Before sending, apply the
+stop-slop skill's rules to any prose the session itself writes around the report (the
+report text is deterministic and must not be edited).
+
+Scope note: for a single-category run, the final message is that category's rendered report
+verbatim, the ≤3 run-health lines, and Step 7's status items (scope, thesis stage status,
+deferred stages) folded into ONE compact footer list. For `layer:`/`all` runs, the final message
+is each category's rendered report verbatim in sequence, followed by Step 7's aggregate summary
+as the closing section — the per-report verbatim rule and Step 7's aggregate view compose, they
+do not replace each other.
 
 If the gate or judgment rejects the answer (non-zero exit / `JudgmentError`), **re-dispatch** the relevant
 brain subagent with the error once or twice; if it still fails, mark this category **failed (logged)** in the
@@ -212,9 +234,16 @@ lint:
 (UPDATEs are exactly the material moves 4-4b's lint ranks.) Judgment/score/thesis/report (Step 3 c–f) proceed
 as usual over the category's docs when a scorecard is wanted.
 
-**(report-daily)** Alongside the scorecard path, report the **DedupReport counts** (new / update / duplicate) and
-the gather-log **`droppedKnown`** — the honest "what the daily sweep actually brought in vs dropped as noise"
-line (Part 29). The seen-doc index + snapshots + DedupReport make the daily cycle replayable (Part 20).
+**(report-daily)** When Step 3(f) renders the report for a daily cycle, pass `--daily`:
+```
+.venv/Scripts/python -m gpu_agent.cli report \
+  --scorecard store/<id>/<asOf>-v<n>.json \
+  --store store --daily
+```
+the daily brief leads with WHAT MOVED (F67 §4). Alongside the scorecard path, report the **DedupReport counts**
+(new / update / duplicate) and the gather-log **`droppedKnown`** — the honest "what the daily sweep actually
+brought in vs dropped as noise" line (Part 29). The seen-doc index + snapshots + DedupReport make the daily
+cycle replayable (Part 20).
 
 The non-daily (standard live/recorded) path is unchanged: no `--dedup-store`, no `wiki-dedup` step.
 

@@ -55,7 +55,7 @@ def test_snapshot_feeds_brain_to_gate_valid_scorecard(tmp_path):
     rc = main(["pipeline", "--docs", str(docs), "--assignment", ASSIGN,
                "--as-of", "2026-06", "--captured-at", "2026-06-12T00:00:00Z", "--samples", "3",
                "--recorded-extract", str(rec_extract), "--recorded-judge", str(rec_judge),
-               "--out", str(store)])
+               "--no-voice-lint", "--out", str(store)])
     assert rc == 0
     written = list((store / "chips.merchant-gpu").glob("2026-06-v*.json"))
     assert written, "pipeline wrote no scorecard"

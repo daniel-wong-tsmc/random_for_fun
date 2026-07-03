@@ -31,5 +31,9 @@ def _sc(dmi: float = 0.05, smi: float = 0.02) -> Scorecard:
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 def test_market_caveat_reads_direction_not_level():
+    # F67 Task 8: reworded to drop internal jargon ("the 4-4 memory") and the
+    # off-allowlist all-caps word ("DIRECTION" -> "direction") — this caveat renders
+    # above reader.APPENDIX_DIVIDER and must pass the acronym lint.
     out = render_market_caveat(_sc())
-    assert "read DIRECTION, not level" in out
+    assert "read direction, not level" in out
+    assert "4-4 memory" not in out

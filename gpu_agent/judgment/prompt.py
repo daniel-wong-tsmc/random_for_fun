@@ -16,10 +16,25 @@ will mark an omitted dimension as under-supported.
 Also produce ONE overall categoryStatus: an analyst's read of the dimensions together (NOT an
 average). It names the single dimension that is the binding constraint right now (the bottleneck).
 
+Also set categoryStatus.constraintLabel: a plain-language name (at most 6 words) for the
+concrete physical or market constraint, e.g. "CoWoS/HBM3E advanced packaging" — NEVER a
+dimension name and never the word "bottleneck".
+
+VOICE (binding — a deterministic lint rejects violations): the reader is a TSMC executive
+with no knowledge of this system. The narrative is exactly three sentences: (1) the state
+and why now; (2) the crux — the one or two questions that decide the next rating change;
+(3) the watch item — what would most likely change this picture and where it would show
+first. Each dimension rationale is at most two sentences and names the deciding evidence,
+not a list of everything. Write in active voice with concrete nouns. Never use indicator
+ids (D2, S10, rpoBacklog), finding ids, index acronyms (DMI, SMI, SDGI, PMI), or the
+words delve/crucial/pivotal/robust/landscape. No "not X but Y" constructions. Avoid
+hedged pairs ("strong but risks remain") unless the same sentence says which side wins
+and why.
+
 Return ONLY a JSON object of the form:
 {"dimensions": {"<dimension>": {"rating","direction","findingIds","rationale"}, ...},
- "categoryStatus": {"rating","direction","bottleneck","reason"},
- "narrative": "<two or three sentences>"}
+ "categoryStatus": {"rating","direction","bottleneck","reason","constraintLabel"},
+ "narrative": "<exactly three sentences>"}
 rating uses the five-word scale; direction is one of improving|steady|worsening; bottleneck is one
 of the six dimension names. Do not invent findings or numbers; cite only ids present below. Output
 JSON only, no prose, no code fences.

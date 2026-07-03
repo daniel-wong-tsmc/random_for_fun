@@ -16,7 +16,7 @@ PIPELINE_ARGS = [
     "--assignment", "fixtures/asg.chips.merchant-gpu.json",
     "--captured-at", "2026-06-12T00:00:00Z", "--samples", "3",
     "--recorded-extract", "fixtures/recorded/extract-nvda.json",
-    "--recorded-judge", "fixtures/recorded/judge-nvda.json",
+    "--recorded-judge", "fixtures/recorded/judge-nvda.json", "--no-voice-lint",
 ]
 
 

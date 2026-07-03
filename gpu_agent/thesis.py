@@ -688,6 +688,12 @@ You may also propose new theses grounded in findings that fit no standing thesis
 
 Ground every judgment and proposal in the findings below; cite only finding ids present below in findingIds, and do not invent findings or ids.
 
+VOICE (binding — the reader is a TSMC executive with no knowledge of this system): statement is
+exactly one sentence; mechanism is exactly one sentence. Both are plain language, active voice, with
+concrete nouns. Never use delve/crucial/pivotal/robust/landscape. Indicator ids (D2, S10, rpoBacklog,
+...) belong ONLY in falsifiableTrigger — the gate requires an observable there — and must never appear
+in statement, mechanism, or title.
+
 Return ONLY a JSON object of the form:
 {"judgments": [{"thesisId","verdict","rationale","findingIds","mechanism","falsifiableTrigger","sensitivity"}, ...],
  "proposed": [{"title","statement","lens","rationale","findingIds","mechanism","falsifiableTrigger","sensitivity"}, ...]}

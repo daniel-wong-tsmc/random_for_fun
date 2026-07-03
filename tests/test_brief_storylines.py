@@ -31,8 +31,8 @@ def test_storylines_two_groups_arrows_and_order():
                salience=0.3, provisional=True),
     ])
     out = render_storylines(mv)
-    assert "REGISTERED (canonical)" in out
-    assert "PROVISIONAL (confidence-capped)" in out
+    assert "ESTABLISHED" in out
+    assert "EARLY (not yet corroborated)" in out
     lines = out.splitlines()
     # registered ordered by salience desc: NVIDIA moat (0.9) before AMD (0.5)
     assert lines.index("    • NVIDIA moat  intact → eroding  (last updated 2026-07)  ▼") \
@@ -54,6 +54,6 @@ def test_storylines_empty_index_note():
 
 def test_storylines_one_group_empty_note():
     out = render_storylines(_mv(storylines=[_story(title="AMD")]))  # only registered
-    assert "REGISTERED (canonical)" in out and "• AMD" in out
-    assert "PROVISIONAL (confidence-capped)" in out
-    assert "(none)" in out   # empty provisional group
+    assert "ESTABLISHED" in out and "• AMD" in out
+    assert "EARLY (not yet corroborated)" in out
+    assert "(none tracked yet)" in out   # empty provisional group

@@ -1,26 +1,47 @@
-# HANDOFF — GPU Category Agent (resume point: F52–F54 merged; F57–F67 review logged with an APPROVED SEQUENCE; a second instance is actively working the output contract F67)
+# HANDOFF — GPU Category Agent (resume point: F67 MERGED; F6 eval harness BUILT+REVIEWED on branch `f6-eval-harness`, merge awaiting the user; then Task 10 live baseline)
 
-- **Date:** 2026-07-03 (third handoff refresh today)
+- **Date:** 2026-07-04
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 828 passed / 3 skipped — verified on main @ `19db04f` before this refresh.**
+- **Suite 873 passed / 3 skipped on main @ `d2fde87`; 910 passed / 5 skipped on branch
+  `f6-eval-harness` @ `20a62a1` (the 2 extra skips are the F6 baseline-pin tests, armed at Task 10).**
 
-## ⚠ CONCURRENT-INSTANCE COORDINATION (read before touching anything)
+## ⚠ CONCURRENT-INSTANCE COORDINATION — RESOLVED
 
-A SECOND Claude Code instance is actively engineering the GPU-agent OUTPUT in this same
-checkout (F67 — reader contract: TSMC-exec vocabulary, acronym allowlist lint, stop-slop in
-brain prompts; spec `docs/superpowers/specs/2026-07-03-output-contract-design.md`, committed
-`bbbe61e` + `19db04f`). Until it finishes:
-- **Do NOT touch the output surface:** `gpu_agent/brief.py`, `gpu_agent/report.py`, prompt
-  files, or anything the F67 spec claims. That includes holding off on **F61** (it edits
-  report.py — likely partially subsumed by F67 anyway; re-scope F61 after F67 lands).
-- **Completion signal:** it writes `.superpowers/handoffs/output-engineering-DONE.md` as its
-  last step. If that file exists, read it + `git log` before planning; F67's landed state may
-  re-scope F61/F64/F65.
-- Safe to work meanwhile: anything off the output surface (F6 eval harness scoping, F56, F23–F25
-  prep) — check `git log` for its commits before every commit of your own; expect docs churn in
-  `docs/fix-backlog.md` and the specs dir.
+F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
+The output-surface hold is LIFTED. F61 was subsumed by F67 (staleness banner shipped in the renderer).
+
+## ⚠ IMMEDIATE PENDING DECISION (user)
+
+**F6 eval harness is complete on branch `f6-eval-harness` (pushed to origin), final opus review
+"Ready to merge = YES", but the merge to main needs the user's explicit go** (the session's
+auto-mode correctly refused an unattended merge while the user was AFK). To finish:
+`git merge f6-eval-harness` from repo root → re-run suite (expect 910/5) → push →
+`git worktree remove .worktrees/f6-eval-harness` → `git branch -d f6-eval-harness`.
+Then **F6 Task 10** (now UNBLOCKED, prompts are post-F67): follow `.claude/skills/run-eval/SKILL.md`
+— ~15 brain + ~20 grader tool-less Opus dispatches → `eval rebaseline` → commit
+`fixtures/evals/baseline.json` (arms the hash-pin gate; plan Task 10 has the full checklist,
+`docs/superpowers/plans/2026-07-04-f6-eval-harness.md`). Execution ledger with per-task review
+outcomes + deferred minors: `.superpowers/sdd/f6/progress.md`.
 
 ## Newest state (newest first)
+  - **F6 SECOND HALF BUILT (branch `f6-eval-harness` @ `20a62a1`, 15 commits, awaiting user merge).**
+    `gpu_agent/evals/` (cases/rubric/emit/prompt_hash/harness) + `eval` CLI
+    (emit-brain/record-brain/emit-grade/record-grade/rebaseline) + 18-case golden set curated from
+    the real July cycles (provenance spot-verified byte-exact; 4 anchor-decidable negatives) +
+    fixture-health tests + hash-pin regression-gate test (skips until baseline.json exists) +
+    `.claude/skills/run-eval` skill. Spec `docs/superpowers/specs/2026-07-04-f6-eval-harness-design.md`,
+    plan + Task-10 checklist `docs/superpowers/plans/2026-07-04-f6-eval-harness.md`. Post-F67
+    alignment done on-branch: main merged in (`57be83c`), eval judge brain-gate mirrors the live
+    voice lint, 4 pre-F67 judge positives re-pinned gateOutcome=reject (documented). Comparison
+    rule: per-seam mean ≥ incumbent, TIES PASS. **Decision provenance: user approved scope/
+    architecture/spec + chose subagent-driven execution; user was AFK at the finish-branch gate —
+    merge deliberately left for the user (see pending-decision section).**
+  - **F67 output contract MERGED (`b0e8061`, suite 873/3 on main).** Reader vocabulary layer
+    (`gpu_agent/reader.py` + `registry/acronyms.json`), voice lint fail-loud on `judge --recorded`
+    + `pipeline --recorded-judge` (`--no-voice-lint` bypass), exec-readable renderer (BLUF, appendix
+    divider, zero raw ids above it), run-cycle session-output rule. Read
+    `.superpowers/handoffs/output-engineering-DONE.md` for the delivered list + F68 follow-ups
+    logged in the backlog.
   - **F52/F53/F54 DONE (branch f52-f53-f54 merged, 5 commits `2a2dae7..2c070f4`; final opus
     review: Ready to merge, no Critical/Important).** F52: docIds vintage-scoped at the gather
     seam (`{slug}-{digest}-{asOf}`; `ingest --as-of` required; finding ids inherit; L1 url+hash
@@ -69,12 +90,10 @@ brain prompts; spec `docs/superpowers/specs/2026-07-03-output-contract-design.md
 ## IMMEDIATE NEXT TASK — the APPROVED SEQUENCE (user-approved 2026-07-03; full context in
 ## docs/fix-backlog.md's F57–F66 section header — do not re-derive or re-ask)
 
-Quick wins, independent: **F61** (staleness banner — BUT held until F67 lands, see coordination
-above) and **F56** (tiny, --as-of shape validation).
+Quick wins, independent: **F56** (tiny, --as-of shape validation). F61 is DONE (subsumed by F67).
 Then in order — each feature starts with brainstorming, per charter:
-0. **F6 second half (STEP 0 — gates all prompt changes downstream):** eval harness — ~20
-   recorded-cycle golden set graded by a brief rubric + prompt-change regression gate.
-   Separate sub-project: brainstorm → spec → plan.
+0. **F6 second half — BUILT, see pending-decision section above.** Remaining: user merge + Task 10
+   live baseline (arms the hash-pin gate that F57/F58/F62/F63 prompt changes depend on).
 1. **F62** — flagship consumes the daily store (highest-leverage; the monthly brief currently
    discards everything the dailies learned). Interacts with F52 vintage ids + L2 dedup.
 2. **F63** — corroboration doctrine (N independent secondary publishers move one bounded step)

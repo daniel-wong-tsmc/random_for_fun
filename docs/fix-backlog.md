@@ -192,7 +192,7 @@
   rollup in code as a third, clearly-labeled confirmation track beside DMI/SMI — displayed, never
   blended (charter Part 17's overlay, formalized). Needs the F8 polarity-0 rule already in.
   *(Wave 2, Lane F)*
-- [ ] **F52 — Vintage-scoped finding ids** (born from the sub-project-5 integration gate,
+- [x] **F52 — Vintage-scoped finding ids** (born from the sub-project-5 integration gate,
   2026-07-03 daily cycle). Finding ids are `docId-<n>` and docIds derive from the URL, so a URL
   re-gathered on a later day (a daily price page, a re-excerpted news article) reuses prior-cycle
   finding ids; when content differs, the append-only FindingStore's collision check fails loud in
@@ -200,13 +200,20 @@
   url+hash known-check cannot catch it because gatherer excerpts vary run-to-run. Scope the finding
   id (or docId) by asOf/vintage, or make L1 url-aware for static-content sources. The 2026-07-03
   cycle worked around it with a logged wiki-ingest exclusion (`work/daily-2026-07-03/
-  ingest-exclusions.json`); scorecard path unaffected. *(Next wave)*
-- [ ] **F53 — Cross-cycle indicator consistency for price rows** (born from the same gate). The
+  ingest-exclusions.json`); scorecard path unaffected. *(DONE 2026-07-03: vintage-scoped
+  docIds at the gather seam — `{slug}-{digest}-{asOf}`; `ingest --as-of` now required;
+  finding ids inherit via the existing `{docId}-{n}` stamp; L1 url+hash unchanged, so
+  unchanged content is still skipped cross-day. Spec
+  docs/superpowers/specs/2026-07-03-f52-f53-f54-small-fixes-design.md)*
+- [x] **F53 — Cross-cycle indicator consistency for price rows** (born from the same gate). The
   07-02 extraction labeled marketplace price levels `D6`; 07-03's labeled them `gpuSpotPrice` —
   both registered price indicators, so the F49/F51 per-series price track finds 0 matched series
   across the two cycles and PMI renders `—`. Pin ONE indicator id per price-source class in
   extraction guidance (or normalize at price-track level) so day-over-day deltas can ever compute.
-  *(Next wave)*
+  *(DONE 2026-07-03: both halves — the extractor seam rejects a measured price-side row whose
+  value.unit != the registered canonical unit (catches the mislabel AND free-text unit drift,
+  loud → re-dispatch), and `extract --emit-prompt` lists the registry's price-side ids +
+  canonical units, F55 pattern. tests/test_extractor_price_unit.py)*
 - [x] **F55 — Emitted prompts carry the id vocabularies the gates enforce. DONE (session,
   2026-07-03).** Born from BOTH live cycles on the sp5 stack: each coordinating session had to
   hand the brains the valid taxonomy ids (extraction impact.targets) and the judge citation
@@ -218,13 +225,16 @@
   thesis SYSTEM states the v1 observable heuristic verbatim instead of letting the brain
   discover it by rejection. All default paths byte-identical (F26/F4 additive pattern);
   `judge_findings`' frozen internal path untouched. tests/test_prompt_vocab.py. *(DONE)*
-- [ ] **F54 — Seed thesis triggers should pass the gate heuristic they will be judged under**
+- [x] **F54 — Seed thesis triggers should pass the gate heuristic they will be judged under**
   (born from the same gate). Two committed seed triggers (`supply-constraint-binding`,
   `custom-asic-substitution`) name no observable under the thesis gate's v1 heuristic; the brain
   echoing them back verbatim was correctly rejected and had to reword (e.g. "lead times" does not
   match the id `leadTimes`). Either upgrade the seed data's trigger prose to heuristic-passing
   form, or document that seeds are grandfathered DATA and only judgments are gated. One-file data
-  fix + a seed-lint test. *(Next wave — small)*
+  fix + a seed-lint test. *(DONE 2026-07-03: the two triggers reworded to heuristic-passing form
+  — semantics preserved, observables named ("2 consecutive quarters");
+  tests/test_seed_thesis_lint.py locks every seed trigger + depth field. Live store book
+  untouched: history.jsonl's seeded event embeds the entries.)*
 
 ---
 

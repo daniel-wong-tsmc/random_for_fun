@@ -63,6 +63,13 @@ def test_system_equals_build_system_invariant_still_holds():
     assert SYSTEM == build_system()
 
 
+def test_system_states_sufficiency_rule():
+    flat = " ".join(SYSTEM.split())
+    assert ("Changing a dimension rating or the binding constraint versus that prior state "
+            "requires cited findings with a primary source or at least 3 distinct publishers; "
+            "otherwise keep the prior rating.") in flat
+
+
 def test_system_crux_sentence_demands_consensus_departure():
     # F62 eval follow-up: the judge rubric awards sensitivity-differentiation only when the
     # narrative states where the read departs from consensus; the three-sentence budget must

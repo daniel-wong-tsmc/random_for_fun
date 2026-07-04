@@ -32,6 +32,7 @@ from gpu_agent.thesis import (
     ThesisAnswer, ThesisStore, apply_answer, gate_answer, seed_book,
     THESIS_SYSTEM, build_thesis_system, build_thesis_user_prompt)
 from gpu_agent.memory import build_memory_bundle, render_memory_text
+from gpu_agent.sufficiency import check_sufficiency
 from gpu_agent.gathering.ingest import normalize_documents
 from gpu_agent.gathering.dedup import (
     SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
@@ -404,6 +405,15 @@ def _report_voice_violations(violations: list[str]) -> int:
     return 1
 
 
+def _report_sufficiency_violations(violations: list[str]) -> int:
+    """Print every F63 evidence-sufficiency violation (one `sufficiency: ` line each --
+    the run-cycle skill greps that prefix, same re-dispatch loop as `voice-lint: `)
+    and return the shared failure exit code."""
+    for v in violations:
+        print(f"sufficiency: {v}", file=sys.stderr)
+    return 1
+
+
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
@@ -412,6 +422,7 @@ def _judge(args) -> int:
         return 2
     findings = [Finding.model_validate(d)
                 for d in json.loads(pathlib.Path(args.findings).read_text("utf-8"))]
+    registry, _ = _load_registry()
     if args.recorded:
         answers = json.loads(pathlib.Path(args.recorded).read_text("utf-8"))
         if len(answers) != args.samples:
@@ -425,10 +436,19 @@ def _judge(args) -> int:
             violations = _voice_lint_samples(answers)
             if violations:
                 return _report_voice_violations(violations)
+        # F63: evidence-sufficiency gate — rating/bottleneck changes vs the SAME
+        # prior-cycle MEMORY the emitted prompt carried need primary or >=N-publisher
+        # citations. No prior scorecard -> memory is None -> inert.
+        if not args.no_sufficiency:
+            horizons = IndicatorHorizons.load(REGISTRY_PATH)
+            memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
+                                         registry, horizons)
+            violations = check_sufficiency(answers, memory, {f.id: f for f in findings})
+            if violations:
+                return _report_sufficiency_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
-    registry, _ = _load_registry()
     bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
                             model=args.model, persona=getattr(args, "persona", None))
     out = pathlib.Path(args.out)
@@ -701,6 +721,21 @@ def _pipeline(args) -> int:
               f"fresh new {len(rep.freshNew)} update {len(rep.freshUpdate)} "
               f"duplicate {len(rep.freshDuplicate)} -> merged {len(findings)}",
               file=sys.stderr)
+    # F63: same sufficiency gate at the pipeline seam, placed here (after the F62 corpus
+    # merge above) rather than right next to the voice-lint check: `registry` and the
+    # MERGED `findings` -- the same findings_by_id the judge's citations resolve against
+    # -- aren't available until this point. Memory comes from the F62 corpus store when
+    # provided (the live cycle always passes --corpus-store); without it there is no
+    # prior-state source here -> inert, matching the memory-less legacy pipeline.
+    if args.recorded_judge and not args.no_sufficiency:
+        memory = None
+        if args.corpus_store:
+            horizons = IndicatorHorizons.load(REGISTRY_PATH)
+            memory = build_memory_bundle(args.corpus_store, a.category, args.as_of,
+                                         registry, horizons)
+        violations = check_sufficiency(judge_answers, memory, {f.id: f for f in findings})
+        if violations:
+            return _report_sufficiency_violations(violations)
     # F5: judge_findings' signature is frozen and builds its own prompt internally, so this
     # recorded-judge path threads no memory of its own -- the skill's live cycle gets prior-cycle
     # MEMORY via the `judge --emit-prompt --store ...` call in Step 3(c), whose emitted user
@@ -912,6 +947,8 @@ def main(argv=None) -> int:
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     jg.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint (legacy recorded fixtures)")
+    jg.add_argument("--no-sufficiency", action="store_true",
+                    help="skip the F63 evidence-sufficiency gate (legacy recorded fixtures)")
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--persona", default=None,
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")
@@ -954,6 +991,8 @@ def main(argv=None) -> int:
     pl.add_argument("--recorded-judge", default=None)
     pl.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
+    pl.add_argument("--no-sufficiency", action="store_true",
+                    help="skip the F63 evidence-sufficiency gate on --recorded-judge (legacy recorded fixtures)")
     pl.add_argument("--corpus-store", default=None,
                     help="store root; when given, merge the windowed store corpus (F62) "
                          "into the judged + scored findings")

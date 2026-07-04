@@ -181,7 +181,7 @@ Gate the answer into the thesis book (deterministic — this runs the gate plus 
 engine):
 ```
 .venv/Scripts/python -m gpu_agent.cli thesis --recorded <work>/thesis-answer.json \
-  --findings <work>/findings.json --store store --category <id> --as-of <asOf>
+  --findings <work>/corpus-findings.json --store store --category <id> --as-of <asOf>
 ```
 Expected: one `<id>: <verdict> applied=<bool> conviction=<level>` line per standing thesis, plus any
 proposal/promotion/retirement lines. If the gate rejects the answer (non-zero exit, violations printed to

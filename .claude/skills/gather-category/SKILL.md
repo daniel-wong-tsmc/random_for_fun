@@ -90,8 +90,10 @@ If no manifest: build only the standard entity×metric slices (original behavior
 > **Web-reach tools (complementary — charter Part 37).** In addition to WebSearch/web_fetch,
 > you have the tools in `registry/web-reach-tools.json` (e.g. `agent-reach`). Always run your
 > normal filing/open-web search **and**, where a registered tool covers the source type
-> (social posts, forum threads, video transcripts, RSS, global search), also query it. Tag
-> every web-reach-sourced blob tier `secondary`. For any claim originating from a
+> (social posts, forum threads, video transcripts, RSS, global search), also query it.
+> Web-reach output is ordinary open-web material — `ingest` stamps it `secondary` from the
+> URL domain (the gatherer never sets a tier field), unless the URL is on the primary
+> allowlist. For any claim originating from a
 > social/video/forum source: **(a) chase it toward a primary/official source** (filing,
 > official post) and prefer that as the citation; **(b) cross-reference it against ≥1 other
 > independent site** before treating it as corroborated — record in the blob whether a
@@ -219,7 +221,7 @@ to the standard procedure. Daily mode changes *what you seed and how you dedup*,
 the one frozen brain under the gate).
 
 ## Snapshot determinism
-`docs/` + `gather-log.json` (including `coverageGaps`) + `blobs.json` are the saved artifacts.
+`docs/` + `gather-log.json` (including `coverageGaps` and the `webReach` health block) + `blobs.json` are the saved artifacts.
 The brain re-runs on them for $0 and is fully auditable. A gather run that can't be replayed from
 its snapshot did not happen. In daily mode the `store/seen_docs.jsonl` L1 index + the `DedupReport` join the
 snapshot — together they make the day's NEW/UPDATE/DUPLICATE split fully replayable (Part 20).

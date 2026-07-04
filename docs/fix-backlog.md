@@ -434,7 +434,9 @@
   doctrine appended to charter **Part 37**, operator doc `docs/web-reach.md`. Frozen core
   untouched; **no scoring change** (the "N publishers → one bounded step" corroboration math
   stays **F63**). User-approved 2026-07-04 (4 AskUserQuestion forks; charter home = append to
-  Part 37, not a new Part).
+  Part 37, not a new Part). **F63 handoff note:** F69 has gatherers *record* the
+  chase/corroboration result as free text in the blob `content` (no structured field); F63
+  must add a blob/finding field for the scoring to consume it.
 
 ---
 

@@ -43,6 +43,9 @@ def test_gather_skill_wires_web_reach():
     assert "registry/web-reach-tools.json" in text
     assert "web-reach health check" in text  # the preamble heading
     assert "agent-reach" in text
+    # guard the doctrinal payload of the gatherer contract, not just the wiring
+    assert "chase it toward a primary" in text
+    assert "secondary" in text
 
 
 DOC = pathlib.Path("docs/web-reach.md")
@@ -55,4 +58,7 @@ def test_web_reach_doc_exists_and_points_at_registry():
 
 
 def test_charter_part37_documents_web_reach():
-    assert "web-reach layer" in CHARTER.read_text(encoding="utf-8").lower()
+    text = CHARTER.read_text(encoding="utf-8")
+    assert "web-reach layer" in text.lower()
+    # guard the complementary-not-replacement doctrine in the charter, not just the heading
+    assert "complementary, never a replacement" in text

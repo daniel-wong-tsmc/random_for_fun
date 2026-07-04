@@ -98,6 +98,12 @@ rather than block-appending one bullet's seeds after another. That way, when `ma
 trips mid-round it trims evenly across classes instead of draining itself entirely on filings
 and standard slices before a single headline or forward-signal query is ever tried.
 
+This round-robin interleaving does not override the priority-filing-seeds guarantee above: every
+entity's filing seed is still queued into round 1 ahead of that same entity's own metric/headline/
+forward slices, so a cap can never starve filings for that entity. Round-robin only governs
+cross-class cap-trimming across entities — it is not a re-ordering that lets a cap skip an
+entity's filing seed in favor of trying another entity's headline or forward-signal slice first.
+
 **Per-class doc floors.** Classify each round-1 seed by the manifest's existing `accessMethod`
 field — no manifest schema change, `manifest.py` stays untouched; these floors are skill-level
 defaults, not manifest fields: `filing` (accessMethod == "filing"), `news` / `forward` (the

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Resolve a Python and run the stdlib-only web-reach ensure engine from repo root.
+# Bare-clone safe: uses the module entry, not the pydantic-heavy CLI package.
+set -eu
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -x "$DIR/.venv/bin/python" ]; then
+  PY="$DIR/.venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+  PY=python3
+elif command -v python >/dev/null 2>&1; then
+  PY=python
+else
+  echo "web-reach-ensure: no Python found on PATH" >&2
+  exit 1
+fi
+cd "$DIR"
+exec "$PY" -m gpu_agent.web_reach_ensure "$@"

@@ -10,7 +10,9 @@
 > this doc was written — (1) the Layer tier enters after categories #2–3 over a *partial* chips
 > layer, not after the full layer; (2) Main enters after ~2 layers are live, not after all 34
 > categories; (3) phases carry coarse size tags, no dates. Four deviations from the original
-> phase sketch are flagged inline where they occur.
+> phase sketch are flagged inline where they occur. A fourth fork (same day, user-requested
+> revision): the "unit of the build" section covers the category desk in depth plus
+> target-state sketches for Layer and Main.
 
 ## The goal
 
@@ -26,6 +28,104 @@ every number answering "how do you know that?" on demand. This roadmap sequences
 the riskiest unproven seams are proven earliest, the product's core deliverable (the
 recommendation altitude) gets the longest possible soak time, and no scale-out happens before
 a costed pilot says the unit economics work (charter Part 27).
+
+## The unit of the build — the goal for one agent, and how one gets made
+
+The phases below scale by cloning one unit. This section pins what that unit *is*, so "add a
+category" becomes a checklist rather than a judgment call: the category desk in depth (it gets
+cloned 33 more times), and the two upper tiers as target-state sketches only — their build
+steps are exactly what Phase 3's and Phase 5's brainstorm → spec → plan cycles will produce.
+
+### One category desk — the goal
+
+A category desk is a **desk analyst for one lane** (charter Part 3): assignment-scoped,
+web-facing, memory-carrying, exec-readable. Stated category-agnostically — this is the bar
+merchant-gpu is being hardened toward in Phase 1, and the bar every later desk must meet:
+
+- **Watch its lane, currently.** Gather the open web through the gatherer swarm + web-reach
+  registry (Part 37) under the assignment's scope: filings *and* fresh headlines/forward
+  signals (the post-F57/F58 class floors + recency window), every document tier-stamped,
+  deduped, vintage-scoped (F52), every cap and skip logged.
+- **Grade evidence through the frozen brain.** extract → gate → judge → score; tool-less
+  dispatched brains; no invented numbers; every claim cites findings; gate rejection →
+  re-dispatch, never hand-edit. Per cycle: the six-dimension scorecard + DMI/SMI/SDGI with
+  the price overlay beside them.
+- **Hold a view over time.** A standing thesis book (falsifiable triggers, anti-whipsaw,
+  conviction ±1/cycle), wiki threads, memory injected into judgment — so the desk speaks in
+  "vs. prior" and "my earlier concern materialized", and "nothing changed" is an honest,
+  first-class output.
+- **Speak exec.** The F67 output contract: BLUF with the constraint named, THE CALLS, WHY,
+  the demand/supply board, trust footer, appendix — voice-linted, no internal vocabulary
+  above the fold — plus the "So what for TSMC" implication (F65; implication, never action —
+  lane discipline).
+- **Keep score on itself.** Brier-logged judgments (F64), archetype golden cases in the eval
+  set, a replayable cycle log.
+
+**A desk is LIVE when** (the acceptance checklist Phases 2, 4, and 6 reuse):
+1. it has run ≥2 gate-clean daily cycles and 1 monthly flagship that consumes the daily store;
+2. its addition was a **data-only diff** — assignment, registries, manifest, seeds; zero
+   template forks;
+3. its brief renders exec-clean above the appendix (voice lint green, staleness banner honest);
+4. its seed thesis book has been judged through ≥1 live cycle;
+5. the eval baseline covers its archetype;
+6. its gather log + cycle log replay — every cap, drop, and skip logged, never silent.
+
+### The recipe — standing up desk #N
+
+Data and analyst work, not code (charter Part 16's scalability test: "a taxonomy entry, an
+archetype, a capability attachment, and an approval"). In order:
+
+1. **Scope the lane.** Confirm the taxonomy entry; write the lane statement — which entities
+   this desk *owns* (`primaryCategory`) vs. only watches; MECE-check against neighboring
+   desks. (Only a *structural* taxonomy change takes the Part 16 human gate; instantiating an
+   existing category does not.)
+2. **Register the entities.** ids + aliases + `appearsIn`/`primaryCategory` (the F24
+   machinery), so multi-category entities are counted once from day one.
+3. **Define the indicator set.** The real analyst work: per indicator — side (demand / supply /
+   price / structural), cadence × horizon, lead time, canonical unit, weight, scoring flag.
+   Price stays overlay-only (F8). `docs/category-agent-guide.md` §3 is the worked
+   instrumentation example; non-chips layers need their own equivalent thinking, not a copy.
+4. **Build the source inventory + manifest.** Primary allowlist per the charter's definition
+   (filings + official IR/newsroom posts — F59), free-web sources, paywalled sources
+   inventoried and never fetched (Part 22), coverage classes with per-class floors (F57).
+   Web-reach tools inherit from the registry automatically (Part 37).
+5. **Write the assignment.** The pick-and-pull object (Part 18): scope, explore budget,
+   maxFetches, depth, persona label (F26).
+6. **Seed the memory.** Seed thesis book — triggers must pass the observable-trigger heuristic
+   and the seed lint (F54); optional seed wiki threads; a dated cold-start baseline where one
+   exists (Part 34).
+7. **Extend the eval — never fork the template.** Add golden cases for the archetype;
+   `run-eval` → rebaseline. If the category doesn't fit without a code or prompt change, that
+   change ships for *all* desks through the F6 gate — a per-category fork is the failure mode
+   this whole design exists to prevent.
+8. **Probation cycles.** ≥2 supervised daily cycles + 1 monthly, judged against the LIVE
+   checklist above. Until it passes, the desk's output is provisional and feeds no roll-up
+   surface.
+9. **Record it.** Onboarding note with decision provenance; HANDOFF pointer; taxonomy version
+   bump only if structure changed.
+
+Coarse size: ~1 session of registry/manifest/seed authoring + the probation cycles.
+Recalibrate this estimate after Phase 2 has run the recipe twice for real.
+
+### Layer agent — the goal (sketch; built in Phase 3)
+
+A **sector lead**: no web, no sandbox — a memory-backed judgment loop over its categories'
+scorecards plus its own notebook. Code computes the briefing book (rollups, deltas, layer
+DMI/SMI/SDGI); the agent interprets it: the weakest-link layer rating, what changed vs. prior,
+whether its earlier calls held — and, as the first tier allowed to, whether the layer is a
+**tailwind / headwind / risk** for TSMC with a watchlist (Recommendation Skill at layer scope,
+Part 11). It reads adjacent-layer summaries only, prior-cycle only (Part 9 Option B), and an
+overruled category signal always leaves a trace, never silence (Part 32).
+
+### Main agent — the goal (sketch; built in Phase 5)
+
+The **head of research**: consumes the 5 layer assessments + its own history + the macro
+overlay (Part 15) — never raw category data. Owns the one-word market status (+ bottleneck +
+direction + reason), cross-layer reconciliation (Part 21), and the **position book**:
+prioritized recommendations (decision area, evidence chain to primary sources, confidence,
+horizon, triggers, alternatives), re-affirmed / strengthened / weakened each cycle with
+explicit deltas. Owns the calibration record (Part 12) and faces the human gate on status
+flips (Part 23). Later, the entry point for the interactive path (Part 14).
 
 ## Standing constraints (bind every phase — never re-decided per phase)
 
@@ -105,9 +205,9 @@ duplicate findings; F52 vintage ids + L2 dedup are the mitigation and the accept
 
 ## Phase 2 — Prove generalization (categories #2–3)
 
-**Delivers.** Two more live desks, instantiated as **template + assignment** (charter Part 18):
-new assignments, manifests, indicator registries, seed thesis books, personas — and **zero
-code forks**. Plus the scale groundwork that becomes binding the moment desk #2 exists:
+**Delivers.** Two more live desks, instantiated as **template + assignment** (charter Part 18)
+by the desk recipe in "The unit of the build" above: new assignments, manifests, indicator
+registries, seed thesis books, personas — and **zero code forks**. Plus the scale groundwork that becomes binding the moment desk #2 exists:
 **F24 entity canonicalization** (deviation 1 — pulled forward from "before fan-out": NVIDIA and
 TSMC become multi-category entities at desk #2, and `entity:amd` is global today), per-archetype
 golden-set extension (Part 24), and **F23** (compliance matrix) as capacity filler.
@@ -123,10 +223,10 @@ proof.
 included), 18 (assignment/registries), 21 (entity ownership + reconciliation data model), 24
 (golden set per archetype).
 
-**Done when.** Categories #2–3 each run ≥2 gate-clean daily + 1 monthly cycle; the diff to add
-each was data only (assignment, manifest, registry, seeds — no template edit, or the template
-edit shipped for all categories through the eval gate); multi-category entities are counted
-once via `primaryCategory`; the eval baseline covers the new archetype(s).
+**Done when.** Categories #2–3 each pass the desk-LIVE checklist ("The unit of the build");
+in particular the diff to add each was data only (no template edit, or the template edit
+shipped for all categories through the eval gate) and multi-category entities are counted
+once via `primaryCategory`.
 
 **Main risk.** The template is secretly merchant-gpu-shaped in ways F26 didn't reach (prompt
 idioms, indicator semantics, manifest structure). Mitigation: the eval gate catches prompt
@@ -173,7 +273,7 @@ golden cases before this ships (Part 24 applies to every tier, not just category
 
 **Delivers.** The remaining chips categories (7 total: merchant-gpu, hyperscaler-asic,
 ai-silicon-startups, hbm-memory, foundry-packaging, networking-silicon, eda-ip) onboarded by
-the now-proven Phase 2 recipe; **parallel category fan-out** via the Workflow driver behind the
+the desk recipe, proven in Phase 2; **parallel category fan-out** via the Workflow driver behind the
 Part 38 execution seam; **F25** (wiki store performance + concurrency — the O(pages²) scans and
 the TOCTOU race are fatal at concurrent categories); the store/read seam upgraded if JsonStore
 strains (Part 9's canonical store + scoped query tool). And the pilot's actual product: a

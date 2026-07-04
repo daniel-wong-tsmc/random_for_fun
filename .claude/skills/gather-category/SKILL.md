@@ -48,13 +48,16 @@ doctrine in `docs/web-reach.md`). Load the registry and health-check each enable
   the gap/skip report — the run continues on WebSearch/WebFetch (doctrine unchanged). It never
   upgrades a healthy tool and never touches secrets.
 - Read `registry/web-reach-tools.json`. For each tool with `enabled == true`, run its
-  `healthCmd` (e.g. `agent-reach doctor`) and capture the result.
+  `healthCmd` (e.g. `agent-reach --version`) and capture the result.
 - Record a `webReach` block in `gather-log.json`:
-  `{"<tool-id>": "ok" | "unhealthy: <detail>" | "missing"}`.
+  `{"<tool-id>": "ok" | "installed-ok" | "missing" | "failed"}`.
 - A missing or unhealthy tool is **logged and named in the run's gap/skip report — never
   silently skipped** (Part 29). CONTINUE the run on whatever tools are healthy.
-- **Never install a tool mid-cycle.** Install is the one-time per-machine bootstrap in
-  `docs/web-reach.md`; if a tool is missing, log it and move on.
+- **Never re-install or upgrade a HEALTHY tool mid-run.** The ensure step above already
+  installed what it could this run (see `docs/web-reach.md`'s "Automatic bootstrap (idempotent,
+  every run)" section — bootstrap is no longer a one-time per-machine ritual). A tool that still
+  reports `failed` after the ensure step is logged and named in the gap/skip report, and the run
+  continues on WebSearch/WebFetch.
 
 **Tool roles (read the registry's `role` field).**
 - `role: fetch` (e.g. `agent-reach`) — gatherers query it for RAW content, ingested as

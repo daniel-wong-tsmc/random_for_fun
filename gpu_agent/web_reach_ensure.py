@@ -9,11 +9,23 @@ import json
 import pathlib
 import platform
 import subprocess
-import sys
 
 REGISTRY_PATH = pathlib.Path("registry/web-reach-tools.json")
 
 _HEALTH_TIMEOUT = 60  # health checks are cheap; cap them low
+
+
+def _augment_path() -> None:
+    # pipx installs its shims into ~/.local/bin, which is NOT on PATH on a pristine
+    # machine. Prepend it to this process's PATH so subsequent same-run subprocess
+    # calls (install recipes, recheck healthCmd) can find a just-installed shim
+    # (e.g. `agent-reach`) even before the shell/profile has picked up `pipx ensurepath`.
+    import os
+    extra = os.path.expanduser(os.path.join("~", ".local", "bin"))
+    cur = os.environ.get("PATH", "")
+    parts = cur.split(os.pathsep)
+    if extra and extra not in parts:
+        os.environ["PATH"] = extra + os.pathsep + cur
 
 
 def detect_os() -> str:
@@ -84,6 +96,7 @@ def ensure_tool(tool: dict, os_key: str, *, check_only: bool = False,
 
 def ensure_all(registry: dict, os_key: str | None = None, *, check_only: bool = False,
                timeout: int = 600, log=print) -> list[dict]:
+    _augment_path()
     os_key = os_key or detect_os()
     results = []
     for tool in registry.get("tools", []):

@@ -17,6 +17,20 @@ def test_run_survives_non_ascii_output():
     assert isinstance(r.stdout, str)  # decoded in text mode, not bytes
 
 
+def test_augment_path_prepends_local_bin_and_is_idempotent(monkeypatch):
+    import os
+    expanded = os.path.expanduser(os.path.join("~", ".local", "bin"))
+    base = os.pathsep.join(["/usr/bin", "/bin"])
+    monkeypatch.setenv("PATH", base)
+    wre._augment_path()
+    parts = os.environ["PATH"].split(os.pathsep)
+    assert parts[0] == expanded
+    assert parts[1:] == base.split(os.pathsep)
+    # calling again must not duplicate the entry
+    wre._augment_path()
+    assert os.environ["PATH"].split(os.pathsep).count(expanded) == 1
+
+
 def _reg():
     return {"tools": [
         {"id": "toolA", "enabled": True,

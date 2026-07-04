@@ -147,6 +147,10 @@ def test_gather_preamble_runs_ensure_before_healthcheck():
     text = SKILL.read_text(encoding="utf-8")
     assert "scripts/web-reach-ensure" in text, "preamble must call the ensure launcher"
     assert "ensure-installed" in text or "ensure installed" in text.lower()
+    # the ensure step must be ordered BEFORE the per-tool health-check read, not just present
+    assert text.index("scripts/web-reach-ensure") < text.index("Read `registry/web-reach-tools.json`")
+    # the stale "install never happens mid-cycle, just log and move on" doctrine must be gone
+    assert "if a tool is missing, log it and move on" not in text
 
 
 # --- Task 7: doctrine + docs flip (ensure-installed idempotently at run start) ---

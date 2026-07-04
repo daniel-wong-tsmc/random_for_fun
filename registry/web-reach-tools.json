@@ -16,6 +16,7 @@
         "windows": [
           "py -3 -m pip install --user pipx",
           "py -3 -m pipx install https://github.com/Panniantong/agent-reach/archive/main.zip",
+          "py -3 -m pipx ensurepath",
           "agent-reach install --env=auto"
         ],
         "macos": [

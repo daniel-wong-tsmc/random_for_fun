@@ -1,7 +1,6 @@
 import os
 import pathlib
 import subprocess
-import sys
 import pytest
 
 SH = pathlib.Path("scripts/web-reach-ensure")

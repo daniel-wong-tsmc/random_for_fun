@@ -220,16 +220,24 @@ def _emit_extract_prompt(args) -> int:
     # F55: bake the taxonomy's impact.targets vocabulary into the emitted system prompt — the
     # same id set the gate enforces (taxonomy.categories) — so the dispatched brain never
     # depends on a coordinator-supplied id list. F53: same pattern for the price-side
-    # indicator ids + canonical units the extractor seam now enforces.
+    # indicator ids + canonical units the extractor seam now enforces. Completing F55: same
+    # pattern again for the demand/supply indicator id vocabulary the extractor's
+    # `unregistered indicator` gate enforces (eval Task 10 finding).
     registry, taxonomy = _load_registry()
     valid_targets = sorted(taxonomy.categories)
+    scoring_indicators = [
+        {"id": ind_id, "label": spec.label, "side": spec.side, "unit": spec.unit}
+        for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
+        if spec.side in ("demand", "supply")
+    ]
     price_indicators = [
         {"id": ind_id, "label": spec.label, "unit": spec.unit,
          "comparability": spec.comparability}
         for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
         if spec.side == "price"
     ]
-    kwargs = {"valid_targets": valid_targets, "price_indicators": price_indicators}
+    kwargs = {"valid_targets": valid_targets, "scoring_indicators": scoring_indicators,
+              "price_indicators": price_indicators}
     bundle = {
         "system": build_extract_system(persona, **kwargs) if persona
                   else build_extract_system(**kwargs),

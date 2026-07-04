@@ -20,15 +20,22 @@ from gpu_agent.thesis import THESIS_SYSTEM, ThesisAnswer, build_thesis_user_prom
 
 
 def _extract_vocab(registry, taxonomy) -> dict:
-    # Mirrors cli._emit_extract_prompt (F55/F53): the id vocabularies the gate enforces.
+    # Mirrors cli._emit_extract_prompt (F55/F53, completing F55 for demand/supply ids): the
+    # id vocabularies the gate enforces.
     valid_targets = sorted(taxonomy.categories)
+    scoring_indicators = [
+        {"id": ind_id, "label": spec.label, "side": spec.side, "unit": spec.unit}
+        for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
+        if spec.side in ("demand", "supply")
+    ]
     price_indicators = [
         {"id": ind_id, "label": spec.label, "unit": spec.unit,
          "comparability": spec.comparability}
         for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
         if spec.side == "price"
     ]
-    return {"valid_targets": valid_targets, "price_indicators": price_indicators}
+    return {"valid_targets": valid_targets, "scoring_indicators": scoring_indicators,
+            "price_indicators": price_indicators}
 
 
 def emit_brain_bundle(seam: str, seam_input, registry, taxonomy) -> dict:

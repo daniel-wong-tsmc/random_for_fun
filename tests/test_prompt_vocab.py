@@ -138,3 +138,47 @@ def test_extract_emit_prompt_carries_price_vocabulary_from_registry():
         in bundle["system"]
     # composes with F55: targets vocabulary still present
     assert "Valid impact.targets category ids" in bundle["system"]
+
+
+# --- extraction: demand/supply indicator-id vocabulary (completes F55) ---
+#
+# Born from the 2026-07 eval Task 10 finding: the emitted extract prompt carried the
+# impact.targets vocabulary (F55) and the price-indicator ids (F53) but not the demand/supply
+# indicator id vocabulary the gate enforces via `unregistered indicator` -- 11/11 drafts from a
+# fresh, context-free dispatch were gate-dropped. This section completes the pattern.
+
+def test_extract_system_byte_identical_without_scoring_indicators():
+    assert extraction_prompt.build_system(scoring_indicators=None) == extraction_prompt.SYSTEM
+
+
+def test_extract_system_lists_scoring_vocabulary_when_given():
+    s = extraction_prompt.build_system(scoring_indicators=[
+        {"id": "D2", "label": "DC revenue structure", "side": "demand", "unit": "USD_B"},
+        {"id": "S9", "label": "Alternative supply", "side": "supply", "unit": "mixed"},
+    ])
+    assert ("Demand/supply findings use EXACTLY one of these registered indicator ids"
+            in s)
+    assert "D2 — DC revenue structure (demand, unit USD_B)" in s
+    assert "S9 — Alternative supply (supply, unit mixed)" in s
+    assert ("A draft whose indicatorId is not in this list (or the price list below for "
+            "price rows) will be rejected.") in s
+    assert s.startswith(extraction_prompt.SYSTEM)   # extends, never rewrites
+
+
+def test_extract_emit_prompt_carries_scoring_vocabulary_from_registry():
+    out = _run("extract", "--emit-prompt", "--docs", "fixtures/raw", "--as-of", "2026-06")
+    assert out.returncode == 0, out.stderr
+    bundle = json.loads(out.stdout)
+    system = bundle["system"]
+    assert "Demand/supply findings use EXACTLY one of these registered indicator ids" in system
+    assert "D2 — DC revenue structure (demand, unit USD_B)" in system
+    assert "S9 — Alternative supply (supply, unit mixed)" in system
+    # completeness: every registry demand/supply indicator id is named
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    for ind_id in sorted(reg.indicators):
+        spec = reg.resolve(ind_id)
+        if spec.side in ("demand", "supply"):
+            assert f"{ind_id} —" in system, f"missing scoring-vocab line for {ind_id}"
+    # composes with F55/F53: targets + price vocabularies still present
+    assert "Valid impact.targets category ids" in system
+    assert "Price-level rows (side=price) use EXACTLY one of these indicator ids" in system

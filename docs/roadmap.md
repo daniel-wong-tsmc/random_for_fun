@@ -34,6 +34,10 @@
 > day, user decision superseding the tenth's peer-trigger allowance): trigger edges are
 > **hierarchical-only, downward** — Main → layer, layer → desk; no desk→desk. A desk's
 > sibling question routes up through its lead; the hierarchy reconciles (Part 9 intact).
+> A twelfth (same day, user-approved): generative UI for the Phase 7 surface — the hybrid
+> design: deterministic component registry + rule-driven adaptive composition for the
+> standing dashboard, brain-composed gated compositions-as-data for the interactive path
+> and special moments; honesty elements non-omittable; exhibits-in-brief seeds the registry.
 
 ## The goal
 
@@ -335,7 +339,8 @@ is minted as an F-item in the fix-backlog when picked up.
 - **Exhibits in the brief** — rendered trend charts (SDGI, key price series) as exhibits
   *inside* the text brief. Recorded-decision note: user-approved 2026-07-04 as consistent
   with brief-first/dashboard-later — the brief remains the product; an exhibit is not the
-  Phase 7 dashboard.
+  Phase 7 dashboard. Each exhibit is built as a component of the Phase 7 generative-UI
+  registry from day one, so the dashboard inherits them instead of rebuilding them.
 
 ## Phase 2 — Prove generalization (categories #2–3)
 
@@ -582,9 +587,24 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
 - **Product surface** (Part 35): the HTML dashboard — push brief + pull drill-down
   (recommendation → findings → sources), SSO, the graceful states ("pending review", "inputs
   degraded", "track record maturing", "provisional"). The existing brief remains the product
-  until this earns its way in.
+  until this earns its way in. **Generative UI, the hybrid design (user-approved
+  2026-07-04):** a versioned **component registry** (status card, thesis card, divergence
+  exhibit, trend chart, evidence drill-down — each a deterministic, pure projection of store
+  data) with **rule-driven adaptive composition** for the standing dashboard — what-moved
+  leads, a divergence surfaces its exhibit, a status flip switches to crisis layout,
+  "nothing changed" renders compact — fully replayable, no brain in the loop. On top of it,
+  **brain-composed compositions-as-data** for bespoke moments: the brain proposes which
+  components and what connective narrative (component ids + store-data bindings, never
+  free-form markup), a gate validates that every component binds real store data and that
+  the honesty elements (staleness banner, trust footer, provenance drill-down, the fixed
+  rating vocabulary) can never be omitted, and the composition is stored so every render
+  replays. Brain curates, code computes + gates + stores — the page-text doctrine, extended
+  to layout. The already-adopted "exhibits in the brief" desk item seeds this registry
+  years early.
 - **Interactive path** (Part 14): the desk on demand — answer-from-store-first, research the
-  gaps, write back. Gated by a per-user budget (Part 27).
+  gaps, write back. Gated by a per-user budget (Part 27). This is where the brain-composed
+  UI layer earns its keep: every answer is bespoke, so each response is a gated
+  composition-as-data over the same component registry rather than a fixed template.
 - **Episode backtest harness** (Parts 24/34 + Action Item 1 half 2): the 5–10 resolved
   2023–2026 episodes (DeepSeek moment, CoWoS crunch, Ethernet-over-InfiniBand, …) as frozen
   information-cutoff regression tests; backfilled history explicitly labeled reconstructed.

@@ -132,8 +132,9 @@ outputs for identical inputs. Public surface:
      more than once in a dimension's *anchor mean* is accepted and documented: the window bounds it,
      same-series vintages almost always share sign, and the F36 gate checks the same corpus-derived
      anchors at emit and at gate time so consistency holds.
-- `CorpusResult`: `merged: list[Finding]`, `dedupedFresh: list[Finding]` (= L2 `outFindings`, the
-  write-back stream), `report: CorpusReport`.
+- `CorpusResult`: `merged: list[Finding]`, `dedupedFresh: list[Finding]` (= L2 `outFindings` minus
+  id-overlaps with the store part — the write-back stream never re-ingests a finding the store
+  already holds), `report: CorpusReport`.
 - `CorpusReport` (pydantic): `asOf`, `category`, `windowDays`, `windowStart`, `windowEnd`,
   `storeIncluded: list[str]` (ids), `outOfWindow: int`, `skippedPages: list[{id, category}]`,
   `freshNew/freshUpdate/freshDuplicate` (the L2 `FindingClass` lists), `idOverlaps: list[str]`,

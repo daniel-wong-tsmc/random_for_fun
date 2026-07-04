@@ -324,25 +324,25 @@ def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_h
     report = score_cases(cases, grades)
     report["promptHashes"] = dict(prompt_hashes)
     report["asOf"] = as_of
-    reasons: list[str] = []
-    ok = True
-    for cid, cal in report["calibration"].items():
-        if not cal["ok"]:
-            ok = False
-            reasons.append(f"grader miscalibrated: negative case '{cid}' scored "
-                           f"{cal['score']} > {cal['max']}")
+    cal_reasons = [f"grader miscalibrated: negative case '{cid}' scored "
+                   f"{cal['score']} > {cal['max']}"
+                   for cid, cal in report["calibration"].items() if not cal["ok"]]
     if baseline is None:
-        reasons.append("bootstrap: no baseline — comparison skipped; rebaseline to establish one")
+        report["verdict"] = {
+            "pass": not cal_reasons,
+            "decision": "invalid-run" if cal_reasons else "bootstrap",
+            "reasons": cal_reasons + ["bootstrap: no baseline — comparison skipped; "
+                                      "rebaseline to establish one"],
+            "seams": {}, "craters": []}
+    elif baseline.get("schemaVersion") != BASELINE_SCHEMA_VERSION:
+        report["verdict"] = {
+            "pass": not cal_reasons,
+            "decision": "invalid-run" if cal_reasons else "no-comparison",
+            "reasons": cal_reasons + ["no-comparison: baseline is schema v1 — migrate "
+                                      "via 'eval rebaseline --runs <d1> <d2> <d3>'"],
+            "seams": {}, "craters": []}
     else:
-        for seam, incumbent in baseline.get("seamMeans", {}).items():
-            new = report["seamMeans"].get(seam)
-            if new is None:
-                ok = False
-                reasons.append(f"seam '{seam}' has a baseline mean but no scored positive cases")
-            elif new < incumbent - _EPS:
-                ok = False
-                reasons.append(f"regression on '{seam}': {new:.3f} < incumbent {incumbent:.3f}")
-    report["verdict"] = {"pass": ok, "reasons": reasons}
+        report["verdict"] = evaluate_v2(baseline, [report])
     return report
 
 
@@ -351,22 +351,3 @@ def load_baseline(path) -> dict | None:
     if not p.exists():
         return None
     return json.loads(p.read_text("utf-8"))
-
-
-def rebaseline(report: dict, baseline_path, force_reason: str | None = None,
-               human_review: str = "") -> dict:
-    if not report["verdict"]["pass"] and not force_reason:
-        raise ValueError("refusing to rebaseline from a failing run "
-                         f"({'; '.join(report['verdict']['reasons'])}); "
-                         "pass force_reason to override — it is stored permanently")
-    baseline = {
-        "promptHashes": report["promptHashes"],
-        "cases": report["scores"],
-        "seamMeans": report["seamMeans"],
-        "provenance": {"asOf": report["asOf"], "graderModel": "opus",
-                       "forceReason": force_reason, "humanReview": human_review},
-    }
-    p = pathlib.Path(baseline_path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(baseline, indent=2, sort_keys=True), "utf-8")
-    return baseline

@@ -50,10 +50,22 @@ def test_eval_full_offline_cycle(tmp_path, capsys):
     assert main(["eval", "record-grade", "--cases", str(cases_dir), "--out", str(run),
                  "--as-of", "2026-07-04", "--baseline", str(baseline)]) == 0
     report = json.loads((run / "report.json").read_text("utf-8"))
-    assert report["verdict"]["pass"] is True
+    assert report["verdict"]["decision"] == "bootstrap"
 
-    assert main(["eval", "rebaseline", "--out", str(run), "--baseline", str(baseline)]) == 0
-    assert json.loads(baseline.read_text("utf-8"))["seamMeans"]["extract"] == 8.0
+    # v2 rebaseline needs 3 replicate run dirs of one bundle -> clone the run dir
+    import shutil
+    r2, r3 = tmp_path / "run2", tmp_path / "run3"
+    shutil.copytree(run, r2); shutil.copytree(run, r3)
+    assert main(["eval", "rebaseline", "--runs", str(run), str(r2), str(r3),
+                 "--cases", str(cases_dir), "--baseline", str(baseline)]) == 0
+    b = json.loads(baseline.read_text("utf-8"))
+    assert b["schemaVersion"] == 2 and b["seamMeans"]["extract"] == 8.0
+
+    # gate a fresh run against it: identical run -> bar-touch pass, verdict.json written
+    assert main(["eval", "verdict", "--runs", str(run),
+                 "--baseline", str(baseline)]) == 0
+    v = json.loads((run / "verdict.json").read_text("utf-8"))
+    assert v["decision"] == "pass" and v["runs"] == [str(run)]
 
 def test_record_brain_gate_failure_exits_1(tmp_path):
     cases_dir = _write_cases(tmp_path)
@@ -97,7 +109,9 @@ def test_record_grade_regression_exits_1(tmp_path):
         "extract-t-01": _grade("extract-t-01", 1),
         "extract-t-02": _grade("extract-t-02", 0)}), "utf-8")
     baseline = tmp_path / "baseline.json"
-    baseline.write_text(json.dumps({"promptHashes": {}, "cases": {},
-                                    "seamMeans": {"extract": 8.0}, "provenance": {}}), "utf-8")
+    baseline.write_text(json.dumps({
+        "schemaVersion": 2, "promptHashes": {}, "replicates": [],
+        "seamMeans": {"extract": 4.5}, "epsilon": {"extract": 0.25},
+        "caseMedians": {"extract-t-01": 4}, "provenance": {}}), "utf-8")
     assert main(["eval", "record-grade", "--cases", str(cases_dir), "--out", str(run),
                  "--as-of", "2026-07-04", "--baseline", str(baseline)]) == 1

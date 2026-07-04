@@ -1613,10 +1613,10 @@ exactly as they bind `web_fetch`; a tool missing or unhealthy at the start of a 
 **logged and reported, never silently skipped** (Part 29), and the run continues on whatever
 is healthy. Tools carry a **`role`**: `fetch` tools (e.g. `agent-reach`) return raw content
 ingested as secondary blobs; `discovery` tools (e.g. `last30days`, a recency-focused
-multi-platform synthesizer) are used for **leads only** — the gatherer mines their cited
-sources and hot threads, fetches those underlying sources as raw blobs, and **never ingests the
-synthesized brief itself** (which would smuggle another model's judgments past the single-brain
-gate, violating "gatherers return raw material only"). New category agents inherit the registry
+multi-platform synthesizer) are used for **leads only** — the coordinator mines their cited
+sources and hot threads for leads, the gatherer subagents fetch those underlying sources as raw
+blobs, and the synthesized brief itself is **never ingested** (which would smuggle another
+model's judgments past the single-brain gate, violating "gatherers return raw material only"). New category agents inherit the registry
 and its doctrine automatically — adding a same-role tool is one data entry, not a per-agent edit.
 
 **Not yet (deferred, by decision):** hard corroboration + a hard secondary-confidence cap; **unattended

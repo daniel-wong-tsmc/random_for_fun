@@ -32,8 +32,13 @@ def load_registry(path: pathlib.Path = REGISTRY_PATH) -> dict:
 def _run(cmd: str, timeout: int) -> subprocess.CompletedProcess:
     # shell=True: registry commands may use the OS shell (cmd.exe on Windows,
     # /bin/sh on POSIX). Each OS's recipe is authored for its own shell.
+    # encoding+errors: tool output can carry non-ASCII bytes (e.g. agent-reach's
+    # localized doctor text); decode as UTF-8 and never crash on undecodable
+    # bytes, so the reader thread can't die and drop the returncode (the Windows
+    # cp1252 default raised UnicodeDecodeError on real install output).
     return subprocess.run(cmd, shell=True, timeout=timeout,
-                          capture_output=True, text=True)
+                          capture_output=True, text=True,
+                          encoding="utf-8", errors="replace")
 
 
 def health_ok(tool: dict, os_key: str, timeout: int = _HEALTH_TIMEOUT) -> bool:

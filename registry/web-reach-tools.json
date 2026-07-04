@@ -8,9 +8,9 @@
       "repo": "https://github.com/Panniantong/agent-reach",
       "installDocUrl": "https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
       "healthCmd": {
-        "windows": "agent-reach doctor",
-        "macos": "agent-reach doctor",
-        "linux": "agent-reach doctor"
+        "windows": "agent-reach --version",
+        "macos": "agent-reach --version",
+        "linux": "agent-reach --version"
       },
       "install": {
         "windows": [
@@ -43,9 +43,9 @@
       "repo": "https://github.com/mvanhorn/last30days-skill",
       "installDocUrl": "https://github.com/mvanhorn/last30days-skill#readme",
       "healthCmd": {
-        "windows": "py -3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\"",
-        "macos": "python3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\"",
-        "linux": "python3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\""
+        "windows": "py -3 -c \"import os,sys; sys.exit(0 if os.path.isdir(os.path.expanduser('~/.agents/skills/last30days')) else 1)\"",
+        "macos": "python3 -c \"import os,sys; sys.exit(0 if os.path.isdir(os.path.expanduser('~/.agents/skills/last30days')) else 1)\"",
+        "linux": "python3 -c \"import os,sys; sys.exit(0 if os.path.isdir(os.path.expanduser('~/.agents/skills/last30days')) else 1)\""
       },
       "install": {
         "windows": ["npx -y skills add mvanhorn/last30days-skill -g"],

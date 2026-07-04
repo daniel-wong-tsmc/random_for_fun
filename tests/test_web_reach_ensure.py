@@ -1,7 +1,20 @@
 import json
+import sys
 import types
 import pytest
 from gpu_agent import web_reach_ensure as wre
+
+
+def test_run_survives_non_ascii_output():
+    # Real (un-mocked) _run: a command whose output carries bytes that are
+    # undecodable under Windows' cp1252 default (0x81/0x8f) must NOT crash the
+    # subprocess reader thread — the returncode has to survive. Regression guard
+    # for the utf-8/errors=replace fix (agent-reach's localized install output
+    # previously raised UnicodeDecodeError and dropped the status).
+    cmd = f'"{sys.executable}" -c "import sys; sys.stdout.buffer.write(bytes([0x81,0x8f,0xff]))"'
+    r = wre._run(cmd, 30)
+    assert r.returncode == 0
+    assert isinstance(r.stdout, str)  # decoded in text mode, not bytes
 
 
 def _reg():

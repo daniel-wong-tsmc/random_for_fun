@@ -30,12 +30,14 @@ def _f(fid: str = "f-001", indicator: str = "D2") -> dict:
 
 def _sc(dmi: float = 0.05, smi: float = 0.02,
         indices: MarketIndices | None = None,
-        category_status: CategoryStatus | None = None) -> Scorecard:
+        category_status: CategoryStatus | None = None,
+        sdgi_direction: str | None = None) -> Scorecard:
     return Scorecard(
         categoryId="chips.merchant-gpu",
         asOf="2026-06",
         findings=[],
-        demandSupply=DemandSupply(dmiContribution=dmi, smiContribution=smi),
+        demandSupply=DemandSupply(dmiContribution=dmi, smiContribution=smi,
+                                   sdgiDirection=sdgi_direction),
         narrative="n",
         confidence=Confidence(level="medium", basis="b"),
         indices=indices,
@@ -136,8 +138,10 @@ def test_constraint_line_omitted_without_label():
 
 
 def test_reconciliation_note_when_strong_but_supply_negative():
+    # F68c: the note keys off the scorecard's computed sdgiDirection (the actual
+    # demand/supply-gap semantics), not the raw sign of smiContribution.
     cs = CategoryStatus(rating="Strong", direction="improving", bottleneck="bottleneck",
                         reason="r")
-    sc = _sc(smi=-0.45, category_status=cs)
+    sc = _sc(smi=-0.45, category_status=cs, sdgi_direction="supply-led")
     out = render_state_of_market(sc, None)
     assert "supply is the constraint" in out

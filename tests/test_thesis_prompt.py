@@ -142,7 +142,9 @@ def test_user_prompt_book_shows_pending_flag():
 def test_user_prompt_findings_section_uses_judge_briefing_row_format():
     prompt = build_thesis_user_prompt(_book(), [_finding()], None)
     assert "<findings>" in prompt and "</findings>" in prompt
-    assert "f-1 [D2] DC growth flattening (demand=+1 supply=+0 mag=2 conf=high)" in prompt
+    # F62: thesis rows always carry observed= (dates unconditionally on the emit-only path).
+    assert ("f-1 [D2] DC growth flattening (demand=+1 supply=+0 mag=2 conf=high "
+            f"observed={AS_OF})") in prompt
 
 
 def test_user_prompt_no_memory_block_when_none():

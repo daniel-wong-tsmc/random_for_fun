@@ -349,7 +349,8 @@ def _emit_judge_prompt(args) -> int:
         "schema": JudgmentResult.model_json_schema(),
         # F55: include_groups appends the code-computed per-dimension citation groups (and the
         # six dimension names) so the brains see the exact vocabulary the conflict-check enforces.
-        "user": build_judge_user_prompt(briefing, memory_text=memory_text, include_groups=True),
+        "user": build_judge_user_prompt(briefing, memory_text=memory_text,
+                                        include_groups=True, include_dates=True),
         "samples": args.samples,
     }
     print(json.dumps(bundle, indent=2))

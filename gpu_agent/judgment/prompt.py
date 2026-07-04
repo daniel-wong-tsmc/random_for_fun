@@ -49,17 +49,23 @@ def build_system(persona: str = DEFAULT_PERSONA) -> str:
 SYSTEM = build_system()   # byte-identical to the prior hardcoded constant — pinned by a test
 
 def build_user_prompt(briefing: Briefing, memory_text: str | None = None,
-                      include_groups: bool = False) -> str:
+                      include_groups: bool = False, include_dates: bool = False) -> str:
     lines = ["Anchors (sign bounds your rating; absent = no numeric bound):"]
     for dim, a in sorted(briefing.anchors.items()):
         lines.append(f"  {dim}: {a:+.2f}")
     lines.append("")
     lines.append("Findings (cite by id):")
     for f in briefing.findings:
-        lines.append(
+        row = (
             f"  {f.id} [{f.indicatorId}] {f.statement} "
             f"(demand={f.polarityDemand:+d} supply={f.polaritySupply:+d} "
-            f"mag={f.magnitude} conf={f.confidence.level})")
+            f"mag={f.magnitude} conf={f.confidence.level}")
+        # F62: the emit path dates every row so a brain judging a mixed-vintage corpus
+        # can weigh old vs new. Default False keeps the frozen judge_findings internal
+        # path byte-identical (same additive pattern as include_groups/memory_text).
+        if include_dates:
+            row += f" observed={f.observedAt[:10]}"
+        lines.append(row + ")")
     body = "<briefing>\n" + "\n".join(lines) + "\n</briefing>\n"
     # F55: the emit path appends the code-computed citation groups so the brain sees the exact
     # per-dimension id vocabulary the aggregation conflict-check enforces. Default False keeps

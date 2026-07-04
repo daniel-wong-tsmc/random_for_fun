@@ -1,10 +1,10 @@
-# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; F69 web-reach layer MERGED; next = F62)
+# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; F69 web-reach layer + F70 last30days MERGED; next = F62)
 
 - **Date:** 2026-07-04 (post-Task-10 refresh)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 923 passed / 3 skipped — verified on main @ `e167c6b` (F69 web-reach layer merged
-  2026-07-04). Main is AHEAD of origin (the F6 baseline @ `0344949` was pushed; the F69 merge is
-  not yet pushed). The former baseline-pin skips now RUN (armed by `fixtures/evals/baseline.json`).**
+- **Suite 927 passed / 3 skipped — verified on main after the F70 merge (`7938eb4`). F69 web-reach
+  layer + F70 last30days (2nd web-reach github) both merged 2026-07-04 and pushed to origin. The
+  former baseline-pin skips now RUN (armed by `fixtures/evals/baseline.json`).**
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
@@ -17,6 +17,18 @@
   see the F63 handoff note in the backlog). Spec/plan 28e38de/a23467f; final whole-branch review
   clean. (Earlier cross-branch mixup with this instance — a stray commit onto the F69 branch —
   was resolved before the merge.)
+- **F70 (last30days — 2nd web-reach github) is DONE — merged to main `7938eb4` (2026-07-04);
+  branch `f70-last30days-webreach` deleted.** Adds `mvanhorn/last30days-skill` to
+  `registry/web-reach-tools.json` as tool #2 and introduces a `role` field: `fetch` (agent-reach —
+  raw content → secondary blobs) vs `discovery` (last30days — a last-30-days multi-platform
+  synthesizer used for **leads only**: mined for leads in gather Round-building step 2b, its
+  synthesized brief NEVER ingested as a blob — Part 37). Role-aware step-3 gatherer contract +
+  charter Part 37 `role` clause + `docs/web-reach.md`. Whole-branch review caught + fixed a Critical
+  (the subagent contract was not role-aware). Frozen core untouched.
+- **NOTE — untracked `docs/roadmap.md`:** a 326-line roadmap doc (authored by a concurrent
+  instance) sits in the primary working tree, untracked. It was NOT authored or committed by the
+  F70 work (my `git add -A` briefly swept it in; I un-bundled it). Left in place for its author to
+  commit — do not assume it is part of F69/F70.
 
 ## STANDING RULE (F6 gate, now ACTIVE)
 

@@ -112,9 +112,12 @@ def test_pipeline_corpus_merges_store_finding_and_matches_corpus_cli(tmp_path):
 
 def test_pipeline_corpus_error_fails_loud(tmp_path):
     (tmp_path / "store" / "wiki").mkdir(parents=True)
+    # 2026-13 passes F56's --as-of shape validator (YYYY-MM) but fails the corpus
+    # layer's month-range check, so the corpus error path is what fails loud here.
+    # (A slash shape like 2026/06 would now be rejected at argparse by F56 → rc 2.)
     r = _run("pipeline", "--docs", "fixtures/raw",
              "--assignment", "fixtures/asg.chips.merchant-gpu.json",
-             "--as-of", "2026/06", "--captured-at", CAPTURED,
+             "--as-of", "2026-13", "--captured-at", CAPTURED,
              "--recorded-extract", "fixtures/recorded/extract-nvda.json",
              "--recorded-judge", "fixtures/recorded/judge-nvda.json",
              "--no-voice-lint",

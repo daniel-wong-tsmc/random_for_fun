@@ -20,13 +20,13 @@ from gpu_agent.thesis import THESIS_SYSTEM, ThesisAnswer, build_thesis_user_prom
 
 
 def _extract_vocab(registry, taxonomy) -> dict:
-    # Mirrors cli._emit_extract_prompt (F55/F53, completing F55 for demand/supply ids): the
-    # id vocabularies the gate enforces.
+    # Mirrors cli._emit_extract_prompt (F55/F53, completing F55 for ALL non-price indicator
+    # ids — structural and unsided included): the id vocabularies the gate enforces.
     valid_targets = sorted(taxonomy.categories)
     scoring_indicators = [
         {"id": ind_id, "label": spec.label, "side": spec.side, "unit": spec.unit}
         for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
-        if spec.side in ("demand", "supply")
+        if spec.side != "price"
     ]
     price_indicators = [
         {"id": ind_id, "label": spec.label, "unit": spec.unit,

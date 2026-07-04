@@ -140,12 +140,15 @@ def test_extract_emit_prompt_carries_price_vocabulary_from_registry():
     assert "Valid impact.targets category ids" in bundle["system"]
 
 
-# --- extraction: demand/supply indicator-id vocabulary (completes F55) ---
+# --- extraction: non-price indicator-id vocabulary (completes F55) ---
 #
 # Born from the 2026-07 eval Task 10 finding: the emitted extract prompt carried the
-# impact.targets vocabulary (F55) and the price-indicator ids (F53) but not the demand/supply
-# indicator id vocabulary the gate enforces via `unregistered indicator` -- 11/11 drafts from a
-# fresh, context-free dispatch were gate-dropped. This section completes the pattern.
+# impact.targets vocabulary (F55) and the price-indicator ids (F53) but not the indicator id
+# vocabulary the gate enforces via `unregistered indicator` -- 11/11 drafts from a fresh,
+# context-free dispatch were gate-dropped. This section completes the pattern: ALL registered
+# non-price ids (demand, supply, structural, and unsided), since the gate accepts any
+# registered id -- a demand/supply-only list re-created the same miss for structural ids the
+# golden extract answers actually use (customerConcentration, exportControlExposure).
 
 def test_extract_system_byte_identical_without_scoring_indicators():
     assert extraction_prompt.build_system(scoring_indicators=None) == extraction_prompt.SYSTEM
@@ -155,11 +158,20 @@ def test_extract_system_lists_scoring_vocabulary_when_given():
     s = extraction_prompt.build_system(scoring_indicators=[
         {"id": "D2", "label": "DC revenue structure", "side": "demand", "unit": "USD_B"},
         {"id": "S9", "label": "Alternative supply", "side": "supply", "unit": "mixed"},
+        # structural ids carry no unit; efficiency metrics carry no side -- both are
+        # registered, gate-accepted indicatorIds and must render cleanly
+        {"id": "customerConcentration", "label": "Customer & supplier concentration",
+         "side": "structural", "unit": ""},
+        {"id": "flopsPerDollar", "label": "FLOPs per dollar", "side": None,
+         "unit": "flops_per_USD"},
     ])
     assert ("Demand/supply findings use EXACTLY one of these registered indicator ids"
             in s)
     assert "D2 — DC revenue structure (demand, unit USD_B)" in s
     assert "S9 — Alternative supply (supply, unit mixed)" in s
+    assert ("customerConcentration — Customer & supplier concentration "
+            "(structural, unit n/a)") in s
+    assert "flopsPerDollar — FLOPs per dollar (other, unit flops_per_USD)" in s
     assert ("A draft whose indicatorId is not in this list (or the price list below for "
             "price rows) will be rejected.") in s
     assert s.startswith(extraction_prompt.SYSTEM)   # extends, never rewrites
@@ -173,11 +185,14 @@ def test_extract_emit_prompt_carries_scoring_vocabulary_from_registry():
     assert "Demand/supply findings use EXACTLY one of these registered indicator ids" in system
     assert "D2 — DC revenue structure (demand, unit USD_B)" in system
     assert "S9 — Alternative supply (supply, unit mixed)" in system
-    # completeness: every registry demand/supply indicator id is named
+    # regression pin: structural ids the golden extract answers use were omitted by the
+    # first (demand/supply-only) version of this vocabulary
+    assert "customerConcentration —" in system
+    assert "exportControlExposure —" in system
+    # completeness, derived FROM the registry: every registered non-price id is named
     reg = IndicatorRegistry.load("registry/indicators.json")
     for ind_id in sorted(reg.indicators):
-        spec = reg.resolve(ind_id)
-        if spec.side in ("demand", "supply"):
+        if reg.resolve(ind_id).side != "price":
             assert f"{ind_id} —" in system, f"missing scoring-vocab line for {ind_id}"
     # composes with F55/F53: targets + price vocabularies still present
     assert "Valid impact.targets category ids" in system

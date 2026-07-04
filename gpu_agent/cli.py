@@ -221,14 +221,15 @@ def _emit_extract_prompt(args) -> int:
     # same id set the gate enforces (taxonomy.categories) — so the dispatched brain never
     # depends on a coordinator-supplied id list. F53: same pattern for the price-side
     # indicator ids + canonical units the extractor seam now enforces. Completing F55: same
-    # pattern again for the demand/supply indicator id vocabulary the extractor's
-    # `unregistered indicator` gate enforces (eval Task 10 finding).
+    # pattern again for the indicator id vocabulary the extractor's `unregistered indicator`
+    # gate enforces (eval Task 10 finding) — ALL registered non-price ids, since the gate
+    # accepts any registered id (structural and unsided included; price has its own list).
     registry, taxonomy = _load_registry()
     valid_targets = sorted(taxonomy.categories)
     scoring_indicators = [
         {"id": ind_id, "label": spec.label, "side": spec.side, "unit": spec.unit}
         for ind_id, spec in ((i, registry.resolve(i)) for i in sorted(registry.indicators))
-        if spec.side in ("demand", "supply")
+        if spec.side != "price"
     ]
     price_indicators = [
         {"id": ind_id, "label": spec.label, "unit": spec.unit,

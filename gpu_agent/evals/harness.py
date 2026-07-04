@@ -142,6 +142,41 @@ def score_cases(cases: list[EvalCase], grades: dict[str, GradeResult]) -> dict:
     return {"scores": scores, "seamMeans": seam_means, "calibration": calibration}
 
 
+# --- eval-v2 (replicate baseline) — spec: docs/superpowers/specs/
+# 2026-07-05-eval-v2-replicate-baseline-design.md -------------------------------
+
+BASELINE_SCHEMA_VERSION = 2
+CRATER_DROP = 3          # a positive case craters at baseline-median - 3
+HARD_CRATER_EXTRA = 2    # ...and hard-fails at baseline-median - 5
+DISPERSION_LIMIT = 1.0   # replicate seam-mean range above this refuses to baseline
+
+
+def seam_quanta(cases: list[EvalCase]) -> dict[str, float]:
+    counts: dict[str, int] = {}
+    for c in cases:
+        if c.kind == "positive":
+            counts[c.seam] = counts.get(c.seam, 0) + 1
+    return {seam: 1.0 / n for seam, n in counts.items()}
+
+
+def compute_epsilon(replicate_means: list[dict[str, float]],
+                    quanta: dict[str, float]) -> dict[str, float]:
+    eps: dict[str, float] = {}
+    for seam in replicate_means[0]:
+        vals = [m[seam] for m in replicate_means]
+        eps[seam] = max((max(vals) - min(vals)) / 2, quanta[seam])
+    return eps
+
+
+def case_medians(replicate_scores: list[dict[str, int]],
+                 positive_ids: set[str]) -> dict[str, int]:
+    meds: dict[str, int] = {}
+    for cid in sorted(positive_ids):
+        vals = sorted(r[cid] for r in replicate_scores)
+        meds[cid] = vals[len(vals) // 2]
+    return meds
+
+
 _EPS = 1e-9
 
 

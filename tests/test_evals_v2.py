@@ -90,3 +90,12 @@ def test_invalid_run_on_miscalibration_missing_seam_or_hash_mismatch():
     other = _report({"extract": 6.5}, {"e1": 7, "e2": 6}, hashes={"extract": "z" * 64})
     v = evaluate_v2(BASE, [_report({"extract": 6.5}, {"e1": 7, "e2": 6}), other])
     assert v["decision"] == "invalid-run"
+
+def test_invalid_run_on_empty_reports():
+    v = evaluate_v2(BASE, [])
+    assert (v["decision"], v["pass"]) == ("invalid-run", False)
+
+def test_invalid_run_when_baseline_case_missing_from_scores():
+    v = evaluate_v2(BASE, [_report({"extract": 6.5}, {"e1": 7})])   # e2 missing
+    assert v["decision"] == "invalid-run"
+    assert any("e2" in r for r in v["reasons"])

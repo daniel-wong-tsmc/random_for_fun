@@ -184,6 +184,9 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
     """The eval-v2 gate decision. One report -> pass | marginal-fail | hard-fail;
     two reports (the single sanctioned replication) -> pass | fail, decided on
     two-run means against the SAME bars. Values exactly on a bar pass."""
+    if not reports:
+        return {"pass": False, "decision": "invalid-run",
+                "reasons": ["no reports supplied"], "seams": {}, "craters": []}
     reasons: list[str] = []
     for i, rep in enumerate(reports):
         for cid, cal in rep.get("calibration", {}).items():
@@ -197,6 +200,9 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
             if seam not in rep.get("seamMeans", {}):
                 reasons.append(f"run {i + 1}: seam '{seam}' has a baseline mean "
                                "but no scored positive cases")
+    for cid in baseline.get("caseMedians", {}):
+        if all(cid not in rep.get("scores", {}) for rep in reports):
+            reasons.append(f"case '{cid}' has a baseline median but no score in any run")
     if reasons:
         return {"pass": False, "decision": "invalid-run", "reasons": reasons,
                 "seams": {}, "craters": []}

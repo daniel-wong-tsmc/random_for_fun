@@ -98,6 +98,50 @@ If a manifest was loaded:
   search query: `"<entity-names> <source.label>"` to the round-1 search queue.
 - **Standard slices:** Then add the standard entity×metric slices
   (`entity × metric` and `entity + "latest official filing / 10-Q / 10-K / investor relations"`).
+- **Headline slices:** For each entity, add a search slice
+  `"<entity> news / announcements / press release"` to the round-1 search queue.
+- **Forward-signal slices:** For each entity, add a search slice
+  `"<entity> guidance revision / lead-time / design win / capacity"` to the round-1 search queue.
+
+The headline and forward slices are **interleaved with — not appended after — the priority
+filing URL seeds** above: build the round-1 queue round-robin across classes (a filing seed, a
+free-web seed, a standard slice, a headline slice, a forward-signal slice, repeat per entity)
+rather than block-appending one bullet's seeds after another. That way, when `maxDocuments`
+trips mid-round it trims evenly across classes instead of draining itself entirely on filings
+and standard slices before a single headline or forward-signal query is ever tried.
+
+This round-robin interleaving does not override the priority-filing-seeds guarantee above: every
+entity's filing seed is still queued into round 1 ahead of that same entity's own metric/headline/
+forward slices, so a cap can never starve filings for that entity. Round-robin only governs
+cross-class cap-trimming across entities — it is not a re-ordering that lets a cap skip an
+entity's filing seed in favor of trying another entity's headline or forward-signal slice first.
+
+**Per-class doc floors.** Classify each round-1 seed by the manifest's existing `accessMethod`
+field — no manifest schema change, `manifest.py` stays untouched; these floors are skill-level
+defaults, not manifest fields: `filing` (accessMethod == "filing"), `news` / `forward` (the
+headline / forward query slices above), and `price` (sources whose `indicators` include `D6` /
+`gpuSpotPrice`). Partition `maxDocuments` (20) into per-class minimums that sum under the cap —
+e.g. filings ≥ 6, news ≥ 4, forward ≥ 3 — with a **price-class cap of 2–3 fetches max**, so a
+handful of spot-price scrapes can never crowd out news/forward coverage. A class that can't
+reach its minimum before a cap trips is logged in `skipped[]` like any other truncation (Part
+29) — these numbers set seeding priority, they don't override the hard cap.
+
+**Don't re-fetch seen filings.** For `accessMethod == "filing"` seeds, thread the L1 seen-doc
+filter (today daily-only; Daily mode step 5) into this standard path too: before fetching a
+filing URL, check it against the dedup store's known-hash index and skip already-known,
+unchanged URLs mid-quarter — freeing that fetch for a fresh headline or forward-signal slice
+instead.
+
+**Recency window (live mode).** Bias the round-1 search-query seeds (free-web query seeds,
+standard slices, headline slices, forward-signal slices) and the on-topic lead filter (step 4)
+to the last **N days** (a dial; default `recencyDays = 45` — wider than Daily mode's
+`recencyDays = 7`, since this is the periodic full-crawl path, not a daily "what's new" sweep).
+Add "since <date> / past month / latest" style qualifiers to those queries, scaled to the
+45-day window. Unlike those query-built seeds, filing-URL seeds are exempt: the priority seeds
+bullet's `urlPatterns` matches are attempted as-is, with no date qualifier and no drop, because
+a fresh 10-K or 10-Q legitimately cites and discusses older reporting periods. DROP any
+non-filing lead whose document date is older than the window (log it in `skipped[]` as
+`"lead '<x>' older than recency window (<date>)"`), exactly like Daily mode step 1.
 
 If no manifest: build only the standard entity×metric slices (original behavior).
 
@@ -174,11 +218,15 @@ loaded, `coverageGaps` is an empty list `[]`.
 **6. Run the brain** (deterministic CLI; from repo root):
 ```
 .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
-  --primary-sources sec.gov,investor.nvidia.com --as-of <asOf>
+  --primary-sources <manifest's primaryDomains, comma-joined> --as-of <asOf>
 .venv/Scripts/python -m gpu_agent.cli pipeline --docs work/docs \
   --assignment fixtures/asg.chips.merchant-gpu.json --as-of <asOf> \
   --captured-at <ISO-8601 UTC> --out store
 ```
+Build `--primary-sources` from the manifest's top-level `primaryDomains` array (comma-joined) — do
+NOT hardcode `sec.gov,investor.nvidia.com`. Official IR/newsroom domains in `primaryDomains` are
+primary (charter: filings + official posts); trade press stays secondary. If no manifest was
+loaded, fall back to the CLI default (`sec.gov`, a filings-only baseline).
 (Use `--backend claude_code` live, or `--recorded-extract/--recorded-judge` for a $0 replay.)
 Run artifacts (doc snapshots, gather-log) go under gitignored `work/` — NEVER into `docs/`, which
 holds committed documentation only.
@@ -237,7 +285,7 @@ window). Every cap that truncates is logged in `skipped[]` with what it skipped 
   *before* extraction (saves the brain call):
   ```
   .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
-    --primary-sources sec.gov,investor.nvidia.com --dedup-store store --as-of <asOf>
+    --primary-sources <manifest's primaryDomains, comma-joined> --dedup-store store --as-of <asOf>
   ```
   The gather-log then carries `droppedKnown` (count) + `droppedKnownDetail` — a daily sweep that drops most of
   its input as already-seen says so explicitly. First run records the survivors; a re-run drops every doc.

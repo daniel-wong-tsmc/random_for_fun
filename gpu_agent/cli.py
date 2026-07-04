@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse, json, pathlib, sys
+import argparse, json, pathlib, re, sys
 from datetime import datetime, timezone
 from pydantic import ValidationError
 from gpu_agent.assignment import load_assignment
@@ -48,6 +48,15 @@ from gpu_agent.evals.harness import (
 from gpu_agent.evals.prompt_hash import compute_prompt_hashes
 from gpu_agent.corpus import (
     WINDOW_DAYS_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
+
+# F56-core: --as-of is embedded verbatim in doc/finding ids (F52), which become
+# snapshot + FindingStore filenames -- a fat-fingered "2026/07/03" would mint a
+# path-unsafe id. Validate the shape once at the CLI seam (defense-in-depth).
+_AS_OF_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?$")
+def _as_of(s: str) -> str:
+    if not _AS_OF_RE.match(s):
+        raise argparse.ArgumentTypeError(f"--as-of {s!r} must be YYYY-MM or YYYY-MM-DD")
+    return s
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -854,7 +863,7 @@ def main(argv=None) -> int:
             sp.add_argument("--out", default="store")
     ex = sub.add_parser("extract")
     ex.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
-    ex.add_argument("--as-of", required=True)
+    ex.add_argument("--as-of", required=True, type=_as_of)
     ex.add_argument("--out", default=None)
     ex.add_argument("--model", default="claude-opus-4-8")
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
@@ -868,17 +877,17 @@ def main(argv=None) -> int:
     ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
-                    help="comma-separated authoritative-source host allowlist; a generic "
-                         "filings baseline (sec.gov), NOT GPU-specific - extend per category "
-                         "via the gather skill (F26)")
-    ig.add_argument("--as-of", required=True,
+                    help="comma-separated primary/official domains; the gather skill supplies "
+                         "the per-category set from the manifest's primaryDomains (default is a "
+                         "filings-only fallback)")
+    ig.add_argument("--as-of", required=True, type=_as_of,
                     help="run vintage (YYYY-MM or YYYY-MM-DD); scopes document/finding ids (F52) and keys the L1 seen-index")
     ig.add_argument("--dedup-store", default=None,
                     help="store root for cross-run L1 seen-document dedup (holds seen_docs.jsonl)")
     wi = sub.add_parser("wiki-ingest")
     wi.add_argument("--findings", required=True, help="JSON array of gated Findings")
     wi.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wi.add_argument("--as-of", required=True)
+    wi.add_argument("--as-of", required=True, type=_as_of)
     wi.add_argument("--category", default=None, help="category id for auto-created entity pages")
     wi.add_argument("--recorded", default=None, help="path to a recorded IngestResult JSON")
     wi.add_argument("--emit-prompt", action="store_true",
@@ -886,19 +895,19 @@ def main(argv=None) -> int:
     wd = sub.add_parser("wiki-dedup")
     wd.add_argument("--findings", required=True, help="JSON array of gated Findings (this cycle)")
     wd.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wd.add_argument("--as-of", required=True)
+    wd.add_argument("--as-of", required=True, type=_as_of)
     wd.add_argument("--out-findings", default=None,
                     help="write the deduped NEW+UPDATE findings JSON here (for wiki-ingest)")
     wd.add_argument("--report", default=None, help="write the DedupReport JSON here (else stdout)")
     wl = sub.add_parser("wiki-lint")
     wl.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wl.add_argument("--as-of", required=True)
+    wl.add_argument("--as-of", required=True, type=_as_of)
     wl.add_argument("--prev-as-of", default=None,
                     help="prior cycle asOf for the diff window (default: auto-derive from the log)")
     wl.add_argument("--out", default=None, help="write the LintReport JSON here")
     wlc = sub.add_parser("wiki-lifecycle")
     wlc.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wlc.add_argument("--as-of", required=True)
+    wlc.add_argument("--as-of", required=True, type=_as_of)
     wlc.add_argument("--apply", action="store_true",
                      help="apply the proposed promotions/prunes (else propose-only)")
     wlc.add_argument("--report", default=None, help="write the LifecycleReport JSON here")
@@ -935,7 +944,7 @@ def main(argv=None) -> int:
     th.add_argument("--findings", required=True, help="JSON array of gated Findings")
     th.add_argument("--store", default="store", help="store root (holds theses/<category>/)")
     th.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
-    th.add_argument("--as-of", required=True)
+    th.add_argument("--as-of", required=True, type=_as_of)
     th.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical thesis prompt + schema (no LLM) and exit")
     th.add_argument("--recorded", default=None, help="path to a recorded ThesisAnswer JSON")
@@ -957,7 +966,7 @@ def main(argv=None) -> int:
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)
     pl.add_argument("--out", default="store")
-    pl.add_argument("--as-of", required=True)
+    pl.add_argument("--as-of", required=True, type=_as_of)
     pl.add_argument("--samples", type=int, default=3)
     pl.add_argument("--model", default="claude-opus-4-8")
     pl.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")

@@ -90,3 +90,41 @@ class CorpusResult(BaseModel):
     merged: list[Finding] = Field(default_factory=list)
     dedupedFresh: list[Finding] = Field(default_factory=list)   # the write-back stream
     report: CorpusReport
+
+
+def enumerate_store(store_root, category: str, as_of: str,
+                    window_days: int) -> tuple[list[Finding], int, list[SkippedPage]]:
+    """The windowed store corpus for `category`: every finding observed by a wiki page
+    whose header category matches, deduplicated across pages, window-filtered, sorted by
+    (asOf, id). Pages with a different or absent category are skipped AND reported (the
+    caller logs them — nothing silent). A dangling/unreadable observation finding fails
+    loud: the canonical store is trusted input, corruption is a stop-the-line event."""
+    store_root = Path(store_root)
+    wiki_dir = store_root / "wiki"
+    if not wiki_dir.is_dir():
+        return [], 0, []   # honest empty: no wiki yet (first-ever cycle)
+    store = WikiStore(wiki_dir, FindingStore(store_root / "findings"))
+    included: list[Finding] = []
+    seen_ids: set[str] = set()
+    out_of_window = 0
+    skipped: list[SkippedPage] = []
+    for entry in store.index():
+        if entry.category != category:
+            skipped.append(SkippedPage(id=entry.id, category=entry.category))
+            continue
+        for obs in store.observations(entry.id):
+            if obs.findingId in seen_ids:
+                continue
+            seen_ids.add(obs.findingId)
+            try:
+                f = store.findings.get(obs.findingId)
+            except (FindingNotFound, ValueError) as e:
+                raise CorpusError(
+                    f"store integrity: page {entry.id} observation references "
+                    f"unreadable finding {obs.findingId}: {e}") from e
+            if in_window(f.asOf, as_of, window_days):
+                included.append(f)
+            else:
+                out_of_window += 1
+    included.sort(key=lambda f: (f.asOf, f.id))
+    return included, out_of_window, skipped

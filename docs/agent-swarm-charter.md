@@ -1595,6 +1595,25 @@ guarantee ("no status flip on a single source; high-stakes flips gate to a human
   de-duplicated, tier-stamped `RawDocument`s. The single new contract between the messy swarm and the clean
   brain; a standalone built-in fetcher can later drop in behind it without touching the core.
 
+**The web-reach layer (pluggable external fetchers).** The gatherers' reach is not limited
+to the built-in `web_search`/`web_fetch`. A small **registry of external web-reach CLIs** —
+`registry/web-reach-tools.json`, **data not code** — lists tools (the first is `agent-reach`)
+that unlock source classes the built-ins reach poorly: social posts, forum threads, video
+transcripts, RSS, and broad semantic search. They are **complementary, never a replacement**:
+every cycle a gatherer runs its normal filing/open-web search **and** also queries the
+registered tools where they fit. Their output is ordinary **secondary** material —
+tier-stamped at ingest like any open-web page, confidence-capped, and subject to the same
+gate; a web-reach tool can never promote its own blob to primary. Because the open web lies
+loudest on social, a claim first seen on a social/video/forum source is **chased toward a
+primary/official source** and **cross-referenced against ≥1 independent site** before it
+carries weight — the staged path to Part 26 corroboration, recorded now and scored later (the
+"N publishers → one bounded step" math stays a separate migration, not this Part). The
+paywalled boundary (Part 22) and the data-not-instructions rule (Part 8/26) bind these tools
+exactly as they bind `web_fetch`; a tool missing or unhealthy at the start of a run is
+**logged and reported, never silently skipped** (Part 29), and the run continues on whatever
+is healthy. New category agents inherit the registry and its doctrine automatically — adding a
+tool is one data entry, not a per-agent edit.
+
 **Not yet (deferred, by decision):** hard corroboration + a hard secondary-confidence cap; **unattended
 scheduling** (Part 28 — v1 is **manually invoked** from an open session); and a standalone non-session web
 fetcher. None require a redesign — scheduling is "run this same action on a timer."

@@ -425,6 +425,16 @@
   collision today — add a registry lint or single-pass substitution); **(f)** pre-existing live
   thesis-store prose carries off-allowlist tokens (`MI`, `GB300`) — cleans up as entries are
   re-judged under the new prompts, or allowlist them if they persist.
+- [ ] **F69 — The web-reach layer: pluggable external fetchers for the gather swarm.** Spec
+  `docs/superpowers/specs/2026-07-04-web-reach-layer-design.md`, plan
+  `docs/superpowers/plans/2026-07-04-web-reach-layer.md`. Data-driven registry
+  `registry/web-reach-tools.json` (first tool `agent-reach`; the second github drops in as a
+  data entry), a health-check preamble + gatherer-contract additions in `gather-category`
+  (complementary to WebSearch/web_fetch; secondary tier; chase-to-primary + cross-reference),
+  doctrine appended to charter **Part 37**, operator doc `docs/web-reach.md`. Frozen core
+  untouched; **no scoring change** (the "N publishers → one bounded step" corroboration math
+  stays **F63**). User-approved 2026-07-04 (4 AskUserQuestion forks; charter home = append to
+  Part 37, not a new Part).
 
 ---
 

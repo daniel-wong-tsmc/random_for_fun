@@ -43,3 +43,16 @@ def test_gather_skill_wires_web_reach():
     assert "registry/web-reach-tools.json" in text
     assert "web-reach health check" in text  # the preamble heading
     assert "agent-reach" in text
+
+
+DOC = pathlib.Path("docs/web-reach.md")
+CHARTER = pathlib.Path("docs/agent-swarm-charter.md")
+
+
+def test_web_reach_doc_exists_and_points_at_registry():
+    assert DOC.exists()
+    assert "registry/web-reach-tools.json" in DOC.read_text(encoding="utf-8")
+
+
+def test_charter_part37_documents_web_reach():
+    assert "web-reach layer" in CHARTER.read_text(encoding="utf-8").lower()

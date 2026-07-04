@@ -1,0 +1,326 @@
+# Roadmap — from one desk to the AI Market State product
+
+> The phased path from today's single live category desk to the full charter product. The
+> destination is `docs/agent-swarm-charter.md` (all ~39 parts); the near-term items are
+> `docs/fix-backlog.md`; recorded product decisions are `docs/action-items.md` and are not
+> relitigated here. Near-term phases are planned in depth; precision tapers with distance —
+> far phases are outline-level and marked **to be planned when reached**.
+>
+> **Decision provenance (2026-07-04, user-approved):** three forks were put to the user before
+> this doc was written — (1) the Layer tier enters after categories #2–3 over a *partial* chips
+> layer, not after the full layer; (2) Main enters after ~2 layers are live, not after all 34
+> categories; (3) phases carry coarse size tags, no dates. Four deviations from the original
+> phase sketch are flagged inline where they occur.
+
+## The goal
+
+Today one category desk — `chips.merchant-gpu` — is fully live: daily and monthly cycles, a
+standing thesis book with anti-whipsaw, an exec-readable report, a web-reach gather layer, and
+an armed eval regression gate. The destination is the charter's full product: **34 canonical
+category desks** (Energy → Chips → Infrastructure → Models → Applications) each producing
+gate-clean, evidence-cited scorecards; **5 layer agents** judging each layer by weakest link
+and calling it tailwind / headwind / risk for TSMC; and **one Main agent** owning the market
+status and a position book of prioritized, calibrated, evidence-chained **recommendations** —
+the "extremely educated next step" a real TSMC executive reads, drills into, and acts on, with
+every number answering "how do you know that?" on demand. This roadmap sequences the build so
+the riskiest unproven seams are proven earliest, the product's core deliverable (the
+recommendation altitude) gets the longest possible soak time, and no scale-out happens before
+a costed pilot says the unit economics work (charter Part 27).
+
+## Standing constraints (bind every phase — never re-decided per phase)
+
+- **Frozen contract v1.2** — `gate.py`, `scoring.py`, `schema/*`, `judgment/briefing.py`,
+  `judge.py` aggregation, `pipeline.py`, `JsonStore` change only as **versioned migrations**
+  (charter Part 33), never piecemeal. All new work is additive behind the Part 38 seams.
+- **The F6 eval gate is ARMED** — any edit that changes an emitted brain prompt turns the suite
+  red until `run-eval` + `eval rebaseline`, committed with the change. The golden set extends
+  per archetype as new category archetypes onboard (Part 24); the grader is periodically graded.
+- **Lane discipline** (HANDOFF big-decision #2; charter Parts 10–11, 21) — a category desk owns
+  its lane's entities only and **never recommends actions**; it surfaces decision-relevant
+  signals plus a one-line implication. Tailwind/headwind/risk is Layer; prioritized actions are
+  Main. F65 is an implication section, not a recommendation.
+- **Claude Code is the brain** — no OAuth/SDK/API. Brains are tool-less dispatched subagents via
+  `--emit-prompt` → `--recorded`; gate rejection → re-dispatch with the errors, never hand-edit.
+- **Calibration and eval are continuous tracks, not phases** (deviations 3 and 4 — the original
+  sketch had "backtest / calibration maturity" as a final phase; the evidence says Brier starts
+  at F64 in Phase 1, Main takes calibration ownership in Phase 5, and the dashboard merely
+  *surfaces* it in Phase 7).
+- **REJECTED items stay rejected** (fix-backlog): the SEC-EDGAR/sec-api pipeline and the
+  search-API/scraper benchmark do not reappear on this roadmap.
+
+## Phase map
+
+| # | Phase | Size | Gate to the next phase |
+|---|---|---|---|
+| 1 | Make the one desk a product | ~4 sub-projects + 1 lane wave | approved F-sequence delivered, suite + eval green |
+| 2 | Prove generalization (categories #2–3) | ~2 sub-projects + per-category data work | 2 new desks gate-clean, zero template forks |
+| 3 | Layer tier over the partial chips layer | ~2 sub-projects | layer assessment + layer-scoped recommendations live |
+| 4 | Complete chips = the costed pilot (Part 27) | ~1–2 sub-projects + 4 onboardings | measured $/cycle + wall-clock → fan-out go/no-go |
+| 5 | Second layer + Main over a partial market | ~3 sub-projects + onboardings | exec brief leads with recommendations over 2 layers |
+| 6 | Fan-out to 34, in waves by layer | unsized until Phase 4 numbers exist | all desks cycling at TTL within budget |
+| 7 | Product & trust maturity | to be planned when reached | the charter's closing test holds at product scale |
+
+---
+
+## Phase 1 — Make the one desk a product (near-term; in progress)
+
+**Delivers.** The merchant-gpu desk goes from "well-organized summary of last quarter's earnings
+season" to a *current* intelligence product: the monthly flagship consumes everything the
+dailies learned; corroborated open-web reporting can move conviction; the gather chases
+headlines and forward signals with a recency window; leading indicators actually score; the
+daily brief leads with trigger-watch; the brief says what it means for TSMC.
+
+**Sequence (user-approved 2026-07-03 — do not reorder):**
+**F62** flagship consumes the daily store → **F63** corroboration doctrine (N independent
+secondary publishers move one bounded step) + the evidence-sufficiency counterweight →
+**F57/F58/F59** gather freshness wave (headline/forward slices + class floors; ~45-day live
+recency window; primary allowlist = the charter's "filings, official posts") → **F60** let
+fresh/leading indicators score → **F64** trigger-first daily brief + Brier scoring → **F65**
+"So what for TSMC" section → **F66** post-hoc citation audit (low priority). **F56** is a tiny
+independent side item; the **F68** bundle is opportunistic cleanup. Each feature item starts
+with brainstorming per repo convention; F57–F59 run lane-style.
+
+**Why first.** Everything after this phase clones this desk. Cloning happens once the template
+is worth cloning — hardening after fan-out would mean fixing the same gap up to 34 times.
+
+**Prerequisites.** None — F6 (step 0) is done and the gate is armed.
+
+**Consumes.** F56–F66 (+F68); charter Parts 10 (signal triage feeds F63's doctrine), 12 (Brier,
+via F64), 24/25 (every prompt change through the eval gate), 33 (F63/F60 scoring semantics ship
+only as versioned migrations; registry weight changes are data and safe), 37 (gather doctrine;
+F69's recorded chase/corroboration result gets its structured field in F63).
+
+**Done when.** The monthly brief demonstrably cites daily-store findings (the
+vendor-financed-circularity same-day-demotion failure mode can no longer occur); a logged
+corroboration set moves a conviction one bounded step and the next filing remains the
+confirm/deny checkpoint; the gather-log shows filing/news/forward class floors met and the
+price-class cap held; outlook contributes non-zero alongside momentum; the daily leads with
+trigger-watch and the Brier log accrues per judgment; the F65 section renders; suite + eval
+baseline green through every step.
+
+**Main risk.** F63 loosens the secondary-evidence cap — exactly the whipsaw the anti-whipsaw
+machinery exists to prevent. The evidence-sufficiency gate ships *in the same spec* as the
+counterweight, never separately. Second risk: F62 contaminates the flagship with stale or
+duplicate findings; F52 vintage ids + L2 dedup are the mitigation and the acceptance tests.
+
+## Phase 2 — Prove generalization (categories #2–3)
+
+**Delivers.** Two more live desks, instantiated as **template + assignment** (charter Part 18):
+new assignments, manifests, indicator registries, seed thesis books, personas — and **zero
+code forks**. Plus the scale groundwork that becomes binding the moment desk #2 exists:
+**F24 entity canonicalization** (deviation 1 — pulled forward from "before fan-out": NVIDIA and
+TSMC become multi-category entities at desk #2, and `entity:amd` is global today), per-archetype
+golden-set extension (Part 24), and **F23** (compliance matrix) as capacity filler.
+
+**Why here.** This is the cheapest test of the architecture's central bet — "one template, many
+instances" — and it catches merchant-gpu-shaped assumptions while there is still only one desk
+to fix. F26 (de-GPU) and F27 (frontier-closed runnable) were the paper proof; this is the live
+proof.
+
+**Prerequisites.** Phase 1 substantially done (clone the hardened desk, not the current one).
+
+**Consumes.** F23, F24; charter Parts 16 (onboarding lifecycle — run it for real, human gate
+included), 18 (assignment/registries), 21 (entity ownership + reconciliation data model), 24
+(golden set per archetype).
+
+**Done when.** Categories #2–3 each run ≥2 gate-clean daily + 1 monthly cycle; the diff to add
+each was data only (assignment, manifest, registry, seeds — no template edit, or the template
+edit shipped for all categories through the eval gate); multi-category entities are counted
+once via `primaryCategory`; the eval baseline covers the new archetype(s).
+
+**Main risk.** The template is secretly merchant-gpu-shaped in ways F26 didn't reach (prompt
+idioms, indicator semantics, manifest structure). Mitigation: the eval gate catches prompt
+drift; treat any needed template change as a fix for all categories, never a per-category fork.
+Second risk (consistently underestimated): each new category's indicator registry, source
+inventory, and seed thesis book are real analyst work — data lift, not code lift.
+
+## Phase 3 — Layer tier over the partial chips layer
+
+**Delivers.** The first **Layer agent** (chips): a code-computed **briefing book** (measured
+rollups + deltas across its category scorecards — the agent interprets, never does arithmetic),
+a memory-backed judgment loop (no web, no sandbox) with its own analyst notebook, the
+**weakest-link** layer rating plus layer-level DMI/SMI/SDGI, and the **Recommendation Skill at
+layer scope** — the first tier allowed to say tailwind / headwind / risk + watchlist. Output
+carries an honest **partial-coverage banner** (3 of 7 chips categories live) until Phase 4
+fills the layer. The adjacent-layer read seam (Part 9 Option B) is built but reads honestly
+degrade until a neighbor layer exists.
+
+**Why here (user-approved fork 1 — a deviation from the charter's literal pilot shape).** The
+category→layer roll-up is the riskiest unproven seam in the system; proving it on a thin
+vertical slice of 3 desks beats discovering its design flaws after 7 desks are live. Part 38's
+uniform tier interface (`run(scope, store) → findings + assessment`) means the layer stage
+drops in behind an already-named seam with zero orchestrator change.
+
+**Prerequisites.** ≥3 chips desks live (Phases 1–2). The thesis-book / notebook pattern from
+sub-project 5 is the reference implementation for layer memory and anti-whipsaw at layer scope.
+
+**Consumes.** Charter Parts 3 (tier roles), 4 (memory), 5 (tier-2 loop profile), 6 (the
+scorecard→layer contract), 9 (read seam + Option B), 10–11 (Recommendation Skill, layer scope),
+13 (adversarial capability at layer), 17 (weakest-link rollup), 38 (uniform tier interface).
+From HANDOFF's standing track: this is the "layer tier" item.
+
+**Done when.** `run-cycle layer:chips` executes the category tier then a real layer stage; the
+layer assessment cites the Finding ids behind its stance and states vs-prior from its own
+history; layer recommendations pass the Part 11 self-checks (signal/noise filter shown,
+triggers stated, no whipsaw without clearing the bar); the partial-coverage banner renders.
+
+**Main risk.** Layer judgment quality — the first analyst tier that never touches the web and
+must add value *above* its inputs rather than parrot them. The briefing-book/judgment split and
+sibling isolation (Part 9) are the structural mitigations; the eval harness needs layer-tier
+golden cases before this ships (Part 24 applies to every tier, not just category brains).
+
+## Phase 4 — Complete the chips layer = the costed pilot (charter Part 27)
+
+**Delivers.** The remaining chips categories (7 total: merchant-gpu, hyperscaler-asic,
+ai-silicon-startups, hbm-memory, foundry-packaging, networking-silicon, eda-ip) onboarded by
+the now-proven Phase 2 recipe; **parallel category fan-out** via the Workflow driver behind the
+Part 38 execution seam; **F25** (wiki store performance + concurrency — the O(pages²) scans and
+the TOCTOU race are fatal at concurrent categories); the store/read seam upgraded if JsonStore
+strains (Part 9's canonical store + scoped query tool). And the pilot's actual product: a
+**measured unit-cost model** — tokens/wall-clock per category-cycle and per full-layer cycle at
+the chosen cadence (Part 27's $/agent-run, translated to this build's Claude-Code economics).
+
+**Why here.** Part 27 is explicit: **no full build before a costed pilot says the unit
+economics work**, and one layer end-to-end is the pilot. This is also the first real
+concurrency test, so the scale prerequisites land here — before fan-out multiplies them by 34.
+
+**Prerequisites.** Phase 3 (the pilot must measure the full category→layer stack, not
+categories alone).
+
+**Consumes.** F25; charter Parts 19 (budget ceiling + load-shedding, configured from real
+numbers), 27 (the cost model itself), 28 (cycle-time budget — staleness is chosen, not
+discovered), 38 (execution-driver seam: sequential → Workflow).
+
+**Done when.** A full chips cycle (7 categories + layer assessment) completes inside a stated
+token/wall-clock budget; the cost model is written from measured runs, not estimates; a
+**fan-out go/no-go** is recorded with the numbers that justify it.
+
+**Main risk.** The economics fail — cost or wall-clock per cycle makes 34 categories at the
+intended cadence infeasible. That is the pilot *working as designed*: the response is cadence,
+depth, or model-tier adjustment (Parts 18/19/28 dials), decided here cheaply instead of in
+production. Secondary: concurrent store corruption — F25 is the named fix and its tests are
+the acceptance bar.
+
+## Phase 5 — Second layer + Main tier over a partial market
+
+**Delivers.** Layer #2 stood up by the same recipe (which layer is an open question below; its
+category count follows materiality, not completeness — enough desks for a credible layer read).
+Then the **Main agent**: the one-word market status + bottleneck + direction + reason (Part
+17), cross-layer entity reconciliation (Part 21's pass, live at the tier that sees across
+categories), the **macro/exogenous overlay** (Part 15 — owned by Main, slices handed down),
+the **Recommendation Skill at market scope** producing the position book (re-affirm /
+strengthen / weaken / adjust with explicit deltas, per action-items), the **human gate on
+status flips** (Part 23, minimal viable form), and **Part 34 seeding** — the June-2026
+deep-research map becomes the asOf 2026-06 baseline so Main has a prior and "vs. prior" works
+on day one. Every Main output carries the honest coverage banner ("2 of 5 layers live").
+
+**Why here (user-approved fork 2 — see decision provenance).** The recommendation
+altitude is the product's core deliverable and its least-proven reasoning; deferring it until
+after all 34 categories would give the most valuable machinery the shortest calibration runway.
+Building Main over two real layers ships recommendations many cycles earlier and lets the
+remaining fan-out happen *under* a working top tier that immediately consumes it.
+
+**Prerequisites.** Phase 4 go decision; two live layers (adjacent-layer reads become real);
+the decision-area set confirmed (action-items open item — capacity/capex, pricing, accounts,
+risk + the proposed technology-roadmap / footprint / ecosystem additions, capped at seven).
+
+**Consumes.** Charter Parts 3 (Main's role), 10–11 (Recommendation record + skill, market
+scope), 12 (calibration ownership moves to Main — per-tier, per-decision-area), 13 (scenario
+modeling + red-team capabilities), 15 (macro overlay), 21 (reconciliation pass), 23 (human
+gate), 32 (fast-break path + escalation-over-silent-override), 34 (seed + "track record
+maturing" state). From HANDOFF's standing track: "Main roll-up".
+
+**Done when.** `market-state.json` + an exec brief lead with prioritized recommendations over
+the two live layers; every recommendation passes the Part 11 self-check (decision area,
+evidence chain to primary sources, shown signal/noise filter, triggers, capped confidence); a
+status flip requires human confirmation; the calibration record accrues keyed by tier; the
+coverage banner and "track record maturing" state render.
+
+**Main risk.** Recommendation quality — this is where "analyst desk" either materializes or
+reads as a dressed-up dashboard. Mitigations: the position-book model keeps "nothing changed"
+honest; Part 32's fast-break path prevents anti-whipsaw from suppressing the highest-value
+calls; the F64 Brier record from Phase 1 onward means conviction language arrives with a track
+record rather than assuming one.
+
+## Phase 6 — Fan-out to 34, in waves by layer *(outline level — to be planned when reached)*
+
+**Delivers.** The remaining three layers onboarded in waves (wave order: an open question
+below), each wave = category onboardings by the Phase 2 recipe + that layer's agent by the
+Phase 3 recipe. The operational machinery that 34 desks force: **unattended scheduling**
+(deviation 2 — Part 28's scheduled cloud agents or headless `claude` driving the
+same trigger; 34 desks on manual triggers is operationally impossible, so this is a hard
+prerequisite here, not a far-phase nicety); the **review queue as a throughput-managed system**
+(Part 30 — flag-threshold calibration, SLOs, auto-clear for low-blast-radius items); the
+**source inventory + licensing decisions** per category (Part 22 — estimate-grade categories
+say so honestly); the **living taxonomy lifecycle** live in both directions (Part 16 —
+detect/propose/approve/provision/prune); the **quorum + staleness publish rule** (Part 19).
+
+**Why here.** Only after the pilot's measured go and a working top tier. Waves keep each
+onboarding batch reviewable and let the cost model recalibrate per layer (energy and
+applications have very different source realities than chips).
+
+**Done when.** All 34 canonical desks cycle at their per-category TTL cadence within the
+budget ceiling; the publish rule holds the status when inputs are stale and says exactly what
+is stale; queue SLOs are met without approver fatigue.
+
+**Main risk.** Operational load — human review throughput and cost at scale, plus source
+licensing gaps concentrating in specific layers (the app/neocloud layer runs on single-sourced
+private estimates; Part 22's honesty machinery is the answer, not pretending coverage).
+
+## Phase 7 — Product & trust maturity *(outline level — to be planned when reached)*
+
+The order below is a lean, not a commitment — sequenced properly when Phase 6's realities are
+known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision #1).
+
+- **Product surface** (Part 35): the HTML dashboard — push brief + pull drill-down
+  (recommendation → findings → sources), SSO, the graceful states ("pending review", "inputs
+  degraded", "track record maturing", "provisional"). The existing brief remains the product
+  until this earns its way in.
+- **Interactive path** (Part 14): the desk on demand — answer-from-store-first, research the
+  gaps, write back. Gated by a per-user budget (Part 27).
+- **Episode backtest harness** (Parts 24/34 + Action Item 1 half 2): the 5–10 resolved
+  2023–2026 episodes (DeepSeek moment, CoWoS crunch, Ethernet-over-InfiniBand, …) as frozen
+  information-cutoff regression tests; backfilled history explicitly labeled reconstructed.
+- **Adversarial boundary completion** (Part 26): the written threat model, circular-source
+  detection, manipulation-resistance on the headline.
+- **Security & data protection** (Part 31): secrets vault, encryption/residency decision,
+  human-read audit log — before any real TSMC-confidential exposure.
+- **Automated harness optimization** (Part 36): strictly last — it requires a trusted reward,
+  and shipping it earlier Goodharts an uncalibrated grader.
+
+**Done when.** The charter's closing test holds at product scale: any number on screen answers
+"how do you know that?" with the chain already written.
+
+## Continuous tracks (run through every phase; never a phase of their own)
+
+- **Calibration** (Part 12): Brier logging from F64 (Phase 1) → per-tier ownership at Main
+  (Phase 5) → surfaced to the reader (Phase 7). The track record is earned in the open.
+- **Eval** (Parts 24/25): the F6 gate on every prompt change; golden set grows per archetype
+  and per tier; grade-the-grader on a cadence; shadow runs qualify any model swap.
+- **Doctrine hygiene**: F23 compliance matrix when capacity allows; F66-style post-hoc audits;
+  the charter's self-checks applied at each phase's final review.
+- **Discovery lane** (Part 18): provisional → persist + corroborate → promote, at every scale;
+  governance stays proportional to blast radius.
+
+## Open strategic questions (for the user — decisions this roadmap deliberately does not make)
+
+1. **Which category goes second?** Lean: a chips sibling (`hyperscaler-asic` is the strongest
+   candidate — it is merchant-gpu's structural counter-thesis and shares entities, which
+   exercises F24 immediately), so Phase 3's partial layer is coherent. Counterpoint:
+   `models.frontier-closed` is already runnable (F27) and stress-tests archetype diversity
+   harder. Note `chips.foundry-packaging` is special — the desk that covers TSMC itself — and
+   may deserve deliberate early or deliberately late placement.
+2. **Which layer is #2 for Phase 5?** Lean: infrastructure (adjacent to chips — it *is* chips'
+   demand signal under Part 9's Option B, and hyperscaler capex is the market's engine).
+   Alternative: models, the fastest clock-speed layer per the action-items horizon decision.
+3. **Repo rename** — still `random_for_fun`. Zero-cost now, awkward later; must precede any
+   TSMC-branded exposure (F48). Recommendation: rename at the start of Phase 2, before more
+   docs/links accrete.
+4. **Cost / cadence tolerance.** Phase 4's go/no-go needs a number to judge against: what
+   token/wall-clock spend per full-layer cycle is acceptable, and do all categories run daily,
+   or fast-movers only with slow-movers on TTL (Part 19)?
+5. **Paid-source licensing posture** (Part 22): TrendForce / SemiAnalysis / Dell'Oro stay
+   inventoried-but-unfetched. Which categories may run estimate-grade indefinitely, and which
+   justify a licensing ask when they onboard?
+6. **Decision-area expansion** (action-items open item): confirm the seven-area set before
+   Phase 5 builds the market-scope Recommendation Skill against it.

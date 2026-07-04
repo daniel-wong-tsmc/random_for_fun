@@ -35,6 +35,9 @@ vintage ids + L2 dedup; the monthly flagship currently discards everything the d
 (see the F62 backlog entry).
 
 ## Newest state (newest first)
+  - **`docs/roadmap.md` — the phased roadmap from this one desk to the full charter product
+    (2026-07-04): forks user-approved live (layer tier after cats #2–3, Main after ~2 layers,
+    coarse size tags); final doc committed under the AFK precedent — open questions inside.**
   - **F6 TASK 10 DONE — initial eval baseline committed (`0344949`), hash-pin gate ARMED.**
     Live run 2026-07-04 (all tool-less Opus): 14 fresh brains + 1 F38-safe voice re-dispatch, all
     gate-clean; 18 rubric graders + 1 schema re-dispatch. Seam means extract 6.62 / judge 6.75 /

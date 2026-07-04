@@ -3,6 +3,16 @@
   "categoryId": "chips.merchant-gpu",
   "asOf": "2026-06",
   "description": "Expected coverage for the merchant-GPU category (NVDA, AMD, INTC) — 6 dimensions, primary filings + open-web sources, 1 paywalled tracker inventoried.",
+  "primaryDomains": [
+    "sec.gov",
+    "investor.nvidia.com",
+    "nvidianews.nvidia.com",
+    "blogs.nvidia.com",
+    "ir.amd.com",
+    "intc.com",
+    "bis.doc.gov",
+    "federalregister.gov"
+  ],
   "expectedIndicators": [
     {
       "indicatorId": "D2",

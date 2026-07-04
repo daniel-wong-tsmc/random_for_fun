@@ -162,11 +162,15 @@ loaded, `coverageGaps` is an empty list `[]`.
 **6. Run the brain** (deterministic CLI; from repo root):
 ```
 .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
-  --primary-sources sec.gov,investor.nvidia.com --as-of <asOf>
+  --primary-sources <manifest's primaryDomains, comma-joined> --as-of <asOf>
 .venv/Scripts/python -m gpu_agent.cli pipeline --docs work/docs \
   --assignment fixtures/asg.chips.merchant-gpu.json --as-of <asOf> \
   --captured-at <ISO-8601 UTC> --out store
 ```
+Build `--primary-sources` from the manifest's top-level `primaryDomains` array (comma-joined) — do
+NOT hardcode `sec.gov,investor.nvidia.com`. Official IR/newsroom domains in `primaryDomains` are
+primary (charter: filings + official posts); trade press stays secondary. If no manifest was
+loaded, fall back to the CLI default (`sec.gov`, a filings-only baseline).
 (Use `--backend claude_code` live, or `--recorded-extract/--recorded-judge` for a $0 replay.)
 Run artifacts (doc snapshots, gather-log) go under gitignored `work/` — NEVER into `docs/`, which
 holds committed documentation only.
@@ -225,7 +229,7 @@ window). Every cap that truncates is logged in `skipped[]` with what it skipped 
   *before* extraction (saves the brain call):
   ```
   .venv/Scripts/python -m gpu_agent.cli ingest --blobs blobs.json --out work/docs \
-    --primary-sources sec.gov,investor.nvidia.com --dedup-store store --as-of <asOf>
+    --primary-sources <manifest's primaryDomains, comma-joined> --dedup-store store --as-of <asOf>
   ```
   The gather-log then carries `droppedKnown` (count) + `droppedKnownDetail` — a daily sweep that drops most of
   its input as already-seen says so explicitly. First run records the survivors; a re-run drops every doc.

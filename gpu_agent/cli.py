@@ -791,9 +791,9 @@ def main(argv=None) -> int:
     ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
-                    help="comma-separated authoritative-source host allowlist; a generic "
-                         "filings baseline (sec.gov), NOT GPU-specific - extend per category "
-                         "via the gather skill (F26)")
+                    help="comma-separated primary/official domains; the gather skill supplies "
+                         "the per-category set from the manifest's primaryDomains (default is a "
+                         "filings-only fallback)")
     ig.add_argument("--as-of", required=True,
                     help="run vintage (YYYY-MM or YYYY-MM-DD); scopes document/finding ids (F52) and keys the L1 seen-index")
     ig.add_argument("--dedup-store", default=None,

@@ -158,6 +158,11 @@ bookkeeping and skill enforcement only. **No `Finding` schema change.**
   previously auto-capped (F2e), auto-deferred (rule 6), or would now be auto-rejected
   (sufficiency). The brain still writes every judgment.
 - Wiki page-promotion corroboration (≥2) and its `_publisher_key` behavior: unchanged.
+- **Contract v1.2's F3 dimension-level cap is intentionally unchanged** (`dimensionStatus.
+  confidenceCap="medium"` + note "secondary-only evidence" when a dimension's citations carry
+  no primary): the backlog sanctions only gate rule F2e, and keeping the dimension-confidence
+  DISPLAY conservative while corroboration unlocks finding confidence and rating/conviction
+  movement is the safe asymmetry.
 - The daily/monthly cycle skill flow: unchanged except the judge re-dispatch loop gains the
   `sufficiency:` failure mode alongside `voice-lint:`.
 

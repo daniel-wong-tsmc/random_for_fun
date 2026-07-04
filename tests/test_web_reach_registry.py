@@ -33,3 +33,13 @@ def test_enabled_tools_have_required_fields():
         assert t.get("installDocUrl"), f"{t['id']} missing installDocUrl"
         caps = t.get("capabilities")
         assert isinstance(caps, list) and caps, f"{t['id']} missing capabilities"
+
+
+SKILL = pathlib.Path(".claude/skills/gather-category/SKILL.md")
+
+
+def test_gather_skill_wires_web_reach():
+    text = SKILL.read_text(encoding="utf-8")
+    assert "registry/web-reach-tools.json" in text
+    assert "web-reach health check" in text  # the preamble heading
+    assert "agent-reach" in text

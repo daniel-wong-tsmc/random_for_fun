@@ -87,3 +87,15 @@ def test_main_check_only_json_exit_code(monkeypatch, capsys, tmp_path):
     assert rc == 0
     assert set(out["webReach"].keys()) == {"toolA", "toolB"}
     assert out["webReach"]["toolA"]["status"] == "ok"
+
+
+def test_cli_subcommand_delegates(monkeypatch, capsys, tmp_path):
+    from gpu_agent import cli, web_reach_ensure as w
+    reg_file = tmp_path / "reg.json"
+    reg_file.write_text(json.dumps(_reg()), encoding="utf-8")
+    monkeypatch.setattr(w, "REGISTRY_PATH", reg_file)
+    monkeypatch.setattr(w, "_run", lambda cmd, timeout: _cp(0))
+    rc = cli.main(["web-reach-ensure", "--check-only", "--json"])
+    out = json.loads(capsys.readouterr().out)
+    assert rc == 0
+    assert set(out["webReach"].keys()) == {"toolA", "toolB"}

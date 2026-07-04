@@ -831,6 +831,18 @@ def _report(args) -> int:
     return 0
 
 
+def _web_reach_ensure(args) -> int:
+    from gpu_agent import web_reach_ensure as wre
+    # Call with the module attribute (not the def-time default) so tests that
+    # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
+    registry = wre.load_registry(wre.REGISTRY_PATH)
+    log = (lambda m: None) if args.json else print
+    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    if args.json:
+        print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
+    return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -985,6 +997,11 @@ def main(argv=None) -> int:
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")
     grp.add_argument("--no-prior", action="store_true",
                      help="suppress prior-cycle lookup; Δ columns show —")
+    wre = sub.add_parser("web-reach-ensure",
+                         help="idempotently ensure web-reach tools are installed")
+    wre.add_argument("--check-only", action="store_true")
+    wre.add_argument("--json", action="store_true")
+    wre.add_argument("--timeout", type=int, default=600)
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -1034,6 +1051,8 @@ def main(argv=None) -> int:
         except ValueError as e:
             print("CYCLE SCOPE ERROR:", e, file=sys.stderr)
             return 1
+    if args.cmd == "web-reach-ensure":
+        return _web_reach_ensure(args)
     if args.cmd == "report":
         return _report(args)
     try:

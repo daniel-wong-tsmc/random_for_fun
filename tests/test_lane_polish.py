@@ -11,12 +11,18 @@ demand/supply-gap semantics), not the raw sign of `smiContribution`.
 
 Task 3 (F68d): WHAT MOVED's folded-count line must not state the folded
 count twice in the no-material-moves empty state.
+
+Task 4 (F68e): label_ids_in_text must substitute indicator ids -> human
+labels in ONE pass, so a future registry label that happens to embed
+another id's literal token can never be re-substituted (no chaining).
 """
 from __future__ import annotations
 import json
 import copy
 from pathlib import Path
 
+from gpu_agent import reader
+from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.report import render_citation_map
 from gpu_agent.brief import render_state_of_market, render_what_moved
 from gpu_agent.schema.scorecard import Scorecard, DemandSupply, CategoryStatus
@@ -129,3 +135,38 @@ def test_moves_present_folded_tail_still_renders_once():
     out = render_what_moved(mv)
     assert out.count("folded") == 1
     assert "(3 lower-materiality items folded — see wiki-lint)" in out
+
+
+# ── Task 4 (F68e): label_ids_in_text substitutes ids -> labels in ONE pass ──
+
+def test_label_ids_in_text_single_pass_no_chaining_when_label_embeds_another_id():
+    """If a future registry label for id A embeds id B's literal token, iterative
+    substitution (looping over ids one at a time, re.sub-ing the whole text on
+    each pass) would re-scan A's freshly-inserted label and wrongly relabel the
+    embedded B token too. label_ids_in_text must substitute in exactly ONE pass
+    over the ORIGINAL text so an inserted label is never re-scanned."""
+    stub = IndicatorRegistry({
+        "ALPHA-ID": {"label": "compute change vs BETA index"},
+        "BETA": {"label": "capacity utilization"},
+    })
+    out = reader.label_ids_in_text("Track ALPHA-ID and BETA this week.", stub)
+
+    # A's label renders once, verbatim — including its embedded literal "BETA"
+    # token, which must NOT be re-substituted just because it also matches id B.
+    assert out.count("compute change vs BETA index") == 1
+    # B's own standalone occurrence IS substituted — exactly once.
+    assert out.count("capacity utilization") == 1
+    assert out == "Track compute change vs BETA index and capacity utilization this week."
+
+
+def test_label_ids_in_text_existing_no_collision_render_stays_byte_identical():
+    """Pin: a real, no-collision 'breaks if' style trigger naming two distinct
+    registry indicator ids renders exactly as it did before the single-pass
+    change (existing behavior for the no-collision case must not move)."""
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    text = "The D6 track shows a decline while S10 tightens across the chain."
+    out = reader.label_ids_in_text(text, reg)
+    assert out == (
+        "The GPU rental price track shows a decline "
+        "while Whole-chain inventory tightens across the chain."
+    )

@@ -421,10 +421,12 @@ Add the handler near the other `_xxx(args)` helpers (module level, above `def ma
 
 ```python
 def _web_reach_ensure(args) -> int:
-    from gpu_agent.web_reach_ensure import load_registry, ensure_all
-    registry = load_registry()
+    from gpu_agent import web_reach_ensure as wre
+    # Call with the module attribute (not the def-time default) so tests that
+    # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
+    registry = wre.load_registry(wre.REGISTRY_PATH)
     log = (lambda m: None) if args.json else print
-    results = ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
     if args.json:
         print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1

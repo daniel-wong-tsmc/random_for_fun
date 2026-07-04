@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f scripts/web-reach-ensure ]; then sh scripts/web-reach-ensure --json || true; else cmd //c scripts\\web-reach-ensure.cmd --json; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

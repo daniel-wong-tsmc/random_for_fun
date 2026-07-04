@@ -60,8 +60,8 @@ never installs mid-cycle.
 
 ## Adding a tool
 Append one object to `tools[]` in `registry/web-reach-tools.json`
-(`id`/`enabled`/`role`/`installDocUrl`/`healthCmd`/`invokeHint`/`capabilities`/`defaultTier`/
-`notes`). Set `role` to `fetch` (returns raw content) or `discovery` (synthesizes → leads
+(`id`/`enabled`/`role`/`repo`/`installDocUrl`/`healthCmd`/`invokeHint`/`capabilities`/
+`defaultTier`/`notes`). Set `role` to `fetch` (returns raw content) or `discovery` (synthesizes → leads
 only). Adding a **same-role** tool needs no skill or charter edit — every category agent picks
 it up on the next run. A genuinely new `role` needs a one-time doctrine update (the skill's
 tool-roles block + the charter Part 37 subsection), as `discovery` did when `last30days`

@@ -91,3 +91,13 @@ def test_skill_and_charter_document_discovery_role():
     assert "leads only" in skill.lower()
     assert "last30days" in skill
     assert "discovery" in charter.lower()
+
+
+def test_gatherer_contract_and_round_building_are_role_aware():
+    # the step-3 SUBAGENT contract (not just the coordinator preamble) must be role-aware,
+    # and discovery tools must have a concrete leads-only home in round building — else a
+    # fetch subagent could ingest last30days' synthesized brief as a secondary blob.
+    skill = SKILL.read_text(encoding="utf-8")
+    assert "role: fetch" in skill            # contract scoped to fetch tools
+    assert "Discovery-role leads" in skill   # step 2b — the concrete home
+    assert "Never add the synthesized brief" in skill  # never-ingest rule in the actionable step

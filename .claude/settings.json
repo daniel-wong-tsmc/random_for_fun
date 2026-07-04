@@ -2,11 +2,11 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume",
+        "matcher": "startup|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f scripts/web-reach-ensure ]; then sh scripts/web-reach-ensure --json || true; else cmd //c scripts\\web-reach-ensure.cmd --json; fi"
+            "command": "case \"$(uname -s 2>/dev/null || echo unknown)\" in MINGW*|MSYS*|CYGWIN*) cmd //c \"scripts\\\\web-reach-ensure.cmd --json\" ;; *) sh scripts/web-reach-ensure --json ;; esac || true"
           }
         ]
       }

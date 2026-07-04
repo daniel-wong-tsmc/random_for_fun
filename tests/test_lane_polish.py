@@ -15,6 +15,12 @@ count twice in the no-material-moves empty state.
 Task 4 (F68e): label_ids_in_text must substitute indicator ids -> human
 labels in ONE pass, so a future registry label that happens to embed
 another id's literal token can never be re-substituted (no chaining).
+
+Task 5 (F68a): lint_thesis_prose is a NEW deterministic post-hoc lint,
+symmetrical to the judgment path's reader.lint_prose voice enforcement —
+the thesis spec's Sec 2b voice rules (one-sentence statement/mechanism,
+finding ids only in falsifiableTrigger) previously existed as prompt text
+only, with no code check.
 """
 from __future__ import annotations
 import json
@@ -170,3 +176,47 @@ def test_label_ids_in_text_existing_no_collision_render_stays_byte_identical():
         "The GPU rental price track shows a decline "
         "while Whole-chain inventory tightens across the chain."
     )
+
+
+# ── Task 5 (F68a): lint_thesis_prose — deterministic thesis-prose lint ──────
+
+from gpu_agent.thesis import lint_thesis_prose
+
+_CLEAN_STATEMENT = "Merchant GPU demand stays firm through the cycle."
+_CLEAN_MECHANISM = "Hyperscaler capex commitments convert to shipments with a lag."
+
+
+def test_lint_thesis_prose_flags_multi_sentence_statement():
+    """statement must fit in exactly one sentence, same cap the judge path enforces
+    on narrative/rationale fields via reader.lint_prose(..., max_sentences=N)."""
+    two_sentence_statement = (
+        "Merchant GPU demand stays firm through the cycle. Backlog growth confirms it."
+    )
+    violations = lint_thesis_prose(two_sentence_statement, _CLEAN_MECHANISM)
+    assert any(v.startswith("statement:") and "sentences" in v for v in violations)
+
+
+def test_lint_thesis_prose_flags_multi_sentence_mechanism():
+    two_sentence_mechanism = (
+        "Hyperscaler capex commitments convert to shipments with a lag. "
+        "The lag is roughly two quarters."
+    )
+    violations = lint_thesis_prose(_CLEAN_STATEMENT, two_sentence_mechanism)
+    assert any(v.startswith("mechanism:") and "sentences" in v for v in violations)
+
+
+def test_lint_thesis_prose_flags_finding_id_in_statement():
+    """Finding ids belong ONLY in falsifiableTrigger (spec Sec 2b voice rule) — one
+    leaking into statement is a violation naming the field, mirroring lint_prose's
+    existing finding-id check reused (not reimplemented) here."""
+    statement_with_finding_id = (
+        "Backlog strength is corroborated by nvidia-earnings-a1b2c3d4-2."
+    )
+    violations = lint_thesis_prose(statement_with_finding_id, _CLEAN_MECHANISM)
+    assert any(
+        v.startswith("statement:") and "finding id" in v for v in violations
+    )
+
+
+def test_lint_thesis_prose_clean_prose_yields_no_violations():
+    assert lint_thesis_prose(_CLEAN_STATEMENT, _CLEAN_MECHANISM) == []

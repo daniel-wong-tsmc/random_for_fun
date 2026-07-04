@@ -30,7 +30,10 @@ def test_seed_trigger_names_an_observable(thesis):
 
 @pytest.mark.parametrize("thesis", _THESES, ids=[t["id"] for t in _THESES])
 def test_seed_depth_fields_non_empty(thesis):
-    # mirrors gate rule 3's non-empty depth-field checks on the seed DATA
+    # F56: mechanism/sensitivity mirror gate rule 3's non-empty depth-field checks
+    # (thesis.py::_gate_depth_fields); rule 3 does NOT check statement, so the
+    # statement.strip() assertion below is a separate seed-data sanity check, not a
+    # rule-3 mirror.
     assert thesis["statement"].strip()
     assert thesis["mechanism"].strip()
     assert thesis["sensitivity"].strip()

@@ -5,6 +5,7 @@ import re
 from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from gpu_agent import reader
 from gpu_agent.schema.finding import Finding
 
 # --- models ---
@@ -340,7 +341,9 @@ def _gate_citations(label: str, finding_ids: list[str], findings_by_id: dict[str
 
 def _gate_depth_fields(label: str, mechanism: str, trigger: str, sensitivity: str, registry) -> list[str]:
     """Rule 3: mechanism/falsifiableTrigger/sensitivity non-empty; a non-empty trigger
-    must additionally name an observable per _trigger_names_observable."""
+    must additionally name an observable per _trigger_names_observable. F56: rule 3
+    does NOT check `statement` -- statement emptiness/dedup is rule 4's job (see
+    gate_answer below), not this function's."""
     errors: list[str] = []
     if not mechanism.strip():
         errors.append(f"{label}: missing mechanism")
@@ -438,6 +441,32 @@ def gate_answer(answer: ThesisAnswer, book: ThesisBook,
             label, proposal.mechanism, proposal.falsifiableTrigger, proposal.sensitivity, registry,
         ))
 
+    return errors
+
+
+# --- prose lint (F68a) ---
+#
+# The thesis spec's Sec 2b VOICE rules (statement/mechanism are each exactly one
+# sentence; indicator/finding ids belong only in falsifiableTrigger) have so far been
+# enforced only as prompt text in _THESIS_SYSTEM_TEMPLATE below -- unlike the judgment
+# path, which backs its equivalent voice rules with a deterministic reader.lint_prose
+# check. lint_thesis_prose closes that gap. It is POST-HOC validation only: it reuses
+# reader.lint_prose rather than reimplementing its checks, and it is not called from
+# gate_answer or anywhere in the emitted prompt -- it does not change gate math, and no
+# caller wires it in yet (see the caller's own notes on why: wiring would touch the
+# thesis `--recorded` CLI path, out of this module's scope).
+
+
+def lint_thesis_prose(statement: str, mechanism: str) -> list[str]:
+    """Deterministic analyst-voice lint for thesis prose, symmetrical to the judgment
+    path's reader.lint_prose checks. statement and mechanism must each fit in one
+    sentence (mirrors the VOICE paragraph in _THESIS_SYSTEM_TEMPLATE); a finding id
+    token in either is also flagged by lint_prose's own check, since ids belong only
+    in falsifiableTrigger and neither call here ever lints that field. Returns the
+    concatenated violations (empty = clean), same contract as reader.lint_prose."""
+    errors: list[str] = []
+    errors.extend(reader.lint_prose(statement, "statement", max_sentences=1))
+    errors.extend(reader.lint_prose(mechanism, "mechanism", max_sentences=1))
     return errors
 
 

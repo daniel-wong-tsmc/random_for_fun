@@ -21,8 +21,10 @@ Rules (binding):
   (polarityDemand or polaritySupply non-zero).
 - A hypothesis needs reasoning and confidence at most medium.
 - A Finding whose only supporting evidence is secondary (open-web rather than an authoritative
-  filing) must set confidence at most medium; only primary (filing) evidence may support high
-  confidence.
+  filing) must set confidence at most medium — unless its evidence spans at least
+  3 distinct publishers (distinct outlets, not syndication of one story), which may support
+  high confidence with the corroboration named in the basis. Primary (filing) evidence always
+  supports high confidence.
 - evidence.excerpt must be a verbatim quote from the document; evidence.url must be the
   document's own url.
 - evidence.date is the document's PUBLICATION date, never the fetch date; ISO YYYY-MM-DD.

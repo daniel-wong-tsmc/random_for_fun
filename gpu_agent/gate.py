@@ -2,6 +2,8 @@ from __future__ import annotations
 import re
 from gpu_agent.schema.finding import Finding, Kind
 from gpu_agent.schema.scorecard import Scorecard
+from gpu_agent.config import min_distinct_publishers
+from gpu_agent.publisher import publisher_key
 
 _ISO_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
@@ -26,9 +28,14 @@ def check_finding(f: Finding, *, valid_targets: frozenset[str] | None = None) ->
             errors.append(f"{f.id}: hypothesis missing reasoning")
         if f.confidence.level == "high":
             errors.append(f"{f.id}: hypothesis confidence capped at medium")
-    # F2e — headline protection at finding level
+    # F2e — headline protection at finding level (contract v1.3: >=N distinct publishers
+    # unlock high confidence — docs/migrations/2026-07-contract-v1.3.md)
     if f.evidence and all(e.tier == "secondary" for e in f.evidence) and f.confidence.level == "high":
-        errors.append(f"{f.id}: secondary-only evidence cannot support high confidence")
+        n = min_distinct_publishers()
+        publishers = {publisher_key(e) for e in f.evidence}
+        if len(publishers) < n:
+            errors.append(f"{f.id}: secondary-only evidence cannot support high confidence "
+                          f"({len(publishers)} distinct publishers < {n})")
     # F8 — price is an overlay: a level without a baseline is not momentum
     if f.side == "price":
         if f.trend == "unknown" and (f.polarityDemand != 0 or f.polaritySupply != 0):

@@ -38,6 +38,15 @@ present — log every not-covered expected item as a surfaced gap.
 Before building seeds, verify the external web-reach tools (charter Part 37; operator
 doctrine in `docs/web-reach.md`). Load the registry and health-check each enabled tool:
 
+- **ensure-installed first (idempotent).** Before health-checking, run the committed launcher
+  so a fresh machine self-bootstraps the tools:
+  - POSIX: `sh scripts/web-reach-ensure --json`
+  - Windows: `scripts\web-reach-ensure.cmd --json`
+  It health-checks each enabled tool and installs any that are missing (no-op when already
+  healthy; first run on a fresh machine takes a few minutes). Fold its `webReach` JSON block
+  straight into `gather-log.json::webReach`. A tool it reports `failed` is logged and named in
+  the gap/skip report — the run continues on WebSearch/WebFetch (doctrine unchanged). It never
+  upgrades a healthy tool and never touches secrets.
 - Read `registry/web-reach-tools.json`. For each tool with `enabled == true`, run its
   `healthCmd` (e.g. `agent-reach doctor`) and capture the result.
 - Record a `webReach` block in `gather-log.json`:

@@ -138,3 +138,12 @@ def test_windows_healthcmd_avoids_store_alias_python3():
         win = t["healthCmd"]["windows"]
         assert "python3 " not in win and not win.startswith("python3"), \
             f"{t['id']} windows healthCmd uses bare python3 (Store-alias trap): {win}"
+
+
+# --- Task 5: gather preamble runs the ensure launcher before health-check ---
+
+
+def test_gather_preamble_runs_ensure_before_healthcheck():
+    text = SKILL.read_text(encoding="utf-8")
+    assert "scripts/web-reach-ensure" in text, "preamble must call the ensure launcher"
+    assert "ensure-installed" in text or "ensure installed" in text.lower()

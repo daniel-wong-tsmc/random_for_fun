@@ -46,6 +46,8 @@ from gpu_agent.evals.harness import (
     build_grade_prompt, build_report, gate_brain_answer, load_baseline,
     rebaseline as evals_rebaseline, record_grades)
 from gpu_agent.evals.prompt_hash import compute_prompt_hashes
+from gpu_agent.corpus import (
+    WINDOW_DAYS_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -151,6 +153,49 @@ def _wiki_dedup(args) -> int:
               f"duplicate {len(result.duplicate)})")
     else:
         print(payload)
+    return 0
+
+def _corpus(args) -> int:
+    """Handler for `gpu-agent corpus` (F62). Store-only mode (no --fresh) prints the
+    coverage block for the gather top-up dispatch; assemble mode (--fresh) writes the
+    merged corpus + deduped-fresh stream + CorpusReport. Every skip/drop is a stderr
+    line AND a report field — nothing silent."""
+    registry, _ = _load_registry()
+    fresh = []
+    if args.fresh:
+        if not args.out_merged:
+            print("gpu-agent corpus: error: --fresh requires --out-merged", file=sys.stderr)
+            return 2
+        fresh = [Finding.model_validate(d)
+                 for d in json.loads(pathlib.Path(args.fresh).read_text("utf-8"))]
+    try:
+        result = corpus_assemble(args.store, args.category, args.as_of, fresh,
+                                 registry, window_days=args.window_days)
+    except CorpusError as e:
+        print(f"gpu-agent corpus: error: {e}", file=sys.stderr)
+        return 1
+    report = result.report
+    for sp in report.skippedPages:
+        print(f"SKIPPED-PAGE {sp.id}: category={sp.category}", file=sys.stderr)
+    for fc in report.freshDuplicate:
+        print(f"DROPPED-DUPLICATE {fc.findingId}: {fc.detail or 'duplicate'}", file=sys.stderr)
+    for fid in report.idOverlaps:
+        print(f"ID-OVERLAP {fid}: store copy kept", file=sys.stderr)
+    if report.outOfWindow:
+        print(f"out-of-window: {report.outOfWindow} store finding(s) excluded", file=sys.stderr)
+    if args.report:
+        pathlib.Path(args.report).write_text(report.model_dump_json(indent=2), "utf-8")
+    if args.fresh:
+        pathlib.Path(args.out_merged).write_text(
+            json.dumps([f.model_dump() for f in result.merged], indent=2), "utf-8")
+        if args.out_deduped_fresh:
+            pathlib.Path(args.out_deduped_fresh).write_text(
+                json.dumps([f.model_dump() for f in result.dedupedFresh], indent=2), "utf-8")
+        print(f"store {len(report.storeIncluded)} in-window ({report.outOfWindow} out), "
+              f"fresh new {len(report.freshNew)} update {len(report.freshUpdate)} "
+              f"duplicate {len(report.freshDuplicate)} -> merged {len(result.merged)}")
+    else:
+        print(render_coverage_text(report))
     return 0
 
 def _wiki_lint(args) -> int:
@@ -825,6 +870,19 @@ def main(argv=None) -> int:
     wlc.add_argument("--apply", action="store_true",
                      help="apply the proposed promotions/prunes (else propose-only)")
     wlc.add_argument("--report", default=None, help="write the LifecycleReport JSON here")
+    co = sub.add_parser("corpus")
+    co.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
+    co.add_argument("--category", required=True, help="category id (scopes wiki pages)")
+    co.add_argument("--as-of", required=True, help="run vintage (YYYY-MM or YYYY-MM-DD)")
+    co.add_argument("--window-days", type=int, default=WINDOW_DAYS_DEFAULT,
+                    help=f"corpus recency window in days (default {WINDOW_DAYS_DEFAULT})")
+    co.add_argument("--fresh", default=None,
+                    help="this cycle's gated findings JSON; enables assemble mode")
+    co.add_argument("--out-merged", default=None,
+                    help="write the merged corpus findings here (required with --fresh)")
+    co.add_argument("--out-deduped-fresh", default=None,
+                    help="write the deduped NEW+UPDATE fresh stream here (for wiki-ingest)")
+    co.add_argument("--report", default=None, help="write the CorpusReport JSON here")
     jg = sub.add_parser("judge")
     jg.add_argument("--findings", required=True, help="JSON array of gated Findings")
     jg.add_argument("--out", default=None, help="dir for ratings/anchors/narrative.json")
@@ -908,6 +966,12 @@ def main(argv=None) -> int:
         return _wiki_ingest(args)
     if args.cmd == "wiki-dedup":
         return _wiki_dedup(args)
+    if args.cmd == "corpus":
+        try:
+            return _corpus(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
     if args.cmd == "wiki-lint":
         return _wiki_lint(args)
     if args.cmd == "wiki-lifecycle":

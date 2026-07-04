@@ -1568,9 +1568,17 @@ stamped deterministically at ingest: authoritative filings (official domains) �
 pages → **secondary** (Part 1 rule 5). The tier rides into each Finding's `evidence[].tier`, every number
 keeps its **receipt** (url + source + date — enforced by the gate, Part 7), and a **secondary-only finding
 is confidence-capped** so junk cannot drive a strong rating on its own. Hard multi-source **corroboration**
-("did ≥2 independent sources agree?") is the next increment, not v1 — so **until it lands, gathered
-open-web findings stay confidence-capped and may not move the headline status.** This is a *staged* path
-to Part 26's hard-corroboration requirement, not a softening of it; in the meantime the standing Part 8/23
+landed as **F63 (contract v1.3)**: **three distinct
+publishers** (F31 netloc identity — syndication of one story counts once), within the corpus
+window, unlock **one bounded step** — a corroborated secondary-only finding may carry high
+confidence (gate F2e), a corroborated secondary-only thesis reversal applies instead of
+deferring (rule 6), and a judge may change a dimension rating or the binding constraint only
+with primary or ≥3-publisher citations (the deterministic **evidence-sufficiency gate** —
+the tightening half that ships with the loosening half). Every corroborated step is logged
+with its publisher set and a pending-filing-checkpoint note; **the next filing remains the
+confirm/deny checkpoint** (re-judged as ordinary business, no auto-resolve). The dimension-level
+F3 confidence-cap badge stays conservative on secondary-only citations. This is a *staged* path
+to Part 26's hard-corroboration requirement, not a softening of it; at this stage the standing Part 8/23
 guarantee ("no status flip on a single source; high-stakes flips gate to a human") is what holds the line.
 
 **Reuses (don't rebuild):**

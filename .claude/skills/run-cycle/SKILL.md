@@ -144,13 +144,18 @@ scores, and writes the scorecard:
 ```
 Expected: `wrote store/<id>/<asOf>-v<n>.json  DMI=... SMI=...`. Record the path + DMI/SMI.
 
-If the scorecard command exits non-zero with `voice-lint:` lines (`pipeline --recorded-judge` in
-the live path; `judge --recorded` when used standalone), re-dispatch ONLY the violating sample(s),
-each as its own SEPARATE tool-less subagent (never one subagent covering multiple samples — the
-F38 anti-correlation rule above still applies), with the `voice-lint:` lines appended to the
-prompt ("fix these violations; change nothing else"). If the lint fails again, run the same
-command with `--no-voice-lint`, log `voice-lint: bypassed` in the cycle log, and continue — the
-lint never blocks a scorecard, it only demands one rewrite attempt.
+If the scorecard command exits non-zero with `voice-lint:` OR `sufficiency:` lines (`pipeline
+--recorded-judge` in the live path; `judge --recorded` when used standalone), re-dispatch ONLY
+the violating sample(s), each as its own SEPARATE tool-less subagent (never one subagent covering
+multiple samples — the F38 anti-correlation rule above still applies), with the violating lines
+appended to the prompt. The re-dispatch instruction differs by prefix: for `voice-lint:` lines it
+is ("fix these violations; change nothing else"); for `sufficiency:` lines (F63) that instruction
+is NOT right, since the fix isn't a prose rewrite — instead say "keep every rating you can
+justify; for the flagged changes, either cite findings meeting the bar or keep the prior rating."
+If the check fails again, run the same command with `--no-voice-lint` or `--no-sufficiency`
+(matching whichever prefix failed), log `voice-lint: bypassed` or `sufficiency: bypassed` in the
+cycle log, and continue — neither check ever blocks a scorecard, each only demands one rewrite
+attempt.
 
 **(d2) Write-back (F62; deterministic, no LLM).** After a successful scorecard, route the deduped
 fresh stream into the wiki so the store accumulates from this cycle too:

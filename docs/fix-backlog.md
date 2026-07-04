@@ -52,10 +52,16 @@
   (`CHALLENGED — pending confirmation ⚠` in THE CALLS); primary evidence or a second consecutive
   same-direction signal applies; conviction moves ≤1 level per applied cycle; applied `broken` retires.
   All branches test-pinned (scenarios a–k). *(Feature track)*
-- [ ] **F6 — Depth Rubric + Golden Set** (recorded Action Item 1). **HALF DONE (sub-project 5-1):**
-  depth fields (mechanism / falsifiableTrigger / sensitivity) are now carried on every thesis judgment
-  and GATE-ENFORCED (non-empty + trigger must name an observable — v1 heuristic: registered indicator
-  id, digit, or quarter/qtr/month/week/cycle). BUILT on branch f6-eval-harness: harness (gpu_agent/evals/ + eval CLI), 18-case golden set, hash-pin gate test, run-eval skill; spec docs/superpowers/specs/2026-07-04-f6-eval-harness-design.md; pending ONLY the Task-10 live baseline run (held until F67 lands). *(Feature track)*
+- [x] **F6 — Depth Rubric + Golden Set — DONE 2026-07-04** (recorded Action Item 1). Half 1
+  (sub-project 5-1): depth fields (mechanism / falsifiableTrigger / sensitivity) carried on every
+  thesis judgment and GATE-ENFORCED. Half 2 (merged `87f281a`, baseline `0344949`): eval harness
+  (gpu_agent/evals/ + eval CLI + run-eval skill), 18-case golden set, and the ARMED hash-pin
+  regression gate — any brain-prompt edit turns the suite red until run-eval + rebaseline. Initial
+  baseline (post-F67 prompts): extract 6.62 / judge 6.75 / thesis 5.50; calibration held (negatives
+  2/1/0/2 of 8, limit 4). The first live run caught and shipped fixes for: missing demand/supply
+  indicator vocabulary in the extract prompt (completes F55), acronym-allowlist gaps + an
+  abbreviation-blind sentence splitter in the F67 voice lint. Spec
+  docs/superpowers/specs/2026-07-04-f6-eval-harness-design.md. *(Feature track)*
 - [x] **F7 — DMI/SMI entity shadowing.** `scoring.py:25-30` buckets by `indicatorId` only; NVDA and
   AMD erase each other per indicator. Bucket by `(entity, indicatorId)`. *(Lane B, contract v1.2)*
 - [x] **F8 — Price-indicator handling — DECIDED 2026-07-02: overlay-only.** Flip D6 to

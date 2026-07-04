@@ -1,31 +1,49 @@
-# HANDOFF — GPU Category Agent (resume point: F67 + F6 eval harness both MERGED to main; next = F6 Task 10 live baseline, then F62)
+# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; next = F62)
 
-- **Date:** 2026-07-04
+- **Date:** 2026-07-04 (post-Task-10 refresh)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 910 passed / 5 skipped — verified on merged main @ `87f281a` and pushed. The 2 extra
-  skips are the F6 baseline-pin tests; they arm automatically when `fixtures/evals/baseline.json`
-  lands (Task 10).**
+- **Suite 916 passed / 3 skipped — verified on main @ `0344949` and pushed. The former baseline-pin
+  skips now RUN (armed by `fixtures/evals/baseline.json`).**
 
-## ⚠ CONCURRENT-INSTANCE COORDINATION — RESOLVED
+## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
-The output-surface hold is LIFTED. F61 was subsumed by F67 (staleness banner shipped in the renderer).
-The F6 branch was merged `87f281a` (user-approved 2026-07-04); worktree and branch deleted.
+- F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
+- A THIRD instance is working **F69 (web-reach layer)** on branch `f69-web-reach-layer` and has
+  CHECKED OUT that branch in the main checkout — do not assume the main checkout sits on main.
+  Work from a worktree pinned to main (`git worktree add .worktrees/<name> main`) and never
+  chain "check git log && commit" in one command — check FIRST, decide, then commit. (This
+  session accidentally committed onto their branch that way; resolved by cherry-pick to main +
+  their revert. Its spec/plan: 28e38de/a23467f on their branch.)
 
-## IMMEDIATE NEXT TASK — F6 Task 10: the live eval baseline (UNBLOCKED, prompts are post-F67)
+## STANDING RULE (F6 gate, now ACTIVE)
 
-Follow `.claude/skills/run-eval/SKILL.md` — ~15 brain + ~20 grader tool-less Opus dispatches →
-`eval rebaseline` → commit `fixtures/evals/baseline.json` (arms the hash-pin regression gate that
-every prompt change in F57/F58/F62/F63 depends on). The plan's Task 10 checklist:
-`docs/superpowers/plans/2026-07-04-f6-eval-harness.md` (bootstrap expectations, calibration
-invariant, human spot-check before rebaseline). Watch item from review: negative case
-extract-2026-07-90 is anchor-forced (ceiling 2/8) — verify calibration holds on this first run;
-thesis seam-mean is coarse (2 positives, steps of 1.0). Execution ledger with per-task review
-outcomes + deferred minors: `.superpowers/sdd/f6/progress.md`.
+Any edit that changes the emitted brain prompts (extraction/judgment/thesis prompt files, their
+cli vocab glue, or registry vocab data) turns the suite RED via
+`tests/test_evals_baseline_pin.py`. The unlock is NEVER a hand-edit of `fixtures/evals/baseline.json`:
+run `.claude/skills/run-eval/SKILL.md` (re-dispatch brains + graders), then
+`gpu-agent eval rebaseline`, and commit the new baseline WITH the prompt change. F57/F58/F62/F63
+prompt work all flows through this gate.
+
+## IMMEDIATE NEXT TASK — F62 (flagship consumes the daily store)
+
+Per the approved sequence (step 0 F6 ✅ → **F62** → F63 → F57/F58/F59 → F60 → F64 → F65 → F66).
+F62 starts with brainstorming per charter. F56 remains a safe tiny side item. Interacts with F52
+vintage ids + L2 dedup; the monthly flagship currently discards everything the dailies learned
+(see the F62 backlog entry).
 
 ## Newest state (newest first)
+  - **F6 TASK 10 DONE — initial eval baseline committed (`0344949`), hash-pin gate ARMED.**
+    Live run 2026-07-04 (all tool-less Opus): 14 fresh brains + 1 F38-safe voice re-dispatch, all
+    gate-clean; 18 rubric graders + 1 schema re-dispatch. Seam means extract 6.62 / judge 6.75 /
+    thesis 5.50; calibration held (negatives 2/1/0/2 of 8, limit 4). The run itself caught and
+    shipped three fixes (eval working as designed on day one): extract prompt was missing the
+    demand/supply indicator vocabulary — context-free brains were 100% gate-dropped (completes
+    F55; `6d9fa67`+`f1dc904`); F67 voice-lint acronym allowlist gaps (GB300/GAAP/GDP) + an
+    abbreviation-blind sentence splitter that counted "U.S." as a sentence end (`ac1e209`); one
+    golden-case gate-outcome re-pin (`4aa8154`). Run artifacts: `work/eval-2026-07-04/`
+    (RUN-NOTES.md is the full run journal).
   - **F6 SECOND HALF MERGED (`87f281a`, user-approved; 15 branch commits; suite 910/5 verified
-    on merged main and pushed).** Remaining: Task 10 only (see IMMEDIATE NEXT TASK).
+    on merged main and pushed).**
     `gpu_agent/evals/` (cases/rubric/emit/prompt_hash/harness) + `eval` CLI
     (emit-brain/record-brain/emit-grade/record-grade/rebaseline) + 18-case golden set curated from
     the real July cycles (provenance spot-verified byte-exact; 4 anchor-decidable negatives) +

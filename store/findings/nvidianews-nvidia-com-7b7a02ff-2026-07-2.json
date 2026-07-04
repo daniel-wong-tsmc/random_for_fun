@@ -1,0 +1,45 @@
+{
+  "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+  "statement": "NVIDIA guided Q2 FY2027 revenue to $91.0 billion, plus or minus 2%.",
+  "kind": "measured",
+  "value": {
+    "number": 91.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Guidance above the prior record quarter implies continued sequential, DC-led revenue growth.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Above-record guidance signals sustained accelerator demand."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+      "date": "2026-05-20",
+      "excerpt": "Revenue is expected to be $91.0 billion, plus or minus 2%.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "primary NVIDIA guidance"
+  },
+  "dispersion": "stated +/-2% band ($89.2B-$92.8B)",
+  "asOf": "2026-07",
+  "indicatorId": "vendorRevenueGuidance",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

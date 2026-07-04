@@ -1,0 +1,43 @@
+{
+  "id": "www-federalregister-gov-4122c4b6-2026-07-1",
+  "statement": "Effective January 15, 2026, BIS shifted its license policy for H200-class chips (TPP <21,000 and DRAM bandwidth <6,500 GB/s, e.g., NVIDIA H200, AMD MI325X) to China and Macau from presumption of denial to case-by-case review.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Loosening export licensing reopens a partial China/Macau demand channel for H200-class accelerators that were largely barred.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Shifting from denial to case-by-case review restores a licensing path for NVIDIA H200 and AMD MI325X exports to China/Macau, adding potential demand."
+  },
+  "evidence": [
+    {
+      "source": "Federal Register - Bureau of Industry and Security final rule (Doc. 2026-00789)",
+      "url": "https://www.federalregister.gov/documents/2026/01/15/2026-00789/revision-to-license-review-policy-for-advanced-computing-commodities",
+      "date": "2026-01-15",
+      "excerpt": "BIS is revising its license review policy for exports of certain semiconductors to China and Macau - changing it from a presumption of denial to a case-by-case review.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "primary Federal Register final rule"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-01-15",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

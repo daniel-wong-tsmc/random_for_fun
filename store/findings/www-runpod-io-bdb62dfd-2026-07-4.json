@@ -1,0 +1,44 @@
+{
+  "id": "www-runpod-io-bdb62dfd-2026-07-4",
+  "statement": "RunPod on-demand rental price for the NVIDIA H100 SXM (80GB) was $3.29/hr on 2026-07-04.",
+  "kind": "measured",
+  "value": {
+    "number": 3.29,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Static on-demand rental price level for display overlay; no baseline or change stated.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "GPU rental price level; price is a display overlay and does not score demand or supply."
+  },
+  "evidence": [
+    {
+      "source": "RunPod GPU Cloud pricing",
+      "url": "https://www.runpod.io/pricing",
+      "date": "2026-07-04",
+      "excerpt": "H100 SXM (80GB) $3.29/hr",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary RunPod pricing page"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-04",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

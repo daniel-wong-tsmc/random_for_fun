@@ -1,0 +1,45 @@
+{
+  "id": "www-stocktitan-net-fe36e810-2026-07-1",
+  "statement": "AMD Q1 2026 Data Center segment revenue was $5.8 billion, up 57% year over year and about 7% sequentially, driven by EPYC and the Instinct GPU ramp.",
+  "kind": "measured",
+  "value": {
+    "number": 5.8,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Strong Data Center growth reflects rising demand for AMD EPYC CPUs and Instinct accelerators, though Instinct is not separately broken out.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "57% YoY Data Center growth and the Instinct ramp indicate accelerating AMD accelerator demand."
+  },
+  "evidence": [
+    {
+      "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+      "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+      "date": "2026-05-05",
+      "excerpt": "Data Center segment revenue was $5.8 billion, up 57% year-over-year, driven by strong demand for AMD EPYC processors and the continued ramp of AMD Instinct GPU shipments",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary (StockTitan) summary of AMD 8-K; Instinct not separately broken out"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "amd",
+  "observedAt": "2026-05-05",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

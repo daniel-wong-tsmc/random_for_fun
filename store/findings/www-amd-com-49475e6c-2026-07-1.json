@@ -1,0 +1,44 @@
+{
+  "id": "www-amd-com-49475e6c-2026-07-1",
+  "statement": "AMD Instinct won broad deployment: OpenAI named AMD a core strategic compute partner starting with MI450, Oracle Cloud will deploy MI355X rack-scale, and Dell, HPE, and Supermicro are integrating MI350 Series.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Marquee design wins (OpenAI, Oracle, top OEMs) expand AMD Instinct's addressable demand and installed base.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud",
+      "infrastructure.neocloud",
+      "models.frontier-closed"
+    ],
+    "direction": "positive",
+    "mechanism": "Strategic partnerships and OEM/CSP integration pull demand toward AMD accelerators."
+  },
+  "evidence": [
+    {
+      "source": "AMD Blogs - Instinct MI350 Series / Advancing AI (design wins)",
+      "url": "https://www.amd.com/en/blogs/2025/amd-instinct-mi350-series-and-beyond-accelerating-the-future-of-ai-and-hpc.html",
+      "date": "2026-01-15",
+      "excerpt": "OpenAI will work with AMD as a core strategic compute partner to drive large-scale deployments of AMD technology starting with the AMD Instinct MI450 series and rack-scale AI solutions.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary AMD blog / vendor marketing"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "amd",
+  "observedAt": "2026-01-15",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "www-amd-com-49475e6c-2026-07-2",
+  "statement": "AMD's Instinct line holds roughly 5-7% of the AI accelerator market in 2026, versus NVIDIA at approximately 80%.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "AMD is establishing a minority but growing position in AI accelerators against NVIDIA's dominant share.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "AMD capturing 5-7% share reflects incremental demand diversion from NVIDIA to AMD accelerators."
+  },
+  "evidence": [
+    {
+      "source": "AMD Blogs - Instinct MI350 Series / Advancing AI (design wins)",
+      "url": "https://www.amd.com/en/blogs/2025/amd-instinct-mi350-series-and-beyond-accelerating-the-future-of-ai-and-hpc.html",
+      "date": "2026-01-15",
+      "excerpt": "NVIDIA holds approximately 80% of the AI accelerator market in 2026, with AMD's Instinct GPU line capturing roughly 5-7% market share.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary analyst figure quoted in AMD blog"
+  },
+  "dispersion": "stated range 5-7%",
+  "asOf": "2026-07",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "amd",
+  "observedAt": "2026-01-15",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -24,6 +24,14 @@ def test_split_sentences_handles_decimals_and_abbrev():
     assert len(reader.split_sentences(text)) == 3
 
 
+def test_split_sentences_does_not_split_on_common_abbreviations():
+    # Found live by the F6 eval run: "U.S. GDP" split into two sentences, so a
+    # two-sentence rationale mentioning the U.S. tripped the max-2 voice lint.
+    text = ("NVIDIA projects its AI demand will add $485 billion to U.S. GDP next year. "
+            "The buildout spans U.K. and e.g. Indonesia sites vs. prior plans.")
+    assert len(reader.split_sentences(text)) == 2
+
+
 def test_lint_prose_flags_ids_and_sentence_cap():
     bad = "D2 rose sharply. rpoBacklog is strong. See www-sec-gov-125b52f2-2. More. And more."
     errs = reader.lint_prose(bad, "narrative", max_sentences=3)

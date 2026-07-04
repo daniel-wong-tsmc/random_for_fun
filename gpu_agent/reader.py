@@ -31,7 +31,12 @@ BANNED_WORDS = (
 _FINDING_ID_RE = re.compile(r"\b[a-z0-9][a-z0-9-]*-[0-9a-f]{8}-\d+\b")
 _ALLCAPS_RE = re.compile(r"\b[A-Z][A-Z0-9&]+(?:-[A-Z0-9&]+)*\b")
 # Sentence split: end punctuation followed by whitespace+capital; decimals survive.
-_SENT_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-Z(\"'0-9])")
+# Common abbreviations (U.S., U.K., e.g., i.e., vs.) are not sentence ends — the F6 eval
+# run caught "U.S. GDP" splitting a two-sentence rationale into three and tripping the
+# max-2 voice lint. Python lookbehinds are fixed-width, hence one per abbreviation.
+_SENT_SPLIT_RE = re.compile(
+    r"(?<!\bU\.S\.)(?<!\bU\.K\.)(?<!\be\.g\.)(?<!\bi\.e\.)(?<!\bvs\.)"
+    r"(?<=[.!?])\s+(?=[A-Z(\"'0-9])")
 
 _ACRONYMS_PATH = Path("registry/acronyms.json")
 _INDICATOR_IDS: frozenset[str] | None = None

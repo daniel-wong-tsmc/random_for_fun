@@ -20,7 +20,10 @@
 > free-form debate; user-approved adaptation), calibration consequences, and a human-intel
 > adapter. A seventh (same day, user-approved — all six adopted): the desk-maturity list —
 > question-steered gathering, forward event calendar, indicator series depth,
-> structured-document extraction, desk post-mortems, multilingual sources.
+> structured-document extraction, desk post-mortems, multilingual sources. An eighth (same
+> day, user-approved — all seven adopted): the analytical/gathering pass — category causal
+> model, derived-indicator computations, range forecasts, divergence lints, standing
+> watchlist poller, absence-as-signal, evidence-mix telemetry.
 
 ## The goal
 
@@ -225,13 +228,16 @@ duplicate findings; F52 vintage ids + L2 dedup are the mitigation and the accept
 ### Desk-maturity list (unsequenced — slot as capacity allows)
 
 Known gaps between the Phase 1 desk and a genuinely analyst-grade desk (2026-07-04 desk-lens
-review, user-approved — all six adopted). The locked F62→F66 order is untouched; these follow
-it or interleave as capacity allows, and each is minted as an F-item in the fix-backlog when
-picked up.
+reviews — a craft pass, then an analytical/gathering pass; user-approved, all adopted). The
+locked F62→F66 order is untouched; these follow it or interleave as capacity allows, and each
+is minted as an F-item in the fix-backlog when picked up.
+
+**Craft:**
 
 - **Question-steered gathering** — close the memory→gather loop: standing theses' falsifiable
-  triggers, open watch-items, and corroboration hunts (the most load-bearing single-sourced
-  claims, valuable once F63 lands) become first-class gather seeds each cycle, beside the
+  triggers, open watch-items, corroboration hunts (the most load-bearing single-sourced
+  claims, valuable once F63 lands), **and disconfirmation hunts** (evidence *against* a
+  standing thesis — steelman fuel) become first-class gather seeds each cycle, beside the
   assignment slices. The desk stops reading whatever is new and starts hunting what it needs
   to know. Skill + emit-prompt work; prompt edits ride the F6 gate.
 - **Forward event calendar** — registry data: known upcoming checkpoints per entity and per
@@ -253,6 +259,40 @@ picked up.
 - **Multilingual sources** — regional-language source classes (zh/ko/ja trade press) in the
   source inventory, translated by the desk's own brains; a per-category data decision (open
   question 7).
+
+**Analytical method:**
+
+- **The category causal model** — the desk's driver tree as a versioned data artifact (nodes =
+  registered indicators/entities, edges = mechanisms: app revenue → capex → orders → wafer
+  starts; capacity adds → supply release → price). Judgments cite mechanism *paths* through
+  it instead of re-deriving the chain in prose each cycle. This realizes the WHY-tree item
+  from HANDOFF's standing track.
+- **Derived-indicator computations in code** — slopes, guidance revisions-vs-prior, second
+  derivatives, spreads (the guide's D2/D1/P1/P4 shapes). The pipeline currently scores raw
+  findings; the guide's best indicators are these transforms. Enabled by indicator series
+  depth; registry-defined, code-computed; any scoring impact rides Part 33.
+- **Range forecasts on registered indicators** — the desk commits to numeric range predictions
+  with dates ("DC revenue lands in [X, Y] next quarter"), the most objectively scoreable
+  analyst output; interval scoring extends F64's Brier discipline.
+- **Cross-track divergence lints** — deterministic detection of contradictions between
+  momentum, outlook, the price overlay, and dimension ratings, surfaced as *named*
+  divergences in the brief (formalizes sub-project 4-3's momentum-vs-outlook promise; a
+  divergence the brain may or may not notice becomes one code always flags).
+
+**Gathering:**
+
+- **Standing watchlist poller** — subscription-style: known high-value endpoints (IR pages,
+  the EDGAR filings stream, the guide's 15–20 trade RSS feeds) fetched every cycle and diffed
+  against L1 hashes, independent of search fan-out. Catches what query-driven gathering never
+  surfaces. Aim/doctrine work, not fetch tech — the rejected scraper-benchmark decision is
+  untouched.
+- **Absence-as-signal** — a calendar-expected event that passes silent becomes an *observed*
+  finding of absence ("no HBM4 pricing update despite the scheduled call") — the dog that
+  didn't bark. Depends on the forward event calendar above.
+- **Evidence-mix telemetry** — per-cycle computed metrics on the evidence base (publisher
+  concentration, class shares, tier shares, vintage mix) with drift alerts. The F57 diagnosis
+  (44% of a flagship's findings from one stale earnings cycle) was found manually; this makes
+  the next aim-rot a code-caught alert.
 
 ## Phase 2 — Prove generalization (categories #2–3)
 

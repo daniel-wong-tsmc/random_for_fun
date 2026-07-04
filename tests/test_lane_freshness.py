@@ -9,8 +9,12 @@ stamped tier == "primary".
 """
 import json
 import pathlib
+import subprocess
+import sys
 from gpu_agent.cli import main
 from gpu_agent.schema.raw_document import RawDocument
+
+PY = sys.executable
 
 MANIFEST_PATH = pathlib.Path("manifests/chips.merchant-gpu.json")
 
@@ -55,3 +59,46 @@ def test_vendor_official_post_counts_as_primary_via_manifest_allowlist(tmp_path)
     # the manifest allowlist itself must cover the official filing + IR/newsroom domains
     for domain in EXPECTED_PRIMARY_DOMAINS:
         assert domain in primary_domains, f"{domain} missing from manifest primaryDomains (F59)"
+
+
+# --- F56-core: --as-of shape validated at the CLI seam --------------------
+#
+# F52 embeds --as-of verbatim in snapshot/FindingStore doc ids, so a fat-fingered
+# "2026/07/03" (slashes instead of dashes) would mint a path-unsafe id downstream.
+# Defense-in-depth: reject non-ISO shapes once, at the argparse seam, for every
+# REQUIRED --as-of argument. Driven via subprocess (real CLI entry point) so we
+# see the actual argparse exit code + stderr, not an in-process SystemExit.
+
+def _run_cli(*args):
+    return subprocess.run([PY, "-m", "gpu_agent.cli", *args], capture_output=True, text=True)
+
+
+def test_as_of_rejects_non_iso_shape(tmp_path):
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text("[]", encoding="utf-8")
+    out = tmp_path / "docs"
+    proc = _run_cli("ingest", "--blobs", str(blobs), "--out", str(out),
+                     "--primary-sources", "sec.gov", "--as-of", "2026/07/03")
+    assert proc.returncode == 2, (
+        f"expected argparse to reject '2026/07/03' (slashes) as an --as-of shape; "
+        f"stdout={proc.stdout!r} stderr={proc.stderr!r}"
+    )
+    assert "--as-of" in proc.stderr
+
+
+def test_as_of_accepts_year_month(tmp_path):
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text("[]", encoding="utf-8")
+    out = tmp_path / "docs"
+    proc = _run_cli("ingest", "--blobs", str(blobs), "--out", str(out),
+                     "--primary-sources", "sec.gov", "--as-of", "2026-07")
+    assert proc.returncode == 0, f"stdout={proc.stdout!r} stderr={proc.stderr!r}"
+
+
+def test_as_of_accepts_year_month_day(tmp_path):
+    blobs = tmp_path / "blobs.json"
+    blobs.write_text("[]", encoding="utf-8")
+    out = tmp_path / "docs"
+    proc = _run_cli("ingest", "--blobs", str(blobs), "--out", str(out),
+                     "--primary-sources", "sec.gov", "--as-of", "2026-07-03")
+    assert proc.returncode == 0, f"stdout={proc.stdout!r} stderr={proc.stderr!r}"

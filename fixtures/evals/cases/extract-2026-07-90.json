@@ -1,0 +1,25 @@
+{
+  "caseId": "extract-2026-07-90",
+  "seam": "extract",
+  "kind": "negative",
+  "source": "degraded COPY of extract-2026-07-02 (work/live-2026-07/extract-answer.json[6], NVIDIA Q1 FY2027 release): dropped drafts 2-4 (networking $14.8B, gross margin 75.0%, $91.0B guidance); in the retained draft 1: value.number and statement altered 75.2 -> 57.2 USD billion (contradicts the document and the finding's own verbatim excerpt, which still says $75.2 billion), trend flipped rising -> falling (excerpt reports record revenue up 92% YoY / 21% QoQ), and `why`/impact.mechanism replaced with vacuous filler. Excerpt, url, indicatorId, polarity and targets left intact so the gate still passes (the gate does not verify value.number or trend against the document for demand-side indicators).",
+  "input": {
+    "doc": {
+      "id": "nvidianews-nvidia-com-7b7a02ff",
+      "source": "nvidianews.nvidia.com",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+      "date": "2026-05-20",
+      "tier": "secondary",
+      "entity": "nvidia",
+      "content": "NVIDIA Announces Financial Results for First Quarter Fiscal 2027 (quarter ended April 26, 2026; released May 20, 2026). 'Record revenue of $81.6 billion, up 20% from the previous quarter and up 85% from a year ago.' Data Center: 'First-quarter revenue was a record $75.2 billion, up 21% from the previous quarter and up 92% from a year ago.' Data Center compute revenue was a 'record $60.4 billion, up 77% from a year ago and up 18% sequentially'; Data Center networking revenue was a 'record $14.8 billion, up 199% from a year ago and up 35% sequentially,' driven by adoption of Blackwell 300 products and demand for InfiniBand, Spectrum-X Ethernet, and NVLink solutions. 'For the quarter, GAAP and non-GAAP gross margins were 74.9% and 75.0%, respectively.' 'GAAP and non-GAAP earnings per diluted share were $2.39 and $1.87, respectively.' Q2 FY2027 Outlook: 'Revenue is expected to be $91.0 billion, plus or minus 2%. NVIDIA is not assuming any Data Center compute revenue from China in its outlook.' 'GAAP and non-GAAP gross margins are expected to be 74.9% and 75.0%, respectively, plus or minus 50 basis points.' 'GAAP and non-GAAP operating expenses are expected to be approximately $8.5 billion and $8.3 billion, respectively.' CEO Jensen Huang: 'The buildout of AI factories — the largest infrastructure expansion in human history — is accelerating at extraordinary speed.' Capital returns: 'NVIDIA is increasing its quarterly cash dividend from $0.01 per share to $0.25 per share' and the board approved an '$80.0 billion additional share repurchase authorization.'"
+    },
+    "asOf": "2026-07"
+  },
+  "recordedAnswer": "{\"drafts\": [{\"statement\": \"NVIDIA Data Center revenue was a record $57.2 billion in Q1 FY2027, up 92% year over year and 21% sequentially.\", \"kind\": \"measured\", \"value\": {\"number\": 57.2, \"unit\": \"USD billion\"}, \"trend\": \"falling\", \"why\": \"Things changed this quarter.\", \"impact\": {\"targets\": [\"chips.merchant-gpu\", \"infrastructure.hyperscale-cloud\", \"infrastructure.neocloud\"], \"direction\": \"positive\", \"mechanism\": \"It affects the market.\"}, \"evidence\": [{\"source\": \"nvidianews.nvidia.com\", \"url\": \"https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027\", \"date\": \"2026-05-20\", \"excerpt\": \"First-quarter revenue was a record $75.2 billion, up 21% from the previous quarter and up 92% from a year ago.\"}], \"reasoning\": null, \"confidence\": {\"level\": \"medium\", \"basis\": \"secondary company press release\"}, \"dispersion\": null, \"indicatorId\": \"D2\", \"polarityDemand\": 1, \"polaritySupply\": 0, \"magnitude\": 3, \"entity\": \"nvidia\", \"observedAt\": \"2026-05-20\"}]}",
+  "checks": {
+    "mustMention": [],
+    "citationsResolve": true,
+    "gateOutcome": "pass"
+  },
+  "notes": "Gate-clean but anchor-forced low extraction, a 1/8-class answer independent of these notes: fidelity is 0 by its own anchor (the reported $57.2 billion contradicts the document and the quoted excerpt's $75.2 billion); provenance-honesty is 0 (trend 'falling' asserts something the document does not say - the excerpt reports record growth - and the vacuous why does not justify the polarity); completeness is 0 (three of four material measured findings - networking revenue, gross margin, forward guidance - are missing). Only signal-selection can plausibly earn points, so the total must stay <= 4 (the calibration limit)."
+}

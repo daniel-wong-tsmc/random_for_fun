@@ -1,0 +1,29 @@
+{
+  "caseId": "extract-2026-07-03-01",
+  "seam": "extract",
+  "kind": "positive",
+  "source": "work/daily-2026-07-03/extract-answer.json[4] (JSON-array element aligned index-for-index to sorted docs, position 4 = docs/techcrunch-com-6b79ddb7.json); input.doc = work/daily-2026-07-03/docs/techcrunch-com-6b79ddb7.json verbatim; asOf=2026-07-03",
+  "input": {
+    "doc": {
+      "id": "techcrunch-com-6b79ddb7",
+      "source": "TechCrunch",
+      "url": "https://techcrunch.com/2026/07/02/anthropic-is-discussing-a-new-custom-chip-with-samsung/",
+      "date": "2026-07-02",
+      "tier": "secondary",
+      "entity": "multi",
+      "content": "Anthropic is in early-stage talks with Samsung Electronics to explore manufacturing a custom AI chip, reportedly eyeing Samsung's 2nm process and advanced packaging. Verbatim: 'Anthropic was in contact with Samsung to explore a collaboration around the pending chip.' 'Anthropic hasn't yet decided what the chip will be used for, how it will fit into the server, or how powerful it will be.' On hedging vs. merchant GPUs: 'A diversified hardware stack that includes chips from Google, Amazon, and Nvidia will continue to be pivotal to its compute strategy.' Context line: 'A number of AI companies have sought to develop custom chips - both as a way to create unique hardware for specific compute tasks and to gain a certain amount of independence from Nvidia.' Article also notes this follows OpenAI's partnership with Broadcom on a custom inference processor called 'Jalapeno,' said to show 'better performance-per-watt, than other competitor chips.'"
+    },
+    "asOf": "2026-07-03"
+  },
+  "recordedAnswer": "{\"drafts\":[{\"statement\":\"Anthropic is in early-stage talks with Samsung to manufacture a custom AI chip on Samsung's 2nm process, part of a broader diversification away from merchant GPUs.\",\"kind\":\"hypothesis\",\"value\":null,\"trend\":\"unknown\",\"why\":\"Early-stage exploration of an Anthropic custom chip on Samsung 2nm could, if realized, shift some compute off merchant GPUs and add Samsung foundry demand, though the chip's purpose and power are undecided.\",\"impact\":{\"targets\":[\"chips.hyperscaler-asic\",\"chips.merchant-gpu\",\"chips.foundry-packaging\"],\"direction\":\"mixed\",\"mechanism\":\"A successful Anthropic custom chip on Samsung 2nm would move some inference/training compute from merchant GPUs to custom ASIC and add advanced-node foundry demand at Samsung.\"},\"evidence\":[{\"source\":\"TechCrunch\",\"url\":\"https://techcrunch.com/2026/07/02/anthropic-is-discussing-a-new-custom-chip-with-samsung/\",\"date\":\"2026-07-02\",\"excerpt\":\"Anthropic was in contact with Samsung to explore a collaboration around the pending chip.\"}],\"reasoning\":\"Talks are described as early-stage and Anthropic has not decided the chip's purpose, form factor, or performance, so the near-term effect on merchant-GPU demand is uncertain; the article notes a diversified stack including Nvidia remains pivotal, capping downside, while sustained custom-silicon efforts point to gradual, longer-term erosion of merchant-GPU share.\",\"confidence\":{\"level\":\"low\",\"basis\":\"Early-stage talks reported by a single secondary press source with the chip's use undecided.\"},\"dispersion\":null,\"indicatorId\":\"market-share-pct\",\"polarityDemand\":-1,\"polaritySupply\":0,\"magnitude\":1,\"entity\":\"multi\",\"observedAt\":\"2026-07-02\"},{\"statement\":\"Multiple AI companies are developing custom chips to gain independence from Nvidia, including OpenAI's Broadcom-built 'Jalapeno' inference processor cited for better performance-per-watt.\",\"kind\":\"observed\",\"value\":null,\"trend\":\"rising\",\"why\":\"A broad, accelerating move by AI labs toward custom ASICs signals structural diversification away from merchant GPUs for targeted inference workloads.\",\"impact\":{\"targets\":[\"chips.hyperscaler-asic\",\"chips.merchant-gpu\"],\"direction\":\"mixed\",\"mechanism\":\"Custom inference ASICs with better performance-per-watt capture a share of inference compute that would otherwise run on merchant GPUs.\"},\"evidence\":[{\"source\":\"TechCrunch\",\"url\":\"https://techcrunch.com/2026/07/02/anthropic-is-discussing-a-new-custom-chip-with-samsung/\",\"date\":\"2026-07-02\",\"excerpt\":\"A number of AI companies have sought to develop custom chips - both as a way to create unique hardware for specific compute tasks and to gain a certain amount of independence from Nvidia.\"}],\"reasoning\":null,\"confidence\":{\"level\":\"medium\",\"basis\":\"Secondary press synthesis of industry moves; qualitative, no shipment figures.\"},\"dispersion\":null,\"indicatorId\":\"market-share-pct\",\"polarityDemand\":-1,\"polaritySupply\":0,\"magnitude\":1,\"entity\":\"multi\",\"observedAt\":\"2026-07-02\"}]}",
+  "checks": {
+    "mustMention": [
+      "Samsung",
+      "2nm process",
+      "custom AI chip"
+    ],
+    "citationsResolve": true,
+    "gateOutcome": "pass"
+  },
+  "notes": "TechCrunch report on Anthropic-Samsung custom-chip talks (daily cycle, forward-signal). A deep extraction captures the early-stage Anthropic/Samsung talks on a 2nm custom AI chip (correctly typed as hypothesis, value=null since nothing is committed) plus the broader observed trend of AI firms (OpenAI/Broadcom etc.) building custom silicon to reduce NVIDIA dependence. Reward the hypothesis typing and the not-yet-decided caveats; a shallow read would over-assert commitment the source explicitly disclaims."
+}

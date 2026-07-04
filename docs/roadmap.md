@@ -23,7 +23,11 @@
 > structured-document extraction, desk post-mortems, multilingual sources. An eighth (same
 > day, user-approved — all seven adopted): the analytical/gathering pass — category causal
 > model, derived-indicator computations, range forecasts, divergence lints, standing
-> watchlist poller, absence-as-signal, evidence-mix telemetry.
+> watchlist poller, absence-as-signal, evidence-mix telemetry. A ninth (same day,
+> user-approved — all six adopted + an anti-AI-voice directive): the storytelling pass —
+> callbacks, estimative-probability words, analog library, anticipated questions, house
+> voice (never sounds like AI; stop-slop as versioned style data), exhibits in the brief
+> (judged consistent with brief-first).
 
 ## The goal
 
@@ -293,6 +297,35 @@ is minted as an F-item in the fix-backlog when picked up.
   concentration, class shares, tier shares, vintage mix) with drift alerts. The F57 diagnosis
   (44% of a flagship's findings from one stale earnings cycle) was found manually; this makes
   the next aim-rot a code-caught alert.
+
+**Storytelling & communication:**
+
+- **Storyline continuity with callbacks** — the brief serializes its running stories:
+  explicit references to prior calls ("as flagged July 1, now confirmed by the 10-Q"), credit
+  claimed and misses owned in the narrative itself. Part 12's track record made readable as
+  story, not just an auditor's stats table. The wiki threads already hold the continuity;
+  this is a render + prompt device (prompt edits ride the F6 gate).
+- **Words of estimative probability** — a fixed, lint-enforced vocabulary mapping confidence
+  words to probability bands ("likely" always means the same band), so the desk's calibration
+  is legible in its prose. Pairs with range forecasts + Brier; extends the F67 voice lint;
+  versioned data + lint.
+- **Historical-analog library** — a registry of resolved episodes (the memory-cycle glut, the
+  crypto-GPU whip, the DeepSeek moment) the brain may cite as **labeled analogy, never as
+  evidence** (doctrine holds). One artifact, two uses: this is the same episode set as Action
+  Item 1's golden backtests.
+- **Anticipated-questions section** — the brief pre-answers the 2–3 questions it provokes,
+  each in one cited line; the static cousin of the Part 14 interactive path, shippable years
+  earlier.
+- **House voice as shared, versioned data — and it must never sound like AI** (user
+  directive, 2026-07-04): F67's voice/style rules verified template-level in Phase 2 so all
+  34 desks sound like one firm, with the anti-AI-pattern discipline — the stop-slop rules
+  (github.com/hardikpandya/stop-slop), already embedded in brain prompts and session output
+  per F67 — maintained as part of the versioned house style, the voice lint enforcing
+  everything deterministic.
+- **Exhibits in the brief** — rendered trend charts (SDGI, key price series) as exhibits
+  *inside* the text brief. Recorded-decision note: user-approved 2026-07-04 as consistent
+  with brief-first/dashboard-later — the brief remains the product; an exhibit is not the
+  Phase 7 dashboard.
 
 ## Phase 2 — Prove generalization (categories #2–3)
 

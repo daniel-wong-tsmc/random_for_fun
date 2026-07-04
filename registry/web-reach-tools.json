@@ -7,7 +7,30 @@
       "role": "fetch",
       "repo": "https://github.com/Panniantong/agent-reach",
       "installDocUrl": "https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
-      "healthCmd": "agent-reach doctor",
+      "healthCmd": {
+        "windows": "agent-reach doctor",
+        "macos": "agent-reach doctor",
+        "linux": "agent-reach doctor"
+      },
+      "install": {
+        "windows": [
+          "py -3 -m pip install --user pipx",
+          "py -3 -m pipx install https://github.com/Panniantong/agent-reach/archive/main.zip",
+          "agent-reach install --env=auto"
+        ],
+        "macos": [
+          "python3 -m pip install --user pipx || brew install pipx",
+          "pipx ensurepath",
+          "pipx install https://github.com/Panniantong/agent-reach/archive/main.zip",
+          "agent-reach install --env=auto"
+        ],
+        "linux": [
+          "python3 -m pip install --user pipx",
+          "python3 -m pipx ensurepath",
+          "pipx install https://github.com/Panniantong/agent-reach/archive/main.zip",
+          "agent-reach install --env=auto"
+        ]
+      },
       "invokeHint": "agent-reach <verb> <target>   # e.g. read <url>, search <query>, twitter/reddit/youtube ...",
       "capabilities": ["web", "search", "twitter", "reddit", "youtube", "github", "bilibili", "xiaohongshu", "rss"],
       "defaultTier": "secondary",
@@ -19,7 +42,16 @@
       "role": "discovery",
       "repo": "https://github.com/mvanhorn/last30days-skill",
       "installDocUrl": "https://github.com/mvanhorn/last30days-skill#readme",
-      "healthCmd": "python3 skills/last30days/scripts/last30days.py --preflight",
+      "healthCmd": {
+        "windows": "py -3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\"",
+        "macos": "python3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\"",
+        "linux": "python3 -c \"import subprocess,sys; r=subprocess.run(['npx','-y','skills','list','-g'],capture_output=True); sys.exit(0 if b'last30days' in r.stdout.lower() else 1)\""
+      },
+      "install": {
+        "windows": ["npx -y skills add mvanhorn/last30days-skill -g"],
+        "macos": ["npx -y skills add mvanhorn/last30days-skill -g"],
+        "linux": ["npx -y skills add mvanhorn/last30days-skill -g"]
+      },
       "invokeHint": "/last30days <topic>   (Claude Code)  |  python3 skills/last30days/scripts/last30days.py <topic> --emit=md",
       "capabilities": ["search", "reddit", "twitter", "youtube", "tiktok", "hackernews", "polymarket", "github"],
       "defaultTier": "secondary",

@@ -101,3 +101,40 @@ def test_gatherer_contract_and_round_building_are_role_aware():
     assert "role: fetch" in skill            # contract scoped to fetch tools
     assert "Discovery-role leads" in skill   # step 2b — the concrete home
     assert "Never add the synthesized brief" in skill  # never-ingest rule in the actionable step
+
+
+# --- Task 1: per-OS install recipes + OS-keyed healthCmd ---
+
+OSES = ("windows", "macos", "linux")
+
+
+def test_enabled_tools_have_per_os_install_recipes():
+    for t in _load()["tools"]:
+        if not t.get("enabled"):
+            continue
+        inst = t.get("install")
+        assert isinstance(inst, dict), f"{t['id']} missing install object"
+        for os_key in OSES:
+            cmds = inst.get(os_key)
+            assert isinstance(cmds, list) and cmds, f"{t['id']} install.{os_key} empty"
+            assert all(isinstance(c, str) and c for c in cmds), f"{t['id']} install.{os_key} non-string"
+
+
+def test_enabled_tools_have_per_os_healthcmd():
+    for t in _load()["tools"]:
+        if not t.get("enabled"):
+            continue
+        hc = t.get("healthCmd")
+        assert isinstance(hc, dict), f"{t['id']} healthCmd must be OS-keyed object"
+        for os_key in OSES:
+            assert isinstance(hc.get(os_key), str) and hc[os_key], f"{t['id']} healthCmd.{os_key} empty"
+
+
+def test_windows_healthcmd_avoids_store_alias_python3():
+    # the 2026-07 root cause: bare `python3` on Windows hits the Store alias stub
+    for t in _load()["tools"]:
+        if not t.get("enabled"):
+            continue
+        win = t["healthCmd"]["windows"]
+        assert "python3 " not in win and not win.startswith("python3"), \
+            f"{t['id']} windows healthCmd uses bare python3 (Store-alias trap): {win}"

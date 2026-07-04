@@ -46,7 +46,15 @@
 > slotted** (Phase 4 measures input health; Phase 6 ships the monitors), the
 > **orchestration-prose conformance pin** before any unattended run, and **Action Item 1
 > recorded superseded-in-part** (F6 discharged the regression-gating half; episode backtests
-> stay Phase 7).
+> stay Phase 7). A fourteenth (same day, reader lens — "what is missing until an executive
+> can read this?"): the **reader-feedback loop** adopted at Phase 7 (the reader's questions
+> and pushback captured as data — routed down as watch-items/ad-hoc assignments, answered
+> next cycle, persistent questions feed coverage and attention), and a **user decision
+> pinning the first reader**: no real executive until all 34 desks, 5 layers, and Main are
+> live — the brief stays an internal artifact until then, and its delivery vehicle is the
+> Phase 7 generative-UI page, no interim channel. Considered and declined: an early reader
+> pilot, a pre-Phase-7 push channel, and in-brief calibration surfacing (calibration stays
+> surfaced at Phase 7 — consistent with the reader timing by construction).
 
 ## The goal
 
@@ -628,11 +636,25 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
   rating vocabulary) can never be omitted, and the composition is stored so every render
   replays. Brain curates, code computes + gates + stores — the page-text doctrine, extended
   to layout. The already-adopted "exhibits in the brief" desk item seeds this registry
-  years early.
+  years early. **The first-reader decision (user, 2026-07-04):** no real executive reads
+  the product until all 34 desks, 5 layers, and Main are live — the brief stays an internal
+  artifact until then, and this generative-UI page is its delivery vehicle when the reader
+  arrives; no interim push channel gets built. That pins the exposure moment to the same
+  phase as the Part 31 security work, so "before any real TSMC-confidential exposure" holds
+  with nothing pulled forward.
 - **Interactive path** (Part 14): the desk on demand — answer-from-store-first, research the
   gaps, write back. Gated by a per-user budget (Part 27). This is where the brain-composed
   UI layer earns its keep: every answer is bespoke, so each response is a gated
   composition-as-data over the same component registry rather than a fixed template.
+- **Reader-feedback loop** (user-approved 2026-07-04): the surface captures the reader's
+  questions and pushback as **data**, not conversation — each logged, routed down the
+  hierarchy as a watch-item or an ad-hoc assignment (the Part 18 primitive on the Phase 3
+  trigger pathway; the human outranks Main, so no lane violation), and answered in the next
+  cycle's render ("you asked X — ..."). Persistent questions are a coverage signal: they
+  feed Part 16 detect and the leads' attention allocation. The asynchronous half of Part 14
+  — the interactive path answers now; the feedback loop makes the standing product answer
+  next cycle, and unlike the interactive path it costs nothing per question until one is
+  routed.
 - **Episode backtest harness** (Parts 24/34 + Action Item 1 half 2): the 5–10 resolved
   2023–2026 episodes (DeepSeek moment, CoWoS crunch, Ethernet-over-InfiniBand, …) as frozen
   information-cutoff regression tests; backfilled history explicitly labeled reconstructed.
@@ -704,6 +726,7 @@ today, and where it goes — each entry sheds at a named phase, turns async, or 
 | **Approver** — status flips, structural taxonomy changes | **permanent by design** (Parts 23/16) |
 | **Incident responder** — failed cycles, broken sources | narrows as Part 29 monitors + Part 28 resume land (Phase 4 measured, Phase 6 shipped); target state: notified with a diagnosis, never discovering |
 | **Onboarding data-author** — indicator sets, manifests, seed books | **no shedding plan recorded.** The recipe calls this real analyst work; if authorship becomes Phase 6's binding constraint, a team-drafts/human-approves proposal comes back as a user decision — not assumed here |
+| **Only reader** — every brief's entire audience | sheds at Phase 7: the first real executive arrives once all 34 desks, 5 layers, and Main are live (user decision 2026-07-04), via the generative-UI surface |
 | **Strategic decision-maker** — open questions, doctrine changes | permanent, definitionally |
 
 The Phase 6 human-intel adapter is this table's inverse — humans feeding the desks, not

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "id": "agent-reach",
+      "enabled": true,
+      "repo": "https://github.com/Panniantong/agent-reach",
+      "installDocUrl": "https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
+      "healthCmd": "agent-reach doctor",
+      "invokeHint": "agent-reach <verb> <target>   # e.g. read <url>, search <query>, twitter/reddit/youtube ...",
+      "capabilities": ["web", "search", "twitter", "reddit", "youtube", "github", "bilibili", "xiaohongshu", "rss"],
+      "defaultTier": "secondary",
+      "notes": "Unified internet-access CLI; auto-fallback backends; zero mandatory API fees. Credentials local-only."
+    }
+  ]
+}

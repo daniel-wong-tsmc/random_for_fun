@@ -61,6 +61,19 @@ This prints the plan and writes the initial cycle log. Categories with no assign
 ### 3. Run each `ready` category (Category tier), sequentially
 For each `ready` entry, with its `assignment_path` and `asOf`:
 
+**(a0) Store coverage — corpus first (F62; deterministic, no LLM).** Before gathering, ask the
+store what it already knows:
+```
+.venv/Scripts/python -m gpu_agent.cli corpus --store store --category <id> --as-of <asOf> \
+  --report <work>/corpus-coverage.json
+```
+If the printed block shows coverage (not "no store coverage"), this gather is a **TOP-UP**: include
+the coverage block VERBATIM in the gather-category dispatch with the instruction *"aim at the
+`not covered` list and material updates to covered series; do not re-derive covered ground"*, and
+cap this gather at `min(manifest maxDocuments, 10)` documents. An empty store means a full gather
+exactly as before. (Gather slices/floors and L1 seen-doc threading stay F57 — do not improvise
+them here.)
+
 **(a) Gather (live).** Follow the **`gather-category`** skill to gather real documents for this assignment →
 `blobs.json` → `ingest` → a per-category `docs/` folder. If zero documents are gathered, **skip this category
 with a logged reason** (no empty scorecard) and continue.
@@ -89,12 +102,28 @@ Gate the answer into findings (this runs the deterministic gate):
 .venv/Scripts/python -m gpu_agent.cli extract --recorded <work>/extract-answer.json \
   --docs <docs> --as-of <asOf> --captured-at <ISO-8601 UTC> --out <work>/findings.json
 ```
+**Use ONE `--captured-at` value for this category's `extract --recorded` AND `pipeline` calls**
+(F62: the corpus merge runs in both places; identical inputs keep the emitted prompt's anchors and
+the gate's identical).
+
+**(b2) Corpus assembly (F62; deterministic, no LLM).** Merge the windowed store corpus with this
+cycle's fresh gated findings:
+```
+.venv/Scripts/python -m gpu_agent.cli corpus --store store --category <id> --as-of <asOf> \
+  --fresh <work>/findings.json --out-merged <work>/corpus-findings.json \
+  --out-deduped-fresh <work>/deduped-fresh.json --report <work>/corpus-report.json
+```
+Record the printed counts (store in-window / fresh new / update / duplicate). Every skipped page
+and dropped duplicate is a stderr line and a report entry — surface them, never re-derive them.
 
 **(c) Judgment — Claude Code is the brain.** Emit the canonical judgment prompt from the gated findings:
 ```
-.venv/Scripts/python -m gpu_agent.cli judge --emit-prompt --findings <work>/findings.json --category <id> \
+.venv/Scripts/python -m gpu_agent.cli judge --emit-prompt --findings <work>/corpus-findings.json --category <id> \
   [--persona "<assignment personaLabel>"]
 ```
+(F62: the corpus file — the judge cites store findings by id like any other finding; their rows
+carry `observed=` dates.)
+
 This prints `{"system","schema","user","samples"}`. **Dispatch `samples` SEPARATE tool-less Opus
 subagents in one message** (one generation per sample — a single subagent producing all samples yields
 CORRELATED votes and fake self-consistency, F38), each with that `system`, `user`, and `schema`,
@@ -110,7 +139,8 @@ scores, and writes the scorecard:
 ```
 .venv/Scripts/python -m gpu_agent.cli pipeline --docs <docs> --assignment <assignment_path> \
   --as-of <asOf> --captured-at <ISO-8601 UTC> \
-  --recorded-extract <work>/extract-answer.json --recorded-judge <work>/judge-answer.json --out store
+  --recorded-extract <work>/extract-answer.json --recorded-judge <work>/judge-answer.json \
+  --corpus-store store --corpus-report <work>/corpus-pipeline-report.json --out store
 ```
 Expected: `wrote store/<id>/<asOf>-v<n>.json  DMI=... SMI=...`. Record the path + DMI/SMI.
 
@@ -122,11 +152,21 @@ prompt ("fix these violations; change nothing else"). If the lint fails again, r
 command with `--no-voice-lint`, log `voice-lint: bypassed` in the cycle log, and continue — the
 lint never blocks a scorecard, it only demands one rewrite attempt.
 
+**(d2) Write-back (F62; deterministic, no LLM).** After a successful scorecard, route the deduped
+fresh stream into the wiki so the store accumulates from this cycle too:
+```
+.venv/Scripts/python -m gpu_agent.cli wiki-ingest --findings <work>/deduped-fresh.json \
+  --store store --as-of <asOf> --category <id>
+.venv/Scripts/python -m gpu_agent.cli wiki-lint --store store --as-of <asOf>
+```
+If the scorecard step failed, SKIP write-back and log `write-back: skipped (scorecard failed)` in
+the cycle log — never half-commit a failed cycle.
+
 **(e) Thesis — Claude Code is the brain.** After the scorecard is written, emit the canonical thesis-book
 prompt from this cycle's gated findings (this seeds the store with the category's standing theses on its
 first run):
 ```
-.venv/Scripts/python -m gpu_agent.cli thesis --findings <work>/findings.json --store store \
+.venv/Scripts/python -m gpu_agent.cli thesis --findings <work>/corpus-findings.json --store store \
   --category <id> --as-of <asOf> --emit-prompt [--persona "<assignment personaLabel>"]
 ```
 This prints `{"system","schema","user"}` (a first run also prints `seeded <n> theses` to stderr). **Dispatch
@@ -193,7 +233,10 @@ Report: "Main / market-state: deferred — not yet built."
 
 ### 6. Finalize the cycle log
 Update `store/cycle-log.json` with, per ready category: its scorecard path + DMI/SMI, the saved answer
-artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`), and the tier-stage statuses
+artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`),
+the corpus artifacts (`corpus-coverage.json`, `corpus-findings.json`, `deduped-fresh.json`,
+`corpus-report.json`) and the corpus counts (store in-window / fresh new / update / duplicate),
+and the tier-stage statuses
 (`category: done` | `failed` | `skipped`, `thesis: done` | `failed` | `skipped`, `layer: deferred`,
 `main: deferred`).
 
@@ -203,6 +246,9 @@ failed, with any gate violations), categories skipped/failed (with reason), and 
 stages.
 
 ## Daily mode (the recency-windowed daily run — sub-project 4-4d)
+
+(F62's corpus/top-up/write-back steps are the STANDARD path's; Daily mode already reads the store
+via L1/L2 and writes back — it is unchanged.)
 
 `mode = daily` is an **additive variant** of Step 3 (the standard live/recorded path above is unchanged). Use it
 when the caller asks for a daily/recency sweep. It threads the two 4-4d dedup layers into the run so the day's

@@ -25,10 +25,12 @@
   synthesized brief NEVER ingested as a blob — Part 37). Role-aware step-3 gatherer contract +
   charter Part 37 `role` clause + `docs/web-reach.md`. Whole-branch review caught + fixed a Critical
   (the subagent contract was not role-aware). Frozen core untouched.
-- **NOTE — untracked `docs/roadmap.md`:** a 326-line roadmap doc (authored by a concurrent
-  instance) sits in the primary working tree, untracked. It was NOT authored or committed by the
-  F70 work (my `git add -A` briefly swept it in; I un-bundled it). Left in place for its author to
-  commit — do not assume it is part of F69/F70.
+- **NOTE — `docs/roadmap.md`:** the concurrent instance committed its 326-line roadmap doc to main
+  as **`c4913a6`** (independent of F69/F70), landed on top of `ed378ae` while F70 was on its branch.
+  main had advanced to `c4913a6` before the F70 merge, so it rode into origin via the F70
+  merge/push — it is the concurrent instance's own commit, not part of F70. (My F70 charter commit
+  had briefly swept an earlier untracked copy in via `git add -A`; that was un-bundled, so F70's own
+  commits contain only F70 files.)
 
 ## STANDING RULE (F6 gate, now ACTIVE)
 

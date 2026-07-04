@@ -1611,8 +1611,13 @@ carries weight — the staged path to Part 26 corroboration, recorded now and sc
 paywalled boundary (Part 22) and the data-not-instructions rule (Part 8/26) bind these tools
 exactly as they bind `web_fetch`; a tool missing or unhealthy at the start of a run is
 **logged and reported, never silently skipped** (Part 29), and the run continues on whatever
-is healthy. New category agents inherit the registry and its doctrine automatically — adding a
-tool is one data entry, not a per-agent edit.
+is healthy. Tools carry a **`role`**: `fetch` tools (e.g. `agent-reach`) return raw content
+ingested as secondary blobs; `discovery` tools (e.g. `last30days`, a recency-focused
+multi-platform synthesizer) are used for **leads only** — the coordinator mines their cited
+sources and hot threads for leads, the gatherer subagents fetch those underlying sources as raw
+blobs, and the synthesized brief itself is **never ingested** (which would smuggle another
+model's judgments past the single-brain gate, violating "gatherers return raw material only"). New category agents inherit the registry
+and its doctrine automatically — adding a same-role tool is one data entry, not a per-agent edit.
 
 **Not yet (deferred, by decision):** hard corroboration + a hard secondary-confidence cap; **unattended
 scheduling** (Part 28 — v1 is **manually invoked** from an open session); and a standalone non-session web

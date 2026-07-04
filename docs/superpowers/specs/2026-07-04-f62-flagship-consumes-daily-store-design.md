@@ -272,3 +272,15 @@ Step 3 gains, per ready category (names refer to the existing steps):
 row helper, skill prose, tests. Doctrine holds: code computes + gates + stores; brains are tool-less
 dispatched Opus via `--emit-prompt` → `--recorded`; every cap/skip/drop logged; no hand-edited brain
 output or eval fixtures.
+
+## Addendum (2026-07-04, user-approved): judge crux sentence gains consensus-departure
+
+Two full eval attempts failed record-grade on the judge seam only (6.50, 6.25 vs incumbent
+6.75) with one signature: all 8 fresh judge generations scored sensitivity-differentiation=1
+— the rubric awards 2 only when the narrative also states where the read departs from
+consensus, and the three-sentence narrative spec never asked for it. User chose option B
+(fix the prompt/rubric mismatch on the prompt side, keep the rubric): sentence (2) of the
+narrative spec now reads "the crux — the one or two questions that decide the next rating
+change, and where and why this read departs from the consensus view". Sentence budget stays
+exactly three (deterministic lint untouched). This is validated in the same eval cycle as the
+observed= tag; rebaseline only on a merit PASS (no --force).

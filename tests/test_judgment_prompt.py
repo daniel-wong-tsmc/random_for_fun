@@ -61,3 +61,15 @@ def test_system_states_direction_relative_to_memory_when_present():
 
 def test_system_equals_build_system_invariant_still_holds():
     assert SYSTEM == build_system()
+
+
+def test_system_crux_sentence_demands_consensus_departure():
+    # F62 eval follow-up: the judge rubric awards sensitivity-differentiation only when the
+    # narrative states where the read departs from consensus; the three-sentence budget must
+    # ask for it explicitly or generations reliably omit it (both 2026-07-04 eval attempts).
+    flat = " ".join(SYSTEM.split())
+    assert (
+        "(2) the crux — the one or two questions that decide the next rating change, and "
+        "where and why this read departs from the consensus view;"
+    ) in flat
+    assert "exactly three sentences" in SYSTEM   # budget unchanged — the lint still counts 3

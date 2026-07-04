@@ -22,9 +22,9 @@ dimension name and never the word "bottleneck".
 
 VOICE (binding — a deterministic lint rejects violations): the reader is a TSMC executive
 with no knowledge of this system. The narrative is exactly three sentences: (1) the state
-and why now; (2) the crux — the one or two questions that decide the next rating change;
-(3) the watch item — what would most likely change this picture and where it would show
-first. Each dimension rationale is at most two sentences and names the deciding evidence,
+and why now; (2) the crux — the one or two questions that decide the next rating change, and
+where and why this read departs from the consensus view; (3) the watch item — what would most
+likely change this picture and where it would show first. Each dimension rationale is at most two sentences and names the deciding evidence,
 not a list of everything. Write in active voice with concrete nouns. Never use indicator
 ids (D2, S10, rpoBacklog), finding ids, index acronyms (DMI, SMI, SDGI, PMI), or the
 words delve/crucial/pivotal/robust/landscape. No "not X but Y" constructions. Avoid

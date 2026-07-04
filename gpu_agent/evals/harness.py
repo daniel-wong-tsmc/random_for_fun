@@ -180,6 +180,68 @@ def case_medians(replicate_scores: list[dict[str, int]],
 _EPS = 1e-9
 
 
+def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
+    """The eval-v2 gate decision. One report -> pass | marginal-fail | hard-fail;
+    two reports (the single sanctioned replication) -> pass | fail, decided on
+    two-run means against the SAME bars. Values exactly on a bar pass."""
+    reasons: list[str] = []
+    for i, rep in enumerate(reports):
+        for cid, cal in rep.get("calibration", {}).items():
+            if not cal["ok"]:
+                reasons.append(f"run {i + 1}: grader miscalibrated: negative case "
+                               f"'{cid}' scored {cal['score']} > {cal['max']}")
+    if len(reports) == 2 and reports[0].get("promptHashes") != reports[1].get("promptHashes"):
+        reasons.append("replication prompt hashes differ from run 1 — not the same bundle")
+    for seam in baseline["seamMeans"]:
+        for i, rep in enumerate(reports):
+            if seam not in rep.get("seamMeans", {}):
+                reasons.append(f"run {i + 1}: seam '{seam}' has a baseline mean "
+                               "but no scored positive cases")
+    if reasons:
+        return {"pass": False, "decision": "invalid-run", "reasons": reasons,
+                "seams": {}, "craters": []}
+
+    seams: dict[str, dict] = {}
+    craters: list[dict] = []
+    any_fail = any_hard = False
+    for seam, base_mean in baseline["seamMeans"].items():
+        eps = baseline["epsilon"][seam]
+        value = sum(r["seamMeans"][seam] for r in reports) / len(reports)
+        bar, hard_bar = base_mean - eps, base_mean - 2 * eps
+        ok = value >= bar - _EPS
+        seams[seam] = {"value": value, "bar": bar, "hardBar": hard_bar, "ok": ok}
+        if not ok:
+            any_fail = True
+            reasons.append(f"regression on '{seam}': {value:.3f} < bar {bar:.3f} "
+                           f"(replicate mean {base_mean:.3f} - eps {eps:.3f})")
+            if value < hard_bar - _EPS:
+                any_hard = True
+    for cid, median in baseline["caseMedians"].items():
+        totals = [r["scores"][cid]["total"] for r in reports if cid in r.get("scores", {})]
+        if not totals:
+            continue
+        value = sum(totals) / len(totals)
+        if value <= median - CRATER_DROP + _EPS:
+            any_fail = True
+            craters.append({"caseId": cid, "value": value if len(reports) > 1 else totals[0],
+                            "median": median})
+            reasons.append(f"crater: case '{cid}' at {value:.1f} <= "
+                           f"baseline median {median} - {CRATER_DROP}")
+            if value <= median - CRATER_DROP - HARD_CRATER_EXTRA + _EPS:
+                any_hard = True
+
+    if not any_fail:
+        decision = "pass"
+    elif len(reports) == 2:
+        decision = "fail"
+    elif any_hard:
+        decision = "hard-fail"
+    else:
+        decision = "marginal-fail"
+    return {"pass": decision == "pass", "decision": decision, "reasons": reasons,
+            "seams": seams, "craters": craters}
+
+
 def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_hashes: dict, baseline: dict | None, as_of: str) -> dict:
     report = score_cases(cases, grades)
     report["promptHashes"] = dict(prompt_hashes)

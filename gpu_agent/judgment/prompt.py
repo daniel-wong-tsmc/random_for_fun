@@ -22,9 +22,9 @@ dimension name and never the word "bottleneck".
 
 VOICE (binding — a deterministic lint rejects violations): the reader is a TSMC executive
 with no knowledge of this system. The narrative is exactly three sentences: (1) the state
-and why now; (2) the crux — the one or two questions that decide the next rating change;
-(3) the watch item — what would most likely change this picture and where it would show
-first. Each dimension rationale is at most two sentences and names the deciding evidence,
+and why now; (2) the crux — the one or two questions that decide the next rating change, and
+where and why this read departs from the consensus view; (3) the watch item — what would most
+likely change this picture and where it would show first. Each dimension rationale is at most two sentences and names the deciding evidence,
 not a list of everything. Write in active voice with concrete nouns. Never use indicator
 ids (D2, S10, rpoBacklog), finding ids, index acronyms (DMI, SMI, SDGI, PMI), or the
 words delve/crucial/pivotal/robust/landscape. No "not X but Y" constructions. Avoid
@@ -49,17 +49,23 @@ def build_system(persona: str = DEFAULT_PERSONA) -> str:
 SYSTEM = build_system()   # byte-identical to the prior hardcoded constant — pinned by a test
 
 def build_user_prompt(briefing: Briefing, memory_text: str | None = None,
-                      include_groups: bool = False) -> str:
+                      include_groups: bool = False, include_dates: bool = False) -> str:
     lines = ["Anchors (sign bounds your rating; absent = no numeric bound):"]
     for dim, a in sorted(briefing.anchors.items()):
         lines.append(f"  {dim}: {a:+.2f}")
     lines.append("")
     lines.append("Findings (cite by id):")
     for f in briefing.findings:
-        lines.append(
+        row = (
             f"  {f.id} [{f.indicatorId}] {f.statement} "
             f"(demand={f.polarityDemand:+d} supply={f.polaritySupply:+d} "
-            f"mag={f.magnitude} conf={f.confidence.level})")
+            f"mag={f.magnitude} conf={f.confidence.level}")
+        # F62: the emit path dates every row so a brain judging a mixed-vintage corpus
+        # can weigh old vs new. Default False keeps the frozen judge_findings internal
+        # path byte-identical (same additive pattern as include_groups/memory_text).
+        if include_dates:
+            row += f" observed={f.observedAt[:10]}"
+        lines.append(row + ")")
     body = "<briefing>\n" + "\n".join(lines) + "\n</briefing>\n"
     # F55: the emit path appends the code-computed citation groups so the brain sees the exact
     # per-dimension id vocabulary the aggregation conflict-check enforces. Default False keeps

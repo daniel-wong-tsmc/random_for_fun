@@ -353,6 +353,13 @@
   output. Make the accumulated store a first-class input corpus to flagship extraction /
   judgment / thesis, demoting the web gather to top-up. **Highest-leverage item of this
   review.** Interacts with F52 (vintage-scoped ids) and L2 dedup.
+  **STATUS 2026-07-04: implemented on branch `f62-flagship-consumes-store` (pushed; final
+  review approved; frozen core untouched). Eval RESOLVED on merit: after two failed attempts
+  isolated a judge prompt/rubric mismatch, the user-approved consensus-departure clause
+  (commit b8f41f8) took attempt 3 to PASS (extract 6.75 / judge 7.50 / thesis 6.00) and the
+  baseline was rebaselined without --force (f605a77). Suite 970 passed / 3 skipped / 0
+  failed. See docs/superpowers/2026-07-04-f62-eval-run-notes.md for all three attempts.
+  MERGE waits for the user's explicit go.**
 - [ ] **F63 — Corroboration doctrine for secondary evidence.** Secondary evidence is
   confidence-capped at medium (extraction prompt + gate F2e) and secondary-only findings may
   not move headline status (Part 37) — so no quantity of independent open-web reporting can

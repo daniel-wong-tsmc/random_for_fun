@@ -215,5 +215,21 @@ PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed trig
   Ledger has per-task review outcomes + the deferred-minors list for both pieces.
 - **F52/F53/F54 small-fix wave:** spec `091c709` → plan `0e6cb0e` → merged (5 commits,
   `2a2dae7..2c070f4`). Suite 804 → 828. Ledger has per-task reviews + the final-review triage.
+- **F62 (flagship consumes the daily store):** spec `de0719b` → plan `d18c0c2` → implemented on
+  branch `f62-flagship-consumes-store` (PUSHED @ `f605a77`, **NOT merged — user gives the go**).
+  New `gpu_agent/corpus.py` (45-day windowed store↔fresh union), `corpus` CLI,
+  `pipeline --corpus-store/--corpus-report`, `observed=` vintage tag (emit-only kwarg),
+  judge crux sentence now demands a consensus-departure (`b8f41f8`), run-cycle wiring +
+  write-back. Frozen core empty-diff vs main; final opus whole-branch review APPROVED
+  (0 critical/important, all minors ride). **Eval RESOLVED on merit after three attempts:**
+  attempts 1-2 failed the judge seam (6.50, 6.25 vs incumbent 6.75) with one signature — all 8
+  generations missed the rubric's consensus-departure point the 3-sentence voice budget never
+  asked for; user chose option B (fix the prompt, keep the rubric); attempt 3 PASSED
+  (extract 6.75 / judge 7.50 / thesis 6.00 — sensitivity-differentiation went 1→2 on all four
+  judges) and the baseline was rebaselined WITHOUT --force (`f605a77`). Suite on the branch:
+  **970 passed / 3 skipped / 0 failed.** Full three-attempt history in
+  `docs/superpowers/2026-07-04-f62-eval-run-notes.md`; raw runs in the worktree's gitignored
+  `work/eval-f62-2026-07-04/` (attempts 1-3 preserved — do not `git clean` that worktree).
+  Ledger: `.superpowers/sdd/f62/progress.md` (repo root).
 - **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.

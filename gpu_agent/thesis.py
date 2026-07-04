@@ -727,12 +727,13 @@ def _book_entry_lines(book: ThesisBook) -> list[str]:
 
 
 def _finding_lines(findings: list[Finding]) -> list[str]:
-    """Same per-finding row format the judge briefing uses (judgment/prompt.py's
-    build_user_prompt), copied verbatim rather than re-invented."""
+    """Same per-finding row format the judge briefing emits (judgment/prompt.py's
+    build_user_prompt with include_dates=True — F62 observed= vintage tag), copied
+    verbatim rather than re-invented."""
     return [
         f"  {f.id} [{f.indicatorId}] {f.statement} "
         f"(demand={f.polarityDemand:+d} supply={f.polaritySupply:+d} "
-        f"mag={f.magnitude} conf={f.confidence.level})"
+        f"mag={f.magnitude} conf={f.confidence.level} observed={f.observedAt[:10]})"
         for f in findings
     ]
 

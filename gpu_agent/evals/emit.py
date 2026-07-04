@@ -53,7 +53,7 @@ def emit_brain_bundle(seam: str, seam_input, registry, taxonomy) -> dict:
             "system": JUDGE_SYSTEM,
             "schema": JudgmentResult.model_json_schema(),
             "user": build_judge_user_prompt(briefing, memory_text=seam_input.memoryText,
-                                            include_groups=True),
+                                            include_groups=True, include_dates=True),
         }
     if seam == "thesis":
         assert isinstance(seam_input, ThesisInput)

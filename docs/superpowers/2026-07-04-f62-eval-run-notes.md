@@ -103,3 +103,32 @@ user decides. Both attempts' full data preserved: attempt 1 in answers-attempt1/
 grade-answers-attempt1/, brain-answers-attempt1.json, grade-answers-attempt1.json,
 report-attempt1.json; attempt 2 in answers/, grade-answers/, brain-answers.json,
 grade-answers.json, report.json (FAIL), brain-gates.json.
+
+## Attempt 3 (option B, user-approved): consensus-departure clause + combined validation — PASS
+
+User reviewed both failed attempts and chose option B: fix the prompt/rubric mismatch on the
+prompt side. Commit b8f41f8 amends the judge narrative spec sentence (2) to demand "where and
+why this read departs from the consensus view" (three-sentence budget unchanged; deterministic
+lint untouched; TDD pin test added in tests/test_judgment_prompt.py).
+
+Run shape: emit-brain confirmed the amendment's blast radius is judge-only (extract/thesis
+prompts byte-identical to attempt 2, sha-verified; F38 pairs still identical within pair).
+Therefore attempt 2's extract (8) and thesis (2) generations and their grades carry over;
+the 4 judge cases were regenerated fresh under the amended prompt and freshly graded; the 4
+frozen-negative grades reused (grader-reproduced twice). record-brain: one violation again —
+judge-2026-07-02 used 'CEO' (third occurrence of this exact slip across attempts, always the
+monthly pair); F38-safe re-dispatch -> "chief executive"; re-gate 14/14 clean.
+
+All four fresh judge narratives now state an explicit consensus departure (e.g. "erodes
+merchant share faster than a consensus that still treats that loss as gradual"; "against the
+consensus that custom silicon stays a sideshow"). Grades: judge 7, 8, 7, 8 — the
+sensitivity-differentiation criterion moved 1 -> 2 on ALL four cases, exactly the deficit
+signature attempts 1-2 diagnosed.
+
+record-grade (as-of 2026-07-04): PASS. Seams: extract 6.75 (>= 6.62), judge 7.50 (>= 6.75),
+thesis 6.00 (>= 5.50). Calibration negatives 2/1/0/2, all ok. NO --force needed.
+
+rebaseline: fixtures/evals/baseline.json rewritten with the full reason + human-review
+provenance. Full suite after rebaseline: 970 passed / 3 skipped / 0 failed — the F6 pin now
+passes against the new baseline. Attempt-3 artifacts: answers/ + grade-answers/ (current);
+attempts 1 and 2 preserved in *-attempt1/ and *-attempt2/ files.

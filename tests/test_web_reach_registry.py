@@ -147,3 +147,19 @@ def test_gather_preamble_runs_ensure_before_healthcheck():
     text = SKILL.read_text(encoding="utf-8")
     assert "scripts/web-reach-ensure" in text, "preamble must call the ensure launcher"
     assert "ensure-installed" in text or "ensure installed" in text.lower()
+
+
+# --- Task 7: doctrine + docs flip (ensure-installed idempotently at run start) ---
+
+
+def test_doc_documents_auto_bootstrap():
+    text = DOC.read_text(encoding="utf-8")
+    assert "web-reach-ensure" in text
+    assert "idempotent" in text.lower()
+    # the old "never installs mid-cycle" line must be gone / superseded
+    assert "never installs mid-cycle" not in text
+
+
+def test_charter_reflects_ensure_doctrine():
+    text = CHARTER.read_text(encoding="utf-8")
+    assert "ensure-installed" in text or "ensure installed" in text.lower()

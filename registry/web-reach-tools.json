@@ -55,7 +55,7 @@
       "invokeHint": "/last30days <topic>   (Claude Code)  |  python3 skills/last30days/scripts/last30days.py <topic> --emit=md",
       "capabilities": ["search", "reddit", "twitter", "youtube", "tiktok", "hackernews", "polymarket", "github"],
       "defaultTier": "secondary",
-      "notes": "DISCOVERY role — recency-focused (last-30-days) multi-platform synthesizer. Use for LEADS ONLY: mine its cited sources / hot threads, then fetch those underlying sources as raw blobs and chase to primary. NEVER ingest its synthesized brief as a blob (charter Part 37: gatherers return raw material only). Free core (Reddit/HN/Polymarket/GitHub/X-via-cookies); optional keys (Brave/Perplexity/ScrapeCreators/etc). Install: '/plugin marketplace add mvanhorn/last30days-skill' or 'npx skills add mvanhorn/last30days-skill -g'. healthCmd path is install-relative."
+      "notes": "DISCOVERY role — recency-focused (last-30-days) multi-platform synthesizer. Use for LEADS ONLY: mine its cited sources / hot threads, then fetch those underlying sources as raw blobs and chase to primary. NEVER ingest its synthesized brief as a blob (charter Part 37: gatherers return raw material only). Free core (Reddit/HN/Polymarket/GitHub/X-via-cookies); optional keys (Brave/Perplexity/ScrapeCreators/etc). Install: '/plugin marketplace add mvanhorn/last30days-skill' or 'npx skills add mvanhorn/last30days-skill -g'. healthCmd is an OS-keyed probe resolved by web-reach-ensure, not an install-relative file path."
     }
   ]
 }

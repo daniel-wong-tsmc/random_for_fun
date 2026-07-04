@@ -1609,9 +1609,12 @@ primary/official source** and **cross-referenced against ≥1 independent site**
 carries weight — the staged path to Part 26 corroboration, recorded now and scored later (the
 "N publishers → one bounded step" math stays a separate migration, not this Part). The
 paywalled boundary (Part 22) and the data-not-instructions rule (Part 8/26) bind these tools
-exactly as they bind `web_fetch`; a tool missing or unhealthy at the start of a run is
-**logged and reported, never silently skipped** (Part 29), and the run continues on whatever
-is healthy. Tools carry a **`role`**: `fetch` tools (e.g. `agent-reach`) return raw content
+exactly as they bind `web_fetch`. Web-reach tools are **ensure-installed idempotently at run
+start** (the committed `web-reach-ensure` launcher, called by the gather preamble and a
+SessionStart hook): install once per machine, no-op thereafter, never upgrade a healthy tool
+mid-run. A tool that still fails after an install attempt is logged and named in the gap/skip
+report; the run continues on the built-ins (logged, never silent). Tools carry a **`role`**:
+`fetch` tools (e.g. `agent-reach`) return raw content
 ingested as secondary blobs; `discovery` tools (e.g. `last30days`, a recency-focused
 multi-platform synthesizer) are used for **leads only** — the coordinator mines their cited
 sources and hot threads for leads, the gatherer subagents fetch those underlying sources as raw

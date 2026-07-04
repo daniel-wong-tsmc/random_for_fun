@@ -35,28 +35,40 @@ doctrine lives in charter **Part 37**; the tool list is data in
 - **Logged, never silent:** a missing/unhealthy tool is logged in `gather-log.json`
   (`webReach` block) and reported; the run continues on whatever is healthy.
 
-## One-time bootstrap (per machine)
-For each tool in `registry/web-reach-tools.json` with `enabled: true`:
-1. Follow its `installDocUrl`. For agent-reach, install per
-   https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md
-   (installs the `agent-reach` CLI plus Node.js / gh CLI / mcporter and registers usage
-   guides in the agent skill directories).
-   For `last30days`, install via `/plugin marketplace add mvanhorn/last30days-skill`
-   (Claude Code) or `npx skills add mvanhorn/last30days-skill -g` (other harnesses).
-2. Verify with its `healthCmd` (agent-reach: `agent-reach doctor`; last30days:
-   `python3 skills/last30days/scripts/last30days.py --preflight`) — it reports each
-   platform's status and active backend. last30days' healthCmd path is install-relative; if
-   the preamble can't resolve it, last30days is logged unhealthy and the run continues.
-3. Optional: set up **local-only** credentials for platforms that need them (agent-reach:
-   Twitter / Xiaohongshu cookies; last30days: X via browser cookies, plus optional
-   Brave / Perplexity / ScrapeCreators keys), stored under the tool's own local config —
-   never committed. Absence just shows that capability unhealthy; it is logged, not fatal.
+## Automatic bootstrap (idempotent, every run)
+Web-reach tools are installed automatically — no manual per-machine ritual. The committed
+launcher `scripts/web-reach-ensure` (`.cmd` on Windows) runs the stdlib-only
+`gpu_agent.web_reach_ensure` engine, which reads this registry, health-checks each enabled
+tool, and installs any that are missing using the registry's per-OS `install` recipes. It is
+idempotent: a no-op (sub-second) when tools are healthy, a full install (a few minutes) only on
+a fresh machine. It never upgrades a healthy tool and never touches secrets.
+
+Two triggers call the launcher (both committed, both reproducible):
+- the `gather-category` web-reach preamble, at the start of every agent run (primary);
+- a `.claude/settings.json` SessionStart hook, when a session opens in the repo (backstop).
+
+Nothing installed is committed — installs land in pipx / a dedicated venv / the global skills
+dir / Node/gh/mcporter, per the registry recipes. Run it by hand any time with
+`gpu-agent web-reach-ensure` (once a `.venv` exists) or `scripts/web-reach-ensure`.
+
+Platform note: the Windows path is verified on real hardware; the macOS/Linux recipes are
+authored from each tool's install doc and unit-tested (logic/order) but not yet run on those
+OSes — the first mac/Linux operator should confirm and adjust the registry `install`/`healthCmd`
+if reality differs.
+
+## Optional per-machine secrets (not reproduced automatically)
+Logged-in capabilities need per-user secrets that cannot be committed: agent-reach
+(Twitter/Xiaohongshu cookies, optional Groq key), last30days (X via browser cookies; optional
+Brave/Perplexity/ScrapeCreators keys). Set these up per machine following each tool's docs; their
+absence just shows that capability unhealthy — logged, never fatal. Free-core capability works
+without any of them.
 
 ## Health check (every run)
 The `gather-category` skill runs a web-reach preamble before seed-building: it reads the
 registry and runs each enabled tool's `healthCmd`, records `{tool: ok|unhealthy|missing}`
 in `gather-log.json::webReach`, and echoes any down tool in the run's gap/skip report. It
-never installs mid-cycle.
+ensures each tool is installed first (idempotent), then health-checks; it never upgrades a
+healthy tool mid-run.
 
 ## Adding a tool
 Append one object to `tools[]` in `registry/web-reach-tools.json`

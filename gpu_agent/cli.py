@@ -681,6 +681,25 @@ def _pipeline(args) -> int:
         a = a.model_copy(update={"asOf": args.as_of})
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
+    # F62: merge the windowed store corpus into the judged + scored findings. Same
+    # deterministic assemble() the `corpus` command runs over the emit step's findings
+    # file, so the emitted prompt's anchors/citation groups and the gate's match —
+    # provided the session reused one --captured-at (run-cycle states this).
+    if args.corpus_store:
+        try:
+            cres = corpus_assemble(args.corpus_store, a.category, args.as_of, findings,
+                                   registry, window_days=args.corpus_window_days)
+        except CorpusError as e:
+            print(f"gpu-agent pipeline: corpus error: {e}", file=sys.stderr)
+            return 1
+        findings = cres.merged
+        rep = cres.report
+        if args.corpus_report:
+            pathlib.Path(args.corpus_report).write_text(rep.model_dump_json(indent=2), "utf-8")
+        print(f"corpus: store {len(rep.storeIncluded)} in-window ({rep.outOfWindow} out), "
+              f"fresh new {len(rep.freshNew)} update {len(rep.freshUpdate)} "
+              f"duplicate {len(rep.freshDuplicate)} -> merged {len(findings)}",
+              file=sys.stderr)
     # F5: judge_findings' signature is frozen and builds its own prompt internally, so this
     # recorded-judge path threads no memory of its own -- the skill's live cycle gets prior-cycle
     # MEMORY via the `judge --emit-prompt --store ...` call in Step 3(c), whose emitted user
@@ -934,6 +953,12 @@ def main(argv=None) -> int:
     pl.add_argument("--recorded-judge", default=None)
     pl.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
+    pl.add_argument("--corpus-store", default=None,
+                    help="store root; when given, merge the windowed store corpus (F62) "
+                         "into the judged + scored findings")
+    pl.add_argument("--corpus-window-days", type=int, default=WINDOW_DAYS_DEFAULT,
+                    help=f"corpus recency window in days (default {WINDOW_DAYS_DEFAULT})")
+    pl.add_argument("--corpus-report", default=None, help="write the CorpusReport JSON here")
     cp = sub.add_parser("cycle-plan")
     cp.add_argument("--scope", required=True,
                     help="category:<id> | layer:<id> | all")

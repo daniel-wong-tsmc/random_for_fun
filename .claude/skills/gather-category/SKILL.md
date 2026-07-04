@@ -120,6 +120,17 @@ filing URL, check it against the dedup store's known-hash index and skip already
 unchanged URLs mid-quarter — freeing that fetch for a fresh headline or forward-signal slice
 instead.
 
+**Recency window (live mode).** Bias the round-1 search-query seeds (free-web query seeds,
+standard slices, headline slices, forward-signal slices) and the on-topic lead filter (step 4)
+to the last **N days** (a dial; default `recencyDays = 45` — wider than Daily mode's
+`recencyDays = 7`, since this is the periodic full-crawl path, not a daily "what's new" sweep).
+Add "since <date> / past month / latest" style qualifiers to those queries, scaled to the
+45-day window. Unlike those query-built seeds, filing-URL seeds are exempt: the priority seeds
+bullet's `urlPatterns` matches are attempted as-is, with no date qualifier and no drop, because
+a fresh 10-K or 10-Q legitimately cites and discusses older reporting periods. DROP any
+non-filing lead whose document date is older than the window (log it in `skipped[]` as
+`"lead '<x>' older than recency window (<date>)"`), exactly like Daily mode step 1.
+
 If no manifest: build only the standard entity×metric slices (original behavior).
 
 **2b. Discovery-role leads (`role: discovery` tools, e.g. `last30days`).** For each `enabled`

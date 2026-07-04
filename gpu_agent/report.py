@@ -688,10 +688,12 @@ def render_raw_indices(sc: Scorecard, prior: Optional[Scorecard]) -> str:
 
 def render_citation_map(sc: Scorecard) -> str:
     """Appendix-only CITATION MAP (spec §1 row 9): one line per finding id -> the tier,
-    date, and (truncated) source of that finding's FIRST evidence item, sorted by
+    date, and (truncated) source of EACH of that finding's evidence items, sorted by
     finding id. This is where the full finding-id -> source/date/tier map lives — THE
     CALLS / WHY compress citations to counts above the fold (reader contract: never dump
-    ids), so a reader who wants to trace a specific id back to its source finds it here.
+    ids), so a reader who wants to trace a specific id back to its sources finds them
+    all here (F68b: a finding corroborated by several publishers previously showed only
+    its first source; now every evidence item gets its own line).
     "" when there are no findings (render_report drops the resulting empty string)."""
     if not sc.findings:
         return ""
@@ -699,8 +701,8 @@ def render_citation_map(sc: Scorecard) -> str:
     for f in sorted(sc.findings, key=lambda f: f.id):
         if not f.evidence:
             continue
-        ev = f.evidence[0]
-        lines.append(f"  {f.id}  {ev.tier}  {ev.date}  {ev.source[:60]}")
+        for ev in f.evidence:
+            lines.append(f"  {f.id}  {ev.tier}  {ev.date}  {ev.source[:60]}")
     return "\n".join(lines)
 
 

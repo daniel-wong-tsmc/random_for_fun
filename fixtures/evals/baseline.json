@@ -1,0 +1,182 @@
+{
+  "cases": {
+    "extract-2026-07-01": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 1,
+        "provenance-honesty": 1,
+        "signal-selection": 2
+      },
+      "total": 5
+    },
+    "extract-2026-07-02": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 2,
+        "provenance-honesty": 2,
+        "signal-selection": 2
+      },
+      "total": 7
+    },
+    "extract-2026-07-03": {
+      "grades": {
+        "completeness": 2,
+        "fidelity": 2,
+        "provenance-honesty": 2,
+        "signal-selection": 2
+      },
+      "total": 8
+    },
+    "extract-2026-07-03-01": {
+      "grades": {
+        "completeness": 2,
+        "fidelity": 2,
+        "provenance-honesty": 1,
+        "signal-selection": 2
+      },
+      "total": 7
+    },
+    "extract-2026-07-03-02": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 2,
+        "provenance-honesty": 1,
+        "signal-selection": 2
+      },
+      "total": 6
+    },
+    "extract-2026-07-04": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 2,
+        "provenance-honesty": 2,
+        "signal-selection": 2
+      },
+      "total": 7
+    },
+    "extract-2026-07-05": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 2,
+        "provenance-honesty": 2,
+        "signal-selection": 2
+      },
+      "total": 7
+    },
+    "extract-2026-07-06": {
+      "grades": {
+        "completeness": 1,
+        "fidelity": 2,
+        "provenance-honesty": 1,
+        "signal-selection": 2
+      },
+      "total": 6
+    },
+    "extract-2026-07-90": {
+      "grades": {
+        "completeness": 0,
+        "fidelity": 0,
+        "provenance-honesty": 0,
+        "signal-selection": 2
+      },
+      "total": 2
+    },
+    "judge-2026-07-01": {
+      "grades": {
+        "crux": 2,
+        "evidence-discipline": 2,
+        "mechanism": 2,
+        "sensitivity-differentiation": 1
+      },
+      "total": 7
+    },
+    "judge-2026-07-02": {
+      "grades": {
+        "crux": 2,
+        "evidence-discipline": 2,
+        "mechanism": 2,
+        "sensitivity-differentiation": 1
+      },
+      "total": 7
+    },
+    "judge-2026-07-03-01": {
+      "grades": {
+        "crux": 2,
+        "evidence-discipline": 1,
+        "mechanism": 2,
+        "sensitivity-differentiation": 2
+      },
+      "total": 7
+    },
+    "judge-2026-07-03-02": {
+      "grades": {
+        "crux": 2,
+        "evidence-discipline": 1,
+        "mechanism": 2,
+        "sensitivity-differentiation": 1
+      },
+      "total": 6
+    },
+    "judge-2026-07-90": {
+      "grades": {
+        "crux": 0,
+        "evidence-discipline": 1,
+        "mechanism": 0,
+        "sensitivity-differentiation": 0
+      },
+      "total": 1
+    },
+    "thesis-2026-07-01": {
+      "grades": {
+        "delta-discipline": 1,
+        "mechanism": 2,
+        "steelman": 1,
+        "trigger-quality": 2
+      },
+      "total": 6
+    },
+    "thesis-2026-07-03-01": {
+      "grades": {
+        "delta-discipline": 1,
+        "mechanism": 1,
+        "steelman": 1,
+        "trigger-quality": 2
+      },
+      "total": 5
+    },
+    "thesis-2026-07-90": {
+      "grades": {
+        "delta-discipline": 0,
+        "mechanism": 0,
+        "steelman": 0,
+        "trigger-quality": 0
+      },
+      "total": 0
+    },
+    "thesis-2026-07-91": {
+      "grades": {
+        "delta-discipline": 0,
+        "mechanism": 0,
+        "steelman": 0,
+        "trigger-quality": 2
+      },
+      "total": 2
+    }
+  },
+  "promptHashes": {
+    "extract": "07ae099264ce16e947f7962558fbffd98f04d4d6f20fa749d837fe73671b6bde",
+    "judge": "75f5392e84d54d3dbd6489fd7b8d91fb3bb3ba13d39c8973ba45b989b11f4c59",
+    "thesis": "0297da0c6eaa7c213eb63358c366d22a763127befc4b623c9de0b82271308f7a"
+  },
+  "provenance": {
+    "asOf": "2026-07-04",
+    "forceReason": null,
+    "graderModel": "opus",
+    "humanReview": "Controller spot-checked extract-2026-07-90 (anchor-forced 0s trace to the planted 57.2-vs-75.2 fidelity defect and flipped trend) and judge-2026-07-03-01 (evidence-discipline deduction correctly flags the narrative conflating Anthropic Samsung-2nm talks with a GB300 deployment) against their answers."
+  },
+  "seamMeans": {
+    "extract": 6.625,
+    "judge": 6.75,
+    "thesis": 5.5
+  }
+}

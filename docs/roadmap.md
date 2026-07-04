@@ -18,7 +18,9 @@
 > department head): four human-org behaviors added — downward tasking, a structured challenge
 > mechanism (adapted from MACI, arXiv:2501.16689 — independent external validation, not
 > free-form debate; user-approved adaptation), calibration consequences, and a human-intel
-> adapter.
+> adapter. A seventh (same day, user-approved — all six adopted): the desk-maturity list —
+> question-steered gathering, forward event calendar, indicator series depth,
+> structured-document extraction, desk post-mortems, multilingual sources.
 
 ## The goal
 
@@ -219,6 +221,38 @@ baseline green through every step.
 machinery exists to prevent. The evidence-sufficiency gate ships *in the same spec* as the
 counterweight, never separately. Second risk: F62 contaminates the flagship with stale or
 duplicate findings; F52 vintage ids + L2 dedup are the mitigation and the acceptance tests.
+
+### Desk-maturity list (unsequenced — slot as capacity allows)
+
+Known gaps between the Phase 1 desk and a genuinely analyst-grade desk (2026-07-04 desk-lens
+review, user-approved — all six adopted). The locked F62→F66 order is untouched; these follow
+it or interleave as capacity allows, and each is minted as an F-item in the fix-backlog when
+picked up.
+
+- **Question-steered gathering** — close the memory→gather loop: standing theses' falsifiable
+  triggers, open watch-items, and corroboration hunts (the most load-bearing single-sourced
+  claims, valuable once F63 lands) become first-class gather seeds each cycle, beside the
+  assignment slices. The desk stops reading whatever is new and starts hunting what it needs
+  to know. Skill + emit-prompt work; prompt edits ride the F6 gate.
+- **Forward event calendar** — registry data: known upcoming checkpoints per entity and per
+  thesis (earnings dates, product launches, regulatory deadlines). The brief names the next
+  checkpoint and what it resolves ("NVDA earnings 8/27 resolves this thesis's trigger"), and
+  the action-items' per-domain review dates get a concrete anchor.
+- **Indicator series depth** — real per-indicator history with base rates, so trend-vs-blip
+  is statistics rather than judgment (the category-agent guide's 36-month z-score ambition;
+  F36 removed the dead `zscore()`). Any scoring-semantics change ships as a Part 33 versioned
+  migration.
+- **Structured-document extraction** — Part 22's prose-vs-structured split, built: filing
+  tables (purchase commitments, inventory DIO, capex) extracted **with code, never the
+  model's eyes**, carrying in-file provenance pointers (page / `sheet!cell`, Part 20). This
+  unlocks the desk's highest-value primary indicators as true measured findings.
+- **Desk post-mortem routine** — when a call resolves wrong (Brier, F64), the desk writes a
+  structured miss review: what was missed, which source would have caught it earlier, which
+  indicator/trigger/seed should change. Feeds the calibration-consequences loop with
+  diagnosed causes — the bottom-up half of the org's performance review.
+- **Multilingual sources** — regional-language source classes (zh/ko/ja trade press) in the
+  source inventory, translated by the desk's own brains; a per-category data decision (open
+  question 7).
 
 ## Phase 2 — Prove generalization (categories #2–3)
 
@@ -483,3 +517,6 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
    justify a licensing ask when they onboard?
 6. **Decision-area expansion** (action-items open item): confirm the seven-area set before
    Phase 5 builds the market-scope Recommendation Skill against it.
+7. **Multilingual coverage** (desk-maturity list): which categories justify regional-language
+   source classes (chips: zh/ko/ja trade press is where the channel signal lives) and at what
+   fetch budget — partly a coverage/cost call, so it is yours.

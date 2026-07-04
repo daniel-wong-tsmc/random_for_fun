@@ -1,19 +1,22 @@
-# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; next = F62)
+# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; F69 web-reach layer MERGED; next = F62)
 
 - **Date:** 2026-07-04 (post-Task-10 refresh)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 916 passed / 3 skipped — verified on main @ `0344949` and pushed. The former baseline-pin
-  skips now RUN (armed by `fixtures/evals/baseline.json`).**
+- **Suite 923 passed / 3 skipped — verified on main @ `e167c6b` (F69 web-reach layer merged
+  2026-07-04). Main is AHEAD of origin (the F6 baseline @ `0344949` was pushed; the F69 merge is
+  not yet pushed). The former baseline-pin skips now RUN (armed by `fixtures/evals/baseline.json`).**
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
 - F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
-- A THIRD instance is working **F69 (web-reach layer)** on branch `f69-web-reach-layer` and has
-  CHECKED OUT that branch in the main checkout — do not assume the main checkout sits on main.
-  Work from a worktree pinned to main (`git worktree add .worktrees/<name> main`) and never
-  chain "check git log && commit" in one command — check FIRST, decide, then commit. (This
-  session accidentally committed onto their branch that way; resolved by cherry-pick to main +
-  their revert. Its spec/plan: 28e38de/a23467f on their branch.)
+- **F69 (web-reach layer) is DONE — merged to main `e167c6b` (2026-07-04); branch
+  `f69-web-reach-layer` deleted.** Data-driven registry `registry/web-reach-tools.json`
+  (agent-reach first; a 2nd github drops in as a data entry), health-check preamble +
+  gatherer-contract additions in `gather-category`, doctrine in charter Part 37, operator doc
+  `docs/web-reach.md`. Frozen core untouched; no scoring change (corroboration math stays F63 —
+  see the F63 handoff note in the backlog). Spec/plan 28e38de/a23467f; final whole-branch review
+  clean. (Earlier cross-branch mixup with this instance — a stray commit onto the F69 branch —
+  was resolved before the merge.)
 
 ## STANDING RULE (F6 gate, now ACTIVE)
 

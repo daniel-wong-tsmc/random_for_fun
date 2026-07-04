@@ -27,7 +27,12 @@
 > user-approved — all six adopted + an anti-AI-voice directive): the storytelling pass —
 > callbacks, estimative-probability words, analog library, anticipated questions, house
 > voice (never sounds like AI; stop-slop as versioned style data), exhibits in the brief
-> (judged consistent with brief-first).
+> (judged consistent with brief-first). A tenth (same day, user-approved — all six adopted +
+> a directive): the team-lead pass — cross-desk thesis book, intra-layer value-chain map,
+> send-back authority, attention allocation, coverage stewardship, probation supervision —
+> plus the inter-agent trigger pathway (capability registry as data; peer desk→desk triggers
+> allowed with published-answers-only + non-independence tagging, preserving Part 9's
+> sibling-isolation intent).
 
 ## The goal
 
@@ -116,7 +121,8 @@ archetype, a capability attachment, and an approval"). In order:
    change ships for *all* desks through the F6 gate — a per-category fork is the failure mode
    this whole design exists to prevent.
 8. **Probation cycles.** ≥2 supervised daily cycles + 1 monthly, judged against the LIVE
-   checklist above. Until it passes, the desk's output is provisional and feeds no roll-up
+   checklist above — by the coordinating session, or by the layer's lead once one exists
+   (Phase 4+). Until it passes, the desk's output is provisional and feeds no roll-up
    surface.
 9. **Record it.** Onboarding note with decision provenance; HANDOFF pointer; taxonomy version
    bump only if structure changed.
@@ -132,7 +138,10 @@ DMI/SMI/SDGI); the agent interprets it: the weakest-link layer rating, what chan
 whether its earlier calls held — and, as the first tier allowed to, whether the layer is a
 **tailwind / headwind / risk** for TSMC with a watchlist (Recommendation Skill at layer scope,
 Part 11). It reads adjacent-layer summaries only, prior-cycle only (Part 9 Option B), and an
-overruled category signal always leaves a trace, never silence (Part 32).
+overruled category signal always leaves a trace, never silence (Part 32). A team lead, not
+an aggregator: it owns the cross-desk thesis book and the intra-layer value-chain map, and
+it manages — send-back, attention allocation, probation, coverage proposals (the Phase 3
+team-lead behaviors).
 
 ### Main agent — the goal (sketch; built in Phase 5)
 
@@ -180,7 +189,7 @@ flips (Part 23). Later, the entry point for the interactive path (Part 14).
 |---|---|---|---|
 | 1 | Make the one desk a product | ~4 sub-projects + 1 lane wave | approved F-sequence delivered, suite + eval green |
 | 2 | Prove generalization (categories #2–3) | ~2 sub-projects + per-category data work | 2 new desks gate-clean, zero template forks |
-| 3 | Layer tier over the partial chips layer | ~2 sub-projects | layer assessment + layer-scoped recommendations live |
+| 3 | Layer tier over the partial chips layer | ~2–3 sub-projects | layer assessment + layer-scoped recommendations live |
 | 4 | Complete chips = the costed pilot (Part 27) | ~1–2 sub-projects + 4 onboardings | measured $/cycle + wall-clock → fan-out go/no-go |
 | 5 | Second layer + Main over a partial market | ~3 sub-projects + onboardings | exec brief leads with recommendations over 2 layers |
 | 6 | Fan-out to 34, in waves by layer | unsized until Phase 4 numbers exist | all desks cycling at TTL within budget |
@@ -383,6 +392,47 @@ Two org behaviors ship with this tier (the 2026-07-04 org-gap review):
   Resolution is deterministic in code and recorded (Part 32). No voting, no negotiated
   consensus — the one-author doctrine holds; validators inform the gate, they don't average.
 
+Team-lead behaviors (the 2026-07-04 lead-lens review, user-approved — all six adopted). A
+lead that only reads is an aggregator; these are the analytical value-add and the management
+powers:
+- **The lead's own thesis book** — cross-category themes (vendor financing spans merchant-gpu
+  × neocloud; ASIC substitution spans merchant-gpu × hyperscaler-asic) held as standing
+  theses with the same anti-whipsaw machinery. Ownership rule: lane theses belong to desks,
+  cross-desk themes to the lead; the lead pushes watch-items down when a theme needs desk
+  eyes.
+- **The intra-layer value-chain map** — the layer's dependency structure (EDA →
+  foundry/packaging → HBM → GPU → networking) as versioned data — the layer-level analog of
+  the desk causal model — with the briefing book computing propagation joins, so "HBM
+  tightness reaches GPU margins in ~2 quarters" is judged from structure, not vibes.
+- **Send-back authority** — the lead may reject a desk's scorecard for cause, with specific
+  objections → a logged desk re-dispatch. The symmetric twin of the structured challenge:
+  the challenge protects desks from a careless lead; send-back protects the layer from a
+  careless desk. Both leave traces.
+- **Attention allocation** — a judgment-driven per-cycle dial over desk budgets (depth,
+  maxFetches, explore share) within a fixed layer envelope, every adjustment logged with its
+  reason. The lead thereby becomes the *proposer* in the calibration-consequences loop
+  (Main disposes).
+- **Coverage stewardship** — the lead owns Part 16 detect/propose for its layer, aggregating
+  cross-desk orphan and provisional signals into new/merge/retire category proposals for the
+  human gate (fully active at Phase 6 scale).
+- **Probation supervision** — from Phase 4 onward, new desks in the layer are
+  probation-judged by the lead against the desk-LIVE checklist, not by the coordinating
+  session.
+
+**The inter-agent trigger pathway (user-directed 2026-07-04 — designed once, here, used
+everywhere).** Layer→desk tasking is the first use of a general mechanism, not a special
+case. A **capability registry** (data, not code): each agent template declares which parts
+of its toolkit are triggerable, by whom, at what budget — e.g. a desk exposes
+`answer-from-store` (published findings only, cheap), `scoped-gather` (a bounded ad-hoc
+run), `thesis-status`; a layer exposes its summary. Peer triggers (desk→desk) are allowed
+under two hard rules that preserve the charter's sibling-isolation *intent* (Part 9 —
+recorded decision, not relitigated): answers come from **published outputs or a scoped
+ad-hoc run, never raw-store reads**, and a sibling's answer is tagged **non-independent** —
+it may inform, it may never count as independent corroboration (Part 26) or silently
+correlate the desks' reads. Brakes: a triggered run may not itself trigger (depth-1, the
+Part 5 one-level rule); budgets ride the envelope; every trigger and response is logged in
+the cycle log. Phase 5's Main→layer→desk tasking rides this same pathway.
+
 **Why here (user-approved fork 1 — a deviation from the charter's literal pilot shape).** The
 category→layer roll-up is the riskiest unproven seam in the system; proving it on a thin
 vertical slice of 3 desks beats discovering its design flaws after 7 desks are live. Part 38's
@@ -401,7 +451,9 @@ From HANDOFF's standing track: this is the "layer tier" item.
 layer assessment cites the Finding ids behind its stance and states vs-prior from its own
 history; layer recommendations pass the Part 11 self-checks (signal/noise filter shown,
 triggers stated, no whipsaw without clearing the bar); the partial-coverage banner renders; a
-stance change or override ships only with its challenge/defense trace recorded.
+stance change or override ships only with its challenge/defense trace recorded; the lead's
+cross-desk thesis book is seeded and judged through ≥1 cycle; every inter-agent trigger and
+send-back appears in the cycle log.
 
 **Main risk.** Layer judgment quality — the first analyst tier that never touches the web and
 must add value *above* its inputs rather than parrot them. The briefing-book/judgment split and
@@ -456,7 +508,8 @@ on day one. Every Main output carries the honest coverage banner ("2 of 5 layers
 
 The Phase 3 org behaviors extend to the full chain here: Main can **commission deep-dives**
 down through a layer to a desk (the tier-initiated form of Part 14's machinery — the same
-ad-hoc primitive, still never writing canonical), and the **structured challenge** runs on
+ad-hoc primitive riding the Phase 3 inter-agent trigger pathway, still never writing
+canonical), and the **structured challenge** runs on
 every proposed status flip — independent validators attack the claim before it reaches the
 human gate (Part 23), so the human confirms a stress-tested call, not a raw one.
 

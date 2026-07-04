@@ -151,6 +151,7 @@ def assemble(store_root, category: str, as_of: str, fresh: list[Finding], regist
     fresh_keeps = [f for f in res.outFindings if f.id not in store_ids]
     merged = store_findings + fresh_keeps
     end = period_end(as_of)
+    cov_entries, not_covered = coverage(store_findings, registry)
     report = CorpusReport(
         asOf=as_of, category=category, windowDays=window_days,
         windowStart=(end - datetime.timedelta(days=window_days)).isoformat(),
@@ -159,5 +160,39 @@ def assemble(store_root, category: str, as_of: str, fresh: list[Finding], regist
         outOfWindow=out_of_window, skippedPages=skipped,
         freshNew=res.new, freshUpdate=res.update, freshDuplicate=res.duplicate,
         idOverlaps=id_overlaps,
+        coverage=cov_entries, notCovered=not_covered,
     )
     return CorpusResult(merged=merged, dedupedFresh=fresh_keeps, report=report)
+
+
+def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntry], list[str]]:
+    """Per (entity, indicatorId) over the windowed STORE part: count + latest vintage.
+    not_covered = every registered indicator id with zero windowed store findings
+    (price included — the gather top-up aims at these). Sorted, deterministic."""
+    by_key: dict[tuple[str, str], list[Finding]] = {}
+    for f in store_findings:
+        by_key.setdefault((f.entity, f.indicatorId), []).append(f)
+    entries: list[CoverageEntry] = []
+    for (entity, ind), fs in sorted(by_key.items()):
+        latest = max(fs, key=lambda f: (f.asOf, f.observedAt, f.id))
+        entries.append(CoverageEntry(entity=entity, indicatorId=ind, count=len(fs),
+                                     latestAsOf=latest.asOf,
+                                     latestObservedAt=latest.observedAt))
+    covered = {ind for (_entity, ind) in by_key}
+    not_covered = [i for i in sorted(registry.indicators) if i not in covered]
+    return entries, not_covered
+
+
+def render_coverage_text(report: CorpusReport) -> str:
+    """Deterministic coverage block for the gather-category dispatch (run-cycle step a0):
+    one header line naming the window, one line per covered series, one not-covered line."""
+    lines = [f"STORE COVERAGE (window {report.windowStart} < asOf <= "
+             f"{report.windowEnd}, {len(report.storeIncluded)} finding(s)):"]
+    if not report.coverage:
+        lines.append("  (no store coverage — full gather)")
+    for c in report.coverage:
+        lines.append(f"  {c.entity} {c.indicatorId}: {c.count} finding(s), "
+                     f"latest asOf {c.latestAsOf} (observed {c.latestObservedAt})")
+    if report.notCovered:
+        lines.append("  not covered: " + ", ".join(report.notCovered))
+    return "\n".join(lines)

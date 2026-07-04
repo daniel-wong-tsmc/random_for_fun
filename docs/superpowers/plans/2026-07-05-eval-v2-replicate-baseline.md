@@ -807,7 +807,7 @@ EOF
 **Files:**
 - Modify: `.claude/skills/run-eval/SKILL.md` (rewrite body, keep frontmatter)
 - Modify: `docs/agent-swarm-charter.md` (~line 1163, the "A prompt regression gate." bullet)
-- Modify: `docs/fix-backlog.md` (one line in the "F63 eval-run findings" section — re-read the section immediately before editing; the concurrent instance may have touched it)
+- ~~Modify: `docs/fix-backlog.md`~~ SKIPPED during execution: the "F63 eval-run findings" section exists only on the unmerged f63-corroboration-doctrine branch, not on main; the backlog note moves to the F63 re-gate step (spec §8).
 
 **Interfaces:**
 - Consumes: the Task 4 CLI surface (verb names and flags must match exactly).
@@ -884,13 +884,7 @@ Append two sentences inside the same bullet, after "(Part 25).":
   baseline median fails the gate independently of the seam mean (eval-v2, 2026-07-05).
 ```
 
-- [ ] **Step 3: Update the backlog line**
-
-Re-read `docs/fix-backlog.md` lines ~518-532 first (concurrent-instance guard). In the
-"F63 eval-run findings" section, change the last bullet's lead-in from
-`- **Eval infra — multi-attempt bar**:` to
-`- **Eval infra — multi-attempt bar** (IN PROGRESS as eval-v2, branch eval-v2-replicate-baseline):`
-— touch nothing else in the file.
+- [x] **Step 3: SKIPPED — backlog section lives on the F63 branch** (see Files note above; deviation recorded in the SDD ledger).
 
 - [ ] **Step 4: Full suite (docs only, but keeps the invariant), then commit**
 

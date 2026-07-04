@@ -215,8 +215,7 @@ def test_check_only_never_installs(monkeypatch):
 
 
 def test_failed_install_reports_failed(monkeypatch):
-    def fake_run(cmd, timeout):
-        return _cp(0) if cmd.startswith("hc") and False else _cp(1)
+    # health always fails AND the install command always fails -> status "failed"
     monkeypatch.setattr(wre, "_run", lambda cmd, timeout: _cp(1))
     res = wre.ensure_tool(_reg()["tools"][0], "linux", log=lambda m: None)
     assert res["tool"] == "toolA" and res["status"] == "failed"

@@ -14,6 +14,11 @@
 > revision): the "unit of the build" section covers the category desk in depth plus
 > target-state sketches for Layer and Main. A fifth (same day, user-raised): memory and
 > brain-analysis made explicit as tracks, and modularity made a binding standing constraint.
+> A sixth (same day, user-raised org-lens review — desk = analyst, layer = team, Main =
+> department head): four human-org behaviors added — downward tasking, a structured challenge
+> mechanism (adapted from MACI, arXiv:2501.16689 — independent external validation, not
+> free-form debate; user-approved adaptation), calibration consequences, and a human-intel
+> adapter.
 
 ## The goal
 
@@ -32,8 +37,10 @@ a costed pilot says the unit economics work (charter Part 27).
 
 ## The unit of the build — the goal for one agent, and how one gets made
 
-The phases below scale by cloning one unit. This section pins what that unit *is*, so "add a
-category" becomes a checklist rather than a judgment call: the category desk in depth (it gets
+The phases below scale by cloning one unit. The governing org metaphor (charter Part 3): a
+desk is one analyst, a layer is a team with its lead, Main is the head of the department.
+This section pins what that unit *is*, so "add a category" becomes a checklist rather than a
+judgment call: the category desk in depth (it gets
 cloned 33 more times), and the two upper tiers as target-state sketches only — their build
 steps are exactly what Phase 3's and Phase 5's brainstorm → spec → plan cycles will produce.
 
@@ -255,6 +262,20 @@ carries an honest **partial-coverage banner** (3 of 7 chips categories live) unt
 fills the layer. The adjacent-layer read seam (Part 9 Option B) is built but reads honestly
 degrade until a neighbor layer exists.
 
+Two org behaviors ship with this tier (the 2026-07-04 org-gap review):
+- **Downward tasking** — the layer may commission a scoped deep-dive from one of its desks,
+  minted as an ad-hoc assignment (the Part 18 primitive: ad-hoc output informs the layer's
+  judgment, never touches canonical). The manager can say "go dig into X"; the desk's answer
+  arrives as ordinary gated findings.
+- **The structured challenge** (adapted from MACI, arXiv:2501.16689) — before the layer
+  overrides a strong desk signal or ships a stance change, **independent, context-restricted
+  validator brains** attack the claim (external check, never self-check — the paper's core
+  finding is that authors reliably miss their own violations; validators see only the claim +
+  its cited evidence, limiting attention bias). The desk's brain then gets **one defense
+  re-dispatch** against the specific objections (the repo's existing re-dispatch pattern).
+  Resolution is deterministic in code and recorded (Part 32). No voting, no negotiated
+  consensus — the one-author doctrine holds; validators inform the gate, they don't average.
+
 **Why here (user-approved fork 1 — a deviation from the charter's literal pilot shape).** The
 category→layer roll-up is the riskiest unproven seam in the system; proving it on a thin
 vertical slice of 3 desks beats discovering its design flaws after 7 desks are live. Part 38's
@@ -272,7 +293,8 @@ From HANDOFF's standing track: this is the "layer tier" item.
 **Done when.** `run-cycle layer:chips` executes the category tier then a real layer stage; the
 layer assessment cites the Finding ids behind its stance and states vs-prior from its own
 history; layer recommendations pass the Part 11 self-checks (signal/noise filter shown,
-triggers stated, no whipsaw without clearing the bar); the partial-coverage banner renders.
+triggers stated, no whipsaw without clearing the bar); the partial-coverage banner renders; a
+stance change or override ships only with its challenge/defense trace recorded.
 
 **Main risk.** Layer judgment quality — the first analyst tier that never touches the web and
 must add value *above* its inputs rather than parrot them. The briefing-book/judgment split and
@@ -325,6 +347,12 @@ status flips** (Part 23, minimal viable form), and **Part 34 seeding** — the J
 deep-research map becomes the asOf 2026-06 baseline so Main has a prior and "vs. prior" works
 on day one. Every Main output carries the honest coverage banner ("2 of 5 layers live").
 
+The Phase 3 org behaviors extend to the full chain here: Main can **commission deep-dives**
+down through a layer to a desk (the tier-initiated form of Part 14's machinery — the same
+ad-hoc primitive, still never writing canonical), and the **structured challenge** runs on
+every proposed status flip — independent validators attack the claim before it reaches the
+human gate (Part 23), so the human confirms a stress-tested call, not a raw one.
+
 **Why here (user-approved fork 2 — see decision provenance).** The recommendation
 altitude is the product's core deliverable and its least-proven reasoning; deferring it until
 after all 34 categories would give the most valuable machinery the shortest calibration runway.
@@ -345,8 +373,9 @@ maturing" state). From HANDOFF's standing track: "Main roll-up".
 **Done when.** `market-state.json` + an exec brief lead with prioritized recommendations over
 the two live layers; every recommendation passes the Part 11 self-check (decision area,
 evidence chain to primary sources, shown signal/noise filter, triggers, capped confidence); a
-status flip requires human confirmation; the calibration record accrues keyed by tier; the
-coverage banner and "track record maturing" state render.
+status flip survives the structured-challenge pass and then human confirmation; the
+calibration record accrues keyed by tier; the coverage banner and "track record maturing"
+state render.
 
 **Main risk.** Recommendation quality — this is where "analyst desk" either materializes or
 reads as a dressed-up dashboard. Mitigations: the position-book model keeps "nothing changed"
@@ -364,7 +393,11 @@ same trigger; 34 desks on manual triggers is operationally impossible, so this i
 prerequisite here, not a far-phase nicety); the **review queue as a throughput-managed system**
 (Part 30 — flag-threshold calibration, SLOs, auto-clear for low-blast-radius items); the
 **source inventory + licensing decisions** per category (Part 22 — estimate-grade categories
-say so honestly); the **living taxonomy lifecycle** live in both directions (Part 16 —
+say so honestly); a **human-intel input adapter** (the category-agent guide's tier-D source
+class): channel checks and expert notes from human colleagues enter through a standardized
+form and emit ordinary tier-stamped, gated Findings — the humans around the system feed the
+desks without bypassing the doctrine; the **living taxonomy lifecycle** live in both
+directions (Part 16 —
 detect/propose/approve/provision/prune); the **quorum + staleness publish rule** (Part 19).
 
 **Why here.** Only after the pilot's measured go and a working top tier. Waves keep each
@@ -406,7 +439,11 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
 ## Continuous tracks (run through every phase; never a phase of their own)
 
 - **Calibration** (Part 12): Brier logging from F64 (Phase 1) → per-tier ownership at Main
-  (Phase 5) → surfaced to the reader (Phase 7). The track record is earned in the open.
+  (Phase 5) → surfaced to the reader (Phase 7). The track record is earned in the open. **The
+  loop closes with consequences** (from Phase 5): a desk that stays miscalibrated gets its
+  confidence priors, source weights, or explore budget adjusted — as registry/assignment data
+  edits, or through the F6 gate when a prompt is touched — with the adjustment and its trigger
+  recorded. This is the org's performance review: measured, acted on, and auditable.
 - **Memory & the store** (Parts 4/9): category-tier memory is live (thesis book, wiki
   threads, append-only FindingStore, F4 injection); every new tier arrives with its own
   notebook + state time-series, never bolted on later; the **canonical store + scoped query

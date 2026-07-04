@@ -1,30 +1,31 @@
-# HANDOFF — GPU Category Agent (resume point: F67 MERGED; F6 eval harness BUILT+REVIEWED on branch `f6-eval-harness`, merge awaiting the user; then Task 10 live baseline)
+# HANDOFF — GPU Category Agent (resume point: F67 + F6 eval harness both MERGED to main; next = F6 Task 10 live baseline, then F62)
 
 - **Date:** 2026-07-04
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 873 passed / 3 skipped on main @ `d2fde87`; 910 passed / 5 skipped on branch
-  `f6-eval-harness` @ `20a62a1` (the 2 extra skips are the F6 baseline-pin tests, armed at Task 10).**
+- **Suite 910 passed / 5 skipped — verified on merged main @ `87f281a` and pushed. The 2 extra
+  skips are the F6 baseline-pin tests; they arm automatically when `fixtures/evals/baseline.json`
+  lands (Task 10).**
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION — RESOLVED
 
 F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
 The output-surface hold is LIFTED. F61 was subsumed by F67 (staleness banner shipped in the renderer).
+The F6 branch was merged `87f281a` (user-approved 2026-07-04); worktree and branch deleted.
 
-## ⚠ IMMEDIATE PENDING DECISION (user)
+## IMMEDIATE NEXT TASK — F6 Task 10: the live eval baseline (UNBLOCKED, prompts are post-F67)
 
-**F6 eval harness is complete on branch `f6-eval-harness` (pushed to origin), final opus review
-"Ready to merge = YES", but the merge to main needs the user's explicit go** (the session's
-auto-mode correctly refused an unattended merge while the user was AFK). To finish:
-`git merge f6-eval-harness` from repo root → re-run suite (expect 910/5) → push →
-`git worktree remove .worktrees/f6-eval-harness` → `git branch -d f6-eval-harness`.
-Then **F6 Task 10** (now UNBLOCKED, prompts are post-F67): follow `.claude/skills/run-eval/SKILL.md`
-— ~15 brain + ~20 grader tool-less Opus dispatches → `eval rebaseline` → commit
-`fixtures/evals/baseline.json` (arms the hash-pin gate; plan Task 10 has the full checklist,
-`docs/superpowers/plans/2026-07-04-f6-eval-harness.md`). Execution ledger with per-task review
+Follow `.claude/skills/run-eval/SKILL.md` — ~15 brain + ~20 grader tool-less Opus dispatches →
+`eval rebaseline` → commit `fixtures/evals/baseline.json` (arms the hash-pin regression gate that
+every prompt change in F57/F58/F62/F63 depends on). The plan's Task 10 checklist:
+`docs/superpowers/plans/2026-07-04-f6-eval-harness.md` (bootstrap expectations, calibration
+invariant, human spot-check before rebaseline). Watch item from review: negative case
+extract-2026-07-90 is anchor-forced (ceiling 2/8) — verify calibration holds on this first run;
+thesis seam-mean is coarse (2 positives, steps of 1.0). Execution ledger with per-task review
 outcomes + deferred minors: `.superpowers/sdd/f6/progress.md`.
 
 ## Newest state (newest first)
-  - **F6 SECOND HALF BUILT (branch `f6-eval-harness` @ `20a62a1`, 15 commits, awaiting user merge).**
+  - **F6 SECOND HALF MERGED (`87f281a`, user-approved; 15 branch commits; suite 910/5 verified
+    on merged main and pushed).** Remaining: Task 10 only (see IMMEDIATE NEXT TASK).
     `gpu_agent/evals/` (cases/rubric/emit/prompt_hash/harness) + `eval` CLI
     (emit-brain/record-brain/emit-grade/record-grade/rebaseline) + 18-case golden set curated from
     the real July cycles (provenance spot-verified byte-exact; 4 anchor-decidable negatives) +
@@ -92,8 +93,8 @@ outcomes + deferred minors: `.superpowers/sdd/f6/progress.md`.
 
 Quick wins, independent: **F56** (tiny, --as-of shape validation). F61 is DONE (subsumed by F67).
 Then in order — each feature starts with brainstorming, per charter:
-0. **F6 second half — BUILT, see pending-decision section above.** Remaining: user merge + Task 10
-   live baseline (arms the hash-pin gate that F57/F58/F62/F63 prompt changes depend on).
+0. **F6 second half — MERGED (`87f281a`).** Remaining: Task 10 live baseline only (see
+   IMMEDIATE NEXT TASK above) — it arms the hash-pin gate that F57/F58/F62/F63 depend on.
 1. **F62** — flagship consumes the daily store (highest-leverage; the monthly brief currently
    discards everything the dailies learned). Interacts with F52 vintage ids + L2 dedup.
 2. **F63** — corroboration doctrine (N independent secondary publishers move one bounded step)

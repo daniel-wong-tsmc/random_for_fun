@@ -12,7 +12,8 @@
 > categories; (3) phases carry coarse size tags, no dates. Four deviations from the original
 > phase sketch are flagged inline where they occur. A fourth fork (same day, user-requested
 > revision): the "unit of the build" section covers the category desk in depth plus
-> target-state sketches for Layer and Main.
+> target-state sketches for Layer and Main. A fifth (same day, user-raised): memory and
+> brain-analysis made explicit as tracks, and modularity made a binding standing constraint.
 
 ## The goal
 
@@ -132,6 +133,15 @@ flips (Part 23). Later, the entry point for the interactive path (Part 14).
 - **Frozen contract v1.2** — `gate.py`, `scoring.py`, `schema/*`, `judgment/briefing.py`,
   `judge.py` aggregation, `pipeline.py`, `JsonStore` change only as **versioned migrations**
   (charter Part 33), never piecemeal. All new work is additive behind the Part 38 seams.
+- **Modularity is binding** (Part 18 principles 1–8; Part 38 seams) — every component ships
+  behind a named seam or registry: brains behind `--emit-prompt`/`--recorded`, tiers behind
+  the uniform tier interface, stores behind the store/read seam, fetchers behind the
+  web-reach registry, scope and structure as data (taxonomy, indicators, assignments). **A
+  spec that cannot name its seam and its swap story does not proceed.** Known soft spots to
+  watch (audited 2026-07-04): the JsonStore → canonical store + scoped query tool swap
+  (Part 9) is the least-proven seam; skill prose (`run-cycle`, `gather-category`) encodes
+  orchestration behavior no test pins; the eval harness is category-brain-shaped and must
+  grow per-tier golden cases before each new tier ships.
 - **The F6 eval gate is ARMED** — any edit that changes an emitted brain prompt turns the suite
   red until `run-eval` + `eval rebaseline`, committed with the change. The golden set extends
   per archetype as new category archetypes onboard (Part 24); the grader is periodically graded.
@@ -275,8 +285,9 @@ golden cases before this ships (Part 24 applies to every tier, not just category
 ai-silicon-startups, hbm-memory, foundry-packaging, networking-silicon, eda-ip) onboarded by
 the desk recipe, proven in Phase 2; **parallel category fan-out** via the Workflow driver behind the
 Part 38 execution seam; **F25** (wiki store performance + concurrency — the O(pages²) scans and
-the TOCTOU race are fatal at concurrent categories); the store/read seam upgraded if JsonStore
-strains (Part 9's canonical store + scoped query tool). And the pilot's actual product: a
+the TOCTOU race are fatal at concurrent categories); the store/read seam upgraded when JsonStore
+strains (Part 9's canonical store + scoped query tool — required no later than Phase 5;
+see the memory track under Continuous tracks). And the pilot's actual product: a
 **measured unit-cost model** — tokens/wall-clock per category-cycle and per full-layer cycle at
 the chosen cadence (Part 27's $/agent-run, translated to this build's Claude-Code economics).
 
@@ -321,7 +332,8 @@ Building Main over two real layers ships recommendations many cycles earlier and
 remaining fan-out happen *under* a working top tier that immediately consumes it.
 
 **Prerequisites.** Phase 4 go decision; two live layers (adjacent-layer reads become real);
-the decision-area set confirmed (action-items open item — capacity/capex, pricing, accounts,
+the Part 9 scoped query tool live, so Main's read scope (layer summaries only, never raw
+category data) is enforced by the tool rather than convention; the decision-area set confirmed (action-items open item — capacity/capex, pricing, accounts,
 risk + the proposed technology-roadmap / footprint / ecosystem additions, capped at seven).
 
 **Consumes.** Charter Parts 3 (Main's role), 10–11 (Recommendation record + skill, market
@@ -395,8 +407,18 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
 
 - **Calibration** (Part 12): Brier logging from F64 (Phase 1) → per-tier ownership at Main
   (Phase 5) → surfaced to the reader (Phase 7). The track record is earned in the open.
-- **Eval** (Parts 24/25): the F6 gate on every prompt change; golden set grows per archetype
-  and per tier; grade-the-grader on a cadence; shadow runs qualify any model swap.
+- **Memory & the store** (Parts 4/9): category-tier memory is live (thesis book, wiki
+  threads, append-only FindingStore, F4 injection); every new tier arrives with its own
+  notebook + state time-series, never bolted on later; the **canonical store + scoped query
+  tool** (Part 9) is the planned swap behind the store/read seam — **required no later than
+  Phase 5**, because once Main exists the access topology (who may read what) must be
+  enforced by the tool, not by convention; F25 lands before any concurrent fan-out.
+- **Eval & brain analysis** (Parts 24/25): the F6 gate on every prompt change; golden set
+  grows per archetype and per tier; grade-the-grader on a cadence; **run-to-run stability**
+  measured and published once headline outputs exist (same inputs, N samples, the spread is
+  a metric — a status that flips with no input change is a defect); every gate rejection and
+  re-dispatch in the cycle log is brain-failure *data* to be analyzed, not just an audit
+  trail; shadow runs qualify any model swap.
 - **Doctrine hygiene**: F23 compliance matrix when capacity allows; F66-style post-hoc audits;
   the charter's self-checks applied at each phase's final review.
 - **Discovery lane** (Part 18): provisional → persist + corroborate → promote, at every scale;

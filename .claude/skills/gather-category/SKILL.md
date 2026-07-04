@@ -86,6 +86,33 @@ If a manifest was loaded:
   search query: `"<entity-names> <source.label>"` to the round-1 search queue.
 - **Standard slices:** Then add the standard entity×metric slices
   (`entity × metric` and `entity + "latest official filing / 10-Q / 10-K / investor relations"`).
+- **Headline slices:** For each entity, add a search slice
+  `"<entity> news / announcements / press release"` to the round-1 search queue.
+- **Forward-signal slices:** For each entity, add a search slice
+  `"<entity> guidance revision / lead-time / design win / capacity"` to the round-1 search queue.
+
+The headline and forward slices are **interleaved with — not appended after — the priority
+filing URL seeds** above: build the round-1 queue round-robin across classes (a filing seed, a
+free-web seed, a standard slice, a headline slice, a forward-signal slice, repeat per entity)
+rather than block-appending one bullet's seeds after another. That way, when `maxDocuments`
+trips mid-round it trims evenly across classes instead of draining itself entirely on filings
+and standard slices before a single headline or forward-signal query is ever tried.
+
+**Per-class doc floors.** Classify each round-1 seed by the manifest's existing `accessMethod`
+field — no manifest schema change, `manifest.py` stays untouched; these floors are skill-level
+defaults, not manifest fields: `filing` (accessMethod == "filing"), `news` / `forward` (the
+headline / forward query slices above), and `price` (sources whose `indicators` include `D6` /
+`gpuSpotPrice`). Partition `maxDocuments` (20) into per-class minimums that sum under the cap —
+e.g. filings ≥ 6, news ≥ 4, forward ≥ 3 — with a **price-class cap of 2–3 fetches max**, so a
+handful of spot-price scrapes can never crowd out news/forward coverage. A class that can't
+reach its minimum before a cap trips is logged in `skipped[]` like any other truncation (Part
+29) — these numbers set seeding priority, they don't override the hard cap.
+
+**Don't re-fetch seen filings.** For `accessMethod == "filing"` seeds, thread the L1 seen-doc
+filter (today daily-only; Daily mode step 5) into this standard path too: before fetching a
+filing URL, check it against the dedup store's known-hash index and skip already-known,
+unchanged URLs mid-quarter — freeing that fetch for a fresh headline or forward-signal slice
+instead.
 
 If no manifest: build only the standard entity×metric slices (original behavior).
 

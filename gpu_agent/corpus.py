@@ -128,3 +128,36 @@ def enumerate_store(store_root, category: str, as_of: str,
                 out_of_window += 1
     included.sort(key=lambda f: (f.asOf, f.id))
     return included, out_of_window, skipped
+
+
+def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, *,
+             window_days: int = WINDOW_DAYS_DEFAULT) -> CorpusResult:
+    """The F62 merged corpus: windowed store findings + this cycle's fresh gated
+    findings, classified against the store by the existing L2 machinery (intra-batch
+    collapse + evidence-merge, then cross-store NEW/UPDATE keep vs DUPLICATE drop).
+    The store part is never collapsed: it holds only NEW/UPDATE vintages by
+    construction and multiple vintages of one series are deliberate history — scoring
+    takes latest-per-series, the judge sees the (dated) evolution. An id overlap means
+    the identical finding is already stored: the store copy is kept and the event
+    reported. `registry` feeds the coverage table (store part only).
+    """
+    store_root = Path(store_root)
+    store_findings, out_of_window, skipped = enumerate_store(
+        store_root, category, as_of, window_days)
+    wiki = WikiStore(store_root / "wiki", FindingStore(store_root / "findings"))
+    res = classify_findings(fresh, wiki, config=DEFAULT_DEDUP_CONFIG)
+    store_ids = {f.id for f in store_findings}
+    id_overlaps = sorted(f.id for f in res.outFindings if f.id in store_ids)
+    fresh_keeps = [f for f in res.outFindings if f.id not in store_ids]
+    merged = store_findings + fresh_keeps
+    end = period_end(as_of)
+    report = CorpusReport(
+        asOf=as_of, category=category, windowDays=window_days,
+        windowStart=(end - datetime.timedelta(days=window_days)).isoformat(),
+        windowEnd=end.isoformat(),
+        storeIncluded=[f.id for f in store_findings],
+        outOfWindow=out_of_window, skippedPages=skipped,
+        freshNew=res.new, freshUpdate=res.update, freshDuplicate=res.duplicate,
+        idOverlaps=id_overlaps,
+    )
+    return CorpusResult(merged=merged, dedupedFresh=fresh_keeps, report=report)

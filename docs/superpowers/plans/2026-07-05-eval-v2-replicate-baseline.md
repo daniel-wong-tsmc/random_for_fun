@@ -892,7 +892,7 @@ Run: `../../.venv/Scripts/python -m pytest -q` — expected same green as Task 4
 
 ```bash
 git log --oneline -1
-git add .claude/skills/run-eval/SKILL.md docs/agent-swarm-charter.md docs/fix-backlog.md
+git add .claude/skills/run-eval/SKILL.md docs/agent-swarm-charter.md
 git commit -m "$(cat <<'EOF'
 docs(eval-v2): run-eval skill v2 flow + charter Part 24 replicate-bar amendment
 

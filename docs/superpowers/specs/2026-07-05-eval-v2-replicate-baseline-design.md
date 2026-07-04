@@ -146,8 +146,10 @@ Validation (all deterministic, all refusals printed with the failing fact):
      judgment call by definition).
    - No existing baseline: bootstrap, allowed.
 
-After a gate PASS, the gate run(s) count toward the 3 replicates: a clean pass tops up with 2
-more runs, a marginal-then-pass with 1 more. Top-up runs are unfiltered draws like any replicate
+After a gate PASS, the gate run(s) count toward the 3 replicates. Mint the governance proof
+first — `eval verdict --runs <gate-run>` writes the verdict.json that rebaseline's --verdict
+requires (the marginal path's two-run verdict.json serves the same role). A clean pass tops up
+with 2 more runs, a marginal-then-pass with 1 more. Top-up runs are unfiltered draws like any replicate
 (no verdict is computed for them; they only need record-brain-clean and calibration-clean).
 Standing cost per accepted prompt change: **3 full runs** (each ≈ 14 brains + 18 graders,
 session-level tool-less Opus dispatches).

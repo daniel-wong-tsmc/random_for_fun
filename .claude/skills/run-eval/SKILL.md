@@ -27,15 +27,18 @@ All commands from repo root; python is `.venv/Scripts/python -m gpu_agent.cli`.
 
 ## Acting on the verdict (charter Part 24)
 
-- **PASS** → top up to 3 replicates of this bundle (run steps 1–6 twice more in fresh dirs —
-  these are unfiltered measurements, no verdict needed, keep them regardless of score), then
-  `eval rebaseline --runs <d1> <d2> <d3> [--human-review "<spot-check note>"]`, commit
-  `fixtures/evals/baseline.json` WITH the prompt change, confirm
-  `pytest tests/test_evals_baseline_pin.py` green.
+- **PASS** → mint the governance proof: `eval verdict --runs <run1>` (writes `<run1>/verdict.json`).
+  Then top up to 3 replicates of this bundle (run steps 1–6 twice more in fresh dirs — these are
+  unfiltered measurements, no verdict needed, keep them regardless of score), then
+  `eval rebaseline --runs <run1> <d2> <d3> --verdict <run1>/verdict.json
+  [--human-review "<spot-check note>"]`, commit `fixtures/evals/baseline.json` WITH the prompt
+  change, confirm `pytest tests/test_evals_baseline_pin.py` green. (The v1→v2 migration is the
+  one exception: same hashes + existing v1 baseline needs no verdict.)
 - **MARGINAL-FAIL** → exactly ONE replication: run steps 1–6 in a fresh dir, then
-  `eval verdict --runs <run1> <run2>`. PASS → top up ONE more run → rebaseline with
-  `--verdict <run2>/verdict.json`. FAIL → hard stop: pin stays red, record BLOCKED-on-user.
-  Never a third run.
+  `eval verdict --runs <run1> <run2>`. PASS → top up ONE more run →
+  `eval rebaseline --runs <run1> <run2> <d3> --verdict <run2>/verdict.json` (run1+run2 are the
+  gate+replication runs, d3 the one top-up). FAIL → hard stop: pin stays red, record
+  BLOCKED-on-user. Never a third run.
 - **HARD-FAIL** → stop immediately; the regression is real. Fix the prompt (restart at 1)
   or record BLOCKED-on-user.
 - A `--force` rebaseline is a user-only call; its reason is stored permanently.

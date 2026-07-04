@@ -3,7 +3,7 @@
 > Running log of product-shaping decisions from spec Q&A, and the standing action items they
 > created. The question here is always **what the output should be** — not how it is built.
 
-## Action Item 1 — The Depth Bar + Golden Set (open, highest priority)
+## Action Item 1 — The Depth Bar + Golden Set (superseded-in-part 2026-07-04; episode half open)
 
 **Problem (two halves, one workstream):**
 1. LLM analysis defaults to surface level — ten balanced considerations, no position, nothing
@@ -40,6 +40,14 @@ correctness secondary.
 
 **Definition of done:** a written Depth Rubric + a golden set of episode briefs (input cutoff,
 expected crux, expected call, grading notes) that the first Category Agent is developed *against*.
+
+**Status (2026-07-04, user-approved):** superseded-in-part. Half 1 shipped: the depth fields
+(mechanism / falsifiableTrigger / sensitivity) are gate-enforced and the F6 rubric grades them.
+The regression-gating goal shipped as F6's 18-case golden set + the armed hash-pin gate — but
+that set is live-cycle-derived, not episode-derived. Half 2 (episode backtests) remains open
+and sits in roadmap Phase 7; the desk-maturity analog library assembles the same episode set,
+and 1–2 episodes become frozen eval cases when it lands. The original "developed against"
+definition of done was not met — recorded here, not quietly dropped.
 
 ## Decisions recorded (2026-07)
 

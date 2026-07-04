@@ -38,6 +38,15 @@
 > design: deterministic component registry + rule-driven adaptive composition for the
 > standing dashboard, brain-composed gated compositions-as-data for the interactive path
 > and special moments; honesty elements non-omittable; exhibits-in-brief seeds the registry.
+> A thirteenth (same day, user-turned lens — "what is still missing for an autonomous
+> team?"; all seven forks adopted): an **autonomy track** (attended → supervised-unattended →
+> unattended-with-gates; n=1 pilot during Phase 2; the goal paragraph now names unattended
+> operation), the **human-role ledger**, the macro gathering owner recorded as **open
+> question 8** (lean: a macro desk), the **downward context channel** at Phase 5, **Part 29
+> slotted** (Phase 4 measures input health; Phase 6 ships the monitors), the
+> **orchestration-prose conformance pin** before any unattended run, and **Action Item 1
+> recorded superseded-in-part** (F6 discharged the regression-gating half; episode backtests
+> stay Phase 7).
 
 ## The goal
 
@@ -49,7 +58,10 @@ gate-clean, evidence-cited scorecards; **5 layer agents** judging each layer by 
 and calling it tailwind / headwind / risk for TSMC; and **one Main agent** owning the market
 status and a position book of prioritized, calibrated, evidence-chained **recommendations** —
 the "extremely educated next step" a real TSMC executive reads, drills into, and acts on, with
-every number answering "how do you know that?" on demand. This roadmap sequences the build so
+every number answering "how do you know that?" on demand. The destination team is
+**autonomous**: it runs unattended on its own cadence and reaches for its human at the named
+gates (Part 23 status flips, Part 16 structure) — not for triggers, babysitting, or recovery.
+This roadmap sequences the build so
 the riskiest unproven seams are proven earliest, the product's core deliverable (the
 recommendation altitude) gets the longest possible soak time, and no scale-out happens before
 a costed pilot says the unit economics work (charter Part 27).
@@ -170,7 +182,8 @@ flips (Part 23). Later, the entry point for the interactive path (Part 14).
   spec that cannot name its seam and its swap story does not proceed.** Known soft spots to
   watch (audited 2026-07-04): the JsonStore → canonical store + scoped query tool swap
   (Part 9) is the least-proven seam; skill prose (`run-cycle`, `gather-category`) encodes
-  orchestration behavior no test pins; the eval harness is category-brain-shaped and must
+  orchestration behavior no test pins — pinned by a replay-based conformance test before the
+  first unattended run (autonomy track); the eval harness is category-brain-shaped and must
   grow per-tier golden cases before each new tier ships.
 - **The F6 eval gate is ARMED** — any edit that changes an emitted brain prompt turns the suite
   red until `run-eval` + `eval rebaseline`, committed with the change. The golden set extends
@@ -350,6 +363,9 @@ registries, seed thesis books, personas — and **zero code forks**. Plus the sc
 **F24 entity canonicalization** (deviation 1 — pulled forward from "before fan-out": NVIDIA and
 TSMC become multi-category entities at desk #2, and `entity:amd` is global today), per-archetype
 golden-set extension (Part 24), and **F23** (compliance matrix) as capacity filler.
+Alongside — a continuous-track milestone, deliberately **not** a gate to Phase 3: the
+autonomy pilot's first supervised-unattended runs on merchant-gpu (see the autonomy track),
+orthogonal to the new desks' data work.
 
 **Why here.** This is the cheapest test of the architecture's central bet — "one template, many
 instances" — and it catches merchant-gpu-shaped assumptions while there is still only one desk
@@ -488,7 +504,8 @@ categories alone).
 
 **Consumes.** F25; charter Parts 19 (budget ceiling + load-shedding, configured from real
 numbers), 27 (the cost model itself), 28 (cycle-time budget — staleness is chosen, not
-discovered), 38 (execution-driver seam: sequential → Workflow).
+discovered), 29 (first measured pass at input health — source freshness/shape failures at
+7-desk scale are pilot data beside cost), 38 (execution-driver seam: sequential → Workflow).
 
 **Done when.** A full chips cycle (7 categories + layer assessment) completes inside a stated
 token/wall-clock budget; the cost model is written from measured runs, not estimates; a
@@ -506,12 +523,18 @@ the acceptance bar.
 category count follows materiality, not completeness — enough desks for a credible layer read).
 Then the **Main agent**: the one-word market status + bottleneck + direction + reason (Part
 17), cross-layer entity reconciliation (Part 21's pass, live at the tier that sees across
-categories), the **macro/exogenous overlay** (Part 15 — owned by Main, slices handed down),
+categories), the **macro/exogenous overlay** (Part 15 — owned by Main, slices handed down; gathering
+owner: open question 8),
 the **Recommendation Skill at market scope** producing the position book (re-affirm /
 strengthen / weaken / adjust with explicit deltas, per action-items), the **human gate on
 status flips** (Part 23, minimal viable form), and **Part 34 seeding** — the June-2026
 deep-research map becomes the asOf 2026-06 baseline so Main has a prior and "vs. prior" works
-on day one. Every Main output carries the honest coverage banner ("2 of 5 layers live").
+on day one. Plus the **downward context channel**: Main writes the shared **market-context
+brief** (the read Part 9's access table already grants every desk) and hands each Part 15
+slice to its affected layer; desks consume it prior-cycle-only (the Option B anti-circularity
+rule). The information sibling of the Phase 3 trigger pathway — triggers down, context down,
+findings up; the hierarchy stays the only crossing. Every Main output carries the honest
+coverage banner ("2 of 5 layers live").
 
 The Phase 3 org behaviors extend to the full chain here: Main can **commission deep-dives**
 down through a layer to a desk (the tier-initiated form of Part 14's machinery — the same
@@ -542,7 +565,8 @@ the two live layers; every recommendation passes the Part 11 self-check (decisio
 evidence chain to primary sources, shown signal/noise filter, triggers, capped confidence); a
 status flip survives the structured-challenge pass and then human confirmation; the
 calibration record accrues keyed by tier; the coverage banner and "track record maturing"
-state render.
+state render; the market-context brief is written and ≥1 desk cycle demonstrably consumed it
+on the prior-cycle rule.
 
 **Main risk.** Recommendation quality — this is where "analyst desk" either materializes or
 reads as a dressed-up dashboard. Mitigations: the position-book model keeps "nothing changed"
@@ -557,8 +581,12 @@ below), each wave = category onboardings by the Phase 2 recipe + that layer's ag
 Phase 3 recipe. The operational machinery that 34 desks force: **unattended scheduling**
 (deviation 2 — Part 28's scheduled cloud agents or headless `claude` driving the
 same trigger; 34 desks on manual triggers is operationally impossible, so this is a hard
-prerequisite here, not a far-phase nicety); the **review queue as a throughput-managed system**
-(Part 30 — flag-threshold calibration, SLOs, auto-clear for low-blast-radius items); the
+prerequisite here, not a far-phase nicety — and by now it scales a seam the autonomy track
+proved at n=1 in Phase 2, not a debut); the **review queue as a throughput-managed system**
+(Part 30 — flag-threshold calibration, SLOs, auto-clear for low-blast-radius items);
+**source-health monitoring at fleet scale** (Part 29 — extraction canaries, freshness/shape
+monitors, source-down → graceful degrade; the standing watchlist poller and evidence-mix
+telemetry from the desk-maturity list are its early substrate); the
 **source inventory + licensing decisions** per category (Part 22 — estimate-grade categories
 say so honestly); a **human-intel input adapter** (the category-agent guide's tier-D source
 class): channel checks and expert notes from human colleagues enter through a standardized
@@ -608,6 +636,10 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
 - **Episode backtest harness** (Parts 24/34 + Action Item 1 half 2): the 5–10 resolved
   2023–2026 episodes (DeepSeek moment, CoWoS crunch, Ethernet-over-InfiniBand, …) as frozen
   information-cutoff regression tests; backfilled history explicitly labeled reconstructed.
+  Recorded 2026-07-04: Action Item 1 is **superseded-in-part** — F6's live-cycle golden set +
+  armed gate discharged its regression-gating half; the episode half stays here, and the
+  analog library (desk-maturity list) assembles the same episode set, minting 1–2 frozen
+  eval cases cheaply when it lands.
 - **Adversarial boundary completion** (Part 26): the written threat model, circular-source
   detection, manipulation-resistance on the headline.
 - **Security & data protection** (Part 31): secrets vault, encryption/residency decision,
@@ -638,10 +670,44 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
   a metric — a status that flips with no input change is a defect); every gate rejection and
   re-dispatch in the cycle log is brain-failure *data* to be analyzed, not just an audit
   trail; shadow runs qualify any model swap.
+- **Autonomy** (Part 28, staged): the ladder is attended (today) → **supervised-unattended**
+  (the team runs on its schedule; the human reviews async) → unattended-with-gates (the
+  Phase 6 fleet). First milestone during Phase 2, n=1 on the hardened merchant-gpu desk: a
+  scheduled cloud agent or headless `claude` drives the same `run-cycle` trigger
+  (Claude-Code-is-the-brain holds — headless *is* Claude Code, no SDK/API by the side door);
+  a failed, gate-blocked, or review-pending cycle **holds the prior state and says so** (the
+  Parts 19/23 pending states, exercised for real), never publishes a silent partial; an
+  **operator notification channel** carries "the run needs you / the run finished" to the
+  human — the system reaches for its operator, not the reverse. Prerequisite inside the same
+  milestone: the **orchestration-prose pin** — `run-cycle`'s session-orchestrated behavior
+  (the audited soft spot in the standing constraints) gets a replay-based conformance test or
+  moves into the driver before anything executes it unattended. Phase 6's unattended
+  scheduling then scales a proven seam. Never a gate to a phase transition; the locked
+  Phase 1 order is untouched.
 - **Doctrine hygiene**: F23 compliance matrix when capacity allows; F66-style post-hoc audits;
   the charter's self-checks applied at each phase's final review.
 - **Discovery lane** (Part 18): provisional → persist + corroborate → promote, at every scale;
   governance stays proportional to blast radius.
+
+## The human-role ledger (autonomy, measured)
+
+The autonomous team is defined by this list shrinking. Every job the human operator holds
+today, and where it goes — each entry sheds at a named phase, turns async, or is stamped
+**permanent by design** (the trust boundary is a feature, not a maturity gap):
+
+| Job today | Where it goes |
+|---|---|
+| **Cycle trigger** — every run starts from an open session | supervised-unattended at n=1 in Phase 2 (autonomy track); fleet-scheduled at Phase 6 |
+| **Run babysitter** — watching gathers and re-dispatch loops live | turns async at the same Phase 2 milestone: cycle log + notification replace live supervision |
+| **Probation judge** for new desks | sheds at Phase 4 — the layer lead supervises probation (recorded team-lead behavior) |
+| **Queue clearer** — promotions, confirmations | throughput-managed at Phase 6 (Part 30 SLOs, auto-clear for low blast radius); never fully sheds |
+| **Approver** — status flips, structural taxonomy changes | **permanent by design** (Parts 23/16) |
+| **Incident responder** — failed cycles, broken sources | narrows as Part 29 monitors + Part 28 resume land (Phase 4 measured, Phase 6 shipped); target state: notified with a diagnosis, never discovering |
+| **Onboarding data-author** — indicator sets, manifests, seed books | **no shedding plan recorded.** The recipe calls this real analyst work; if authorship becomes Phase 6's binding constraint, a team-drafts/human-approves proposal comes back as a user decision — not assumed here |
+| **Strategic decision-maker** — open questions, doctrine changes | permanent, definitionally |
+
+The Phase 6 human-intel adapter is this table's inverse — humans feeding the desks, not
+running them.
 
 ## Open strategic questions (for the user — decisions this roadmap deliberately does not make)
 
@@ -668,3 +734,11 @@ known. Dashboard-last is a recorded decision (brief-first; HANDOFF big-decision 
 7. **Multilingual coverage** (desk-maturity list): which categories justify regional-language
    source classes (chips: zh/ko/ja trade press is where the channel signal lives) and at what
    fetch budget — partly a coverage/cost call, so it is yours.
+8. **Who gathers the macro overlay?** Part 15's owner (Main) has no web access, and none of
+   the 34 in-cake desks owns rates, Taiwan/supply-concentration risk, regulation, or
+   AI-equity sentiment (export controls at least brush the chips lanes). Lean: a dedicated
+   **macro desk** — an ordinary assignment-scoped desk outside the cake, stood up by the same
+   recipe in Phase 5, its findings feeding only the Part 15 overlay (never a layer roll-up,
+   so the cake's weakest-link math stays clean). Alternative: Main commissions ad-hoc gathers
+   down the trigger pathway each cycle — workable, but the overlay then runs permanently
+   ad-hoc-grade. Decide before Phase 5's Main spec is written.

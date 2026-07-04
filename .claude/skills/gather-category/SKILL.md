@@ -47,6 +47,16 @@ doctrine in `docs/web-reach.md`). Load the registry and health-check each enable
 - **Never install a tool mid-cycle.** Install is the one-time per-machine bootstrap in
   `docs/web-reach.md`; if a tool is missing, log it and move on.
 
+**Tool roles (read the registry's `role` field).**
+- `role: fetch` (e.g. `agent-reach`) — gatherers query it for RAW content, ingested as
+  ordinary `secondary` blobs (see the gatherer contract in step 3).
+- `role: discovery` (e.g. `last30days`) — run it on the seed topics to surface **leads only**
+  (its cited sources and hottest threads). Feed those leads into the gather rounds so the
+  gatherers fetch the UNDERLYING sources as raw blobs and chase to primary. **NEVER ingest a
+  discovery tool's synthesized brief as a blob** — it carries another model's judgments, and
+  Part 37 binds gatherers to raw material only. Its pointers are leads; its conclusions are
+  not evidence.
+
 ### Preamble: load the manifest (if present)
 
 Before building seeds, check the assignment for `manifestRef`. If present:

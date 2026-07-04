@@ -431,7 +431,7 @@
   collision today — add a registry lint or single-pass substitution); **(f)** pre-existing live
   thesis-store prose carries off-allowlist tokens (`MI`, `GB300`) — cleans up as entries are
   re-judged under the new prompts, or allowlist them if they persist.
-- [ ] **F69 — The web-reach layer: pluggable external fetchers for the gather swarm.** Spec
+- [x] **F69 — The web-reach layer: pluggable external fetchers for the gather swarm. DONE (merged `e167c6b`, suite 923/3).** Spec
   `docs/superpowers/specs/2026-07-04-web-reach-layer-design.md`, plan
   `docs/superpowers/plans/2026-07-04-web-reach-layer.md`. Data-driven registry
   `registry/web-reach-tools.json` (first tool `agent-reach`; the second github drops in as a
@@ -443,6 +443,15 @@
   Part 37, not a new Part). **F63 handoff note:** F69 has gatherers *record* the
   chase/corroboration result as free text in the blob `content` (no structured field); F63
   must add a blob/finding field for the scoring to consume it.
+- [x] **F70 — last30days as a discovery-role web-reach tool. DONE (branch f70-last30days-webreach).**
+  Adds the second web-reach github (`mvanhorn/last30days-skill`) to `registry/web-reach-tools.json`
+  as tool #2, introducing a `role` field: `fetch` (agent-reach — raw content → secondary blobs) vs
+  `discovery` (last30days — a last-30-days multi-platform synthesizer used for **leads only**: mine
+  its cited sources / hot threads, fetch those as raw blobs, never ingest its synthesized brief —
+  charter Part 37 "gatherers return raw material only"). One-time doctrine add for the new `role`
+  concept (gather-category tool-roles block + charter Part 37 clause + `docs/web-reach.md`); future
+  same-role tools stay pure data entries. User-approved 2026-07-04 (discovery/leads-only). Frozen
+  core untouched.
 
 ---
 

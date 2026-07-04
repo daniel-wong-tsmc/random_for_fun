@@ -62,3 +62,32 @@ def test_charter_part37_documents_web_reach():
     assert "web-reach layer" in text.lower()
     # guard the complementary-not-replacement doctrine in the charter, not just the heading
     assert "complementary, never a replacement" in text
+
+
+# --- F70: last30days (discovery-role) ---
+
+VALID_ROLES = {"fetch", "discovery"}
+
+
+def test_every_enabled_tool_has_valid_role():
+    for t in _load()["tools"]:
+        if not t.get("enabled"):
+            continue
+        assert t.get("role") in VALID_ROLES, f"{t['id']} role={t.get('role')!r} not in {VALID_ROLES}"
+
+
+def test_last30days_registered_as_discovery():
+    t = next((x for x in _load()["tools"] if x["id"] == "last30days"), None)
+    assert t is not None
+    assert t["enabled"] is True
+    assert t["role"] == "discovery"
+
+
+def test_skill_and_charter_document_discovery_role():
+    skill = SKILL.read_text(encoding="utf-8")
+    charter = CHARTER.read_text(encoding="utf-8")
+    # discovery-role tools are leads-only, never ingested as blobs
+    assert "role: discovery" in skill
+    assert "leads only" in skill.lower()
+    assert "last30days" in skill
+    assert "discovery" in charter.lower()

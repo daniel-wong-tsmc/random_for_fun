@@ -4,13 +4,26 @@
     {
       "id": "agent-reach",
       "enabled": true,
+      "role": "fetch",
       "repo": "https://github.com/Panniantong/agent-reach",
       "installDocUrl": "https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
       "healthCmd": "agent-reach doctor",
       "invokeHint": "agent-reach <verb> <target>   # e.g. read <url>, search <query>, twitter/reddit/youtube ...",
       "capabilities": ["web", "search", "twitter", "reddit", "youtube", "github", "bilibili", "xiaohongshu", "rss"],
       "defaultTier": "secondary",
-      "notes": "Unified internet-access CLI; auto-fallback backends; zero mandatory API fees. Credentials local-only."
+      "notes": "FETCH role — unified internet-access CLI; auto-fallback backends; zero mandatory API fees. Returns raw content ingested as secondary blobs. Credentials local-only."
+    },
+    {
+      "id": "last30days",
+      "enabled": true,
+      "role": "discovery",
+      "repo": "https://github.com/mvanhorn/last30days-skill",
+      "installDocUrl": "https://github.com/mvanhorn/last30days-skill#readme",
+      "healthCmd": "python3 skills/last30days/scripts/last30days.py --preflight",
+      "invokeHint": "/last30days <topic>   (Claude Code)  |  python3 skills/last30days/scripts/last30days.py <topic> --emit=md",
+      "capabilities": ["search", "reddit", "twitter", "youtube", "tiktok", "hackernews", "polymarket", "github"],
+      "defaultTier": "secondary",
+      "notes": "DISCOVERY role — recency-focused (last-30-days) multi-platform synthesizer. Use for LEADS ONLY: mine its cited sources / hot threads, then fetch those underlying sources as raw blobs and chase to primary. NEVER ingest its synthesized brief as a blob (charter Part 37: gatherers return raw material only). Free core (Reddit/HN/Polymarket/GitHub/X-via-cookies); optional keys (Brave/Perplexity/ScrapeCreators/etc). Install: '/plugin marketplace add mvanhorn/last30days-skill' or 'npx skills add mvanhorn/last30days-skill -g'. healthCmd path is install-relative."
     }
   ]
 }

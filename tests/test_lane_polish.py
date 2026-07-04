@@ -220,3 +220,15 @@ def test_lint_thesis_prose_flags_finding_id_in_statement():
 
 def test_lint_thesis_prose_clean_prose_yields_no_violations():
     assert lint_thesis_prose(_CLEAN_STATEMENT, _CLEAN_MECHANISM) == []
+
+
+# ── Task 6 (F68f): MI acronym allowlisted (GB300 already present) ──────────
+
+def test_lint_prose_no_longer_flags_mi_as_off_allowlist_acronym():
+    """Behavioral pin: live thesis-store prose carried the standalone AMD
+    MI-series token 'MI' — reader.lint_prose's off-list-acronym check must not
+    flag it now that MI is on registry/acronyms.json's allowlist (GB300, the
+    other off-allowlist token seen in prose, was already present)."""
+    text = "AMD's MI accelerators are ramping alongside GB300 racks this quarter."
+    violations = reader.lint_prose(text, "narrative")
+    assert not any("acronym" in v for v in violations)

@@ -216,7 +216,8 @@ PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed trig
 - **F52/F53/F54 small-fix wave:** spec `091c709` → plan `0e6cb0e` → merged (5 commits,
   `2a2dae7..2c070f4`). Suite 804 → 828. Ledger has per-task reviews + the final-review triage.
 - **F62 (flagship consumes the daily store):** spec `de0719b` → plan `d18c0c2` → implemented on
-  branch `f62-flagship-consumes-store` (PUSHED @ `f605a77`, **NOT merged — user gives the go**).
+  branch `f62-flagship-consumes-store` → **MERGED to main `eb925bc` (2026-07-04, user go);
+  suite on merged main 974 passed / 3 skipped** (F62 + F70 combined).
   New `gpu_agent/corpus.py` (45-day windowed store↔fresh union), `corpus` CLI,
   `pipeline --corpus-store/--corpus-report`, `observed=` vintage tag (emit-only kwarg),
   judge crux sentence now demands a consensus-departure (`b8f41f8`), run-cycle wiring +

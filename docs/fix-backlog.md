@@ -346,7 +346,7 @@
 
 ### Features (per repo convention: brainstorming → spec → plan, own sub-project — not lane work)
 
-- [ ] **F62 — Flagship consumes the daily store.** Daily mode WRITES fresh findings into the
+- [x] **F62 — Flagship consumes the daily store.** Daily mode WRITES fresh findings into the
   wiki (`wiki-ingest`, run-cycle SKILL.md:209) but the standard path never READS the wiki or
   `store/findings/` back (SKILL.md:219): the monthly brief is a projection of one cycle's ≤20
   docs, so everything the dailies learn is discarded at exactly the moment someone reads the
@@ -359,7 +359,8 @@
   (commit b8f41f8) took attempt 3 to PASS (extract 6.75 / judge 7.50 / thesis 6.00) and the
   baseline was rebaselined without --force (f605a77). Suite 970 passed / 3 skipped / 0
   failed. See docs/superpowers/2026-07-04-f62-eval-run-notes.md for all three attempts.
-  MERGE waits for the user's explicit go.**
+  MERGED to main `eb925bc` (2026-07-04, user go); suite on merged main 974/3/0. The f62
+  worktree is retained for the gitignored eval raw data (attempts 1-3) — do not git clean it.**
 - [ ] **F63 — Corroboration doctrine for secondary evidence.** Secondary evidence is
   confidence-capped at medium (extraction prompt + gate F2e) and secondary-only findings may
   not move headline status (Part 37) — so no quantity of independent open-web reporting can

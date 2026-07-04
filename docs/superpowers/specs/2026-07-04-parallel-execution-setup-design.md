@@ -40,12 +40,19 @@ user chooses to run them. No implementation code is produced by this setup.
 | Lane | Items | Owns (no other lane touches) | Eval gate |
 |---|---|---|---|
 | **β — Current-signal** | F57, F58, F59, F56 | `.claude/skills/gather-category/SKILL.md`; `manifests/*.json`; `gpu_agent/cli.py` (ingest `--primary-sources` allowlist for F59; `--as-of` shape validation for F56); the β test files | **No** |
-| **γ — Render/prompt-polish** | F68 (a–f) | `gpu_agent/report.py`; `gpu_agent/thesis.py` (deterministic prose lint only); `gpu_agent/reader.py`; `registry/acronyms.json`; the γ test files | **No** |
+| **γ — Render/prompt-polish** | F68 (a–f) + F56 minor-1 | `gpu_agent/report.py`; `gpu_agent/brief.py`; `gpu_agent/thesis.py` (new prose lint + the F56 comment only — never `_finding_lines`/prompt text); `gpu_agent/reader.py`; `registry/acronyms.json`; the γ test files | **No** |
 
 **Why F56 sits in β, not γ.** Lanes are *file-ownership* domains. F56's `--as-of`
 validation lives in `cli.py`, which F59 also edits. Grouping all `cli.py` + gather work
-in β keeps β and γ disjoint (`report.py`/`thesis.py`/`reader.py` vs.
+in β keeps β and γ disjoint (`report.py`/`brief.py`/`thesis.py`/`reader.py` vs.
 `cli.py`/gather-skill/manifests), which is the precondition for true parallel execution.
+
+**F56 splits (surfaced during planning).** F56's core (`--as-of` shape validation,
+`cli.py`) goes to β. Its two "cosmetic minors" do **not**: minor-1 (the "mirrors gate
+rule 3" comment) lives in `thesis.py`, which γ owns — folded into γ (Task 5); minor-2
+(the malformed `"shown: ."` when `price_indicators=[]`) lives in `extraction/prompt.py`,
+a **brain-prompt file** — deliberately **excluded** from both eval-gate-free lanes (it
+must ride a prompt-spine change or a deliberate eval-checked standalone commit).
 
 **Why neither lane trips the eval gate.**
 - β changes gather *orchestration* prose, the primary-source allowlist (ingest-time

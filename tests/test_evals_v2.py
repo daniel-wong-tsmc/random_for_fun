@@ -99,3 +99,96 @@ def test_invalid_run_when_baseline_case_missing_from_scores():
     v = evaluate_v2(BASE, [_report({"extract": 6.5}, {"e1": 7})])   # e2 missing
     assert v["decision"] == "invalid-run"
     assert any("e2" in r for r in v["reasons"])
+
+
+import pathlib
+from gpu_agent.evals.harness import build_baseline_v2, load_baseline, rebaseline_v2
+
+def _rep_full(extract_mean, e1, e2, hashes=HASHES):
+    return _report({"extract": extract_mean}, {"e1": e1, "e2": e2, "n1": 0},
+                   hashes=hashes,
+                   calibration={"n1": {"score": 0, "max": 4, "ok": True}})
+
+CASES3 = None  # built lazily: two positives e1/e2 + negative n1
+
+def _cases3():
+    global CASES3
+    if CASES3 is None:
+        CASES3 = [_case("e1"), _case("e2"), _case("n1", kind="negative")]
+    return CASES3
+
+def _write_runs(tmp_path, reports):
+    dirs = []
+    for i, rep in enumerate(reports):
+        d = tmp_path / f"r{i + 1}"
+        d.mkdir()
+        (d / "report.json").write_text(json.dumps(rep), "utf-8")
+        dirs.append(d)
+    return dirs
+
+def test_build_baseline_v2_shape():
+    reports = [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6), _rep_full(6.5, 8, 5)]
+    b = build_baseline_v2(reports, ["r1", "r2", "r3"], _cases3(), None, "spot-checked")
+    assert b["schemaVersion"] == 2
+    assert b["seamMeans"]["extract"] == pytest.approx((6.5 + 6.0 + 6.5) / 3)
+    assert b["epsilon"]["extract"] == pytest.approx(0.5)      # half-range 0.25 < quantum 0.5
+    assert b["caseMedians"] == {"e1": 7, "e2": 6}
+    assert [r["runDir"] for r in b["replicates"]] == ["r1", "r2", "r3"]
+    assert b["provenance"]["humanReview"] == "spot-checked"
+
+def test_rebaseline_v2_bootstrap_writes(tmp_path):
+    dirs = _write_runs(tmp_path, [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6),
+                                  _rep_full(6.5, 8, 5)])
+    out = tmp_path / "baseline.json"
+    rebaseline_v2(dirs, out, HASHES, _cases3())
+    assert load_baseline(out)["schemaVersion"] == 2
+
+def test_rebaseline_v2_refusals(tmp_path):
+    good = [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6), _rep_full(6.5, 8, 5)]
+    out = tmp_path / "baseline.json"
+    with pytest.raises(ValueError, match="exactly 3"):
+        rebaseline_v2(_write_runs(tmp_path, good[:2]), out, HASHES, _cases3())
+    mixed = [good[0], good[1], _rep_full(6.5, 8, 5, hashes={"extract": "z" * 64})]
+    m2 = tmp_path / "m2"; m2.mkdir()
+    with pytest.raises(ValueError, match="hash"):
+        rebaseline_v2(_write_runs(m2, mixed), out, HASHES, _cases3())
+    stale = tmp_path / "s"; stale.mkdir()
+    with pytest.raises(ValueError, match="current"):
+        rebaseline_v2(_write_runs(stale, good), out, {"extract": "z" * 64}, _cases3())
+    dirty = [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6),
+             _report({"extract": 6.5}, {"e1": 8, "e2": 5, "n1": 5}, calibration={
+                 "n1": {"score": 5, "max": 4, "ok": False}})]
+    dd = tmp_path / "d"; dd.mkdir()
+    with pytest.raises(ValueError, match="calibrat"):
+        rebaseline_v2(_write_runs(dd, dirty), out, HASHES, _cases3())
+    wide = [_rep_full(7.5, 8, 8), _rep_full(6.0, 6, 6), _rep_full(6.5, 7, 6)]
+    wd = tmp_path / "w"; wd.mkdir()
+    with pytest.raises(ValueError, match="dispersion"):
+        rebaseline_v2(_write_runs(wd, wide), out, HASHES, _cases3())
+
+def test_rebaseline_v2_governance(tmp_path):
+    good = [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6), _rep_full(6.5, 8, 5)]
+    out = tmp_path / "baseline.json"
+    rebaseline_v2(_write_runs(tmp_path, good), out, HASHES, _cases3())  # bootstrap
+    # same hashes, existing v2 -> refused without force
+    s2 = tmp_path / "s2"; s2.mkdir()
+    with pytest.raises(ValueError, match="force"):
+        rebaseline_v2(_write_runs(s2, good), out, HASHES, _cases3())
+    # different hashes (prompt change) -> refused without a PASS verdict
+    new_h = {"extract": "d" * 64, "judge": "b" * 64, "thesis": "c" * 64}
+    new = [_rep_full(6.5, 7, 6, hashes=new_h), _rep_full(6.25, 7, 6, hashes=new_h),
+           _rep_full(6.5, 6, 6, hashes=new_h)]
+    n1 = tmp_path / "n1"; n1.mkdir()
+    with pytest.raises(ValueError, match="verdict"):
+        rebaseline_v2(_write_runs(n1, new), out, new_h, _cases3())
+    n2 = tmp_path / "n2"; n2.mkdir()
+    rebaseline_v2(_write_runs(n2, new), out, new_h, _cases3(),
+                  verdict={"decision": "pass", "promptHashes": new_h})
+    assert load_baseline(out)["promptHashes"] == new_h
+    # v1 existing + same hashes -> migration path, allowed without force
+    v1 = tmp_path / "v1.json"
+    v1.write_text(json.dumps({"promptHashes": HASHES, "cases": {},
+                              "seamMeans": {"extract": 6.5}, "provenance": {}}), "utf-8")
+    m1 = tmp_path / "mig"; m1.mkdir()
+    rebaseline_v2(_write_runs(m1, good), v1, HASHES, _cases3())
+    assert load_baseline(v1)["schemaVersion"] == 2

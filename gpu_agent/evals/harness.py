@@ -248,6 +248,78 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
             "seams": seams, "craters": craters}
 
 
+def build_baseline_v2(reports: list[dict], run_dirs: list[str], cases: list[EvalCase],
+                      force_reason: str | None, human_review: str) -> dict:
+    positive_ids = {c.caseId for c in cases if c.kind == "positive"}
+    replicate_means = [r["seamMeans"] for r in reports]
+    replicate_scores = [{cid: s["total"] for cid, s in r["scores"].items()}
+                        for r in reports]
+    return {
+        "schemaVersion": BASELINE_SCHEMA_VERSION,
+        "promptHashes": dict(reports[0]["promptHashes"]),
+        "replicates": [
+            {"asOf": r["asOf"], "runDir": str(d), "seamMeans": r["seamMeans"],
+             "cases": r["scores"]}
+            for r, d in zip(reports, run_dirs)],
+        "seamMeans": {seam: sum(m[seam] for m in replicate_means) / len(replicate_means)
+                      for seam in replicate_means[0]},
+        "epsilon": compute_epsilon(replicate_means, seam_quanta(cases)),
+        "caseMedians": case_medians(replicate_scores, positive_ids),
+        "provenance": {"asOf": max(r["asOf"] for r in reports), "graderModel": "opus",
+                       "forceReason": force_reason, "humanReview": human_review},
+    }
+
+
+def rebaseline_v2(run_dirs: list, baseline_path, current_hashes: dict,
+                  cases: list[EvalCase], verdict: dict | None = None,
+                  force_reason: str | None = None, human_review: str = "") -> dict:
+    if len(run_dirs) != 3:
+        raise ValueError(f"rebaseline needs exactly 3 replicate run dirs, got {len(run_dirs)}")
+    reports = []
+    for d in run_dirs:
+        p = pathlib.Path(d) / "report.json"
+        if not p.exists():
+            raise ValueError(f"no report.json in {d}; run record-grade there first")
+        reports.append(json.loads(p.read_text("utf-8")))
+    for i, r in enumerate(reports):
+        if r["promptHashes"] != reports[0]["promptHashes"]:
+            raise ValueError(f"run {i + 1} prompt hashes differ from run 1 — "
+                             "replicates must be one bundle")
+        if set(r["seamMeans"]) != set(reports[0]["seamMeans"]):
+            raise ValueError(f"run {i + 1} seam set differs from run 1")
+        for cid, cal in r.get("calibration", {}).items():
+            if not cal["ok"]:
+                raise ValueError(f"run {i + 1} grader miscalibrated on '{cid}' — "
+                                 "fix by re-dispatching that grader, then re-record")
+    if reports[0]["promptHashes"] != current_hashes:
+        raise ValueError("replicate prompt hashes do not match the current working "
+                         "tree — stale runs cannot baseline the current bundle")
+    for seam in reports[0]["seamMeans"]:
+        vals = [r["seamMeans"][seam] for r in reports]
+        if max(vals) - min(vals) > DISPERSION_LIMIT and not force_reason:
+            raise ValueError(f"dispersion guard: seam '{seam}' replicate range "
+                             f"{max(vals) - min(vals):.3f} > {DISPERSION_LIMIT} — "
+                             "this is breakage, not noise; pass force_reason to override")
+    existing = load_baseline(baseline_path)
+    if existing is not None and not force_reason:
+        if existing["promptHashes"] == current_hashes:
+            if existing.get("schemaVersion") == BASELINE_SCHEMA_VERSION:
+                raise ValueError("re-baselining the same bundle over a v2 baseline is a "
+                                 "judgment call — pass force_reason (v1->v2 migration "
+                                 "does not need it)")
+        else:
+            if not (verdict and verdict.get("decision") == "pass"
+                    and verdict.get("promptHashes") == current_hashes):
+                raise ValueError("accepting a prompt change requires a PASS verdict for "
+                                 "this bundle (--verdict) or force_reason")
+    baseline = build_baseline_v2(reports, [str(d) for d in run_dirs], cases,
+                                 force_reason, human_review)
+    p = pathlib.Path(baseline_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(baseline, indent=2, sort_keys=True), "utf-8")
+    return baseline
+
+
 def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_hashes: dict, baseline: dict | None, as_of: str) -> dict:
     report = score_cases(cases, grades)
     report["promptHashes"] = dict(prompt_hashes)

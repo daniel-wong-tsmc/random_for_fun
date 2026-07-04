@@ -30,9 +30,10 @@
 > (judged consistent with brief-first). A tenth (same day, user-approved — all six adopted +
 > a directive): the team-lead pass — cross-desk thesis book, intra-layer value-chain map,
 > send-back authority, attention allocation, coverage stewardship, probation supervision —
-> plus the inter-agent trigger pathway (capability registry as data; peer desk→desk triggers
-> allowed with published-answers-only + non-independence tagging, preserving Part 9's
-> sibling-isolation intent).
+> plus the inter-agent trigger pathway (capability registry as data). An eleventh (same
+> day, user decision superseding the tenth's peer-trigger allowance): trigger edges are
+> **hierarchical-only, downward** — Main → layer, layer → desk; no desk→desk. A desk's
+> sibling question routes up through its lead; the hierarchy reconciles (Part 9 intact).
 
 ## The goal
 
@@ -424,14 +425,15 @@ everywhere).** Layer→desk tasking is the first use of a general mechanism, not
 case. A **capability registry** (data, not code): each agent template declares which parts
 of its toolkit are triggerable, by whom, at what budget — e.g. a desk exposes
 `answer-from-store` (published findings only, cheap), `scoped-gather` (a bounded ad-hoc
-run), `thesis-status`; a layer exposes its summary. Peer triggers (desk→desk) are allowed
-under two hard rules that preserve the charter's sibling-isolation *intent* (Part 9 —
-recorded decision, not relitigated): answers come from **published outputs or a scoped
-ad-hoc run, never raw-store reads**, and a sibling's answer is tagged **non-independent** —
-it may inform, it may never count as independent corroboration (Part 26) or silently
-correlate the desks' reads. Brakes: a triggered run may not itself trigger (depth-1, the
-Part 5 one-level rule); budgets ride the envelope; every trigger and response is logged in
-the cycle log. Phase 5's Main→layer→desk tasking rides this same pathway.
+run), `thesis-status`; a layer exposes its summary. **Trigger edges are hierarchical-only,
+downward: Main → layer, layer → its own desks.** Peer desk→desk triggering was considered
+and removed the same day (user decision, superseding the initial directive): it would erode
+Part 9's sibling isolation, and the charter's answer already exists — a desk that needs a
+sibling's read raises the question **up** to its lead as a watch-item, and the lead either
+answers from published summaries or tasks the sibling; the hierarchy reconciles. Brakes: a
+triggered run may not itself trigger (depth-1, the Part 5 one-level rule); budgets ride the
+layer envelope; every trigger and response is logged in the cycle log. Phase 5's
+Main→layer→desk tasking rides this same pathway.
 
 **Why here (user-approved fork 1 — a deviation from the charter's literal pilot shape).** The
 category→layer roll-up is the riskiest unproven seam in the system; proving it on a thin

@@ -131,13 +131,37 @@ Generated from what the workflow actually uses (git/gh, `.venv` pytest/python, r
 edits, worktree commands), committed to the repo so every fresh instance inherits it.
 Grows only by evidence: a `BLOCKED(permission: …)` entry is the request ticket.
 
-## Coordination with manual sessions
+## Coordination with manual sessions (non-interference guarantees)
 
 The queue becomes **the one lock surface for every instance, manual included**: a rule
 added to HANDOFF says any session doing feature work claims the queue entry first
-(`in_progress`, committed). The loop must not start while a manual instance is mid-task
-outside the queue; as of this design the field is clear — F62 is merged, and lanes β/γ are
-handed to the loop as Q1.
+(`in_progress`, committed). Five mechanisms keep the loop off live manual work — written
+against the real situation at design time (two manual instances executing lanes β and γ;
+lane-freshness had F59 committed and dirty F57 work in its tree when this section was
+amended):
+
+1. **Seed-time registration.** DEV-QUEUE.md is seeded to match reality, not the plan: any
+   item a manual instance already owns enters as `in_progress (manual — <branch>)`. The
+   driver picks only `pending` entries, so the loop's first pick skips straight past the
+   live lanes (to Q2/F63 in the current state — which by the lane design shares zero files
+   with β or γ).
+2. **Branch/worktree ownership.** A loop instance works only in the branch/worktree named
+   in its claimed entry and never checks out, commits to, or rebases any other (the F69
+   stray-commit mixup is the recorded precedent this rule exists for).
+3. **Dirty-worktree guard + unregistered-activity stop.** Before claiming, the driver
+   checks every worktree under `.worktrees/`: an entry whose worktree is dirty or whose
+   branch tip moved since seed is treated as actively owned and skipped; a **dirty worktree
+   the queue doesn't know about stops the loop entirely** ("unregistered activity — a human
+   is mid-something") rather than guessing.
+4. **Pause flag.** A `LOOP: paused` line at the top of DEV-QUEUE.md; the driver checks it
+   first and exits immediately. You (or any session) flip it with a one-line commit — the
+   kill switch costs nothing to use.
+5. **Main stays merge-safe.** Loop instances write only docs (queue/HANDOFF/specs) to main,
+   always `git pull --rebase` immediately before; they never merge feature branches
+   (human-merge policy). The loop therefore cannot rewrite code a manual instance depends
+   on — the worst cross-instance event is a trivial rebase of a docs commit. (Concurrent
+   pytest runs share the root `.venv` by the documented worktree model; that is already
+   routine under the existing parallel-lane protocol.)
 
 ## Error handling
 

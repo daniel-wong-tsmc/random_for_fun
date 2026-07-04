@@ -201,5 +201,19 @@ PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed trig
   Ledger has per-task review outcomes + the deferred-minors list for both pieces.
 - **F52/F53/F54 small-fix wave:** spec `091c709` → plan `0e6cb0e` → merged (5 commits,
   `2a2dae7..2c070f4`). Suite 804 → 828. Ledger has per-task reviews + the final-review triage.
+- **F62 (flagship consumes the daily store):** spec `de0719b` → plan `d18c0c2` → implemented on
+  branch `f62-flagship-consumes-store` (PUSHED, **NOT merged**). New `gpu_agent/corpus.py`
+  (45-day windowed store↔fresh union), `corpus` CLI, `pipeline --corpus-store/--corpus-report`,
+  `observed=` vintage tag (emit-only kwarg), run-cycle wiring + write-back. Frozen core
+  empty-diff vs main; final opus whole-branch review APPROVED (0 critical/important, all minors
+  ride); suite on the branch 968 passed / 3 skipped / 1 failed — the single failure is the ARMED
+  eval pin (judge+thesis hashes = the intended F62 prompt change). **Two full eval attempts both
+  failed record-grade on the judge seam only** (6.50 then 6.25 vs incumbent 6.75; extract 6.75
+  and thesis 6.00 pass; calibration negatives clean twice). Diagnosis + options in
+  `docs/superpowers/2026-07-04-f62-eval-run-notes.md` (on the branch); raw runs preserved in the
+  worktree's gitignored `work/eval-f62-2026-07-04/` — do not `git clean` that worktree.
+  **USER DECIDES both gates: (1) rebaseline path — `--force` with recorded reason / iterate the
+  judge prompt (own eval-gated change) / more replications; (2) MERGE.** Ledger:
+  `.superpowers/sdd/f62/progress.md` (repo root).
 - **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.

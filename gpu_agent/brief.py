@@ -230,7 +230,7 @@ def render_what_moved(movement) -> str:
         else:
             lines.append(f"  (no material moves vs {movement.prevAsOf} — "
                          f"nothing new cleared the materiality bar)")
-    if movement.foldedCount:
+    if movement.moved and movement.foldedCount:
         lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
     return "\n".join(lines)
 

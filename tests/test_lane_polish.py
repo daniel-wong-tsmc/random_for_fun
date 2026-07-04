@@ -8,6 +8,9 @@ finding id traces back to its sources.
 Task 2 (F68c): the BLUF "supply is the constraint" reconciliation note must
 key off the scorecard's computed `demandSupply.sdgiDirection` (the actual
 demand/supply-gap semantics), not the raw sign of `smiContribution`.
+
+Task 3 (F68d): WHAT MOVED's folded-count line must not state the folded
+count twice in the no-material-moves empty state.
 """
 from __future__ import annotations
 import json
@@ -15,9 +18,10 @@ import copy
 from pathlib import Path
 
 from gpu_agent.report import render_citation_map
-from gpu_agent.brief import render_state_of_market
+from gpu_agent.brief import render_state_of_market, render_what_moved
 from gpu_agent.schema.scorecard import Scorecard, DemandSupply, CategoryStatus
 from gpu_agent.schema.finding import Confidence
+from gpu_agent.wiki.movement import MarketMovement, MovedRow
 
 FIX = Path("fixtures/report")
 POSTB = FIX / "postb-scorecard.json"
@@ -91,3 +95,37 @@ def test_reconciliation_note_omitted_when_balanced_despite_negative_smi():
     sc = _sc_with_ds(ds, _strong_catstat())
     out = render_state_of_market(sc, None)
     assert "supply is the constraint" not in out
+
+
+# ── Task 3 (F68d): WHAT MOVED folded-count line must not double-state ───────
+
+def _moved_row(**kw):
+    base = dict(title="NVDA — hot (rising)", findingIds=["f-1"], tier="primary",
+                provisional=False, newThread=True, contradiction=False,
+                contradictionNote="", stateFrom=None, stateTo=None, score=1.0)
+    base.update(kw)
+    return MovedRow(**base)
+
+
+def _movement(**kw):
+    base = dict(prevAsOf="2026-06", moved=[], foldedCount=0, storylines=[])
+    base.update(kw)
+    return MarketMovement(**base)
+
+
+def test_no_moves_folded_count_stated_once_not_twice():
+    # No material moves + foldedCount > 0: the empty-state branch already owns the
+    # folded message ("N below-threshold items folded") — the always-on tail must
+    # not repeat it as "N lower-materiality items folded — see wiki-lint".
+    mv = _movement(prevAsOf="2026-06", moved=[], foldedCount=3)
+    out = render_what_moved(mv)
+    assert out.count("folded") == 1
+
+
+def test_moves_present_folded_tail_still_renders_once():
+    # When there WERE material moves, the tail line is the only folded-count
+    # mention — it must still render exactly once.
+    mv = _movement(prevAsOf="2026-06", moved=[_moved_row()], foldedCount=3)
+    out = render_what_moved(mv)
+    assert out.count("folded") == 1
+    assert "(3 lower-materiality items folded — see wiki-lint)" in out

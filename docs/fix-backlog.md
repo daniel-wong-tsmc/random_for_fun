@@ -515,17 +515,18 @@ F4+F5 (memory + anti-whipsaw), F6 (depth rubric + golden set), F23 (compliance m
 superpowers:brainstorming → a spec → a plan, executed with subagent-driven-development as its own
 sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent improvise these.
 
-## F63 eval-run findings (2026-07-04, F63 branch — each its own eval-gated change)
+## F63 eval-run findings (2026-07-04, F63 branch — resolved 2026-07-05)
 
-- **Extraction prompt — corroboration scope**: 2/2 fresh extract-04 generations counted
-  publishers QUOTED INSIDE one document toward the 3-distinct-publishers exception; the
-  F2e gate rejects this (evidence.url must be the document's own), but the prompt should
-  say "across separately fetched documents" to stop the temptation at the source.
-- **Extraction prompt — impact.direction enum**: the prompt never states the enum
-  (positive|negative|mixed); one full run had all 8 extract brains guess 'up'/'rising'
-  and fail schema. State the enum in the SYSTEM prompt (eval-gated prompt change).
-- **registry/acronyms.json — 'CEO'**: echoed verbatim from finding text by brains 4x
-  across F62+F63 runs; allowlist candidate.
-- **Eval infra — multi-attempt bar**: identical-prompt runs swing extract 6.25–7.50;
-  the single-run incumbent bar sits inside that noise band. Consider mean/median of N
-  runs as the baseline bar (its own feature; see F63 run notes).
+- **Extraction prompt — corroboration scope**: DONE — folded into F63 before its re-gate
+  (prompt now says "across separately fetched documents (… publishers merely quoted inside
+  one document do not count)"). Origin: 2/2 fresh extract-04 generations counted publishers
+  quoted inside one document toward the 3-distinct-publishers exception.
+- **Extraction prompt — impact.direction enum**: DONE — folded into F63 before its re-gate
+  (SYSTEM now states `direction: positive|negative|mixed`). Origin: all 8 r2 extract brains
+  guessed 'up'/'rising' and failed schema.
+- **registry/acronyms.json — 'CEO'**: DONE — allowlisted, folded into F63 (echoed verbatim
+  from finding text by brains 4x across F62+F63 runs).
+- **Eval infra — multi-attempt bar**: DONE as **eval-v2** (merged to main `c0d5dd2`,
+  2026-07-05): baseline = 3 replicate runs; bar = mean − ε (ε = max(half-range, quantum));
+  marginal fail ⇒ exactly one replication; per-case crater prong at median − 3. Spec:
+  docs/superpowers/specs/2026-07-05-eval-v2-replicate-baseline-design.md.

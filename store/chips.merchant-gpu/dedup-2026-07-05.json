@@ -1,0 +1,90 @@
+{
+  "asOf": "2026-07-05",
+  "docsDroppedKnown": [],
+  "findingsNew": [
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "lambda-ai-845323fc-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "tech-yahoo-com-71aaa132-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "S9",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "startupfortune-com-6857e872-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "rpoBacklog",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    }
+  ],
+  "findingsUpdate": [
+    {
+      "findingId": "finance-yahoo-com-f1703d5e-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "exportControlExposure",
+      "verdict": "update",
+      "priorFindingId": "s201-q4cdn-com-f9f138ac-2026-07-2",
+      "detail": "statement/trend changed (trend falling -> rising)"
+    },
+    {
+      "findingId": "www-digitimes-com-e48a6e49-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "leadTimes",
+      "verdict": "update",
+      "priorFindingId": "www-spheron-network-e5a0032c-2026-07-3",
+      "detail": "magnitude 3 -> 2"
+    }
+  ],
+  "findingsDuplicate": [
+    {
+      "findingId": "vosen-github-io-96638c47-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "S9",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-tomshardware-com-0169805b-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "exportControlExposure",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-sec-gov-d3c91348-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "exportControlExposure",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-tomshardware-com-df64dd8f-2026-07-05-1",
+      "entity": "nvidia",
+      "indicatorId": "leadTimes",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    }
+  ]
+}

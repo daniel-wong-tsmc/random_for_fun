@@ -1,63 +1,114 @@
 {
-  "scope": "category:chips.merchant-gpu",
-  "asOf": "2026-07",
-  "mode": "live",
-  "capturedAt": "2026-07-05T12:00:00Z",
-  "entries": [
-    {
-      "category_id": "chips.merchant-gpu",
-      "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
-      "status": "ready",
-      "scorecard": "store/chips.merchant-gpu/2026-07-v3.json",
-      "dmi": 0.700,
-      "smi": 0.060,
-      "sdgi": 0.640,
-      "gather": {
-        "mode": "top-up",
-        "docsIngested": 10,
-        "primaryVsSecondary": "5 primary / 5 secondary (by ingest tiering)",
-        "webReach": {"agent-reach": "ok", "last30days": "ok"},
-        "discoveryLeads": "work/chips.merchant-gpu-2026-07/last30days-leads.md",
-        "blobs": "work/chips.merchant-gpu-2026-07/blobs.json",
-        "coverageGaps": "work/chips.merchant-gpu-2026-07/coverage-gaps.json",
-        "droppedAtCap": "IntuitionLabs secondary-card price blob dropped (out of 45-day recency window; gpuSpotPrice already covered); top-up cap 10 reached",
-        "paywalledSkipped": ["trendforce-gpu-tracker", "semianalysis"]
-      },
-      "answers": {
-        "extract": "work/chips.merchant-gpu-2026-07/extract-answer.json",
-        "judge": "work/chips.merchant-gpu-2026-07/judge-answer.json",
-        "thesis": "work/chips.merchant-gpu-2026-07/thesis-answer.json"
-      },
-      "corpus": {
-        "coverage": "work/chips.merchant-gpu-2026-07/corpus-coverage.json",
-        "findings": "work/chips.merchant-gpu-2026-07/corpus-findings.json",
-        "dedupedFresh": "work/chips.merchant-gpu-2026-07/deduped-fresh.json",
-        "report": "work/chips.merchant-gpu-2026-07/corpus-report.json",
-        "counts": {"storeInWindow": 15, "freshNew": 7, "update": 6, "duplicate": 6, "merged": 28}
-      },
-      "gates": {
-        "extract": "19 findings gated, 0 dropped (after fixing 2 dispersion dict->string shapes)",
-        "voiceLint": "samples 1 & 2 re-dispatched once to fix non-allowlisted acronyms (SK, MI355X, MI325X, HPE); passed",
-        "sufficiency": "bypassed - moat Weak->Mixed forced by +0.50 anchor (Weak illegal) but evidence is 2 secondary publishers (<3, no primary); one rewrite attempt made, then --no-sufficiency; logged",
-        "writeBack": "12 of 13 deduped-fresh findings routed to 3 wiki pages; 1 skipped (nvidianews-...-2 finding-id collision with prior 2026-07 version - same doc, different draft ordering; information already in scorecard + store)"
-      },
-      "stageStatus": {
-        "category": "done",
-        "thesis": "done",
-        "layer": "deferred",
-        "main": "deferred"
-      },
-      "thesis": {
-        "judgmentsApplied": 10,
-        "notable": "export-control-exposure weakened->strengthened (conviction low->medium, applied: 3 publishers + primary); vendor-financed-demand-circularity weakened->strengthened (low->medium); custom-asic-substitution weakened",
-        "proposed": ["prepaid-hbm-take-or-pay-locks-in-accelerator-demand", "conditional-china-re-opening-with-a-capped-ceiling"]
-      },
-      "report": "rendered board-ready (Strong / improving; binding constraint HBM3E/HBM4 memory supply allocation)"
+ "scope": "category:chips.merchant-gpu",
+ "asOf": "2026-07-05",
+ "mode": "daily",
+ "capturedAt": "2026-07-05T13:20:00Z",
+ "entries": [
+  {
+   "category_id": "chips.merchant-gpu",
+   "assignment_path": "fixtures\u0007sg.chips.merchant-gpu.json",
+   "status": "ready",
+   "scorecard": "store/chips.merchant-gpu/2026-07-05-v1.json",
+   "dmi": 0.04,
+   "smi": -0.027,
+   "sdgi": 0.067,
+   "gather": {
+    "mode": "daily",
+    "recencyDays": 7,
+    "caps": {
+     "maxRounds": 2,
+     "maxDocuments": 10,
+     "maxSubagentsPerRound": 3,
+     "priceClassCap": 3
+    },
+    "rounds": 2,
+    "docsIngested": 10,
+    "primaryVsSecondary": "1 primary / 9 secondary (by ingest tiering)",
+    "blobsByClass": {
+     "price": 2,
+     "news": 4,
+     "forward": 3,
+     "filing-chase": 1
+    },
+    "webReach": {
+     "agent-reach": "ok",
+     "last30days": "ok"
+    },
+    "webReachNote": "agent-reach healthCmd passed but the CLI exposes no read/search verbs in this environment; gatherers fell back to WebSearch/WebFetch/curl (logged)",
+    "discoveryLeads": "work/daily-2026-07-05/last30days-leads.md",
+    "blobs": "work/daily-2026-07-05/blobs.json",
+    "gatherLog": "work/daily-2026-07-05/gather-log.json",
+    "coverageGaps": "work/daily-2026-07-05/coverage-gaps.json",
+    "coverageGapCounts": "6 source gaps (2 paywalled: trendforce-gpu-tracker, semianalysis; never fetched) + 8 indicator gaps (quarterly filing indicators deprioritized in daily mode)",
+    "notableSkips": [
+     "vast.ai/pricing fetched but prices render client-side - no figures readable; counted against price-class cap; logged",
+     "last30days lead 'Nvidia Halos' dropped: out of 7-day window and off-lane",
+     "SMCI 8-K kept although dated 2026-03-20: filing seeds are recency-exempt (F58); no in-window SMCI 8-K exists (EDGAR verified); it is the primary behind the in-window Taiwan-raid reporting",
+     "NVDA/AMD/INTC newsrooms: no new in-window items beyond already-ingested URLs; all candidates dated 2026-06-01..06-23 (out of window, logged)",
+     "Bloomberg originals and The Information paywalled - not fetched; syndications used and logged"
+    ],
+    "paywalledSkipped": [
+     "trendforce-gpu-tracker",
+     "semianalysis"
+    ]
+   },
+   "dedup": {
+    "L1": {
+     "ingested": 10,
+     "dup": 0,
+     "dropped": 0,
+     "droppedKnown": 0,
+     "note": "lambda.ai + coreweave.com URLs seen 2026-07-03 but content hashes changed, so they correctly survived (F12 content-hash-first)"
+    },
+    "L2": {
+     "new": 4,
+     "update": 2,
+     "duplicate": 4,
+     "report": "store/chips.merchant-gpu/dedup-2026-07-05.json"
     }
-  ],
-  "stages": [
-    {"tier": "category", "status": "active"},
-    {"tier": "layer", "status": "deferred"},
-    {"tier": "main", "status": "deferred"}
-  ]
+   },
+   "answers": {
+    "extract": "work/daily-2026-07-05/extract-answer.json",
+    "judge": "work/daily-2026-07-05/judge-answer.json (samples also at s1/s2/s3.json)",
+    "thesis": "work/daily-2026-07-05/thesis-answer.json"
+   },
+   "gates": {
+    "extract": "10 findings gated first pass, 0 dropped, no re-dispatch",
+    "voiceLint": "all 3 judge samples re-dispatched once (non-allowlisted acronyms CFO/CUDA/ZLUDA/SDNY); all passed on the re-dispatch; NO bypass",
+    "sufficiency": "PASSED with no bypass - binding-constraint change (moat -> strategicRisk) cited 3 distinct publishers including a primary SEC filing, meeting the F63 bar; the F71 anchor-vs-sufficiency deadlock did NOT recur this cycle",
+    "thesis": "12/12 judged first pass, 0 gate rejections; amd-credible-second-source 'weakened' reversal DEFERRED by anti-whipsaw (secondary-only, 1 publisher < 3) - F5/F63 machinery working as designed",
+    "knownGap": "new proposal title 'CUDA software lock-in sustains the moat' carries the off-allowlist token CUDA into THE CALLS - thesis-prose lint is the deferred F68a wiring; logged, store not hand-edited"
+   },
+   "wikiWriteBack": "6 deduped findings routed to entity:nvidia; wiki-lint 1 material page, 0 dropped",
+   "stageStatus": {
+    "category": "done",
+    "thesis": "done",
+    "layer": "deferred",
+    "main": "deferred"
+   },
+   "thesis": {
+    "judgmentsApplied": 11,
+    "deferred": "amd-credible-second-source weakened (anti-whipsaw: secondary-only reversal, 1 publisher < 3) -> CHALLENGED pending confirmation",
+    "notable": "supply-constraint-binding strengthened (conviction high); export-control-exposure strengthened (medium->high); vendor-financed-demand-circularity strengthened + PROMOTED to registered; customer-concentration-risk, networking-attach-as-systems-moat, cheaper-inference-pulls-in-demand also promoted to registered",
+    "proposed": [
+     "cuda-software-lock-in-sustains-the-moat"
+    ]
+   },
+   "report": "rendered board-ready daily (--daily): Strong / worsening; binding constraint China export-control enforcement (shifted from moat, 3 publishers + primary filing)"
+  }
+ ],
+ "stages": [
+  {
+   "tier": "category",
+   "status": "active"
+  },
+  {
+   "tier": "layer",
+   "status": "deferred"
+  },
+  {
+   "tier": "main",
+   "status": "deferred"
+  }
+ ]
 }

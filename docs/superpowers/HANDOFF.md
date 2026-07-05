@@ -6,6 +6,17 @@
   layer + F70 last30days (2nd web-reach github) both merged 2026-07-04 and pushed to origin. The
   former baseline-pin skips now RUN (armed by `fixtures/evals/baseline.json`).**
 
+## ⚠ 2026-07-05: EVAL-V2 MERGED (`c0d5dd2`) — the eval gate rule CHANGED
+
+- `fixtures/evals/baseline.json` is now **schema v2**: 3 replicate runs; bar = replicate mean − ε
+  (extract ≥ 6.5833 / judge ≥ 7.3333 / thesis ≥ 5.6667) + per-case crater prong (median − 3);
+  marginal fail ⇒ exactly ONE replication, two-run mean decides. `eval rebaseline` now takes
+  `--runs <d1> <d2> <d3>` (+ `--verdict` governance proof); the old `--out` form is GONE.
+  Follow the rewritten `.claude/skills/run-eval/SKILL.md`. Spec:
+  `docs/superpowers/specs/2026-07-05-eval-v2-replicate-baseline-design.md`. Suite on merged
+  main: 1031 passed / 4 skipped. (This instance works `.worktrees/eval-v2` + the F63 re-gate;
+  the authoritative full HANDOFF still lives on the f63-corroboration-doctrine branch.)
+
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
 - F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).

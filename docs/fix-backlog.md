@@ -552,3 +552,94 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   2026-07-05): baseline = 3 replicate runs; bar = mean − ε (ε = max(half-range, quantum));
   marginal fail ⇒ exactly one replication; per-case crater prong at median − 3. Spec:
   docs/superpowers/specs/2026-07-05-eval-v2-replicate-baseline-design.md.
+
+## From the 2026-07-05 outside-eyes state review (F72–F76)
+
+> Source: a fresh-context review of main @ `99ca522` (post-F63 merge, post 2026-07-v3 flagship),
+> requested by the user ("what are we least confident about / what am I missing"). Two findings
+> from the same review are already cataloged and are NOT re-logged: external ground truth for
+> judgment quality = **F64**'s Brier half; generalization-unproven (frontier-closed is
+> config-only; wiki scaling) = **F25/F27** + roadmap. Priority lean (user to confirm):
+> **F74 immediately** (tiny; active data-loss exposure in the working tree), **F72** with or
+> right after F71 (both are gate-semantics Part-33 work), **F75 before any unattended loop**
+> (same bar F71 set), F73/F76 as capacity allows.
+
+- [ ] **F72 — Cross-domain wire syndication defeats the F31 corroboration key** (must-have
+  caliber: lets one press release move judgments, silently). `publisher_key`
+  (`gpu_agent/publisher.py:17`) is the evidence URL's netloc, nothing else; the F63 spec
+  collapses only *same-domain* syndication ("N outlets hosted at one domain collapses to one
+  publisher"). One wire story republished across N domains therefore counts deterministically
+  as N distinct publishers — and the live store already holds archetypal PR-syndication
+  endpoints (`stocktitan.net`, `markets.financialcontent.com`, `finance.yahoo.com`), so
+  `minDistinctPublishers: 3` can be satisfied by a single vendor press release, unlocking gate
+  F2e high confidence, thesis rule-6 corroborated reversals, and wiki page promotion at once
+  (shared key = shared hole). The only current defense is the un-gated extraction-prompt
+  sentence ("distinct outlets, not syndication of one story") — exactly the pattern "nothing
+  un-gated reaches a number" forbids — and the failure is silent: the logged corroboration set
+  looks healthy. Note the asymmetry with F71: the sufficiency gate's first live firing blocked
+  *honest* thin evidence (2 real publishers) and was bypassed, while *disguised* thin evidence
+  (one story, 3 netlocs) would have passed unremarked. Fix, lean: make distinctness
+  deterministic — **(a)** content-similarity collapse across domains using the existing L1
+  near-dup infrastructure (wire bodies are near-identical); and/or **(b)** a
+  `registry/syndicators.json` data list of known wire/aggregator netlocs that collapse to the
+  originating publisher. Closes F69's open handoff note while there: give the gatherer's
+  chase/corroboration result the structured home it lacks — record the *originating* publisher
+  on the blob/finding instead of free text in `content`. Counting-semantics change in F2e →
+  ships as a Part-33 versioned migration; if the prompt sentence tightens, the hash pin trips →
+  run-eval. Acceptance: test-pinned — one story with near-identical bodies on 3 syndicator
+  domains fails the ≥3 bar; 3 genuinely distinct outlets still pass; thesis rule 6 and wiki
+  promotion inherit via the shared key.
+- [ ] **F73 — Eval-v2 gate power: ε is small against documented run noise; the gate has never
+  demonstrably caught a real regression.** ε = max(half-range of 3 replicate means, quantum)
+  yields 0.19–0.5 per seam, but the F63 run notes document identical-prompt seam swings of
+  6.25–7.50; the F63 re-gate passed extract by **0.042** (6.625 vs bar 6.5833) — deep inside
+  noise. Both error directions are live: draw-luck passes of true regressions, and draw-luck
+  fails of good prompts (F63's two v1 failures were diagnosed as exactly that). Fix, lean:
+  **(a)** a **seeded-regression canary** — demonstrate once (and after any harness change) that
+  the gate hard-fails a deliberately damaged prompt (e.g. corroboration sentence stripped),
+  and commit the calibration note; **(b)** symmetric marginal band — a PASS within ε of the bar
+  auto-replicates once and the two-run mean decides, mirroring the existing fail side (today a
+  0.04 pass decides alone); **(c)** pooled dispersion — append each gate run's fresh seam
+  scores to the baseline's stored history so ε converges on a real noise estimate instead of a
+  3-point half-range. `evals/harness.py` + baseline schema only; no prompt changes → no
+  hash-pin trip; rebaseline governance untouched.
+- [ ] **F74 — URGENT: post-run writer clobbers the session-authored cycle log (append-only
+  store violated by our own automation).** Born 2026-07-05: sometime after `99ca522`, a
+  post-run process rewrote working-tree `store/cycle-log.json` as a machine skeleton (bare
+  `status: ready`; no asOf/gather/gates/thesis/report; no trailing newline), deleting the v3
+  run journal **including the F71 `gates.sufficiency: "bypassed…"` record** — the doctrine's
+  "every cap/skip/drop is logged, never silent" line erased by a writer, surviving only in git
+  history. The next routine `git add store/` commits the erasure. Fix: **(1)** immediate —
+  identify the writer (likely the pipeline/cycle finalize step that emits a fresh minimal log)
+  and `git restore store/cycle-log.json` once no live instance owns the change; **(2)** the
+  writer must merge/append, never overwrite — refuse to write an entry carrying fewer keys
+  than the existing entry for the same (scope, asOf); **(3)** guard test — live entries
+  require `gates`/`asOf`, and a rewrite that loses fields fails the suite; **(4)** rule: the
+  session-authored log is canonical; machine writers extend it. Acceptance: clobber scenario
+  test-pinned; restored log recommitted; the offending writer named in the fix commit.
+- [ ] **F75 — No whole-run gate bypass flags (umbrella policy over F71).** The pattern, not
+  the incident: every gate ships a whole-run bypass (`--no-sufficiency`, `--no-voice-lint`),
+  and on the sufficiency gate's first live contest the bypass won after one rewrite attempt —
+  meaning the first flagship on the post-F63 stack ran in the exact configuration the F63 spec
+  forbade (loosening live, counterweight off). F71 fixes the sufficiency-specific deadlock;
+  F75 is the policy: before ANY unattended loop, every whole-run bypass becomes per-item +
+  required reason + logged, or is removed; and a cycle whose log records any bypass cannot
+  stamp `status: ready` without a waiver line rendered in the brief's trust footer (the reader
+  sees what the gate didn't). Small retro clause: the next monthly brief's trust footer notes
+  that 2026-07-v3 ran under a sufficiency bypass (the store stays immutable; the render is the
+  right surface). Acceptance: no whole-run `--no-<gate>` flags remain on live paths; the
+  bypass ledger renders in the trust footer; run-cycle instructs re-dispatch/hold — never
+  bypass — when a gate contests.
+- [ ] **F76 — Coordination-substrate integrity: handoff self-consistency, provenance labels,
+  retained-worktree registry.** Three wounds in four days, all concurrent-instance shaped:
+  the HANDOFF was self-contradictory (title `da58b94` says F63 merged; the body's top section
+  still said "Remaining before merge" — unreadable without git); decisions are recorded
+  "user-approved" under the AFK precedent (F52–F54's spec flags it; the label is now
+  ambiguous); merged-feature worktrees/branches are deliberately retained for gitignored eval
+  raw data but recorded only as scattered "do not git clean" prose warnings. Fix, lean:
+  **(a)** handoff discipline — one CURRENT STATE block replaced atomically; superseded text
+  moves to HISTORICAL in the same edit; **(b)** standardized provenance labels everywhere
+  (backlog, handoff, specs): `user-approved` only for an actual user answer, `AFK-precedent`
+  otherwise; **(c)** a retained-worktrees registry (one doc section: each retained worktree,
+  why, what's inside, when it can go) replacing the scattered warnings. Docs/process only; no
+  code, no eval impact.

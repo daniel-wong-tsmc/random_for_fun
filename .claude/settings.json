@@ -7,6 +7,12 @@
           {
             "type": "command",
             "command": "case \"$(uname -s 2>/dev/null || echo unknown)\" in MINGW*|MSYS*|CYGWIN*) cmd //c \"scripts\\\\web-reach-ensure.cmd --json\" ;; *) sh scripts/web-reach-ensure --json ;; esac || true"
+          },
+          {
+            "type": "command",
+            "command": "sh scripts/session-orient || true",
+            "timeout": 20,
+            "statusMessage": "Orienting in repo"
           }
         ]
       }

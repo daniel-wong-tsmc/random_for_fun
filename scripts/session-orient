@@ -1,0 +1,32 @@
+#!/bin/sh
+# session-orient: print repo orientation at session start so concurrent-instance
+# surprises (moved HEAD, stray run artifacts, live lanes) surface before work begins.
+cd "$(dirname "$0")/.." || exit 0
+
+echo "=== random_for_fun orientation ==="
+echo "branch: $(git branch --show-current 2>/dev/null)"
+git log --oneline -1 2>/dev/null | sed 's/^/last commit: /'
+
+s=$(git status --short 2>/dev/null)
+if [ -n "$s" ]; then
+  echo "UNCOMMITTED:"
+  echo "$s"
+  case "$s" in
+    *store/*|*work/*)
+      echo "WARNING: uncommitted run artifacts in store/ or work/ - possibly another instance's output; reconcile before starting new work." ;;
+  esac
+fi
+
+if ls .superpowers/handoffs/*-DONE.md >/dev/null 2>&1; then
+  echo "lane sentinels:"
+  ls .superpowers/handoffs/*-DONE.md
+fi
+
+if [ -d .worktrees ] && [ -n "$(ls -A .worktrees 2>/dev/null)" ]; then
+  echo "active worktrees:"
+  ls .worktrees
+fi
+
+# Surface the live coordination board from HANDOFF.md (section through the next ## header)
+awk '/^## .*CONCURRENT-INSTANCE COORDINATION/{f=1; print; next} f && /^## /{exit} f' docs/superpowers/HANDOFF.md 2>/dev/null | head -25
+exit 0

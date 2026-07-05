@@ -1,0 +1,46 @@
+{
+  "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+  "statement": "NVIDIA Q1 FY2027 Data Center revenue was a record $75.2 billion, up 92% year over year and up 21% quarter over quarter.",
+  "kind": "measured",
+  "value": {
+    "number": 75.2,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Data Center GPU demand accelerated sharply on agentic AI and inference workloads.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud",
+      "models.reasoning-agentic"
+    ],
+    "direction": "positive",
+    "mechanism": "Record DC revenue and 92% YoY growth signal surging demand for NVIDIA accelerators."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+      "date": "2026-05-20",
+      "excerpt": "Record Data Center revenue of $75.2 billion, up 92% from a year ago and up 21% from the previous quarter.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "primary NVIDIA press release / Form 8-K reported figure"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

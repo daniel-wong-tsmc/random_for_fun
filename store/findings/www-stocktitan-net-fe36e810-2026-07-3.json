@@ -1,0 +1,45 @@
+{
+  "id": "www-stocktitan-net-fe36e810-2026-07-3",
+  "statement": "AMD guided Q2 2026 revenue to approximately $11.2 billion, plus or minus $300 million, with non-GAAP gross margin around 56%.",
+  "kind": "measured",
+  "value": {
+    "number": 11.2,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Sequential revenue guidance above Q1 reflects continued Data Center-led demand growth.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Higher guided revenue signals sustained demand for AMD data center and AI products."
+  },
+  "evidence": [
+    {
+      "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+      "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+      "date": "2026-05-05",
+      "excerpt": "For the second quarter of 2026, AMD expects revenue to be approximately $11.2 billion, plus or minus $300 million.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary summary of AMD 8-K"
+  },
+  "dispersion": "stated +/-$300M band",
+  "asOf": "2026-07",
+  "indicatorId": "vendorRevenueGuidance",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-05-05",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

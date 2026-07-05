@@ -21,3 +21,22 @@
 {"seq":20,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":21,"asOf":"2026-07-03","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-2","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":22,"asOf":"2026-07-03","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 1; dropped 1; stale 3; orphans 5; contradictions 0"}
+{"seq":23,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-stocktitan-net-fe36e810-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":24,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-amd-com-49475e6c-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":25,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-stocktitan-net-fe36e810-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":26,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-amd-com-49475e6c-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":27,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-spheron-network-e5a0032c-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":28,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-stocktitan-net-fe36e810-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":29,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-spheron-network-f3e3c0bd-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":30,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-federalregister-gov-4122c4b6-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":31,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-spheron-network-f3e3c0bd-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":32,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"nvidianews-nvidia-com-7b7a02ff-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":33,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-runpod-io-bdb62dfd-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":34,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-sec-gov-bdd91a43-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":35,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"nvidianews-nvidia-com-7b7a02ff-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":36,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"nvidianews-nvidia-com-7b7a02ff-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":37,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-spheron-network-e5a0032c-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":38,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"intuitionlabs-ai-b83e7366-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":39,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-spheron-network-e5a0032c-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":40,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"nvidianews-nvidia-com-7b7a02ff-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":41,"asOf":"2026-07","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 3; dropped 0; stale 0; orphans 5; contradictions 0"}

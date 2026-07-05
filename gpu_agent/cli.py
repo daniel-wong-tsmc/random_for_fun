@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse, json, pathlib, sys
+import argparse, json, pathlib, re, sys
 from datetime import datetime, timezone
 from pydantic import ValidationError
 from gpu_agent.assignment import load_assignment
@@ -44,11 +44,20 @@ from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
 from gpu_agent.report import load_scorecard, find_prior, render_report
 from gpu_agent.evals.cases import load_cases, CaseError
 from gpu_agent.evals.harness import (
-    build_grade_prompt, build_report, gate_brain_answer, load_baseline,
-    rebaseline as evals_rebaseline, record_grades)
+    BASELINE_SCHEMA_VERSION, build_grade_prompt, build_report, evaluate_v2,
+    gate_brain_answer, load_baseline, rebaseline_v2, record_grades)
 from gpu_agent.evals.prompt_hash import compute_prompt_hashes
 from gpu_agent.corpus import (
     WINDOW_DAYS_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
+
+# F56-core: --as-of is embedded verbatim in doc/finding ids (F52), which become
+# snapshot + FindingStore filenames -- a fat-fingered "2026/07/03" would mint a
+# path-unsafe id. Validate the shape once at the CLI seam (defense-in-depth).
+_AS_OF_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?$")
+def _as_of(s: str) -> str:
+    if not _AS_OF_RE.match(s):
+        raise argparse.ArgumentTypeError(f"--as-of {s!r} must be YYYY-MM or YYYY-MM-DD")
+    return s
 
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
@@ -547,23 +556,65 @@ def _eval(args) -> int:
     """F6 eval harness driver. Emit/record cycle mirrors extract/judge/thesis; run-dir files
     (brain-prompts/brain-answers/brain-gates/grade-prompts/grade-answers/report.json) are the
     contract the run-eval skill scripts against."""
-    out = pathlib.Path(args.out)
-    if args.action == "rebaseline":
-        report_path = out / "report.json"
-        if not report_path.exists():
-            print("gpu-agent eval: error: no report.json in --out; run record-grade first",
+    if args.action == "verdict":
+        if not args.runs or len(args.runs) > 2:
+            print("gpu-agent eval: error: verdict needs --runs with 1 or 2 run dirs",
                   file=sys.stderr)
-            return 1
-        report = json.loads(report_path.read_text("utf-8"))
+            return 2
+        reports = []
+        for d in args.runs:
+            p = pathlib.Path(d) / "report.json"
+            if not p.exists():
+                print(f"gpu-agent eval: error: no report.json in {d}", file=sys.stderr)
+                return 2
+            reports.append(json.loads(p.read_text("utf-8")))
+        baseline = load_baseline(args.baseline)
+        if baseline is None or baseline.get("schemaVersion") != BASELINE_SCHEMA_VERSION:
+            print("gpu-agent eval: error: verdict requires a schema-v2 baseline; "
+                  "migrate via 'eval rebaseline --runs <d1> <d2> <d3>'", file=sys.stderr)
+            return 2
+        v = evaluate_v2(baseline, reports)
+        v["runs"] = [str(d) for d in args.runs]
+        v["promptHashes"] = reports[0].get("promptHashes", {})
+        vp = pathlib.Path(args.runs[-1]) / "verdict.json"
+        vp.write_text(json.dumps(v, indent=2, sort_keys=True), "utf-8")
+        print(f"{v['decision'].upper()}  -> {vp}")
+        for r in v["reasons"]:
+            print(f"  - {r}")
+        return 0 if v["pass"] else 1
+
+    if args.action == "rebaseline":
+        if not args.runs:
+            print("gpu-agent eval: error: rebaseline needs --runs <d1> <d2> <d3> "
+                  "(the v1 --out form is gone; see the run-eval skill)", file=sys.stderr)
+            return 2
         try:
-            evals_rebaseline(report, args.baseline,
-                             force_reason=args.reason if args.force else None,
-                             human_review=args.human_review)
+            cases = load_cases(pathlib.Path(args.cases))
+        except CaseError as e:
+            print(f"gpu-agent eval: case error: {e}", file=sys.stderr)
+            return 1
+        registry, taxonomy = _load_registry()
+        hashes = compute_prompt_hashes(registry, taxonomy,
+                                       pathlib.Path("fixtures/evals/hash-input.json"))
+        verdict = None
+        if args.verdict_path:
+            verdict = json.loads(pathlib.Path(args.verdict_path).read_text("utf-8"))
+        try:
+            rebaseline_v2([pathlib.Path(d) for d in args.runs], args.baseline, hashes,
+                          cases, verdict=verdict,
+                          force_reason=args.reason if args.force else None,
+                          human_review=args.human_review)
         except ValueError as e:
             print(f"gpu-agent eval: {e}", file=sys.stderr)
             return 1
         print(f"baseline written -> {args.baseline}")
         return 0
+
+    if not args.out:
+        print(f"gpu-agent eval: error: --out is required for {args.action}",
+              file=sys.stderr)
+        return 2
+    out = pathlib.Path(args.out)
 
     if args.action == "record-grade" and not args.as_of:
         print("gpu-agent eval: error: --as-of is required for record-grade", file=sys.stderr)
@@ -651,11 +702,12 @@ def _eval(args) -> int:
         baseline = load_baseline(args.baseline)
         report = build_report(cases, grades, hashes, baseline, as_of=args.as_of)
         (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True), "utf-8")
-        print(f"{'PASS' if report['verdict']['pass'] else 'FAIL'}  seams: " +
+        v = report["verdict"]
+        print(f"{v['decision'].upper()}  seams: " +
               "  ".join(f"{s}={m:.2f}" for s, m in sorted(report["seamMeans"].items())))
-        for r in report["verdict"]["reasons"]:
+        for r in v["reasons"]:
             print(f"  - {r}")
-        return 0 if report["verdict"]["pass"] else 1
+        return 0 if v["pass"] else 1
 
     print(f"gpu-agent eval: unknown action '{args.action}'", file=sys.stderr)
     return 2
@@ -866,6 +918,18 @@ def _report(args) -> int:
     return 0
 
 
+def _web_reach_ensure(args) -> int:
+    from gpu_agent import web_reach_ensure as wre
+    # Call with the module attribute (not the def-time default) so tests that
+    # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
+    registry = wre.load_registry(wre.REGISTRY_PATH)
+    log = (lambda m: None) if args.json else print
+    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    if args.json:
+        print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
+    return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -877,7 +941,7 @@ def main(argv=None) -> int:
             sp.add_argument("--out", default="store")
     ex = sub.add_parser("extract")
     ex.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
-    ex.add_argument("--as-of", required=True)
+    ex.add_argument("--as-of", required=True, type=_as_of)
     ex.add_argument("--out", default=None)
     ex.add_argument("--model", default="claude-opus-4-8")
     ex.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
@@ -891,17 +955,17 @@ def main(argv=None) -> int:
     ig.add_argument("--blobs", required=True, help="JSON: bare blob array or {rounds,skipped,blobs}")
     ig.add_argument("--out", required=True, help="dir for RawDocument JSON files + gather-log.json")
     ig.add_argument("--primary-sources", default="sec.gov",
-                    help="comma-separated authoritative-source host allowlist; a generic "
-                         "filings baseline (sec.gov), NOT GPU-specific - extend per category "
-                         "via the gather skill (F26)")
-    ig.add_argument("--as-of", required=True,
+                    help="comma-separated primary/official domains; the gather skill supplies "
+                         "the per-category set from the manifest's primaryDomains (default is a "
+                         "filings-only fallback)")
+    ig.add_argument("--as-of", required=True, type=_as_of,
                     help="run vintage (YYYY-MM or YYYY-MM-DD); scopes document/finding ids (F52) and keys the L1 seen-index")
     ig.add_argument("--dedup-store", default=None,
                     help="store root for cross-run L1 seen-document dedup (holds seen_docs.jsonl)")
     wi = sub.add_parser("wiki-ingest")
     wi.add_argument("--findings", required=True, help="JSON array of gated Findings")
     wi.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wi.add_argument("--as-of", required=True)
+    wi.add_argument("--as-of", required=True, type=_as_of)
     wi.add_argument("--category", default=None, help="category id for auto-created entity pages")
     wi.add_argument("--recorded", default=None, help="path to a recorded IngestResult JSON")
     wi.add_argument("--emit-prompt", action="store_true",
@@ -909,19 +973,19 @@ def main(argv=None) -> int:
     wd = sub.add_parser("wiki-dedup")
     wd.add_argument("--findings", required=True, help="JSON array of gated Findings (this cycle)")
     wd.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wd.add_argument("--as-of", required=True)
+    wd.add_argument("--as-of", required=True, type=_as_of)
     wd.add_argument("--out-findings", default=None,
                     help="write the deduped NEW+UPDATE findings JSON here (for wiki-ingest)")
     wd.add_argument("--report", default=None, help="write the DedupReport JSON here (else stdout)")
     wl = sub.add_parser("wiki-lint")
     wl.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wl.add_argument("--as-of", required=True)
+    wl.add_argument("--as-of", required=True, type=_as_of)
     wl.add_argument("--prev-as-of", default=None,
                     help="prior cycle asOf for the diff window (default: auto-derive from the log)")
     wl.add_argument("--out", default=None, help="write the LintReport JSON here")
     wlc = sub.add_parser("wiki-lifecycle")
     wlc.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
-    wlc.add_argument("--as-of", required=True)
+    wlc.add_argument("--as-of", required=True, type=_as_of)
     wlc.add_argument("--apply", action="store_true",
                      help="apply the proposed promotions/prunes (else propose-only)")
     wlc.add_argument("--report", default=None, help="write the LifecycleReport JSON here")
@@ -960,7 +1024,7 @@ def main(argv=None) -> int:
     th.add_argument("--findings", required=True, help="JSON array of gated Findings")
     th.add_argument("--store", default="store", help="store root (holds theses/<category>/)")
     th.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
-    th.add_argument("--as-of", required=True)
+    th.add_argument("--as-of", required=True, type=_as_of)
     th.add_argument("--emit-prompt", action="store_true",
                     help="print the canonical thesis prompt + schema (no LLM) and exit")
     th.add_argument("--recorded", default=None, help="path to a recorded ThesisAnswer JSON")
@@ -970,11 +1034,15 @@ def main(argv=None) -> int:
                     help="analyst persona for the emitted system prompt (default: GPU market)")
     ev = sub.add_parser("eval", help="F6 eval harness: golden-set emit/record + rebaseline")
     ev.add_argument("action", choices=["emit-brain", "record-brain", "emit-grade",
-                                       "record-grade", "rebaseline"])
+                                       "record-grade", "verdict", "rebaseline"])
     ev.add_argument("--cases", default="fixtures/evals/cases")
-    ev.add_argument("--out", required=True)
+    ev.add_argument("--out", default="", help="run dir (required for emit-*/record-*)")
     ev.add_argument("--as-of", default="", help="required for record-grade (report provenance)")
     ev.add_argument("--baseline", default="fixtures/evals/baseline.json")
+    ev.add_argument("--runs", nargs="+", default=None,
+                    help="run dirs: 1-2 for verdict, exactly 3 for rebaseline")
+    ev.add_argument("--verdict", dest="verdict_path", default="",
+                    help="verdict.json proving the gate PASS (rebaseline governance)")
     ev.add_argument("--force", action="store_true")
     ev.add_argument("--reason", default="")
     ev.add_argument("--human-review", default="")
@@ -982,7 +1050,7 @@ def main(argv=None) -> int:
     pl.add_argument("--docs", required=True, help="dir of RawDocument JSON files")
     pl.add_argument("--assignment", required=True)
     pl.add_argument("--out", default="store")
-    pl.add_argument("--as-of", required=True)
+    pl.add_argument("--as-of", required=True, type=_as_of)
     pl.add_argument("--samples", type=int, default=3)
     pl.add_argument("--model", default="claude-opus-4-8")
     pl.add_argument("--captured-at", default=None, help="ISO-8601; default: now (UTC)")
@@ -1024,6 +1092,11 @@ def main(argv=None) -> int:
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")
     grp.add_argument("--no-prior", action="store_true",
                      help="suppress prior-cycle lookup; Δ columns show —")
+    wre = sub.add_parser("web-reach-ensure",
+                         help="idempotently ensure web-reach tools are installed")
+    wre.add_argument("--check-only", action="store_true")
+    wre.add_argument("--json", action="store_true")
+    wre.add_argument("--timeout", type=int, default=600)
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -1073,6 +1146,8 @@ def main(argv=None) -> int:
         except ValueError as e:
             print("CYCLE SCOPE ERROR:", e, file=sys.stderr)
             return 1
+    if args.cmd == "web-reach-ensure":
+        return _web_reach_ensure(args)
     if args.cmd == "report":
         return _report(args)
     try:

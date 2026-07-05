@@ -72,14 +72,23 @@ def label_ids_in_text(text: str, registry) -> str:
     The thesis GATE requires indicator ids in falsifiableTrigger (F54 observable
     heuristic), so the BOOK keeps ids verbatim; this display-layer substitution is what
     lets THE CALLS' "breaks if:" line read like exec prose instead of leaking an id like
-    "D6" above reader.APPENDIX_DIVIDER. registry=None or empty text -> unchanged."""
+    "D6" above reader.APPENDIX_DIVIDER. registry=None or empty text -> unchanged.
+
+    F68e: substitution is a SINGLE re.sub pass over one alternation of every id (longest
+    id first, so a longer id can't be prefix-shadowed by a shorter one ending at a
+    non-word char, e.g. a hyphen). One pass means the replacement function only ever
+    sees matches against the ORIGINAL text — an inserted label is never re-scanned, so a
+    future registry label that happens to embed another id's literal token can never be
+    re-substituted (no iterative chaining). Do not rewrite this as a loop of per-id
+    re.sub calls; that reintroduces the chaining bug this function exists to prevent."""
     if registry is None or not text:
         return text
-    for ind_id in sorted(registry.indicators, key=len, reverse=True):
-        label = indicator_label(ind_id, registry)
-        if label != ind_id:
-            text = re.sub(rf"\b{re.escape(ind_id)}\b", label, text)
-    return text
+    ids = [ind_id for ind_id in sorted(registry.indicators, key=len, reverse=True)
+           if indicator_label(ind_id, registry) != ind_id]
+    if not ids:
+        return text
+    pattern = re.compile("|".join(rf"\b{re.escape(ind_id)}\b" for ind_id in ids))
+    return pattern.sub(lambda m: indicator_label(m.group(0), registry), text)
 
 
 def split_sentences(text: str) -> list[str]:

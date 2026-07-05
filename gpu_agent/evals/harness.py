@@ -142,32 +142,207 @@ def score_cases(cases: list[EvalCase], grades: dict[str, GradeResult]) -> dict:
     return {"scores": scores, "seamMeans": seam_means, "calibration": calibration}
 
 
+# --- eval-v2 (replicate baseline) — spec: docs/superpowers/specs/
+# 2026-07-05-eval-v2-replicate-baseline-design.md -------------------------------
+
+BASELINE_SCHEMA_VERSION = 2
+CRATER_DROP = 3          # a positive case craters at baseline-median - 3
+HARD_CRATER_EXTRA = 2    # ...and hard-fails at baseline-median - 5
+DISPERSION_LIMIT = 1.0   # replicate seam-mean range above this refuses to baseline
+
+
+def seam_quanta(cases: list[EvalCase]) -> dict[str, float]:
+    counts: dict[str, int] = {}
+    for c in cases:
+        if c.kind == "positive":
+            counts[c.seam] = counts.get(c.seam, 0) + 1
+    return {seam: 1.0 / n for seam, n in counts.items()}
+
+
+def compute_epsilon(replicate_means: list[dict[str, float]],
+                    quanta: dict[str, float]) -> dict[str, float]:
+    eps: dict[str, float] = {}
+    for seam in replicate_means[0]:
+        vals = [m[seam] for m in replicate_means]
+        eps[seam] = max((max(vals) - min(vals)) / 2, quanta[seam])
+    return eps
+
+
+def case_medians(replicate_scores: list[dict[str, int]],
+                 positive_ids: set[str]) -> dict[str, int]:
+    meds: dict[str, int] = {}
+    for cid in sorted(positive_ids):
+        vals = sorted(r[cid] for r in replicate_scores)
+        meds[cid] = vals[len(vals) // 2]
+    return meds
+
+
 _EPS = 1e-9
+
+
+def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
+    """The eval-v2 gate decision. One report -> pass | marginal-fail | hard-fail;
+    two reports (the single sanctioned replication) -> pass | fail, decided on
+    two-run means against the SAME bars. Values exactly on a bar pass."""
+    if not reports:
+        return {"pass": False, "decision": "invalid-run",
+                "reasons": ["no reports supplied"], "seams": {}, "craters": []}
+    reasons: list[str] = []
+    for i, rep in enumerate(reports):
+        for cid, cal in rep.get("calibration", {}).items():
+            if not cal["ok"]:
+                reasons.append(f"run {i + 1}: grader miscalibrated: negative case "
+                               f"'{cid}' scored {cal['score']} > {cal['max']}")
+    if len(reports) == 2 and reports[0].get("promptHashes") != reports[1].get("promptHashes"):
+        reasons.append("replication prompt hashes differ from run 1 — not the same bundle")
+    for seam in baseline["seamMeans"]:
+        for i, rep in enumerate(reports):
+            if seam not in rep.get("seamMeans", {}):
+                reasons.append(f"run {i + 1}: seam '{seam}' has a baseline mean "
+                               "but no scored positive cases")
+    for cid in baseline.get("caseMedians", {}):
+        if all(cid not in rep.get("scores", {}) for rep in reports):
+            reasons.append(f"case '{cid}' has a baseline median but no score in any run")
+    if reasons:
+        return {"pass": False, "decision": "invalid-run", "reasons": reasons,
+                "seams": {}, "craters": []}
+
+    seams: dict[str, dict] = {}
+    craters: list[dict] = []
+    any_fail = any_hard = False
+    for seam, base_mean in baseline["seamMeans"].items():
+        eps = baseline["epsilon"][seam]
+        value = sum(r["seamMeans"][seam] for r in reports) / len(reports)
+        bar, hard_bar = base_mean - eps, base_mean - 2 * eps
+        ok = value >= bar - _EPS
+        seams[seam] = {"value": value, "bar": bar, "hardBar": hard_bar, "ok": ok}
+        if not ok:
+            any_fail = True
+            reasons.append(f"regression on '{seam}': {value:.3f} < bar {bar:.3f} "
+                           f"(replicate mean {base_mean:.3f} - eps {eps:.3f})")
+            if value < hard_bar - _EPS:
+                any_hard = True
+    for cid, median in baseline["caseMedians"].items():
+        totals = [r["scores"][cid]["total"] for r in reports if cid in r.get("scores", {})]
+        if not totals:
+            continue
+        value = sum(totals) / len(totals)
+        if value <= median - CRATER_DROP + _EPS:
+            any_fail = True
+            craters.append({"caseId": cid, "value": value if len(reports) > 1 else totals[0],
+                            "median": median})
+            reasons.append(f"crater: case '{cid}' at {value:.1f} <= "
+                           f"baseline median {median} - {CRATER_DROP}")
+            if value <= median - CRATER_DROP - HARD_CRATER_EXTRA + _EPS:
+                any_hard = True
+
+    if not any_fail:
+        decision = "pass"
+    elif len(reports) == 2:
+        decision = "fail"
+    elif any_hard:
+        decision = "hard-fail"
+    else:
+        decision = "marginal-fail"
+    return {"pass": decision == "pass", "decision": decision, "reasons": reasons,
+            "seams": seams, "craters": craters}
+
+
+def build_baseline_v2(reports: list[dict], run_dirs: list[str], cases: list[EvalCase],
+                      force_reason: str | None, human_review: str) -> dict:
+    positive_ids = {c.caseId for c in cases if c.kind == "positive"}
+    replicate_means = [r["seamMeans"] for r in reports]
+    replicate_scores = [{cid: s["total"] for cid, s in r["scores"].items()}
+                        for r in reports]
+    return {
+        "schemaVersion": BASELINE_SCHEMA_VERSION,
+        "promptHashes": dict(reports[0]["promptHashes"]),
+        "replicates": [
+            {"asOf": r["asOf"], "runDir": str(d), "seamMeans": r["seamMeans"],
+             "cases": r["scores"]}
+            for r, d in zip(reports, run_dirs)],
+        "seamMeans": {seam: sum(m[seam] for m in replicate_means) / len(replicate_means)
+                      for seam in replicate_means[0]},
+        "epsilon": compute_epsilon(replicate_means, seam_quanta(cases)),
+        "caseMedians": case_medians(replicate_scores, positive_ids),
+        "provenance": {"asOf": max(r["asOf"] for r in reports), "graderModel": "opus",
+                       "forceReason": force_reason, "humanReview": human_review},
+    }
+
+
+def rebaseline_v2(run_dirs: list, baseline_path, current_hashes: dict,
+                  cases: list[EvalCase], verdict: dict | None = None,
+                  force_reason: str | None = None, human_review: str = "") -> dict:
+    if len(run_dirs) != 3:
+        raise ValueError(f"rebaseline needs exactly 3 replicate run dirs, got {len(run_dirs)}")
+    reports = []
+    for d in run_dirs:
+        p = pathlib.Path(d) / "report.json"
+        if not p.exists():
+            raise ValueError(f"no report.json in {d}; run record-grade there first")
+        reports.append(json.loads(p.read_text("utf-8")))
+    for i, r in enumerate(reports):
+        if r["promptHashes"] != reports[0]["promptHashes"]:
+            raise ValueError(f"run {i + 1} prompt hashes differ from run 1 — "
+                             "replicates must be one bundle")
+        if set(r["seamMeans"]) != set(reports[0]["seamMeans"]):
+            raise ValueError(f"run {i + 1} seam set differs from run 1")
+        for cid, cal in r.get("calibration", {}).items():
+            if not cal["ok"]:
+                raise ValueError(f"run {i + 1} grader miscalibrated on '{cid}' — "
+                                 "fix by re-dispatching that grader, then re-record")
+    if reports[0]["promptHashes"] != current_hashes:
+        raise ValueError("replicate prompt hashes do not match the current working "
+                         "tree — stale runs cannot baseline the current bundle")
+    for seam in reports[0]["seamMeans"]:
+        vals = [r["seamMeans"][seam] for r in reports]
+        if max(vals) - min(vals) > DISPERSION_LIMIT and not force_reason:
+            raise ValueError(f"dispersion guard: seam '{seam}' replicate range "
+                             f"{max(vals) - min(vals):.3f} > {DISPERSION_LIMIT} — "
+                             "this is breakage, not noise; pass force_reason to override")
+    existing = load_baseline(baseline_path)
+    if existing is not None and not force_reason:
+        if existing["promptHashes"] == current_hashes:
+            if existing.get("schemaVersion") == BASELINE_SCHEMA_VERSION:
+                raise ValueError("re-baselining the same bundle over a v2 baseline is a "
+                                 "judgment call — pass force_reason (v1->v2 migration "
+                                 "does not need it)")
+        else:
+            if not (verdict and verdict.get("decision") == "pass"
+                    and verdict.get("promptHashes") == current_hashes):
+                raise ValueError("accepting a prompt change requires a PASS verdict for "
+                                 "this bundle (--verdict) or force_reason")
+    baseline = build_baseline_v2(reports, [str(d) for d in run_dirs], cases,
+                                 force_reason, human_review)
+    p = pathlib.Path(baseline_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(baseline, indent=2, sort_keys=True), "utf-8")
+    return baseline
 
 
 def build_report(cases: list[EvalCase], grades: dict[str, GradeResult], prompt_hashes: dict, baseline: dict | None, as_of: str) -> dict:
     report = score_cases(cases, grades)
     report["promptHashes"] = dict(prompt_hashes)
     report["asOf"] = as_of
-    reasons: list[str] = []
-    ok = True
-    for cid, cal in report["calibration"].items():
-        if not cal["ok"]:
-            ok = False
-            reasons.append(f"grader miscalibrated: negative case '{cid}' scored "
-                           f"{cal['score']} > {cal['max']}")
+    cal_reasons = [f"grader miscalibrated: negative case '{cid}' scored "
+                   f"{cal['score']} > {cal['max']}"
+                   for cid, cal in report["calibration"].items() if not cal["ok"]]
     if baseline is None:
-        reasons.append("bootstrap: no baseline — comparison skipped; rebaseline to establish one")
+        report["verdict"] = {
+            "pass": not cal_reasons,
+            "decision": "invalid-run" if cal_reasons else "bootstrap",
+            "reasons": cal_reasons + ["bootstrap: no baseline — comparison skipped; "
+                                      "rebaseline to establish one"],
+            "seams": {}, "craters": []}
+    elif baseline.get("schemaVersion") != BASELINE_SCHEMA_VERSION:
+        report["verdict"] = {
+            "pass": not cal_reasons,
+            "decision": "invalid-run" if cal_reasons else "no-comparison",
+            "reasons": cal_reasons + ["no-comparison: baseline is schema v1 — migrate "
+                                      "via 'eval rebaseline --runs <d1> <d2> <d3>'"],
+            "seams": {}, "craters": []}
     else:
-        for seam, incumbent in baseline.get("seamMeans", {}).items():
-            new = report["seamMeans"].get(seam)
-            if new is None:
-                ok = False
-                reasons.append(f"seam '{seam}' has a baseline mean but no scored positive cases")
-            elif new < incumbent - _EPS:
-                ok = False
-                reasons.append(f"regression on '{seam}': {new:.3f} < incumbent {incumbent:.3f}")
-    report["verdict"] = {"pass": ok, "reasons": reasons}
+        report["verdict"] = evaluate_v2(baseline, [report])
     return report
 
 
@@ -176,22 +351,3 @@ def load_baseline(path) -> dict | None:
     if not p.exists():
         return None
     return json.loads(p.read_text("utf-8"))
-
-
-def rebaseline(report: dict, baseline_path, force_reason: str | None = None,
-               human_review: str = "") -> dict:
-    if not report["verdict"]["pass"] and not force_reason:
-        raise ValueError("refusing to rebaseline from a failing run "
-                         f"({'; '.join(report['verdict']['reasons'])}); "
-                         "pass force_reason to override — it is stored permanently")
-    baseline = {
-        "promptHashes": report["promptHashes"],
-        "cases": report["scores"],
-        "seamMeans": report["seamMeans"],
-        "provenance": {"asOf": report["asOf"], "graderModel": "opus",
-                       "forceReason": force_reason, "humanReview": human_review},
-    }
-    p = pathlib.Path(baseline_path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(baseline, indent=2, sort_keys=True), "utf-8")
-    return baseline

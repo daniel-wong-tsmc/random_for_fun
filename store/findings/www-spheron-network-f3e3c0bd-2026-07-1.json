@@ -1,0 +1,43 @@
+{
+  "id": "www-spheron-network-f3e3c0bd-2026-07-1",
+  "statement": "Hyperscaler custom AI silicon (Google TPU Ironwood, AWS Trainium 3, Microsoft Maia 200, Meta MTIA 300/400) is expanding but remains captive to its creators and unavailable for external rental.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Growing captive hyperscaler ASIC deployment displaces some internal merchant-GPU demand, though captivity limits it as open-market supply.",
+  "impact": {
+    "targets": [
+      "chips.hyperscaler-asic",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "negative",
+    "mechanism": "Hyperscalers shifting internal workloads to captive ASICs reduces their incremental merchant-GPU demand."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Blog - Hyperscaler Custom AI Chips 2026 (competitive structure / S9)",
+      "url": "https://www.spheron.network/blog/hyperscaler-custom-ai-chips-2026-trainium-tpu-maia-mtia-vs-nvidia-gpu/",
+      "date": "2026-06-22",
+      "excerpt": "All four chips are captive to their creators and unavailable for external rental.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary blog with cross-references"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-06-22",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

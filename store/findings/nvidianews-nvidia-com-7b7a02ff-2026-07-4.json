@@ -1,0 +1,44 @@
+{
+  "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-4",
+  "statement": "NVIDIA states Grace Blackwell with NVLink delivers an order-of-magnitude lower cost per token for inference, with Vera Rubin to extend the lead.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Order-of-magnitude lower inference cost per token lowers the effective cost of serving AI, expanding economically viable demand.",
+  "impact": {
+    "targets": [
+      "models.reasoning-agentic",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud",
+      "applications.agent-platforms"
+    ],
+    "direction": "positive",
+    "mechanism": "Lower cost per token improves inference economics and stimulates agentic AI compute demand."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+      "date": "2026-05-20",
+      "excerpt": "Grace Blackwell with NVLink is the king of inference today - delivering an order-of-magnitude lower cost per token - and Vera Rubin will extend that leadership even further.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "primary filing but qualitative CEO/marketing claim with no explicit figure"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "flopsPerDollar",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

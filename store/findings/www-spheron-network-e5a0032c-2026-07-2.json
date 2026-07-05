@@ -1,0 +1,42 @@
+{
+  "id": "www-spheron-network-e5a0032c-2026-07-2",
+  "statement": "AMD MI450 is sampling in Q1 2026 with production shipments expected H2 2026, MI400 (CDNA 5) was detailed at CES 2026, and MI350X is generally available on neocloud providers running ROCm 7.0.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "AMD's accelerating Instinct roadmap expands competitive accelerator supply.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "positive",
+    "mechanism": "MI350X general availability and the MI450 ramp add alternative accelerator supply."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+      "url": "https://www.spheron.network/blog/gpu-cloud-news-2026/",
+      "date": "2026-06-10",
+      "excerpt": "MI450 sampling is already underway in Q1 2026, with production shipments expected H2 2026.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary GPU-cloud news blog"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "releaseCadence",
+  "side": "demand",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-06-10",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -49,6 +49,8 @@ python -m venv .venv
 Run everything from the repo root (paths are cwd-relative by convention).
 Live cycles are driven by Claude Code skills (`.claude/skills/run-cycle`,
 `gather-category`) — Claude Code **is** the brain; there is no metered API path.
+- Web-reach tools (`agent-reach`, `last30days`) auto-install on first run via
+  `scripts/web-reach-ensure` (idempotent, cross-platform); see `docs/web-reach.md`.
 
 ## Repo map
 

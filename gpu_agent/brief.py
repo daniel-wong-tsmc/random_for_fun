@@ -47,7 +47,7 @@ def render_state_of_market(sc: Scorecard, prior: Optional[Scorecard], track=None
     lines.append(f"  Gap: {report._sdgi_interpretation(sdgi)}")
 
     if (cs is not None and cs.rating in ("Strong", "Very strong")
-            and ds.smiContribution < 0):
+            and ds.sdgiDirection == "supply-led"):
         lines.append("  Note: the supply reading is negative because supply is the "
                      "constraint — a demand-led shortage, not a demand problem.")
 
@@ -230,7 +230,7 @@ def render_what_moved(movement) -> str:
         else:
             lines.append(f"  (no material moves vs {movement.prevAsOf} — "
                          f"nothing new cleared the materiality bar)")
-    if movement.foldedCount:
+    if movement.moved and movement.foldedCount:
         lines.append(f"  ({movement.foldedCount} lower-materiality items folded — see wiki-lint)")
     return "\n".join(lines)
 

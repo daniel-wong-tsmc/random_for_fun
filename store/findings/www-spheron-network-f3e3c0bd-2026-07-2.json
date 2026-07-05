@@ -1,0 +1,46 @@
+{
+  "id": "www-spheron-network-f3e3c0bd-2026-07-2",
+  "statement": "GPU-based systems still account for roughly 60% of AWS's AI server build-out in 2026, even as custom ASICs grow.",
+  "kind": "measured",
+  "value": {
+    "number": 60.0,
+    "unit": "pct"
+  },
+  "trend": "unknown",
+  "why": "Merchant GPUs remain the majority of hyperscaler AI build-out, sustaining strong baseline demand.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hyperscaler-asic",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "A ~60% GPU share of AWS AI build-out shows merchant GPUs still carry the majority of new AI capacity."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Blog - Hyperscaler Custom AI Chips 2026 (competitive structure / S9)",
+      "url": "https://www.spheron.network/blog/hyperscaler-custom-ai-chips-2026-trainium-tpu-maia-mtia-vs-nvidia-gpu/",
+      "date": "2026-06-22",
+      "excerpt": "GPU-based systems still account for ~60% of AWS's AI server build-out in 2026.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary blog cross-referencing Tom's Hardware"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "multi",
+  "observedAt": "2026-06-22",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

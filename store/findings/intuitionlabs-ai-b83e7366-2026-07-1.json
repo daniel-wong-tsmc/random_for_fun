@@ -1,0 +1,42 @@
+{
+  "id": "intuitionlabs-ai-b83e7366-2026-07-1",
+  "statement": "NVIDIA's data center GPU lineup scales sharply from H100 (FP16 1,979 TFLOPS, 80 GB HBM3e, 700 W) to Blackwell B200/B300 (up to 20,000 FP4 TFLOPS, 192-288 GB HBM3e, 1,000-1,400 W); the source states no explicit perf-per-watt ratio.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Each NVIDIA generation packs far more peak throughput and HBM capacity per accelerator, raising effective compute per GPU even though the document computes no perf-per-watt figure.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory"
+    ],
+    "direction": "positive",
+    "mechanism": "Generational scaling of peak throughput and HBM capacity per accelerator expands compute delivered per GPU and lifts HBM content per unit."
+  },
+  "evidence": [
+    {
+      "source": "IntuitionLabs - NVIDIA Data Center GPU Specs comparison",
+      "url": "https://intuitionlabs.ai/articles/nvidia-data-center-gpu-specs",
+      "date": "2026-07-04",
+      "excerpt": "Document does not provide explicit perf-per-watt calculations.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "secondary spec-comparison table; no perf-per-watt ratio stated and cross-precision figures are not directly comparable"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "perfPerWatt",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-04",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

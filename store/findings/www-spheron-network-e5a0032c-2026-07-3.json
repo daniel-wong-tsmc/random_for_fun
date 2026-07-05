@@ -1,0 +1,46 @@
+{
+  "id": "www-spheron-network-e5a0032c-2026-07-3",
+  "statement": "HBM3e supply constraints are extending H200 and GB200 NVL72 custom-config lead times to 36-52 weeks.",
+  "kind": "measured",
+  "value": {
+    "number": 52.0,
+    "unit": "weeks"
+  },
+  "trend": "rising",
+  "why": "Lead times lengthened by HBM3e scarcity indicate a supply bottleneck for high-end NVIDIA systems.",
+  "impact": {
+    "targets": [
+      "chips.hbm-memory",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "negative",
+    "mechanism": "HBM3e constraints lengthen delivery lead times, tightening effective supply of H200/GB200 systems."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+      "url": "https://www.spheron.network/blog/gpu-cloud-news-2026/",
+      "date": "2026-06-10",
+      "excerpt": "HBM3e supply constraints are extending H200 and GB200 NVL72 custom-config lead times to 36-52 weeks.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary GPU-cloud news blog"
+  },
+  "dispersion": "stated range 36-52 weeks",
+  "asOf": "2026-07",
+  "indicatorId": "leadTimes",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-06-10",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

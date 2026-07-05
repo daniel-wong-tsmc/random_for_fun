@@ -1,0 +1,44 @@
+{
+  "id": "www-stocktitan-net-fe36e810-2026-07-2",
+  "statement": "AMD Q1 2026 non-GAAP gross margin was 55% (GAAP 53%), with Q2 guided to approximately 56%.",
+  "kind": "measured",
+  "value": {
+    "number": 55.0,
+    "unit": "pct"
+  },
+  "trend": "rising",
+  "why": "Improving gross margin signals a favorable mix shift toward higher-value Data Center and AI products.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising margins reflect stronger demand and mix for AMD data center/AI silicon."
+  },
+  "evidence": [
+    {
+      "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+      "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+      "date": "2026-05-05",
+      "excerpt": "Non-GAAP gross margin was 55%.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary summary of AMD 8-K"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "grossMargin",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "amd",
+  "observedAt": "2026-05-05",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

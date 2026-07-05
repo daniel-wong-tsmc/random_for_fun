@@ -1,0 +1,43 @@
+{
+  "id": "www-spheron-network-e5a0032c-2026-07-1",
+  "statement": "NVIDIA Vera Rubin NVL72 enters production ramp in Q3 2026 (neocloud availability Q4 2026 to Q1 2027), with B300 SXM6 already in spot capacity and R100 pre-orders live.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A rapid NVIDIA product cadence signals expanding forthcoming accelerator supply.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud",
+      "infrastructure.networking-fabric"
+    ],
+    "direction": "positive",
+    "mechanism": "New-generation ramp and pre-orders add forthcoming compute supply to the market."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+      "url": "https://www.spheron.network/blog/gpu-cloud-news-2026/",
+      "date": "2026-06-10",
+      "excerpt": "NVIDIA confirmed that Vera Rubin NVL72 enters production ramp in Q3 2026.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary GPU-cloud news blog"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "releaseCadence",
+  "side": "demand",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-06-10",
+  "capturedAt": "2026-07-04T12:34:43Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

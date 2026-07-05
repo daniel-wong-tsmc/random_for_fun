@@ -1,0 +1,41 @@
+{
+  "id": "www-bis-gov-dbeede91-2026-07-1",
+  "statement": "Effective January 15, 2026, BIS moved from a presumption of denial to case-by-case review of China export licenses for the NVIDIA H200, AMD MI325X and similar chips (below TPP 21,000 and 6,500 GB/s DRAM bandwidth), subject to security conditions, a roughly 25% tariff and a cap limiting China exports to under 50% of same-model US sales.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Loosening license policy reopens a licensed path for H200 and MI325X-class GPUs into China, partially expanding addressable demand.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Case-by-case licensing reopens some China GPU demand, but tariffs, security conditions and volume caps limit the upside."
+  },
+  "evidence": [
+    {
+      "source": "U.S. Dept of Commerce, BIS press release",
+      "url": "https://www.bis.gov/press-release/department-commerce-revises-license-review-policy-semiconductors-exported-china",
+      "date": "2026-01-15",
+      "excerpt": "BIS will now review export license applications for the Nvidia H200, AMD MI325X, and similar chips on a case-by-case basis provided certain security requirements are met",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary U.S. government (BIS) regulatory press release / Federal Register notice."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-01-15",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

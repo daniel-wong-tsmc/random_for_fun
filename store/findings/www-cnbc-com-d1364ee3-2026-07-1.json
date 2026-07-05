@@ -1,0 +1,42 @@
+{
+  "id": "www-cnbc-com-d1364ee3-2026-07-1",
+  "statement": "NVIDIA is offering fast-growing startups compute access in exchange for a share of future revenue, with two initial partners (Sharon AI, Firmus) providing access to more than 200,000 GPUs; NVIDIA raised $25 billion in bonds on June 15, 2026 to fund the program at scale.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Vendor-financed compute-for-revenue-share pulls forward GPU demand from liquidity-constrained AI firms while deepening NVIDIA's structural dependence on funded customers.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Revenue-share financing underwrites neocloud GPU deployments, sustaining demand but concentrating counterparty and circular-financing risk."
+  },
+  "evidence": [
+    {
+      "source": "CNBC",
+      "url": "https://www.cnbc.com/2026/07/02/nvidia-plans-to-offer-start-up-customers-access-to-revenue-sharing-deals.html",
+      "date": "2026-07-02",
+      "excerpt": "Chipmaker Nvidia says it will offer fast-growing start-ups the chance to swap access to compute power for a slice of future profits.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary publisher (CNBC); underlying NVIDIA blog not independently corroborated across three separate publishers."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: CNBC, NVIDIA SEC Form 10-Q",
+  "asOf": "2026-07",
+  "indicatorId": "customerConcentration",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

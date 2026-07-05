@@ -1,0 +1,41 @@
+{
+  "id": "ir-amd-com-f416295d-2026-07-4",
+  "statement": "AMD reports strengthening customer engagement around the MI450 Series and Helios, with leading-customer forecasts exceeding its initial expectations.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Design-win momentum and above-plan customer forecasts for next-gen Instinct precede future revenue.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Strengthening engagement and rising forecasts for MI450 and Helios indicate growing forward GPU demand."
+  },
+  "evidence": [
+    {
+      "source": "AMD Q1 2026 financial results",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+      "date": "2026-05-05",
+      "excerpt": "Customer engagement around MI450 Series and Helios is strengthening, with leading customer forecasts exceeding our initial expectations.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary AMD investor-relations earnings release (CEO commentary)."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-05-05",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

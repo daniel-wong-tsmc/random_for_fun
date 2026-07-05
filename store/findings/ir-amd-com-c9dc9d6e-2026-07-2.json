@@ -1,0 +1,41 @@
+{
+  "id": "ir-amd-com-c9dc9d6e-2026-07-2",
+  "statement": "AMD depends on a small number of customers for a substantial portion of its business and expects continued customer concentration in revenue and receivables.",
+  "kind": "observed",
+  "value": null,
+  "trend": "flat",
+  "why": "Heavy revenue dependence on a few customers raises demand-cliff and negotiating-leverage risk.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Concentration means a pullback by a single large customer would materially reduce accelerator and CPU demand captured."
+  },
+  "evidence": [
+    {
+      "source": "AMD SEC Form 10-Q",
+      "url": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000076/0000002488-26-000076.pdf",
+      "date": "2026-05-06",
+      "excerpt": "We depend on a small number of customers for a substantial portion of our business and we expect that a small number of customers will continue to account for a significant part of our revenue and receivables in the future",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary SEC Form 10-Q filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "customerConcentration",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "amd",
+  "observedAt": "2026-05-06",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

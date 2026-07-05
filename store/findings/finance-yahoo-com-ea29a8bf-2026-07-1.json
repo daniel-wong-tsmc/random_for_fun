@@ -1,0 +1,42 @@
+{
+  "id": "finance-yahoo-com-ea29a8bf-2026-07-1",
+  "statement": "Micron says HBM shipment growth is capped by supply, not end demand, and does not yet see when industry supply will catch up; customer demand for 2027-2028 remains far above its ability to supply across HBM3E and HBM4, directly gating NVIDIA and AMD datacenter-GPU availability.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "HBM is a required component for datacenter GPUs, so a persistent HBM supply shortfall lengthens effective lead times and caps merchant-GPU shipments.",
+  "impact": {
+    "targets": [
+      "chips.hbm-memory",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "HBM sold-out conditions support memory pricing power while constraining the volume of NVIDIA/AMD GPUs that can be built and shipped."
+  },
+  "evidence": [
+    {
+      "source": "Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/micron-q3-earnings-call-highlights-095600051.html",
+      "date": "2026-06-24",
+      "excerpt": "Shipment growth is being capped by supply, not end demand, and Micron does not yet see when industry supply will catch up",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary publisher (Yahoo Finance) reporting management commentary; not a primary filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "leadTimes",
+  "side": "supply",
+  "polarityDemand": 1,
+  "polaritySupply": -1,
+  "magnitude": 3,
+  "entity": "multi",
+  "observedAt": "2026-06-24",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

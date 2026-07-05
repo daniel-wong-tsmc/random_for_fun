@@ -1,0 +1,44 @@
+{
+  "id": "www-runpod-io-bdb62dfd-2026-07-1",
+  "statement": "As of 2026-07-05, RunPod on-demand H100 SXM GPU rental is $3.29/hr (H200 $4.39, B200 $5.89, B300 $7.39), with H100 SXM in a roughly $3.29-3.99/hr band across RunPod and Lambda Cloud.",
+  "kind": "measured",
+  "value": {
+    "number": 3.29,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "No baseline or change is stated, so the rental figure is a static price level and a display overlay rather than a directional demand or supply signal.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "GPU-cloud rental price levels describe neocloud market pricing but, absent a stated change, do not score demand or supply."
+  },
+  "evidence": [
+    {
+      "source": "RunPod pricing",
+      "url": "https://www.runpod.io/pricing",
+      "date": "2026-07-05",
+      "excerpt": "H100 SXM '$3.29/hr'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Two independent secondary provider price lists (RunPod, Lambda) corroborate the H100 SXM band; price level only."
+  },
+  "dispersion": "H100 SXM $3.29/hr (RunPod) to $3.99/hr (Lambda)",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "multi",
+  "observedAt": "2026-07-05",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

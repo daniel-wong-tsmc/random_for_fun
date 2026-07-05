@@ -1,0 +1,45 @@
+{
+  "id": "finance-yahoo-com-ea29a8bf-2026-07-2",
+  "statement": "Micron has signed 16 non-cancelable five-year take-or-pay agreements backed by more than $22 billion in cash and related financial commitments, including nearly $18 billion in cash deposits.",
+  "kind": "measured",
+  "value": {
+    "number": 22.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Large prepaid, non-cancelable multi-year commitments evidence durable, locked-in HBM demand feeding the GPU supply chain.",
+  "impact": {
+    "targets": [
+      "chips.hbm-memory",
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Take-or-pay deposits secure HBM capacity and de-risk investment, underpinning sustained accelerator platform supply."
+  },
+  "evidence": [
+    {
+      "source": "Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/micron-q3-earnings-call-highlights-095600051.html",
+      "date": "2026-06-24",
+      "excerpt": "already signed 16 agreements, backed by more than $22 billion in cash and related financial commitments, including nearly $18 billion in cash deposits",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary publisher (Yahoo Finance); figures attributed to management, not read from a primary filing."
+  },
+  "dispersion": "conflicting same-key reports: value 100.0 -> 22.0 (tol 1%); sources: Micron Q3 FY2026 slides via Investing.com, Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+  "asOf": "2026-07",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "multi",
+  "observedAt": "2026-06-24",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

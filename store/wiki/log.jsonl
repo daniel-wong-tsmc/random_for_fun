@@ -40,3 +40,15 @@
 {"seq":39,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-spheron-network-e5a0032c-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":40,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"nvidianews-nvidia-com-7b7a02ff-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":41,"asOf":"2026-07","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 3; dropped 0; stale 0; orphans 5; contradictions 0"}
+{"seq":42,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"ir-amd-com-c9dc9d6e-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":43,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"ir-amd-com-f416295d-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":44,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"ir-amd-com-c9dc9d6e-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":45,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"ir-amd-com-f416295d-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":46,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-runpod-io-bdb62dfd-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":47,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-investing-com-09606ac9-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":48,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-bis-gov-dbeede91-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":49,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"finance-yahoo-com-ea29a8bf-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":50,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"finance-yahoo-com-ea29a8bf-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":51,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-cnbc-com-d1364ee3-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":52,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"s201-q4cdn-com-f9f138ac-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":53,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-runpod-io-59ae0a2f-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}

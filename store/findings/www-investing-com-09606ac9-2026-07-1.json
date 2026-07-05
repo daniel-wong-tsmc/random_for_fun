@@ -1,0 +1,42 @@
+{
+  "id": "www-investing-com-09606ac9-2026-07-1",
+  "statement": "Micron says DRAM and NAND supply-demand conditions will remain tight beyond calendar 2027 driven by AI demand and structural supply constraints, with HBM3E/HBM4 effectively sold out through 2027 and order books extending into 2028.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Sold-out HBM and tight memory supply cap the volume of datacenter GPUs that can be built, since HBM is a gating component.",
+  "impact": {
+    "targets": [
+      "chips.hbm-memory",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Tight, sold-out HBM supports memory pricing while constraining merchant-GPU output and lengthening effective availability."
+  },
+  "evidence": [
+    {
+      "source": "Micron Q3 FY2026 slides via Investing.com",
+      "url": "https://www.investing.com/news/company-news/micron-q3-2026-slides-record-margins-100b-customer-agreements-93CH-4759276",
+      "date": "2026-06-24",
+      "excerpt": "Supply-demand conditions for both DRAM and NAND are expected to remain tight beyond calendar 2027, driven by AI-driven demand across all segments and structural supply constraints.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary publisher (Investing.com) reporting company slides; not a primary filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 1,
+  "polaritySupply": -1,
+  "magnitude": 3,
+  "entity": "multi",
+  "observedAt": "2026-06-24",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

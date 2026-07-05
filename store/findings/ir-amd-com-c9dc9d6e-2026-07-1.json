@@ -1,0 +1,41 @@
+{
+  "id": "ir-amd-com-c9dc9d6e-2026-07-1",
+  "statement": "AMD's China export controls restrict Instinct MI308 and require licenses for MI325; AMD incurred approximately $440 million of net inventory and related charges in 2025, and any MI325 shipped to China must first undergo US inspection and faces a 25% tariff.",
+  "kind": "observed",
+  "value": null,
+  "trend": "unknown",
+  "why": "Export licensing requirements and tariffs reduce the China datacenter-GPU revenue AMD can serve and impose direct inventory and charge costs.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "License requirements, US-inspection tariffs and Entity List controls shrink AMD's addressable China accelerator demand and add cost."
+  },
+  "evidence": [
+    {
+      "source": "AMD SEC Form 10-Q",
+      "url": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000076/0000002488-26-000076.pdf",
+      "date": "2026-05-06",
+      "excerpt": "we incurred approximately $440 million of net inventory and related charges in 2025",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary SEC Form 10-Q filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-05-06",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

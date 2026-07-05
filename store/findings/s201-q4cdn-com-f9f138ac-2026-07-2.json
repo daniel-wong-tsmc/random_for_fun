@@ -1,0 +1,41 @@
+{
+  "id": "s201-q4cdn-com-f9f138ac-2026-07-2",
+  "statement": "NVIDIA recorded no Data Center Hopper shipments to China in Q1 fiscal 2027 versus $4.6 billion a year earlier; H200 licenses granted from February 2026 have generated no revenue yet and carry a 25% US-import tariff.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Export controls eliminated NVIDIA's China datacenter GPU revenue and constrain the limited licensed reopening with tariffs.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Loss of China datacenter GPU shipments removes a large slice of addressable demand NVIDIA can serve."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA SEC Form 10-Q",
+      "url": "https://s201.q4cdn.com/141608511/files/doc_financials/2027/q1/927dc2d6-a76c-4006-9f34-8769b2c665fb.pdf",
+      "date": "2026-05-27",
+      "excerpt": "no shipments of Data Center Hopper products to China occurred during the quarter, compared with $4.6 billion in Q1 FY2026",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary SEC Form 10-Q filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-27",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

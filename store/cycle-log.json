@@ -2,43 +2,45 @@
   "scope": "category:chips.merchant-gpu",
   "asOf": "2026-07",
   "mode": "live",
-  "capturedAt": "2026-07-04T12:34:43Z",
+  "capturedAt": "2026-07-05T12:00:00Z",
   "entries": [
     {
       "category_id": "chips.merchant-gpu",
       "assignment_path": "fixtures\\asg.chips.merchant-gpu.json",
       "status": "ready",
-      "scorecard": "store/chips.merchant-gpu/2026-07-v2.json",
-      "dmi": 0.733,
-      "smi": 0.107,
-      "sdgi": 0.627,
-      "workDir": "work/2026-07",
+      "scorecard": "store/chips.merchant-gpu/2026-07-v3.json",
+      "dmi": 0.700,
+      "smi": 0.060,
+      "sdgi": 0.640,
+      "gather": {
+        "mode": "top-up",
+        "docsIngested": 10,
+        "primaryVsSecondary": "5 primary / 5 secondary (by ingest tiering)",
+        "webReach": {"agent-reach": "ok", "last30days": "ok"},
+        "discoveryLeads": "work/chips.merchant-gpu-2026-07/last30days-leads.md",
+        "blobs": "work/chips.merchant-gpu-2026-07/blobs.json",
+        "coverageGaps": "work/chips.merchant-gpu-2026-07/coverage-gaps.json",
+        "droppedAtCap": "IntuitionLabs secondary-card price blob dropped (out of 45-day recency window; gpuSpotPrice already covered); top-up cap 10 reached",
+        "paywalledSkipped": ["trendforce-gpu-tracker", "semianalysis"]
+      },
       "answers": {
-        "extract": "work/2026-07/extract-answer.json",
-        "judge": "work/2026-07/judge-answer.json",
-        "thesis": "work/2026-07/thesis-answer.json"
+        "extract": "work/chips.merchant-gpu-2026-07/extract-answer.json",
+        "judge": "work/chips.merchant-gpu-2026-07/judge-answer.json",
+        "thesis": "work/chips.merchant-gpu-2026-07/thesis-answer.json"
       },
       "corpus": {
-        "coverageReport": "work/2026-07/corpus-coverage.json",
-        "mergedFindings": "work/2026-07/corpus-findings.json",
-        "dedupedFresh": "work/2026-07/deduped-fresh.json",
-        "report": "work/2026-07/corpus-report.json",
-        "pipelineReport": "work/2026-07/corpus-pipeline-report.json",
-        "counts": {"storeInWindow": 9, "storeOut": 0, "freshNew": 15, "freshUpdate": 3, "duplicate": 0, "merged": 27}
+        "coverage": "work/chips.merchant-gpu-2026-07/corpus-coverage.json",
+        "findings": "work/chips.merchant-gpu-2026-07/corpus-findings.json",
+        "dedupedFresh": "work/chips.merchant-gpu-2026-07/deduped-fresh.json",
+        "report": "work/chips.merchant-gpu-2026-07/corpus-report.json",
+        "counts": {"storeInWindow": 15, "freshNew": 7, "update": 6, "duplicate": 6, "merged": 28}
       },
-      "gather": {
-        "log": "work/2026-07/gather-log.json",
-        "blobs": "work/2026-07/blobs.json",
-        "docs": "work/2026-07/docs",
-        "rounds": 1,
-        "gatherers": 4,
-        "blobsGathered": 15,
-        "blobsKept": 10,
-        "blobsDroppedByCap": 5,
-        "gateDroppedFindings": 4,
-        "webReach": {"agent-reach": "missing", "last30days": "missing"}
+      "gates": {
+        "extract": "19 findings gated, 0 dropped (after fixing 2 dispersion dict->string shapes)",
+        "voiceLint": "samples 1 & 2 re-dispatched once to fix non-allowlisted acronyms (SK, MI355X, MI325X, HPE); passed",
+        "sufficiency": "bypassed - moat Weak->Mixed forced by +0.50 anchor (Weak illegal) but evidence is 2 secondary publishers (<3, no primary); one rewrite attempt made, then --no-sufficiency; logged",
+        "writeBack": "12 of 13 deduped-fresh findings routed to 3 wiki pages; 1 skipped (nvidianews-...-2 finding-id collision with prior 2026-07 version - same doc, different draft ordering; information already in scorecard + store)"
       },
-      "voiceLint": {"initial": "sample 2 & 3: acronym 'HPE' — re-dispatched violating samples only; passed on retry"},
       "stageStatus": {
         "category": "done",
         "thesis": "done",
@@ -46,15 +48,15 @@
         "main": "deferred"
       },
       "thesis": {
-        "judged": 9,
-        "applied": 8,
-        "deferred": ["vendor-financed-demand-circularity: secondary-only reversal"],
-        "proposed": ["cheaper-inference-pulls-in-demand"]
-      }
+        "judgmentsApplied": 10,
+        "notable": "export-control-exposure weakened->strengthened (conviction low->medium, applied: 3 publishers + primary); vendor-financed-demand-circularity weakened->strengthened (low->medium); custom-asic-substitution weakened",
+        "proposed": ["prepaid-hbm-take-or-pay-locks-in-accelerator-demand", "conditional-china-re-opening-with-a-capped-ceiling"]
+      },
+      "report": "rendered board-ready (Strong / improving; binding constraint HBM3E/HBM4 memory supply allocation)"
     }
   ],
   "stages": [
-    {"tier": "category", "status": "done"},
+    {"tier": "category", "status": "active"},
     {"tier": "layer", "status": "deferred"},
     {"tier": "main", "status": "deferred"}
   ]

@@ -1,0 +1,42 @@
+{
+  "id": "www-runpod-io-59ae0a2f-2026-07-1",
+  "statement": "A RunPod spec guide cites the NVIDIA B200 (SXM) at 20 petaFLOPS FP4 per GPU with a stated 700W TDP, but independent sources cite 1000W SXM TDP and up to 18 PFLOPS sparse FP4, so a reliable performance-per-watt figure cannot be computed.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Blackwell B200 raises per-GPU FP4 throughput over prior Hopper parts, implying better performance-per-watt, but the unresolved TDP conflict prevents a trustworthy number.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "energy.efficiency"
+    ],
+    "direction": "positive",
+    "mechanism": "Higher per-GPU throughput at comparable power improves compute efficiency and eases power-constrained datacenter deployment."
+  },
+  "evidence": [
+    {
+      "source": "RunPod NVIDIA B200 spec guide",
+      "url": "https://www.runpod.io/articles/guides/nvidia-b200",
+      "date": "2026-07-05",
+      "excerpt": "FP4 Throughput '20 petaFLOPS per GPU'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "Secondary source with an explicit TDP data conflict (700W vs widely-cited 1000W SXM) that prevents a reliable perf/W calculation."
+  },
+  "dispersion": "TDP cited 700W vs independent 1000W; FP4 20 PFLOPS vs up to 18 PFLOPS sparse",
+  "asOf": "2026-07",
+  "indicatorId": "perfPerWatt",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-05",
+  "capturedAt": "2026-07-05T12:00:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

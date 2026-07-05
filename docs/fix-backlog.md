@@ -514,3 +514,19 @@ F4+F5 (memory + anti-whipsaw), F6 (depth rubric + golden set), F23 (compliance m
 (entity registry), F25 (storage scaling) are **features, not fixes** — each starts with
 superpowers:brainstorming → a spec → a plan, executed with subagent-driven-development as its own
 sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent improvise these.
+
+## F63 eval-run findings (2026-07-04, F63 branch — resolved 2026-07-05)
+
+- **Extraction prompt — corroboration scope**: DONE — folded into F63 before its re-gate
+  (prompt now says "across separately fetched documents (… publishers merely quoted inside
+  one document do not count)"). Origin: 2/2 fresh extract-04 generations counted publishers
+  quoted inside one document toward the 3-distinct-publishers exception.
+- **Extraction prompt — impact.direction enum**: DONE — folded into F63 before its re-gate
+  (SYSTEM now states `direction: positive|negative|mixed`). Origin: all 8 r2 extract brains
+  guessed 'up'/'rising' and failed schema.
+- **registry/acronyms.json — 'CEO'**: DONE — allowlisted, folded into F63 (echoed verbatim
+  from finding text by brains 4x across F62+F63 runs).
+- **Eval infra — multi-attempt bar**: DONE as **eval-v2** (merged to main `c0d5dd2`,
+  2026-07-05): baseline = 3 replicate runs; bar = mean − ε (ε = max(half-range, quantum));
+  marginal fail ⇒ exactly one replication; per-case crater prong at median − 3. Spec:
+  docs/superpowers/specs/2026-07-05-eval-v2-replicate-baseline-design.md.

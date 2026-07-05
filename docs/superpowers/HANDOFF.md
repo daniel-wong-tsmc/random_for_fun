@@ -1,10 +1,56 @@
-# HANDOFF — GPU Category Agent (resume point: F6 FULLY DONE incl. live baseline — the prompt-change gate is ARMED; F69 web-reach layer + F70 last30days MERGED; next = F62)
+# HANDOFF — GPU Category Agent (resume point: F63 GATE PASSED under eval-v2, suite FULLY GREEN on branch — awaiting final review verdict + USER GO to merge)
 
-- **Date:** 2026-07-04 (post-Task-10 refresh)
+- **Date:** 2026-07-05 (post F63 re-gate)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Suite 927 passed / 3 skipped — verified on main after the F70 merge (`7938eb4`). F69 web-reach
-  layer + F70 last30days (2nd web-reach github) both merged 2026-07-04 and pushed to origin. The
-  former baseline-pin skips now RUN (armed by `fixtures/evals/baseline.json`).**
+- **Main is green and pushed** (`9292751`, includes the eval-v2 merge `c0d5dd2`; suite on
+  merged main 1031/4). The F63 branch `f63-corroboration-doctrine` has main merged IN
+  (`a84be52`), the three eval-run fixes folded in (`5923619`), and **PASSED its v2 gate**
+  (`ef52790`): gate run extract 6.625 / judge 7.75 / thesis 6.00 vs bars
+  6.5833/7.3333/5.6667, no craters; rebaselined to the F63 bundle from 3 unfiltered
+  replicates via the `--verdict` governance path (no force). **Suite on the branch:
+  1059 passed / 4 skipped / 0 failed — the pin is GREEN.** Remaining before merge: final
+  whole-branch opus review → push → USER GO. Run journal:
+  `docs/superpowers/eval-notes/2026-07-05-f63-regate-run-notes.md`; raw runs (gitignored):
+  `work/eval-f63-regate-2026-07-05/{r1,r2,r3}` plus the 2026-07-04 runs — never `git clean`.
+
+## HISTORICAL — F63 pre-eval-v2 state (superseded 2026-07-05 by the section above)
+
+- **Tasks 1–7 complete, reviewed, committed** on branch `f63-corroboration-doctrine`
+  (worktree `.worktrees/f63-corroboration` — do NOT `git clean` it; gitignored `work/` holds
+  both eval runs' raw data). Ledger: worktree `.superpowers/sdd/progress.md`.
+  Built: `gpu_agent/publisher.py` (F31 identity, single source of truth); `registry/corroboration.json`
+  (`minDistinctPublishers: 3`) + `config.min_distinct_publishers()`; the ONE sanctioned frozen-core
+  edit — `gate.py` F2e secondary-corroboration exception (contract v1.2→v1.3, migration note in
+  `docs/migrations/2026-07-contract-v1.3.md`); `thesis.py` anti-whipsaw rule-6 corroborated-step
+  (`corroboratedStep` recorded, logged, no auto-resolve); `gpu_agent/sufficiency.py` +
+  evidence-sufficiency gate wired at `judge --recorded` / `pipeline --recorded-judge`
+  (`--no-sufficiency` bypass); three amended SYSTEM prompts (extract corroboration exception,
+  thesis ≥3-publisher reversal exception, judge sufficiency rule); charter Part 37 amendment.
+- **Task 8 (run-eval) ran TWICE and FAILED TWICE** vs the F62 incumbents (extract 6.75 /
+  judge 7.50 / thesis 6.00): attempt 1 = 6.38/7.00/6.00-tie; full replication = 6.38/6.75/5.50.
+  Pre-committed disposition executed: STOP, pin stays red, NO rebaseline, NO --force.
+  **Diagnosis (evidence in the run notes): the deficits are incumbent-bar noise, not F63
+  regressions** — the bar is F62's high-draw attempt 3; identical-prompt runs swing 6.25–7.50;
+  no deduction in either run traces to the F63 prompt changes, and the F63 mechanisms graded
+  WELL (F2e caught the within-document-corroboration error in BOTH runs' fresh generations;
+  a judge visibly kept the prior binding constraint citing single-outlet evidence).
+  Durable notes (committed): `docs/superpowers/eval-notes/2026-07-04-f63-run-notes.md`.
+  Raw runs (gitignored): worktree `work/eval-f63-2026-07-04/` and `-r2/`.
+- **RECOMMENDATION MADE TO USER (2026-07-05), NOT YET APPROVED — do not start without a user go:**
+  build **eval-v2** as its own feature (brainstorm → spec → plan → SDD, branch from main):
+  (1) baseline = N=3 replicate runs storing per-seam mean + per-run scores + per-case medians;
+  (2) gate = one fresh run vs baseline-mean − ε (ε computed from the stored replicates,
+  deterministic); marginal fail auto-triggers exactly ONE replication, two-run mean decides,
+  hard stop; (3) add a per-case crater prong (fail if any case drops ≥3 vs its baseline median);
+  (4) frozen negatives unchanged. Then re-gate F63 under the new rule (no judgment-call pass).
+  Optional fold-in to F63 before its re-gate (user to confirm): the two proven prompt
+  clarifications — corroboration counts publishers "across separately fetched documents",
+  and state the `impact.direction` enum — plus the `CEO` acronyms.json allowlist entry.
+  User's alternatives if they reject eval-v2: A force-rebaseline / B more replications / D hold.
+- **F63 merge blockers (in order):** user decision on eval-v2 → gate PASS → final whole-branch
+  review (opus, review-package from merge-base; not yet run) → rebase/merge onto current main
+  (main advanced past F63's base — careful with shared frozen files) → USER GO to merge.
+- Fix-backlog additions from the runs are in `docs/fix-backlog.md` ("F63 eval-run findings").
 
 ## ⚠ 2026-07-05: EVAL-V2 MERGED (`c0d5dd2`) — the eval gate rule CHANGED
 
@@ -52,12 +98,11 @@ run `.claude/skills/run-eval/SKILL.md` (re-dispatch brains + graders), then
 `gpu-agent eval rebaseline`, and commit the new baseline WITH the prompt change. F57/F58/F62/F63
 prompt work all flows through this gate.
 
-## IMMEDIATE NEXT TASK — F62 (flagship consumes the daily store)
+## IMMEDIATE NEXT TASK — await user decision on eval-v2, then either build it or execute the chosen F63 disposition
 
-Per the approved sequence (step 0 F6 ✅ → **F62** → F63 → F57/F58/F59 → F60 → F64 → F65 → F66).
-F62 starts with brainstorming per charter. F56 remains a safe tiny side item. Interacts with F52
-vintage ids + L2 dedup; the monthly flagship currently discards everything the dailies learned
-(see the F62 backlog entry).
+Sequence position: F62 ✅ MERGED (`eb925bc`) → **F63 BUILT/BLOCKED (see top section)** →
+F57/F58/F59 → F60 → F64 → F65 → F66. Eval-v2, if approved, slots in as its own feature before
+F63's re-gate. F56 remains a safe tiny side item.
 
 ## Newest state (newest first)
   - **`docs/roadmap.md` — the phased roadmap from this one desk to the full charter product

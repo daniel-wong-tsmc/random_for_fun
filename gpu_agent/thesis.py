@@ -472,22 +472,10 @@ def lint_thesis_prose(statement: str, mechanism: str) -> list[str]:
 
 # --- apply (spec §3 rules 5-7: promotion, anti-whipsaw, retirement) ---
 
-try:
-    # F31's corroboration key, defined in wiki/lifecycle.py: keys by the evidence URL's
-    # registered netloc (www.-stripped, lowercased), falling back to the source string.
-    # Reused verbatim (not re-derived) so the two publisher-identity notions never drift.
-    from gpu_agent.wiki.lifecycle import _publisher_key as _evidence_publisher
-except ImportError:  # pragma: no cover - defensive; wiki.lifecycle is a sibling module today
-    from urllib.parse import urlparse
-
-    def _evidence_publisher(evidence) -> str:
-        """Mirrors wiki/lifecycle.py's F31 `_publisher_key` helper (copied here only because
-        the import above failed): publisher = evidence URL netloc, www.-stripped and
-        lowercased; falls back to the evidence `source` string when the URL has no netloc."""
-        netloc = urlparse(evidence.url).netloc.lower()
-        if netloc.startswith("www."):
-            netloc = netloc[4:]
-        return netloc or evidence.source.strip().lower()
+# F31 identity — shared module (gpu_agent/publisher.py) since F63; wiki/lifecycle re-exports
+# the same object, so the two publisher-identity notions can never drift.
+from gpu_agent.publisher import publisher_key as _evidence_publisher
+from gpu_agent.config import min_distinct_publishers
 
 
 _RANK_TO_CONVICTION = {rank: name for name, rank in CONVICTION_RANK.items()}
@@ -556,11 +544,15 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
         (direction != 0 and entry.lastDirection != 0 and direction != entry.lastDirection)
         or verdict == "broken"
     )
-    applied = (
-        confirmed_by_pending
-        or not is_reversal
-        or _has_primary(judgment.findingIds, findings_by_id)
+    has_primary = _has_primary(judgment.findingIds, findings_by_id)
+    # F63 rule-6 amendment: a corroborated secondary-only reversal (>=N distinct
+    # publishers across the cited findings — `domains` is already the F31 key set)
+    # applies instead of deferring; the next filing remains the confirm/deny checkpoint.
+    corroborated_step = (
+        is_reversal and not confirmed_by_pending and not has_primary
+        and len(domains) >= min_distinct_publishers()
     )
+    applied = confirmed_by_pending or not is_reversal or has_primary or corroborated_step
 
     if applied:
         if verdict == "broken":
@@ -571,11 +563,17 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
             new_conviction = _bump_conviction(entry.conviction, -1)
         else:  # reaffirmed / adjusted: unchanged
             new_conviction = entry.conviction
-        note = f"{entry.id}: {verdict} applied, conviction {entry.conviction}->{new_conviction}"
-        extra_note = None
+        if corroborated_step:
+            note = (f"{entry.id}: applied: corroborated secondary reversal "
+                    f"({len(domains)} distinct publishers; pending filing checkpoint)")
+            extra_note = note          # checkpoint steps are never silent
+        else:
+            note = f"{entry.id}: {verdict} applied, conviction {entry.conviction}->{new_conviction}"
+            extra_note = None
     else:
         new_conviction = entry.conviction
-        note = f"{entry.id}: deferred: secondary-only reversal"
+        note = (f"{entry.id}: deferred: secondary-only reversal "
+                f"({len(domains)} distinct publishers < {min_distinct_publishers()})")
         extra_note = note
 
     record = {
@@ -591,6 +589,7 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
         "sensitivity": judgment.sensitivity,
         "note": note,
         "publisherDomains": domains,
+        "corroboratedStep": corroborated_step,
     }
     return lapsed_record, record, extra_note
 
@@ -711,7 +710,7 @@ You must judge EVERY standing thesis in <book> below exactly once, choosing a ve
 
 Every judgment needs mechanism, falsifiableTrigger, and sensitivity: mechanism states the causal link driving the thesis; falsifiableTrigger names a concrete, checkable observable that would prove the thesis wrong (EXAMPLE: "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters."); sensitivity names what the thesis is most sensitive to. A trigger that names no observable will be rejected. The observable check is deterministic (v1): a falsifiableTrigger passes ONLY if it contains a registered indicator id verbatim, a digit, or one of the words quarter, qtr, month, week, cycle.
 
-Anti-whipsaw: a reversal without primary evidence is recorded but not applied — judge honestly regardless of that consequence; do not soften a verdict merely because you lack primary evidence for it.
+Anti-whipsaw: a reversal without primary evidence is recorded but not applied unless its cited findings span at least 3 distinct publishers — judge honestly regardless of that consequence; do not soften a verdict merely because you lack primary or corroborated evidence for it.
 
 You may also propose new theses grounded in findings that fit no standing thesis; each proposal needs its own rationale and findingIds, plus the same depth fields (mechanism/falsifiableTrigger/sensitivity).
 

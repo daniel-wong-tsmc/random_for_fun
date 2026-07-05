@@ -7,7 +7,8 @@ _SYSTEM_TEMPLATE = """You extract demand/supply Findings from a source document 
 
 Return ONLY a JSON object of the form {"drafts": [ ... ]} where each draft has these fields:
 statement, kind (measured|observed|hypothesis), value ({number,unit} only when kind=measured,
-otherwise null), trend (rising|falling|flat|unknown), why, impact ({targets,direction,mechanism}),
+otherwise null), trend (rising|falling|flat|unknown), why,
+impact ({targets, direction: positive|negative|mixed, mechanism}),
 evidence (list of {source,url,date,excerpt}), reasoning (only for hypothesis, else null),
 confidence ({level,basis}), dispersion (or null), indicatorId,
 polarityDemand (-1|0|1), polaritySupply (-1|0|1), magnitude (1|2|3), entity, observedAt.
@@ -21,8 +22,11 @@ Rules (binding):
   (polarityDemand or polaritySupply non-zero).
 - A hypothesis needs reasoning and confidence at most medium.
 - A Finding whose only supporting evidence is secondary (open-web rather than an authoritative
-  filing) must set confidence at most medium; only primary (filing) evidence may support high
-  confidence.
+  filing) must set confidence at most medium — unless its evidence spans at least
+  3 distinct publishers across separately fetched documents (distinct outlets, not syndication
+  of one story; publishers merely quoted inside one document do not count), which may support
+  high confidence with the corroboration named in the basis. Primary (filing) evidence always
+  supports high confidence.
 - evidence.excerpt must be a verbatim quote from the document; evidence.url must be the
   document's own url.
 - evidence.date is the document's PUBLICATION date, never the fetch date; ISO YYYY-MM-DD.

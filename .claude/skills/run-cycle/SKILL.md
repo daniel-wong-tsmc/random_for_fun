@@ -46,10 +46,14 @@ report the rest `skipped-no-assignment` (surfaced, never dropped).
 
 ### 1. Resolve the scope to a cycle plan (deterministic — no LLM)
 ```
-.venv/Scripts/python -m gpu_agent.cli cycle-plan --scope <scope> --out store/cycle-log.json
+.venv/Scripts/python -m gpu_agent.cli cycle-plan --scope <scope> --out work/<run-dir>/cycle-plan.json
 ```
-This prints the plan and writes the initial cycle log. Categories with no assignment are printed to stderr as
-`SKIPPED <id>: skipped-no-assignment` — report these; do not chase them.
+where `<run-dir>` is this run's scratch directory (the same one the gather/answer artifacts use,
+e.g. `daily-<date>` or `<category>-<asOf>`); create it first. **Never point `--out` at
+`store/cycle-log.json`** — that file is the previous cycle's finalized journal, and overwriting it
+at run start is how the 2026-07-05 clobber happened; the CLI now refuses (F74). Categories with no
+assignment are printed to stderr as `SKIPPED <id>: skipped-no-assignment` — report these; do not
+chase them.
 
 ### 2. Preview / confirm gate (cost control)
 - **Single category** (`category:<id>`): proceed immediately.
@@ -237,13 +241,24 @@ scope, name which layer(s) would be assessed.
 Report: "Main / market-state: deferred — not yet built."
 
 ### 6. Finalize the cycle log
-Update `store/cycle-log.json` with, per ready category: its scorecard path + DMI/SMI, the saved answer
-artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`),
+Author this run's journal into `store/cycle-log.json`, starting from the plan
+(`work/<run-dir>/cycle-plan.json`) and adding the run header — **`asOf`, `mode`, and
+`capturedAt` are required** (the suite's journal tripwire rejects a log without `asOf`) — then
+enriching, per ready category: its scorecard path + DMI/SMI,
+the saved answer artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`),
 the corpus artifacts (`corpus-coverage.json`, `corpus-findings.json`, `deduped-fresh.json`,
 `corpus-report.json`) and the corpus counts (store in-window / fresh new / update / duplicate),
 and the tier-stage statuses
 (`category: done` | `failed` | `skipped`, `thesis: done` | `failed` | `skipped`, `layer: deferred`,
-`main: deferred`).
+`main: deferred`). A category that was `ready` in the plan but skipped mid-run (e.g. zero docs
+at gather) must have its entry `status` updated to the skip reason — never left `"ready"` and
+bare (the tripwire reads a bare `ready` entry as a clobbered journal).
+F74 guardrails: at this point `store/cycle-log.json` holds the PREVIOUS cycle's finalized journal.
+If `git status` shows it already modified (uncommitted), STOP and reconcile first — an unfinalized
+run, possibly another instance's, owns it (restore or wait; never overwrite it). Replacing a
+*committed* journal is fine — history lives in git. Never leave the file as a bare plan skeleton:
+the suite's `tests/test_store_cycle_log_integrity.py` tripwire goes red on a skeleton and blocks
+the commit.
 
 ### 7. Report
 The scope, categories run (with scorecard paths + DMI/SMI), the thesis stage's status per category (done /

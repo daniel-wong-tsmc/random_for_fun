@@ -40,7 +40,7 @@ from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.structure import Taxonomy
 from gpu_agent.registry.validate import validate_assignment
-from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
+from gpu_agent.cycle import AssignmentProvider, CycleEntry, CyclePlan, build_cycle_plan
 from gpu_agent.report import load_scorecard, find_prior, render_report
 from gpu_agent.evals.cases import load_cases, CaseError
 from gpu_agent.evals.harness import (
@@ -803,13 +803,44 @@ def _pipeline(args) -> int:
           f"SMI={sc.demandSupply.smiContribution:.3f}")
     return 0
 
+# F74 — a bare plan is regenerable; anything richer is a finalized run journal (or unknown
+# content) and cycle-plan must never destroy it. Journals are session-authored at finalize.
+# Key sets derive from the models so a schema change can never drift them out of sync.
+_PLAN_TOP_KEYS = set(CyclePlan.model_fields)
+_PLAN_ENTRY_KEYS = set(CycleEntry.model_fields)
+_PLAN_STAGE_KEYS = {"tier", "status"}  # stages is list[dict[str,str]] — no model to derive from
+
+def _is_bare_plan(payload) -> bool:
+    if not isinstance(payload, dict) or set(payload) - _PLAN_TOP_KEYS:
+        return False
+    entries, stages = payload.get("entries"), payload.get("stages")
+    if not isinstance(entries, list) or not isinstance(stages, list):
+        return False   # null/absent/mis-typed containers are unrecognized content, not bare
+    return (all(isinstance(e, dict) and not (set(e) - _PLAN_ENTRY_KEYS) for e in entries)
+            and all(isinstance(s, dict) and not (set(s) - _PLAN_STAGE_KEYS) for s in stages))
+
 def _cycle_plan(args) -> int:
     taxonomy = Taxonomy.load(args.taxonomy)
     provider = AssignmentProvider(args.assignments)
     plan = build_cycle_plan(args.scope, taxonomy, provider)   # raises ValueError on bad scope
     payload = plan.model_dump_json(indent=2)
     if args.out:
-        pathlib.Path(args.out).write_text(payload, encoding="utf-8")
+        out_path = pathlib.Path(args.out)
+        if out_path.exists():
+            try:
+                # utf-8-sig: a BOM added by a Windows editor must not disguise a bare plan
+                existing = json.loads(out_path.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+                existing = None      # unreadable/unparseable (or a directory): refuse below
+            if not _is_bare_plan(existing):
+                print(f"gpu-agent cycle-plan: error: refusing to overwrite {out_path} — it "
+                      f"holds a finalized run journal (or unrecognized content), not a "
+                      f"regenerable plan skeleton. Write the plan into the run's work/ dir; "
+                      f"the canonical journal is session-authored at finalize (F74). If the "
+                      f"target is known scratch (e.g. a truncated plan), delete it and re-run.",
+                      file=sys.stderr)
+                return 1
+        out_path.write_text(payload, encoding="utf-8")
     print(payload)
     for e in plan.entries:
         if e.status != "ready":

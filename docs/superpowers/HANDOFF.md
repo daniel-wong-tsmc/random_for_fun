@@ -1,12 +1,19 @@
-# HANDOFF — GPU Category Agent (resume point: F63 BUILT but eval-gate BLOCKED-on-user; recommended next = eval-v2 replicate baseline, AWAITING USER GO)
+# HANDOFF — GPU Category Agent (resume point: F63 GATE PASSED under eval-v2, suite FULLY GREEN on branch — awaiting final review verdict + USER GO to merge)
 
-- **Date:** 2026-07-05 (F63 Task-8 disposition refresh)
+- **Date:** 2026-07-05 (post F63 re-gate)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Main is green and pushed** (main == origin/main at `a545c92`). The F63 branch
-  `f63-corroboration-doctrine` is pushed to origin (11+ commits, base `7a0ebbe`) and is
-  deliberately RED on `tests/test_evals_baseline_pin.py` only — see the F63 section below.
+- **Main is green and pushed** (`9292751`, includes the eval-v2 merge `c0d5dd2`; suite on
+  merged main 1031/4). The F63 branch `f63-corroboration-doctrine` has main merged IN
+  (`a84be52`), the three eval-run fixes folded in (`5923619`), and **PASSED its v2 gate**
+  (`ef52790`): gate run extract 6.625 / judge 7.75 / thesis 6.00 vs bars
+  6.5833/7.3333/5.6667, no craters; rebaselined to the F63 bundle from 3 unfiltered
+  replicates via the `--verdict` governance path (no force). **Suite on the branch:
+  1059 passed / 4 skipped / 0 failed — the pin is GREEN.** Remaining before merge: final
+  whole-branch opus review → push → USER GO. Run journal:
+  `docs/superpowers/eval-notes/2026-07-05-f63-regate-run-notes.md`; raw runs (gitignored):
+  `work/eval-f63-regate-2026-07-05/{r1,r2,r3}` plus the 2026-07-04 runs — never `git clean`.
 
-## ⚠ CURRENT STATE — F63 (corroboration doctrine): BUILT, EVAL GATE BLOCKED-ON-USER
+## HISTORICAL — F63 pre-eval-v2 state (superseded 2026-07-05 by the section above)
 
 - **Tasks 1–7 complete, reviewed, committed** on branch `f63-corroboration-doctrine`
   (worktree `.worktrees/f63-corroboration` — do NOT `git clean` it; gitignored `work/` holds

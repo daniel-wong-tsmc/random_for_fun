@@ -1,0 +1,50 @@
+{
+  "id": "tech-yahoo-com-71aaa132-2026-07-05-1",
+  "statement": "Meituan's 1.6-trillion-parameter LongCat-2.0 was trained on roughly 50,000 Chinese domestic accelerators without Nvidia chips, demonstrating emerging non-Nvidia frontier-training capability despite acknowledged memory and software-ecosystem constraints.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A frontier-scale model trained entirely on domestic Chinese silicon signals a maturing alternative to Nvidia GPUs that could erode Nvidia's addressable China demand over time, though memory-per-device and software-ecosystem gaps still limit near-term substitution.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.ai-silicon-startups",
+      "models.frontier-closed"
+    ],
+    "direction": "mixed",
+    "mechanism": "Demonstrated frontier training on ~50,000 domestic accelerators validates non-Nvidia compute supply and pressures Nvidia's China moat, but stated memory and software-maturity constraints cap how quickly it substitutes for Nvidia."
+  },
+  "evidence": [
+    {
+      "source": "Yahoo Tech (BeInCrypto syndication)",
+      "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+      "date": "2026-06-30",
+      "excerpt": "Meituan's LongCat-2.0 becomes the biggest AI model trained without Nvidia chips",
+      "tier": "secondary"
+    },
+    {
+      "source": "Yahoo Tech (BeInCrypto syndication)",
+      "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+      "date": "2026-06-30",
+      "excerpt": "Domestic accelerators carry less memory per device than NVIDIA's banned H800 chip",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (BeInCrypto syndicated via Yahoo Tech); vendor-reported benchmarks and hardware counts not independently verified."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Yahoo Tech (BeInCrypto syndication), ZLUDA project blog (vosen.github.io)",
+  "asOf": "2026-07-05",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": -1,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-05T13:20:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

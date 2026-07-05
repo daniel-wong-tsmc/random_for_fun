@@ -1,0 +1,646 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07-05",
+  "findings": [
+    {
+      "id": "finance-yahoo-com-f1703d5e-2026-07-05-1",
+      "statement": "Taiwan's Keelung prosecutors expanded a criminal probe into the smuggling of Nvidia AI chips into China via Super Micro servers, raiding Super Micro's Taiwan office and affiliates, signalling intensifying enforcement around Nvidia hardware diversion.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Escalating enforcement against diversion of Nvidia AI chips into China raises export-control and China-revenue risk for Nvidia and could presage tighter Taiwanese controls on AI-chip exports.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "A widening smuggling probe tightens the gray-market channel that moves Nvidia chips into China and raises the odds of criminalized export controls, constraining Nvidia's China-related sales exposure."
+      },
+      "evidence": [
+        {
+          "source": "Yahoo Finance (Bloomberg syndication)",
+          "url": "https://finance.yahoo.com/technology/ai/articles/super-micro-office-raided-taiwan-175946955.html",
+          "date": "2026-06-30",
+          "excerpt": "Taiwan's Keelung District Prosecutors Office raided Super Micro Computer Inc.'s Taiwan offices on Monday (June 29) as part of an expanded investigation into alleged smuggling of Nvidia AI chips into China using the company's servers.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (Bloomberg story syndicated via Yahoo Finance); qualitative enforcement event with no Nvidia financial figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-2026-07-05-1",
+      "statement": "Lambda GPU Cloud lists on-demand per-GPU hourly rental rates for Nvidia GPUs, e.g. H100 SXM at $3.99/hr on an 8x instance, a static price level with no stated baseline or change.",
+      "kind": "measured",
+      "value": {
+        "number": 3.99,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Records the prevailing Nvidia GPU cloud rental price level as a daily display overlay; no baseline or change is stated, so it does not indicate demand or supply direction.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "On-demand rental price level for Nvidia GPUs at a neocloud; display overlay only, auto-excluded from the index and not a demand/supply signal."
+      },
+      "evidence": [
+        {
+          "source": "Lambda (Lambda GPU Cloud)",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-05",
+          "excerpt": "NVIDIA H100 SXM $3.99/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own pricing page (secondary tier); no as-of date stated, price level only."
+      },
+      "dispersion": "Per-GPU-hr rates span from Quadro RTX 6000 at $0.69/hr to B200 SXM6 at $6.99/hr (1x) across the listed instances.",
+      "asOf": "2026-07-05",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-05",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "startupfortune-com-6857e872-2026-07-05-1",
+      "statement": "Nvidia has scaled a CFO-approved vendor-financing programme that helps smaller cloud providers buy its GPUs, guarantees to rent back idle capacity and takes revenue share, backing roughly 210,000 high-end GPUs across Firmus and Sharon AI.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Vendor financing and utilization guarantees backstop near-term demand for Nvidia GPUs among neoclouds, but shift operating and utilization risk back onto Nvidia and raise questions about the durability of that demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "By financing GPU purchases and guaranteeing utilization for smaller clouds, Nvidia pulls forward and props up demand for its own GPUs while absorbing downside/utilization risk, and inserts itself alongside hyperscaler customers it also competes with."
+      },
+      "evidence": [
+        {
+          "source": "Startup Fortune",
+          "url": "https://startupfortune.com/nvidia-has-quietly-become-the-bank-behind-the-ai-boom/",
+          "date": "2026-07-05",
+          "excerpt": "It is helping them finance the purchase of its GPUs, agreeing to rent back unused capacity if those machines sit idle, and taking a share of the revenue generated by the infrastructure.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Startup Fortune",
+          "url": "https://startupfortune.com/nvidia-has-quietly-become-the-bank-behind-the-ai-boom/",
+          "date": "2026-07-05",
+          "excerpt": "Together, that's around 210,000 high-end GPUs operating under financing arrangements Nvidia helped put together.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary analysis piece keyed to a report from The Information (not independently fetched); commercial details of the financing are not public."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-05",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "tech-yahoo-com-71aaa132-2026-07-05-1",
+      "statement": "Meituan's 1.6-trillion-parameter LongCat-2.0 was trained on roughly 50,000 Chinese domestic accelerators without Nvidia chips, demonstrating emerging non-Nvidia frontier-training capability despite acknowledged memory and software-ecosystem constraints.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A frontier-scale model trained entirely on domestic Chinese silicon signals a maturing alternative to Nvidia GPUs that could erode Nvidia's addressable China demand over time, though memory-per-device and software-ecosystem gaps still limit near-term substitution.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "models.frontier-closed"
+        ],
+        "direction": "mixed",
+        "mechanism": "Demonstrated frontier training on ~50,000 domestic accelerators validates non-Nvidia compute supply and pressures Nvidia's China moat, but stated memory and software-maturity constraints cap how quickly it substitutes for Nvidia."
+      },
+      "evidence": [
+        {
+          "source": "Yahoo Tech (BeInCrypto syndication)",
+          "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+          "date": "2026-06-30",
+          "excerpt": "Meituan's LongCat-2.0 becomes the biggest AI model trained without Nvidia chips",
+          "tier": "secondary"
+        },
+        {
+          "source": "Yahoo Tech (BeInCrypto syndication)",
+          "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+          "date": "2026-06-30",
+          "excerpt": "Domestic accelerators carry less memory per device than NVIDIA's banned H800 chip",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (BeInCrypto syndicated via Yahoo Tech); vendor-reported benchmarks and hardware counts not independently verified."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "vosen-github-io-96638c47-2026-07-05-1",
+      "statement": "ZLUDA, the most prominent open-source layer for running unmodified CUDA applications on non-Nvidia GPUs, has lost its commercial funding and is winding down to hobby-level maintenance, weakening a path for AMD/Intel GPUs to run CUDA workloads.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "The retreat of the leading CUDA-compatibility layer reinforces Nvidia's CUDA software lock-in and reduces the near-term viability of AMD/Intel GPUs as drop-in alternatives, supporting continued preference for Nvidia hardware.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.cluster-software"
+        ],
+        "direction": "positive",
+        "mechanism": "Loss of commercial funding for the main open-source CUDA-on-non-Nvidia layer weakens an alternative-supply/portability path, strengthening Nvidia's CUDA lock-in and its competitive position versus AMD/Intel."
+      },
+      "evidence": [
+        {
+          "source": "ZLUDA project blog (vosen.github.io)",
+          "url": "https://vosen.github.io/ZLUDA/blog/zluda-update-q1q2-2026/",
+          "date": "2026-06-29",
+          "excerpt": "ZLUDA allows to run unmodified CUDA applications on non-NVIDIA GPUs.",
+          "tier": "secondary"
+        },
+        {
+          "source": "ZLUDA project blog (vosen.github.io)",
+          "url": "https://vosen.github.io/ZLUDA/blog/zluda-update-q1q2-2026/",
+          "date": "2026-06-29",
+          "excerpt": "the most prominent open-source CUDA-compatibility layer for AMD/Intel GPUs has lost its commercial funding and is winding down to hobby-level maintenance.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (the project's own blog); indirect competitive signal with no benchmarks or market-share data."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": -1,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-coreweave-com-eb7fcb71-2026-07-05-1",
+      "statement": "CoreWeave lists North America on-demand Nvidia GPU instance prices, e.g. HGX H100 (8 GPUs) at $49.24/hour (= $6.155/GPU-hr), a static price level with no stated baseline or change.",
+      "kind": "measured",
+      "value": {
+        "number": 6.155,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Records the prevailing Nvidia GPU cloud rental price level at a neocloud as a display overlay; no baseline or change is stated, so it carries no demand/supply direction.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "On-demand rental price level for Nvidia GPUs at CoreWeave; display overlay only, auto-excluded from the index and not a demand/supply signal."
+      },
+      "evidence": [
+        {
+          "source": "CoreWeave",
+          "url": "https://www.coreweave.com/pricing",
+          "date": "2026-07-05",
+          "excerpt": "HGX H100 (8 GPUs) $49.24/hour (= $6.155/GPU-hr)",
+          "tier": "secondary"
+        },
+        {
+          "source": "CoreWeave",
+          "url": "https://www.coreweave.com/pricing",
+          "date": "2026-07-05",
+          "excerpt": "GB200 NVL72 (4 GPUs) $42.00/hour (= $10.50/GPU-hr)",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own pricing page (secondary tier); no explicit publication/update date, price level only."
+      },
+      "dispersion": "Per-GPU-hr conversions range from A100 at $2.70/GPU-hr to GB200 NVL72 at $10.50/GPU-hr across the listed instances.",
+      "asOf": "2026-07-05",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-05",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-e48a6e49-2026-07-05-1",
+      "statement": "DigiTimes reports AI demand in 2026 is broadening beyond GPUs into ASICs, networking, PMICs and peripheral ICs, tightening TSMC capacity across 8-inch and 12-inch nodes plus CoWoS packaging and HBM, giving foundries pricing power.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Broad foundry/packaging/HBM capacity tightness and rising foundry pricing power constrain and raise the cost of the wafers, CoWoS packaging and HBM that Nvidia GPUs depend on, pressuring Nvidia's supply availability and input costs.",
+      "impact": {
+        "targets": [
+          "chips.foundry-packaging",
+          "chips.hbm-memory",
+          "chips.merchant-gpu",
+          "chips.networking-silicon"
+        ],
+        "direction": "mixed",
+        "mechanism": "AI demand spreading across mature and advanced nodes plus CoWoS and HBM tightens upstream capacity and hands foundries pricing power, constraining supply and raising input costs for Nvidia GPUs while benefiting foundry/packaging and HBM suppliers."
+      },
+      "evidence": [
+        {
+          "source": "DigiTimes",
+          "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+          "date": "2026-06-30",
+          "excerpt": "AI demand in 2026 is no longer confined to GPUs, but is broadening into ASICs, networking, PMICs, and a wide range of peripheral ICs, tightening capacity across both 8-inch mature processes and 12-inch advanced nodes.",
+          "tier": "secondary"
+        },
+        {
+          "source": "DigiTimes",
+          "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+          "date": "2026-06-30",
+          "excerpt": "AI hands foundries pricing power: TSMC leads, but the boom spreads industry-wide",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "Subscriber-only DigiTimes article with only the headline and opening paragraph visible; qualitative channel-check signal with no figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "leadTimes",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-d3c91348-2026-07-05-1",
+      "statement": "A U.S. SDNY indictment charged three Supermicro-associated individuals with conspiracy to commit export-control violations; Supermicro's filings note U.S. export restrictions impacted products containing Nvidia A100 and H100 chips, underscoring Nvidia's export-control/China-revenue exposure.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "An unsealed export-control indictment plus disclosed export restrictions on products containing Nvidia A100/H100 chips evidence a tightening enforcement environment that constrains China-related sales of Nvidia-equipped hardware.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "U.S. export-control enforcement and restrictions affecting products that contain Nvidia A100/H100 integrated circuits limit China-related sales, elevating Nvidia's China-revenue and export-control exposure."
+      },
+      "evidence": [
+        {
+          "source": "Super Micro Computer, Inc. (SEC Form 8-K)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001375365/000137536526000011/a991.htm",
+          "date": "2026-03-20",
+          "excerpt": "Supermicro was informed today that the United States Attorney's Office for the Southern District of New York has unsealed an indictment of three individuals associated with the Company in connection with an alleged conspiracy to commit export-control violations.",
+          "tier": "primary"
+        },
+        {
+          "source": "Super Micro Computer, Inc. (SEC Form 8-K)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001375365/000137536526000011/a991.htm",
+          "date": "2026-03-20",
+          "excerpt": "impacted certain of our products, including products that contain the NVIDIA A100 and H100 integrated circuits, among others.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC filing (Supermicro Form 8-K), with the Nvidia A100/H100 link corroborated by Supermicro's separate risk-factors exhibit quoted in the document."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-03-20",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tomshardware-com-0169805b-2026-07-05-1",
+      "statement": "Taiwan raided Supermicro's Taiwan office and eight other sites in its first criminal probe into diversion of Nvidia AI chips to China, paralleling a U.S. indictment alleging roughly $2.5 billion of Nvidia-equipped servers were diverted to China.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A widening Taiwan probe plus a U.S. case over ~$2.5B of diverted Nvidia-equipped servers, and proposed Taiwanese legislation restricting AI-chip sales to all China customers, all point to intensifying export-control risk around Nvidia hardware bound for China.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Escalating criminal enforcement and potential new legislation targeting diversion of Nvidia AI chips to China tighten the channels supplying China and raise Nvidia's China-revenue/export-control exposure."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware",
+          "url": "https://www.tomshardware.com/tech-industry/taiwan-raids-super-micro-and-two-supply-chain-partners-in-widening-nvidia-smuggling-probe",
+          "date": "2026-06-30",
+          "excerpt": "Taiwan's Keelung District Prosecutors' Office raided Supermicro Computer's Taiwan office on Monday, along with the homes of six individuals and three affiliated company sites, expanding the island's first criminal investigation into the diversion of Nvidia AI chips to China.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Tom's Hardware",
+          "url": "https://www.tomshardware.com/tech-industry/taiwan-raids-super-micro-and-two-supply-chain-partners-in-widening-nvidia-smuggling-probe",
+          "date": "2026-06-30",
+          "excerpt": "A federal indictment charges Supermicro co-founder Yih-Shyan \"Wally\" Liaw with conspiring to divert roughly $2.5 billion in Nvidia-equipped servers to China through a Southeast Asian front company, using dummy servers and serial-number labels lifted with heat to deceive auditors.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (Tom's Hardware); corroborated by parallel filings but no primary evidence cited within this document."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tomshardware-com-df64dd8f-2026-07-05-1",
+      "statement": "Nvidia is likely to prioritize cutting-edge wafer capacity for high-margin data-center Rubin GPUs over entry-level consumer Blackwell parts, constraining low-end desktop GPU supply and keeping prices elevated, as the RTX 3060 12GB is revived on trailing-edge Samsung 8nm.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "rising",
+      "why": "If AI/data-center wafer demand keeps rising, the opportunity cost of making entry-level consumer GPUs on cutting-edge nodes rises, so Nvidia may divert leading-node capacity to data-center Rubin parts, squeezing consumer GPU supply while reviving trailing-edge cards like the RTX 3060 as a workaround.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.foundry-packaging"
+        ],
+        "direction": "mixed",
+        "mechanism": "Growing data-center Rubin wafer demand raises the opportunity cost of entry-level consumer Blackwell production, incentivizing Nvidia to reallocate cutting-edge capacity to high-margin DC GPUs, constraining low-end consumer GPU supply and sustaining elevated prices while trailing-edge nodes backfill legacy cards."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware",
+          "url": "https://www.tomshardware.com/pc-components/gpus/legacy-nvidia-rtx-3060-12gb-returns-to-retail-five-years-after-original-launch-priced-at-usd339-resurrected-gpu-strategy-that-jensen-called-a-good-idea-apparently-comes-to-fruition",
+          "date": "2026-06-29",
+          "excerpt": "As AI wafer demand on cutting-edge nodes only grows, it's possible that simple economics dictate that the opportunity cost of producing entry-level Blackwell GPUs for the desktop is simply too great compared to the revenue and margin opportunities of making data center Rubin GPUs for the countless Vera Rubin NVL72 racks that the company is doubtless planning to ship later this year.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Tom's Hardware",
+          "url": "https://www.tomshardware.com/pc-components/gpus/legacy-nvidia-rtx-3060-12gb-returns-to-retail-five-years-after-original-launch-priced-at-usd339-resurrected-gpu-strategy-that-jensen-called-a-good-idea-apparently-comes-to-fruition",
+          "date": "2026-06-29",
+          "excerpt": "In the event that Nvidia does prioritize datacenter products over consumer ones, the already elevated prices of entry-level RTX 50-series cards might give way to a situation where one simply can't buy these lower-priced, lower-margin products at any cost.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "The document frames this as speculative ('it's possible', 'In the event that'), but the reasoning is grounded: rising AI wafer demand on leading nodes, higher margins on data-center Rubin GPUs, Jensen Huang's CES comment endorsing trailing-edge revivals, and the observed reappearance of the RTX 3060 12GB on non-constrained Samsung 8nm together support a shift of cutting-edge capacity toward DC parts. It stays a hypothesis because Nvidia has disclosed no allocation figures.",
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary analyst reasoning from Tom's Hardware plus an observed RTX 3060 revival and a prior CES remark; explicitly speculative with no wafer-allocation figures, so capped at medium."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "leadTimes",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    }
+  ],
+  "dimensionRatings": {
+    "bottleneck": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "www-digitimes-com-e48a6e49-2026-07-05-1",
+        "www-tomshardware-com-df64dd8f-2026-07-05-1"
+      ],
+      "rationale": "TSMC capacity is tightening across 8-inch and 12-inch nodes plus CoWoS and HBM as AI demand broadens into ASICs and networking, handing foundries pricing power. Nvidia is routing scarce wafers to high-margin Rubin ahead of consumer parts, confirming supply stays constrained.",
+      "voteSpread": "2/3 Mixed, 1/3 Weak"
+    },
+    "competitiveStructure": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "tech-yahoo-com-71aaa132-2026-07-05-1",
+        "vosen-github-io-96638c47-2026-07-05-1"
+      ],
+      "rationale": "Meituan trained a 1.6-trillion-parameter model on roughly 50,000 Chinese domestic accelerators without Nvidia chips, proving credible non-Nvidia frontier training now exists. That demonstration outweighs the shutdown of the leading open-source layer that let Nvidia-only software run on rival GPUs, and holds the competitive position at Mixed.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "momentum": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "startupfortune-com-6857e872-2026-07-05-1"
+      ],
+      "rationale": "Nvidia's vendor-financing program, approved by its finance chief, now backs roughly 210,000 high-end GPUs across Firmus and Sharon AI, guaranteeing rent-back and taking revenue share. That committed scale shows demand widening and keeps orders flowing.",
+      "voteSpread": "3/3 Strong"
+    },
+    "strategicRisk": {
+      "rating": "Weak",
+      "direction": "worsening",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "finance-yahoo-com-f1703d5e-2026-07-05-1",
+        "www-sec-gov-d3c91348-2026-07-05-1",
+        "www-tomshardware-com-0169805b-2026-07-05-1"
+      ],
+      "rationale": "A federal indictment in Manhattan and Taiwan's Keelung raids on Supermicro target roughly $2.5 billion of Nvidia-equipped servers diverted to China, with enforcement widening across both jurisdictions. Intensifying prosecution tightens the ceiling on Nvidia's China revenue and pulls this to Weak.",
+      "voteSpread": "3/3 Weak"
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.039999999999999994,
+    "smiContribution": -0.02666666666666667,
+    "anchors": {
+      "strategicRisk": -0.6666666666666666,
+      "momentum": 0.6666666666666666,
+      "competitiveStructure": -0.16666666666666666,
+      "bottleneck": -0.6666666666666666
+    },
+    "sdgi": 0.06666666666666667,
+    "sdgiDirection": "demand-led"
+  },
+  "narrative": "Nvidia's demand engine keeps accelerating, with vendor financing underwriting about 210,000 high-end GPUs and foundry capacity across CoWoS and HBM tight enough to hand suppliers pricing power, yet intensifying export-control enforcement is the constraint that now caps the position. The next rating turns on two questions: whether U.S. and Taiwan prosecutions over roughly $2.5 billion of diverted chips harden into broader China restrictions, and whether Meituan's non-Nvidia frontier training marks a real second supply base; this read departs from the consensus \"supply is easing\" view because packaging capacity has re-tightened after the buildout was expected to relieve it. The picture would shift first if China revenue is formally capped or if domestic Chinese accelerators scale past pilot volumes, and the earliest signal will surface in CoWoS and HBM allocation and in China-bound order cancellations.",
+  "confidence": {
+    "level": "medium",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "CoreWeave",
+    "DigiTimes",
+    "Lambda (Lambda GPU Cloud)",
+    "Startup Fortune",
+    "Super Micro Computer, Inc. (SEC Form 8-K)",
+    "Tom's Hardware",
+    "Yahoo Finance (Bloomberg syndication)",
+    "Yahoo Tech (BeInCrypto syndication)",
+    "ZLUDA project blog (vosen.github.io)"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.1"
+  },
+  "dimensionStatus": {
+    "momentum": {
+      "evidenceStatus": "grounded",
+      "findingCount": 1,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "unitEconomics": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to unitEconomics this cycle"
+    },
+    "competitiveStructure": {
+      "evidenceStatus": "grounded",
+      "findingCount": 2,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "moat": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to moat this cycle"
+    },
+    "bottleneck": {
+      "evidenceStatus": "grounded",
+      "findingCount": 2,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "strategicRisk": {
+      "evidenceStatus": "grounded",
+      "findingCount": 3,
+      "confidenceCap": null,
+      "note": ""
+    }
+  },
+  "categoryStatus": {
+    "rating": "Strong",
+    "direction": "worsening",
+    "bottleneck": "strategicRisk",
+    "reason": "Durable, widening demand keeps the position Strong: Nvidia's vendor-financing program now underwrites roughly 210,000 GPUs and rent-back guarantees keep orders flowing. The binding constraint has shifted from customers' custom-silicon push to export-control enforcement, as a U.S. indictment plus Taiwan's Supermicro raids over about $2.5 billion of diverted chips, carried by three publishers including a primary filing, widen the ceiling on China revenue and pull the direction to worsening.",
+    "constraintLabel": "China export-control enforcement"
+  },
+  "indices": {
+    "momentum": {
+      "dmiContribution": -0.02666666666666667,
+      "smiContribution": -0.02666666666666667,
+      "anchors": {},
+      "sdgi": 0.0,
+      "sdgiDirection": "balanced"
+    },
+    "outlook": {
+      "dmiContribution": 0.06666666666666667,
+      "smiContribution": 0.0,
+      "anchors": {},
+      "sdgi": 0.06666666666666667,
+      "sdgiDirection": "demand-led"
+    },
+    "divergence": {
+      "state": "diverging-strengthening",
+      "sdgiGap": 0.06666666666666667,
+      "outlookFindingCount": 1,
+      "momentumFindingCount": 4,
+      "note": ""
+    }
+  }
+}

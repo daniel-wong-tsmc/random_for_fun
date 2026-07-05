@@ -1,0 +1,45 @@
+{
+  "id": "lambda-ai-845323fc-2026-07-05-1",
+  "statement": "Lambda GPU Cloud lists on-demand per-GPU hourly rental rates for Nvidia GPUs, e.g. H100 SXM at $3.99/hr on an 8x instance, a static price level with no stated baseline or change.",
+  "kind": "measured",
+  "value": {
+    "number": 3.99,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Records the prevailing Nvidia GPU cloud rental price level as a daily display overlay; no baseline or change is stated, so it does not indicate demand or supply direction.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "On-demand rental price level for Nvidia GPUs at a neocloud; display overlay only, auto-excluded from the index and not a demand/supply signal."
+  },
+  "evidence": [
+    {
+      "source": "Lambda (Lambda GPU Cloud)",
+      "url": "https://lambda.ai/service/gpu-cloud",
+      "date": "2026-07-05",
+      "excerpt": "NVIDIA H100 SXM $3.99/hr",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor's own pricing page (secondary tier); no as-of date stated, price level only."
+  },
+  "dispersion": "Per-GPU-hr rates span from Quadro RTX 6000 at $0.69/hr to B200 SXM6 at $6.99/hr (1x) across the listed instances.",
+  "asOf": "2026-07-05",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-05",
+  "capturedAt": "2026-07-05T13:20:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

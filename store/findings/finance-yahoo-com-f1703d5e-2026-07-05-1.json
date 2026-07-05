@@ -1,0 +1,41 @@
+{
+  "id": "finance-yahoo-com-f1703d5e-2026-07-05-1",
+  "statement": "Taiwan's Keelung prosecutors expanded a criminal probe into the smuggling of Nvidia AI chips into China via Super Micro servers, raiding Super Micro's Taiwan office and affiliates, signalling intensifying enforcement around Nvidia hardware diversion.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Escalating enforcement against diversion of Nvidia AI chips into China raises export-control and China-revenue risk for Nvidia and could presage tighter Taiwanese controls on AI-chip exports.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "A widening smuggling probe tightens the gray-market channel that moves Nvidia chips into China and raises the odds of criminalized export controls, constraining Nvidia's China-related sales exposure."
+  },
+  "evidence": [
+    {
+      "source": "Yahoo Finance (Bloomberg syndication)",
+      "url": "https://finance.yahoo.com/technology/ai/articles/super-micro-office-raided-taiwan-175946955.html",
+      "date": "2026-06-30",
+      "excerpt": "Taiwan's Keelung District Prosecutors Office raided Super Micro Computer Inc.'s Taiwan offices on Monday (June 29) as part of an expanded investigation into alleged smuggling of Nvidia AI chips into China using the company's servers.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Bloomberg story syndicated via Yahoo Finance); qualitative enforcement event with no Nvidia financial figures."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Super Micro Computer, Inc. (SEC Form 8-K), Yahoo Finance (Bloomberg syndication)",
+  "asOf": "2026-07-05",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-05T13:20:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

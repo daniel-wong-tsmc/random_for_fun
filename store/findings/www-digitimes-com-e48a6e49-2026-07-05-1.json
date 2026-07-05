@@ -1,0 +1,51 @@
+{
+  "id": "www-digitimes-com-e48a6e49-2026-07-05-1",
+  "statement": "DigiTimes reports AI demand in 2026 is broadening beyond GPUs into ASICs, networking, PMICs and peripheral ICs, tightening TSMC capacity across 8-inch and 12-inch nodes plus CoWoS packaging and HBM, giving foundries pricing power.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Broad foundry/packaging/HBM capacity tightness and rising foundry pricing power constrain and raise the cost of the wafers, CoWoS packaging and HBM that Nvidia GPUs depend on, pressuring Nvidia's supply availability and input costs.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.hbm-memory",
+      "chips.merchant-gpu",
+      "chips.networking-silicon"
+    ],
+    "direction": "mixed",
+    "mechanism": "AI demand spreading across mature and advanced nodes plus CoWoS and HBM tightens upstream capacity and hands foundries pricing power, constraining supply and raising input costs for Nvidia GPUs while benefiting foundry/packaging and HBM suppliers."
+  },
+  "evidence": [
+    {
+      "source": "DigiTimes",
+      "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+      "date": "2026-06-30",
+      "excerpt": "AI demand in 2026 is no longer confined to GPUs, but is broadening into ASICs, networking, PMICs, and a wide range of peripheral ICs, tightening capacity across both 8-inch mature processes and 12-inch advanced nodes.",
+      "tier": "secondary"
+    },
+    {
+      "source": "DigiTimes",
+      "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+      "date": "2026-06-30",
+      "excerpt": "AI hands foundries pricing power: TSMC leads, but the boom spreads industry-wide",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "Subscriber-only DigiTimes article with only the headline and opening paragraph visible; qualitative channel-check signal with no figures."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: DigiTimes, Tom's Hardware",
+  "asOf": "2026-07-05",
+  "indicatorId": "leadTimes",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-05T13:20:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

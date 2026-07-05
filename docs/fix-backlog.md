@@ -603,8 +603,8 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   scores to the baseline's stored history so ε converges on a real noise estimate instead of a
   3-point half-range. `evals/harness.py` + baseline schema only; no prompt changes → no
   hash-pin trip; rebaseline governance untouched.
-- [ ] **F74 — URGENT: post-run writer clobbers the session-authored cycle log (append-only
-  store violated by our own automation).** Born 2026-07-05: sometime after `99ca522`, a
+- [x] **F74 — post-run writer clobbers the session-authored cycle log. DONE (merged to main
+  `257cf1b`, 2026-07-05, user go; suite on merged main 1066/4).** Born 2026-07-05: sometime after `99ca522`, a
   post-run process rewrote working-tree `store/cycle-log.json` as a machine skeleton (bare
   `status: ready`; no asOf/gather/gates/thesis/report; no trailing newline), deleting the v3
   run journal **including the F71 `gates.sufficiency: "bypassed…"` record** — the doctrine's

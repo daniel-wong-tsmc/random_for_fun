@@ -1,4 +1,4 @@
-# HANDOFF — GPU Category Agent (resume point: F63 GATE PASSED under eval-v2, suite FULLY GREEN on branch — awaiting final review verdict + USER GO to merge)
+# HANDOFF — GPU Category Agent (resume point: F63 MERGED to main and pushed — no work in flight)
 
 - **Date:** 2026-07-05 (post F63 re-gate)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun

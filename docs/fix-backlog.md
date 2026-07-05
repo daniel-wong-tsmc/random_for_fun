@@ -460,6 +460,28 @@
   concept (gather-category tool-roles block + charter Part 37 clause + `docs/web-reach.md`); future
   same-role tools stay pure data entries. User-approved 2026-07-04 (discovery/leads-only). Frozen
   core untouched.
+- [ ] **F71 — Gate precedence: anchor bound vs. evidence-sufficiency deadlock; `--no-sufficiency`
+  too blunt** (born from the first live flagship on the post-F63 stack, 2026-07-05 monthly v3;
+  user-approved 2026-07-05). Two code guards demanded contradictory outcomes with no defined
+  precedence: the judge rated moat Weak; the +0.50 measured anchor makes Weak illegal (the
+  Part 7 bias guardrail — code bounds the rating), forcing Weak→Mixed; F63's
+  evidence-sufficiency gate then correctly objected that the move rests on 2 secondary
+  publishers (<3, no primary). After one rewrite attempt the run completed under
+  `--no-sufficiency` — a whole-run bypass for a one-dimension corner case, on the sufficiency
+  gate's first live cycle (recorded in `store/cycle-log.json` gates.sufficiency; the shipped
+  moat record itself is defensible — capped medium, honest rationale). Fix, lean: an
+  anchor-forced move is code-computed measured evidence, not a judgment re-rate — **exempt it
+  from the sufficiency gate**, stamp the rating "anchor-bounded on thin evidence" (rendered in
+  the trust footer), keep the existing confidence-cap propagation; and make the bypass
+  **per-dimension with a required reason**, or remove it. Alternative considered
+  (rejected-lean): sufficiency wins and the rating holds prior + flags under-supported
+  (Part 18 principle 8) — but that publishes a rating the measured anchor declares illegal.
+  Gate-semantics change → ships as a Part 33 versioned migration; prompts untouched (no
+  eval-gate impact unless guidance text changes). Acceptance: the deadlock scenario
+  test-pinned (anchor forces a move the sufficiency evidence cannot support → exemption path +
+  stamp, no bypass); the whole-run `--no-sufficiency` flag gone or per-dimension + reason +
+  logged. **Must land before any unattended loop runs a cycle** — an instance facing this
+  deadlock with nobody watching needs a coded rule, not a flag.
 
 ---
 

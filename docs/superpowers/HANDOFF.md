@@ -1,15 +1,40 @@
-# HANDOFF — GPU Category Agent (resume point: F63 MERGED to main and pushed — no work in flight)
+# HANDOFF — GPU Category Agent (resume point: daily #1 of 2 DONE gate-clean; daily #2 runs tomorrow; blind ablation awaits USER scoring)
 
-- **Date:** 2026-07-05 (post F63 re-gate)
+- **Date:** 2026-07-05 (evening — post flagship-v3 commit, daily cycle #1, ablation assembly)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Main is green and pushed** (`9292751`, includes the eval-v2 merge `c0d5dd2`; suite on
-  merged main 1031/4). The F63 branch `f63-corroboration-doctrine` has main merged IN
-  (`a84be52`), the three eval-run fixes folded in (`5923619`), and **PASSED its v2 gate**
-  (`ef52790`): gate run extract 6.625 / judge 7.75 / thesis 6.00 vs bars
-  6.5833/7.3333/5.6667, no craters; rebaselined to the F63 bundle from 3 unfiltered
-  replicates via the `--verdict` governance path (no force). **Suite on the branch:
-  1059 passed / 4 skipped / 0 failed — the pin is GREEN.** Remaining before merge: final
-  whole-branch opus review → push → USER GO. Run journal:
+- **Desk-LIVE item 1 progress: daily cycle #1 of 2 is DONE and GATE-CLEAN on the current
+  stack** (store commit `d9cfb3f`, pushed): scorecard `store/chips.merchant-gpu/2026-07-05-v1.json`
+  (DMI 0.040 / SMI −0.027 / SDGI 0.067; Strong/worsening; binding constraint = China
+  export-control enforcement, shifted from moat on 3 distinct publishers + a primary SEC
+  filing — the F63 sufficiency gate PASSED with **no bypass**; the F71 deadlock did NOT
+  recur). Voice lint: 3 judge samples re-dispatched once (CFO/CUDA/ZLUDA/SDNY), passed —
+  zero hand edits. Thesis: 12/12 judged first pass; AMD weakened reversal correctly
+  DEFERRED by anti-whipsaw (1 publisher < 3); 4 theses promoted to registered; 1 new
+  proposal. Run artifacts: `work/daily-2026-07-05/` (gitignored); finalized cycle log
+  committed. Known gap logged in the cycle log: the new proposal title carries `CUDA`
+  above the fold (F68a thesis-prose lint wiring is still deferred). Eval pin verified
+  GREEN after the run (no prompts touched).
+  **NEXT: daily cycle #2 (gate-clean, day-grain asOf 2026-07-06) — that plus the 2026-07
+  flagship clears desk-LIVE item 1.**
+- **The 2026-07-05 flagship v3 store state is now COMMITTED** (`99ca522`) — the prior
+  session had left it uncommitted in the working tree. Its cycle log (with the F71
+  `sufficiency: bypassed` record) is preserved in that commit's `store/cycle-log.json`.
+- **Blind baseline ablation ASSEMBLED — awaiting USER scoring** (`639c00d`, pushed):
+  `docs/ablation-2026-07/{A,B,C}.md` = the desk render vs an RSS-digest baseline vs a
+  one-shot deep-research baseline (both web-only, zero repo context; citations verified
+  web-only), randomly assigned; mapping ONLY in `ANSWER-KEY.md`. **The user scores
+  `SCORING.md` before opening `ANSWER-KEY.md`** — do not reveal or consult the mapping in
+  session output; record the verdict in `docs/action-items.md` once scored.
+- F71 (anchor-bound vs sufficiency-gate precedence) remains OPEN in the backlog — it did
+  not fire this cycle but must land before any unattended loop runs a cycle.
+
+## HISTORICAL — F63 state at merge time (2026-07-05, superseded by the section above)
+
+- Main was green and pushed at `9292751` (includes the eval-v2 merge `c0d5dd2`; suite on
+  merged main 1031/4). The F63 branch passed its v2 gate (`ef52790`): extract 6.625 /
+  judge 7.75 / thesis 6.00 vs bars 6.5833/7.3333/5.6667, no craters; rebaselined via the
+  `--verdict` governance path (no force); suite on the branch 1059/4/0. F63 then MERGED
+  to main `017b592`. Run journal:
   `docs/superpowers/eval-notes/2026-07-05-f63-regate-run-notes.md`; raw runs (gitignored):
   `work/eval-f63-regate-2026-07-05/{r1,r2,r3}` plus the 2026-07-04 runs — never `git clean`.
 

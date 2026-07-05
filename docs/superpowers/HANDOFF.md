@@ -65,6 +65,17 @@
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F74 (cycle-log clobber fix) CLAIMED 2026-07-05 ~21:30 +0800** — worktree
+  `.worktrees/f74-cycle-log`, branch `f74-cycle-log` off `29584d9`. Scope: guard in
+  `cli._cycle_plan` (refuse to overwrite an enriched journal), run-cycle SKILL.md step 1
+  plan-path change (plan → run's `work/` dir), journal tripwire test. Claimed files:
+  `gpu_agent/cli.py` (_cycle_plan only), `.claude/skills/run-cycle/SKILL.md`,
+  `tests/test_cli_cycle_plan.py` + one new test file, `docs/fix-backlog.md` (F74 entry).
+  **Root `store/cycle-log.json` is NOT claimed** — it currently belongs to the in-flight
+  2026-07-05 daily run; its restore (F74 step 1) waits until that run finalizes + commits.
+  To the daily instance: your journal finalize step is unaffected; do NOT commit the bare
+  cycle-plan skeleton — enrich or restore from `99ca522` first.
+
 - F67 is DONE (merged `b0e8061`, completion handoff `.superpowers/handoffs/output-engineering-DONE.md`).
 - **F69 (web-reach layer) is DONE — merged to main `e167c6b` (2026-07-04); branch
   `f69-web-reach-layer` deleted.** Data-driven registry `registry/web-reach-tools.json`

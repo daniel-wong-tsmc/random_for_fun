@@ -242,13 +242,17 @@ Report: "Main / market-state: deferred — not yet built."
 
 ### 6. Finalize the cycle log
 Author this run's journal into `store/cycle-log.json`, starting from the plan
-(`work/<run-dir>/cycle-plan.json`) and enriching, per ready category: its scorecard path + DMI/SMI,
+(`work/<run-dir>/cycle-plan.json`) and adding the run header — **`asOf`, `mode`, and
+`capturedAt` are required** (the suite's journal tripwire rejects a log without `asOf`) — then
+enriching, per ready category: its scorecard path + DMI/SMI,
 the saved answer artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`),
 the corpus artifacts (`corpus-coverage.json`, `corpus-findings.json`, `deduped-fresh.json`,
 `corpus-report.json`) and the corpus counts (store in-window / fresh new / update / duplicate),
 and the tier-stage statuses
 (`category: done` | `failed` | `skipped`, `thesis: done` | `failed` | `skipped`, `layer: deferred`,
-`main: deferred`).
+`main: deferred`). A category that was `ready` in the plan but skipped mid-run (e.g. zero docs
+at gather) must have its entry `status` updated to the skip reason — never left `"ready"` and
+bare (the tripwire reads a bare `ready` entry as a clobbered journal).
 F74 guardrails: at this point `store/cycle-log.json` holds the PREVIOUS cycle's finalized journal.
 If `git status` shows it already modified (uncommitted), STOP and reconcile first — an unfinalized
 run, possibly another instance's, owns it (restore or wait; never overwrite it). Replacing a

@@ -620,12 +620,23 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   **STATUS 2026-07-05: implemented on branch `f74-cycle-log`.** Writer identified:
   `cli._cycle_plan` blind `write_text`, aimed at the canonical journal by run-cycle SKILL.md
   step 1 on every run start. Shipped: cycle-plan refuses to overwrite anything richer than a
-  bare plan (or unparseable content) and names F74; run-cycle step 1 now writes the plan to the
-  run's `work/<run-dir>/cycle-plan.json`; finalize step gains an uncommitted-journal STOP rule;
-  tripwire `tests/test_store_cycle_log_integrity.py` fails the suite on any skeleton (clobber
-  scenario pinned in `tests/test_cli_cycle_plan.py`). Suite 1063/4 on the branch. REMAINING:
-  restore root `store/cycle-log.json` from `99ca522` once the in-flight 2026-07-05 daily run
-  finalizes or abandons (the file is currently owned by that run — do not restore blind).
+  bare plan (or unreadable/unrecognized content — null containers, directories, truncated
+  files) and names F74; key sets derive from the CyclePlan/CycleEntry models (no hand-copy
+  drift); BOM-tolerant read (`utf-8-sig`); run-cycle step 1 now writes the plan to the run's
+  `work/<run-dir>/cycle-plan.json`; finalize step requires `asOf`/`mode`/`capturedAt`, forbids
+  bare `ready` entries for mid-run skips, and gains an uncommitted-journal STOP rule; tripwire
+  `tests/test_store_cycle_log_integrity.py` fails the suite on any skeleton (clobber scenario
+  pinned in `tests/test_cli_cycle_plan.py`, 7 F74 cases). 8-angle review + empirical verify
+  run on-branch; all confirmed findings fixed. The restore step became moot: the daily
+  instance finalized and committed a healthy journal (`d9cfb3f`, asOf 2026-07-05); the
+  monthly v3 journal (with the F71 bypass record) is preserved at `99ca522`. **Follow-ups
+  (out of F74's scope, logged not lost):** the tripwire is pytest-time and reads the working
+  tree — a store commit made without a suite run, or a stale staged blob, still slips through
+  (pre-commit hook or index-blob check would close it); finalize is still session-hand-
+  authored JSON (a validating `cycle-finalize` CLI through a guarded journal-write seam is
+  the deeper fix); three dated 2026-06 plan/spec docs still show the old
+  `--out store/cycle-log.json` invocation (historical records, left as-is — the guard fails
+  loud with the corrective message if followed).
 - [ ] **F75 — No whole-run gate bypass flags (umbrella policy over F71).** The pattern, not
   the incident: every gate ships a whole-run bypass (`--no-sufficiency`, `--no-voice-lint`),
   and on the sufficiency gate's first live contest the bypass won after one rewrite attempt —

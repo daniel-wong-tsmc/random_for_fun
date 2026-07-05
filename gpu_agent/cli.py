@@ -803,13 +803,37 @@ def _pipeline(args) -> int:
           f"SMI={sc.demandSupply.smiContribution:.3f}")
     return 0
 
+# F74 — a bare plan is regenerable; anything richer is a finalized run journal (or unknown
+# content) and cycle-plan must never destroy it. Journals are session-authored at finalize.
+_PLAN_TOP_KEYS = {"scope", "entries", "stages"}
+_PLAN_ENTRY_KEYS = {"category_id", "assignment_path", "status"}
+
+def _is_bare_plan(payload) -> bool:
+    if not isinstance(payload, dict) or set(payload) - _PLAN_TOP_KEYS:
+        return False
+    return all(isinstance(e, dict) and not (set(e) - _PLAN_ENTRY_KEYS)
+               for e in payload.get("entries", []))
+
 def _cycle_plan(args) -> int:
     taxonomy = Taxonomy.load(args.taxonomy)
     provider = AssignmentProvider(args.assignments)
     plan = build_cycle_plan(args.scope, taxonomy, provider)   # raises ValueError on bad scope
     payload = plan.model_dump_json(indent=2)
     if args.out:
-        pathlib.Path(args.out).write_text(payload, encoding="utf-8")
+        out_path = pathlib.Path(args.out)
+        if out_path.exists():
+            try:
+                existing = json.loads(out_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                existing = None
+            if not _is_bare_plan(existing):
+                print(f"gpu-agent cycle-plan: error: refusing to overwrite {out_path} — it "
+                      f"holds a finalized run journal (or unrecognized content), not a "
+                      f"regenerable plan skeleton. Write the plan into the run's work/ dir; "
+                      f"the canonical journal is session-authored at finalize (F74).",
+                      file=sys.stderr)
+                return 1
+        out_path.write_text(payload, encoding="utf-8")
     print(payload)
     for e in plan.entries:
         if e.status != "ready":

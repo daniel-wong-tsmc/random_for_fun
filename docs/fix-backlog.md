@@ -617,6 +617,15 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   require `gates`/`asOf`, and a rewrite that loses fields fails the suite; **(4)** rule: the
   session-authored log is canonical; machine writers extend it. Acceptance: clobber scenario
   test-pinned; restored log recommitted; the offending writer named in the fix commit.
+  **STATUS 2026-07-05: implemented on branch `f74-cycle-log`.** Writer identified:
+  `cli._cycle_plan` blind `write_text`, aimed at the canonical journal by run-cycle SKILL.md
+  step 1 on every run start. Shipped: cycle-plan refuses to overwrite anything richer than a
+  bare plan (or unparseable content) and names F74; run-cycle step 1 now writes the plan to the
+  run's `work/<run-dir>/cycle-plan.json`; finalize step gains an uncommitted-journal STOP rule;
+  tripwire `tests/test_store_cycle_log_integrity.py` fails the suite on any skeleton (clobber
+  scenario pinned in `tests/test_cli_cycle_plan.py`). Suite 1063/4 on the branch. REMAINING:
+  restore root `store/cycle-log.json` from `99ca522` once the in-flight 2026-07-05 daily run
+  finalizes or abandons (the file is currently owned by that run — do not restore blind).
 - [ ] **F75 — No whole-run gate bypass flags (umbrella policy over F71).** The pattern, not
   the incident: every gate ships a whole-run bypass (`--no-sufficiency`, `--no-voice-lint`),
   and on the sufficiency gate's first live contest the bypass won after one rewrite attempt —

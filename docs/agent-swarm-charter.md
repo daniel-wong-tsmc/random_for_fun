@@ -1163,6 +1163,10 @@ model.**
 - **A prompt regression gate.** No `promptVersion` reaches canonical until it scores **≥ the incumbent**
   on the golden set. The prompt is code; this is its test suite, and a regression blocks the deploy
   (Part 25).
+  The incumbent bar is the mean of three stored replicate runs minus a replicate-derived
+  tolerance (ε = max(half-range, one grading quantum)); a marginal fail earns exactly one
+  replication, decided on the two-run mean — never a third. Any case scoring ≥3 below its
+  baseline median fails the gate independently of the seam mean (eval-v2, 2026-07-05).
 - **Grade the grader.** A human periodically scores a sample the Outcome grader passed/failed; we track
   the grader's agreement with humans (precision/recall on "doctrine satisfied"). A grader that drifts is
   re-tuned — **the judge is calibrated, never trusted blind.**

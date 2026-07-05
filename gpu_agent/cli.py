@@ -43,8 +43,8 @@ from gpu_agent.cycle import AssignmentProvider, build_cycle_plan
 from gpu_agent.report import load_scorecard, find_prior, render_report
 from gpu_agent.evals.cases import load_cases, CaseError
 from gpu_agent.evals.harness import (
-    build_grade_prompt, build_report, gate_brain_answer, load_baseline,
-    rebaseline as evals_rebaseline, record_grades)
+    BASELINE_SCHEMA_VERSION, build_grade_prompt, build_report, evaluate_v2,
+    gate_brain_answer, load_baseline, rebaseline_v2, record_grades)
 from gpu_agent.evals.prompt_hash import compute_prompt_hashes
 from gpu_agent.corpus import (
     WINDOW_DAYS_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
@@ -536,23 +536,65 @@ def _eval(args) -> int:
     """F6 eval harness driver. Emit/record cycle mirrors extract/judge/thesis; run-dir files
     (brain-prompts/brain-answers/brain-gates/grade-prompts/grade-answers/report.json) are the
     contract the run-eval skill scripts against."""
-    out = pathlib.Path(args.out)
-    if args.action == "rebaseline":
-        report_path = out / "report.json"
-        if not report_path.exists():
-            print("gpu-agent eval: error: no report.json in --out; run record-grade first",
+    if args.action == "verdict":
+        if not args.runs or len(args.runs) > 2:
+            print("gpu-agent eval: error: verdict needs --runs with 1 or 2 run dirs",
                   file=sys.stderr)
-            return 1
-        report = json.loads(report_path.read_text("utf-8"))
+            return 2
+        reports = []
+        for d in args.runs:
+            p = pathlib.Path(d) / "report.json"
+            if not p.exists():
+                print(f"gpu-agent eval: error: no report.json in {d}", file=sys.stderr)
+                return 2
+            reports.append(json.loads(p.read_text("utf-8")))
+        baseline = load_baseline(args.baseline)
+        if baseline is None or baseline.get("schemaVersion") != BASELINE_SCHEMA_VERSION:
+            print("gpu-agent eval: error: verdict requires a schema-v2 baseline; "
+                  "migrate via 'eval rebaseline --runs <d1> <d2> <d3>'", file=sys.stderr)
+            return 2
+        v = evaluate_v2(baseline, reports)
+        v["runs"] = [str(d) for d in args.runs]
+        v["promptHashes"] = reports[0].get("promptHashes", {})
+        vp = pathlib.Path(args.runs[-1]) / "verdict.json"
+        vp.write_text(json.dumps(v, indent=2, sort_keys=True), "utf-8")
+        print(f"{v['decision'].upper()}  -> {vp}")
+        for r in v["reasons"]:
+            print(f"  - {r}")
+        return 0 if v["pass"] else 1
+
+    if args.action == "rebaseline":
+        if not args.runs:
+            print("gpu-agent eval: error: rebaseline needs --runs <d1> <d2> <d3> "
+                  "(the v1 --out form is gone; see the run-eval skill)", file=sys.stderr)
+            return 2
         try:
-            evals_rebaseline(report, args.baseline,
-                             force_reason=args.reason if args.force else None,
-                             human_review=args.human_review)
+            cases = load_cases(pathlib.Path(args.cases))
+        except CaseError as e:
+            print(f"gpu-agent eval: case error: {e}", file=sys.stderr)
+            return 1
+        registry, taxonomy = _load_registry()
+        hashes = compute_prompt_hashes(registry, taxonomy,
+                                       pathlib.Path("fixtures/evals/hash-input.json"))
+        verdict = None
+        if args.verdict_path:
+            verdict = json.loads(pathlib.Path(args.verdict_path).read_text("utf-8"))
+        try:
+            rebaseline_v2([pathlib.Path(d) for d in args.runs], args.baseline, hashes,
+                          cases, verdict=verdict,
+                          force_reason=args.reason if args.force else None,
+                          human_review=args.human_review)
         except ValueError as e:
             print(f"gpu-agent eval: {e}", file=sys.stderr)
             return 1
         print(f"baseline written -> {args.baseline}")
         return 0
+
+    if not args.out:
+        print(f"gpu-agent eval: error: --out is required for {args.action}",
+              file=sys.stderr)
+        return 2
+    out = pathlib.Path(args.out)
 
     if args.action == "record-grade" and not args.as_of:
         print("gpu-agent eval: error: --as-of is required for record-grade", file=sys.stderr)
@@ -640,11 +682,12 @@ def _eval(args) -> int:
         baseline = load_baseline(args.baseline)
         report = build_report(cases, grades, hashes, baseline, as_of=args.as_of)
         (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True), "utf-8")
-        print(f"{'PASS' if report['verdict']['pass'] else 'FAIL'}  seams: " +
+        v = report["verdict"]
+        print(f"{v['decision'].upper()}  seams: " +
               "  ".join(f"{s}={m:.2f}" for s, m in sorted(report["seamMeans"].items())))
-        for r in report["verdict"]["reasons"]:
+        for r in v["reasons"]:
             print(f"  - {r}")
-        return 0 if report["verdict"]["pass"] else 1
+        return 0 if v["pass"] else 1
 
     print(f"gpu-agent eval: unknown action '{args.action}'", file=sys.stderr)
     return 2
@@ -954,11 +997,15 @@ def main(argv=None) -> int:
                     help="analyst persona for the emitted system prompt (default: GPU market)")
     ev = sub.add_parser("eval", help="F6 eval harness: golden-set emit/record + rebaseline")
     ev.add_argument("action", choices=["emit-brain", "record-brain", "emit-grade",
-                                       "record-grade", "rebaseline"])
+                                       "record-grade", "verdict", "rebaseline"])
     ev.add_argument("--cases", default="fixtures/evals/cases")
-    ev.add_argument("--out", required=True)
+    ev.add_argument("--out", default="", help="run dir (required for emit-*/record-*)")
     ev.add_argument("--as-of", default="", help="required for record-grade (report provenance)")
     ev.add_argument("--baseline", default="fixtures/evals/baseline.json")
+    ev.add_argument("--runs", nargs="+", default=None,
+                    help="run dirs: 1-2 for verdict, exactly 3 for rebaseline")
+    ev.add_argument("--verdict", dest="verdict_path", default="",
+                    help="verdict.json proving the gate PASS (rebaseline governance)")
     ev.add_argument("--force", action="store_true")
     ev.add_argument("--reason", default="")
     ev.add_argument("--human-review", default="")

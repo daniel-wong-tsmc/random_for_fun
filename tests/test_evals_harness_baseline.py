@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import pytest
 from gpu_agent.evals.cases import EvalCase
-from gpu_agent.evals.harness import build_report, load_baseline, rebaseline, record_grades
+from gpu_agent.evals.harness import build_report, load_baseline, record_grades
 from gpu_agent.evals.rubric import RUBRICS
 
 HASHES = {"extract": "a" * 64, "judge": "b" * 64, "thesis": "c" * 64}
@@ -32,31 +32,33 @@ def _scored():
 def test_bootstrap_report_passes_with_reason():
     cases, grades = _scored()
     report = build_report(cases, grades, HASHES, baseline=None, as_of="2026-07-04")
+    assert report["verdict"]["decision"] == "bootstrap"
     assert report["verdict"]["pass"] is True
     assert any("bootstrap" in r for r in report["verdict"]["reasons"])
     assert report["promptHashes"] == HASHES
 
-def test_regression_fails_and_improvement_passes():
-    # Positive case scored 1 per criterion (total 4, seam mean 4.0) so regression,
-    # improvement, AND tie are all exercisable. Negative stays 0 so calibration is ok.
+def test_v2_verdict_embeds_in_report():
     cases = [_case("extract-t-01"), _case("extract-t-02", kind="negative")]
     grades, _ = record_grades(cases, {
-        "extract-t-01": _grade_json("extract-t-01", 1),
+        "extract-t-01": _grade_json("extract-t-01", 1),   # total 4
         "extract-t-02": _grade_json("extract-t-02", 0),
     })
-    high = {"seamMeans": {"extract": 6.0}, "cases": {}, "promptHashes": HASHES,
-            "provenance": {}}
-    report = build_report(cases, grades, HASHES, baseline=high, as_of="2026-07-04")
-    assert report["verdict"]["pass"] is False
-    assert any("extract" in r for r in report["verdict"]["reasons"])
-    low = {"seamMeans": {"extract": 3.0}, "cases": {}, "promptHashes": HASHES,
-           "provenance": {}}
-    report2 = build_report(cases, grades, HASHES, baseline=low, as_of="2026-07-04")
-    assert report2["verdict"]["pass"] is True
-    tie = {"seamMeans": {"extract": 4.0}, "cases": {}, "promptHashes": HASHES,
-           "provenance": {}}
-    report3 = build_report(cases, grades, HASHES, baseline=tie, as_of="2026-07-04")
-    assert report3["verdict"]["pass"] is True  # ties PASS per spec comparison rule
+    base = {"schemaVersion": 2, "promptHashes": HASHES,
+            "seamMeans": {"extract": 4.25}, "epsilon": {"extract": 0.25},
+            "caseMedians": {"extract-t-01": 4}, "replicates": [], "provenance": {}}
+    report = build_report(cases, grades, HASHES, baseline=base, as_of="2026-07-05")
+    assert report["verdict"]["decision"] == "pass"        # 4.0 == bar 4.0 -> bar-touch
+    tight = dict(base, seamMeans={"extract": 4.5})        # bar 4.25 -> marginal band
+    report2 = build_report(cases, grades, HASHES, baseline=tight, as_of="2026-07-05")
+    assert report2["verdict"]["decision"] == "marginal-fail"
+
+def test_v1_baseline_yields_no_comparison():
+    cases, grades = _scored()
+    v1 = {"seamMeans": {"extract": 8.0}, "cases": {}, "promptHashes": HASHES,
+          "provenance": {}}
+    report = build_report(cases, grades, HASHES, baseline=v1, as_of="2026-07-05")
+    assert report["verdict"]["decision"] == "no-comparison"
+    assert report["verdict"]["pass"] is True
 
 def test_miscalibration_fails_verdict():
     cases = [_case("extract-t-01"), _case("extract-t-02", kind="negative")]
@@ -66,22 +68,12 @@ def test_miscalibration_fails_verdict():
     })
     report = build_report(cases, grades, HASHES, baseline=None, as_of="2026-07-04")
     assert report["verdict"]["pass"] is False
+    assert report["verdict"]["decision"] == "invalid-run"
     assert any("miscalibrated" in r for r in report["verdict"]["reasons"])
 
-def test_rebaseline_writes_and_refuses(tmp_path):
-    cases, grades = _scored()
-    report = build_report(cases, grades, HASHES, baseline=None, as_of="2026-07-04")
-    path = tmp_path / "baseline.json"
-    written = rebaseline(report, path, human_review="spot-checked extract-t-01")
-    on_disk = load_baseline(path)
-    assert on_disk["seamMeans"] == report["seamMeans"]
-    assert on_disk["provenance"]["humanReview"] == "spot-checked extract-t-01"
-    assert on_disk["provenance"]["forceReason"] is None
-    failing = dict(report, verdict={"pass": False, "reasons": ["x"]})
-    with pytest.raises(ValueError):
-        rebaseline(failing, path)
-    forced = rebaseline(failing, path, force_reason="accepting extract dip for judge gain")
-    assert forced["provenance"]["forceReason"].startswith("accepting")
+def test_v1_rebaseline_is_gone():
+    from gpu_agent.evals import harness
+    assert not hasattr(harness, "rebaseline")
 
 def test_load_baseline_missing_returns_none(tmp_path):
     assert load_baseline(tmp_path / "nope.json") is None

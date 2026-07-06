@@ -364,7 +364,8 @@
   baseline was rebaselined without --force (f605a77). Suite 970 passed / 3 skipped / 0
   failed. See docs/superpowers/2026-07-04-f62-eval-run-notes.md for all three attempts.
   MERGED to main `eb925bc` (2026-07-04, user go); suite on merged main 974/3/0. The f62
-  worktree is retained for the gitignored eval raw data (attempts 1-3) — do not git clean it.**
+  worktree is retained for the gitignored eval raw data (attempts 1-3) — see the RETAINED
+  WORKTREES REGISTRY in `docs/superpowers/HANDOFF.md`.**
 - [ ] **F63 — Corroboration doctrine for secondary evidence.** Secondary evidence is
   confidence-capped at medium (extraction prompt + gate F2e) and secondary-only findings may
   not move headline status (Part 37) — so no quantity of independent open-web reporting can

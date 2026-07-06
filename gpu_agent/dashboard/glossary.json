@@ -43,6 +43,8 @@
     "BOM": "parts cost",
     "wafer": "silicon production",
     "lead times": "wait time from order to delivery",
-    "backlog": "orders placed but not yet filled"
+    "backlog": "orders placed but not yet filled",
+    "YoY": "year-over-year",
+    "10-Q": "quarterly SEC filing"
   }
 }

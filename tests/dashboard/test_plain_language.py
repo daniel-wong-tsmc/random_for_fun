@@ -27,3 +27,8 @@ def test_missing_key_falls_back():
     text, pending = resolve_text("finding.zzz.statement", "raw HBM text", {}, G)
     assert pending is True
     assert "high-bandwidth memory" in text
+
+def test_corrupt_json_falls_back_to_empty(tmp_path):
+    p = tmp_path / "bad.json"
+    p.write_text("{ not valid json", encoding="utf-8")
+    assert load_plain_language(str(p)) == {}

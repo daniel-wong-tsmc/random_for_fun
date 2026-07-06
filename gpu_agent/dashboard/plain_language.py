@@ -20,8 +20,11 @@ def finding_key(fid):
 def load_plain_language(path):
     if not path or not Path(path).exists():
         return {}
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        data = json.load(fh)
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            data = json.load(fh)
+    except (ValueError, OSError):
+        return {}
     return data.get("rewrites", {}) or {}
 
 

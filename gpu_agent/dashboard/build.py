@@ -2,13 +2,13 @@ import argparse
 import sys
 from pathlib import Path
 
-from .glossary import load_glossary, plain_label
+from .glossary import load_glossary, plain_label, term_swap
 from .scorecards import load_scorecards, trend_series
 from .report_calls import find_latest_report, parse_calls
 from .ranking import rank_findings, rank_calls
 from .plain_language import (
     load_plain_language, resolve_text,
-    STATE_OF_MARKET_KEY, dimension_key, claim_key, finding_key,
+    STATE_OF_MARKET_KEY, claim_key, finding_key,
 )
 
 SLOP = ["delve", "leverage", "seamless", "boasts", "robust", "in today's fast-paced",
@@ -26,6 +26,8 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
     g = load_glossary()
     pmap = load_plain_language(plain_path)
     recs = load_scorecards(category_id, store_dir)
+    if not recs:
+        raise ValueError(f"no scorecards found for {category_id} under {store_dir}")
     latest = recs[-1]
     prev = recs[-2] if len(recs) > 1 else None
     ts = trend_series(recs)
@@ -58,7 +60,8 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
     calls = []
     for c in ranked_calls:
         plain, pending = resolve(claim_key(c["slug"]), c["statement"])
-        calls.append({**c, "plain": plain, "pending": pending})
+        calls.append({**c, "plain": plain, "pending": pending,
+                      "breaks_if": term_swap(c.get("breaks_if", ""), g)})
 
     dims = []
     for name in _DIM_ORDER:

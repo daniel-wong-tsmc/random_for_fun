@@ -40,7 +40,7 @@ Output you write: `store/<category>/plain-language/<date>.json` (e.g., `store/ch
 ```
 Keys (stable ids the dashboard expects):
 - `stateOfMarket` — from `categoryStatus.reason`
-- `dimension.<name>.rationale` — from each `dimensionRatings.<name>.rationale`
+- `dimension.<name>.rationale` — from each `dimensionRatings.<name>.rationale` (optional — the v1 dashboard does not display these; produce only if asked)
 - `claim.<slug>.statement` — from each call in THE CALLS (slug = kebab-case of the name)
 - `finding.<id>.statement` — from each finding's `statement`
 

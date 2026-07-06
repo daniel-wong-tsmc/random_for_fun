@@ -2,7 +2,9 @@ import json
 import re
 from pathlib import Path
 
-_DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})-v\d+\.json$")
+# Day-level cycles only (YYYY-MM-DD). Month-granularity rollups like
+# 2026-06-vN.json are intentionally excluded — the dashboard trends over daily cycles.
+_DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})-v(\d+)\.json$")
 
 
 def _read_json(path):
@@ -59,18 +61,21 @@ def _norm_dimensions(ratings, status):
 
 def load_scorecards(category_id, store_dir):
     base = Path(store_dir)
-    files = []
+    latest = {}  # date -> (version, path); keep highest version per date
     for p in base.glob("*.json"):
         m = _DATE_RE.search(p.name)
-        if m:
-            files.append((m.group(1), p))
-    files.sort(key=lambda t: t[0])
+        if not m:
+            continue
+        d_str, ver = m.group(1), int(m.group(2))
+        if d_str not in latest or ver > latest[d_str][0]:
+            latest[d_str] = (ver, p)
+    files = sorted((d_str, vp[1]) for d_str, vp in latest.items())
     records = []
     for as_of, path in files:
         d = _read_json(path)
         ds = d.get("demandSupply", {}) or {}
         cat = d.get("categoryStatus", {}) or {}
-        findings = [_norm_finding(f) for f in d.get("findings", [])]
+        findings = [_norm_finding(f) for f in (d.get("findings") or [])]
         prim = sum(1 for f in findings if f["tier"] == "primary")
         records.append({
             "as_of": d.get("asOf", as_of),

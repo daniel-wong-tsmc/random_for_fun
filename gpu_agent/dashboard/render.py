@@ -13,7 +13,7 @@ def esc(s):
 
 
 def _badges_html(badges):
-    return "".join(f'<span class="badge b-{b}">{_BADGE[b]}</span>' for b in badges)
+    return "".join(f'<span class="badge b-{b}">{_BADGE[b]}</span>' for b in badges if b in _BADGE)
 
 
 def _pending_html(pending):
@@ -35,6 +35,8 @@ def svg_sparkline(values, width=80, height=20):
     n = max(1, len(values) - 1)
     pts = []
     for i, v in enumerate(values):
+        if v is None:
+            continue
         x = (i / n) * (width - 2) + 1
         y = height - 1 - ((v - lo) / (hi - lo)) * (height - 2)
         pts.append(f"{x:.1f},{y:.1f}")
@@ -44,6 +46,7 @@ def svg_sparkline(values, width=80, height=20):
 
 
 _CHART_COLORS = {"dmi": "#2563eb", "smi": "#d97706", "sdgi": "#059669"}
+_SERIES_LABEL = {"dmi": "Demand", "smi": "Supply", "sdgi": "Gap"}
 
 
 def svg_line_chart(series, labels, width=640, height=220):
@@ -64,10 +67,13 @@ def svg_line_chart(series, labels, width=640, height=220):
         parts.append(f'<line x1="{pad}" y1="{zero_y:.1f}" x2="{width - pad}" y2="{zero_y:.1f}" class="axis"/>')
     for key, s in series.items():
         color = _CHART_COLORS.get(key, "#64748b")
-        pts = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in enumerate(s))
+        pts_pairs = [(x(i), y(v)) for i, v in enumerate(s) if v is not None]
+        if not pts_pairs:
+            continue
+        pts = " ".join(f"{px:.1f},{py:.1f}" for px, py in pts_pairs)
         parts.append(f'<polyline fill="none" stroke="{color}" stroke-width="2" points="{pts}"/>')
-        if s:
-            parts.append(f'<text x="{x(len(s) - 1) + 4:.1f}" y="{y(s[-1]):.1f}" class="lbl" fill="{color}">{esc(key.upper())}</text>')
+        lx, ly = pts_pairs[-1]
+        parts.append(f'<text x="{lx + 4:.1f}" y="{ly:.1f}" class="lbl" fill="{color}">{esc(_SERIES_LABEL.get(key, key.upper()))}</text>')
     for i, lab in enumerate(labels):
         parts.append(f'<text x="{x(i):.1f}" y="{height - 8}" class="tick" text-anchor="middle">{esc(lab)}</text>')
     parts.append("</svg>")
@@ -113,7 +119,7 @@ def _sec_headline(m):
         f'<div class="d">{esc(t["delta"])} vs previous run</div></div>'
         for t in m["tiles"])
     return (f'<section id="headline"><h2>Where the market stands</h2>'
-            f'<div class="card"><strong>{esc(h["rating"])} · {_dir_word(h["direction"])}</strong>'
+            f'<div class="card"><strong>{esc(h["rating"])} · {esc(_dir_word(h["direction"]))}</strong>'
             f'<div class="meta">Main limiting factor: {esc(h["limiting_factor"])}</div>'
             f'<p>{esc(h["state_of_market"])}{_pending_html(h["state_pending"])}</p></div>'
             f'<div class="tiles">{tiles}</div></section>')

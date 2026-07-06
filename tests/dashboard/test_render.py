@@ -1,5 +1,4 @@
 # tests/dashboard/test_render.py
-import re
 from gpu_agent.dashboard.render import render_html, svg_sparkline, svg_line_chart, SECTION_IDS
 
 def _model():
@@ -51,3 +50,22 @@ def test_pending_items_are_flagged():
 def test_svg_helpers_return_svg():
     assert svg_sparkline([0, 1, 2, 3]).startswith("<svg")
     assert svg_line_chart({"dmi": [0, 1]}, ["a", "b"]).startswith("<svg")
+
+def test_svg_helpers_handle_degenerate_and_none_input():
+    assert svg_sparkline([]).startswith("<svg")
+    assert svg_sparkline([5, 5, 5]).startswith("<svg")      # min==max
+    assert svg_sparkline([1]).startswith("<svg")
+    assert svg_line_chart({"dmi": []}, []).startswith("<svg")
+    assert svg_sparkline([0.0, None, 0.2]).startswith("<svg")                       # None must not crash
+    assert svg_line_chart({"dmi": [0.0, None, 0.2]}, ["a", "b", "c"]).startswith("<svg")
+
+def test_chart_line_labels_are_plain_not_acronyms():
+    svg = svg_line_chart({"dmi": [0, 1], "smi": [0, -1], "sdgi": [0, 1]}, ["a", "b"])
+    assert "Demand" in svg and "Supply" in svg and "Gap" in svg
+    assert ">DMI<" not in svg and ">SMI<" not in svg and ">SDGI<" not in svg
+
+def test_render_tolerates_unknown_badge():
+    m = _model()
+    m["top_signals"][0]["_badges"] = ["new", "bogus"]
+    html = render_html(m)                 # must not raise
+    assert 'id="top-signals"' in html

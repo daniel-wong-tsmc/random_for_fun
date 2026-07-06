@@ -4,6 +4,7 @@ candidate prompt produces invalid output), not an eval bug."""
 from __future__ import annotations
 import json
 import pathlib
+import statistics
 from pydantic import BaseModel, ConfigDict, ValidationError
 from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput, EvalCase
 from gpu_agent.evals.emit import emit_brain_bundle
@@ -161,11 +162,67 @@ def seam_quanta(cases: list[EvalCase]) -> dict[str, float]:
 
 def compute_epsilon(replicate_means: list[dict[str, float]],
                     quanta: dict[str, float]) -> dict[str, float]:
+    """v1 epsilon: half the replicate seam-mean range, floored at the quantum. Kept for
+    back-compat (the pre-F73 fallback floor and its own tests). Superseded at build time
+    by pooled_epsilon, which converges instead of only growing with max-min."""
     eps: dict[str, float] = {}
     for seam in replicate_means[0]:
         vals = [m[seam] for m in replicate_means]
         eps[seam] = max((max(vals) - min(vals)) / 2, quanta[seam])
     return eps
+
+
+EPS_Z = 2.0  # pooled-dispersion band width (~95% for a normal); tune here only
+
+
+def pooled_epsilon(history: dict[str, list[float]],
+                   quanta: dict[str, float]) -> dict[str, float]:
+    """Per-seam epsilon = max(EPS_Z * sample stdev of the seam's accumulated run history,
+    the quantum floor). Converges on real run noise as the history grows (unlike the v1
+    half-range, which can only widen). The quantum floor holds when the history has fewer
+    than 2 points to take a sample stdev over."""
+    eps: dict[str, float] = {}
+    for seam, vals in history.items():
+        disp = EPS_Z * statistics.stdev(vals) if len(vals) >= 2 else 0.0
+        eps[seam] = max(disp, quanta[seam])
+    return eps
+
+
+def _seed_history(baseline: dict) -> dict[str, list[float]]:
+    """The accumulating per-seam score history. Prefer the stored seamHistory; for a v2
+    baseline written before F73 (no seamHistory field) seed it from the 3 replicate seam
+    means, so the noise pool starts from the real baseline runs."""
+    if baseline.get("seamHistory"):
+        return {s: list(v) for s, v in baseline["seamHistory"].items()}
+    return {s: [r["seamMeans"][s] for r in baseline["replicates"]]
+            for s in baseline["replicates"][0]["seamMeans"]}
+
+
+def _baseline_quanta(baseline: dict,
+                     history: dict[str, list[float]]) -> dict[str, float]:
+    """The quantum floor per seam. Prefer the quanta stored at build time; for a pre-F73
+    baseline with no stored quanta, fall back to its existing epsilon per seam
+    (compute_epsilon parity — that epsilon is already floored at the quantum), and 0.0 for
+    any seam we have no floor for."""
+    stored = baseline.get("quanta")
+    if stored:
+        return {s: stored.get(s, 0.0) for s in history}
+    eps = baseline.get("epsilon", {})
+    return {s: eps.get(s, 0.0) for s in history}
+
+
+def append_run_to_history(baseline: dict, report: dict) -> dict:
+    """Append an ACCEPTED run's seam means to the noise pool and recompute epsilon from the
+    widened history. Only an accepted (pass / marginal-resolved-pass) gate run may call
+    this — a failing run must never widen epsilon and hide itself. Returns a NEW baseline
+    dict; does not mutate the input."""
+    history = _seed_history(baseline)
+    for seam, mean in report["seamMeans"].items():
+        history.setdefault(seam, []).append(mean)
+    new = dict(baseline)
+    new["seamHistory"] = history
+    new["epsilon"] = pooled_epsilon(history, _baseline_quanta(baseline, history))
+    return new
 
 
 def case_medians(replicate_scores: list[dict[str, int]],
@@ -254,6 +311,8 @@ def build_baseline_v2(reports: list[dict], run_dirs: list[str], cases: list[Eval
     replicate_means = [r["seamMeans"] for r in reports]
     replicate_scores = [{cid: s["total"] for cid, s in r["scores"].items()}
                         for r in reports]
+    history = {seam: [m[seam] for m in replicate_means] for seam in replicate_means[0]}
+    quanta = seam_quanta(cases)
     return {
         "schemaVersion": BASELINE_SCHEMA_VERSION,
         "promptHashes": dict(reports[0]["promptHashes"]),
@@ -263,7 +322,9 @@ def build_baseline_v2(reports: list[dict], run_dirs: list[str], cases: list[Eval
             for r, d in zip(reports, run_dirs)],
         "seamMeans": {seam: sum(m[seam] for m in replicate_means) / len(replicate_means)
                       for seam in replicate_means[0]},
-        "epsilon": compute_epsilon(replicate_means, seam_quanta(cases)),
+        "quanta": quanta,
+        "seamHistory": history,
+        "epsilon": pooled_epsilon(history, quanta),
         "caseMedians": case_medians(replicate_scores, positive_ids),
         "provenance": {"asOf": max(r["asOf"] for r in reports), "graderModel": "opus",
                        "forceReason": force_reason, "humanReview": human_review},

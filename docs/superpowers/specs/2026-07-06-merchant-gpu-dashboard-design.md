@@ -258,6 +258,7 @@ So the dashboard always renders with one command; the plain-English pass is an i
 - **Plain-language file missing or stale** (no §4c rewrite yet, or source text drifted from the stored `original`) → generator uses the deterministic term-swap fallback and marks the item "pending human rewrite." Never blocks the render.
 - **Unknown jargon term** in the term-swap dictionary → left as-is (never a crash); adding it is a one-line change to the shared dictionary.
 - All file reads are UTF-8 with `errors="replace"` (console is cp1252 per environment).
+- **Reproducibility caveat:** the "Key claims" section is sourced from `work/daily-*/report.txt`, which is gitignored. Rebuilding on a machine (or clean checkout) where that run's `work/` is absent yields an empty claims section (graceful, not a crash — `claims=0`). Build the dashboard **in place, immediately after a cycle**, when `work/` exists. The committed `docs/dashboard.html` is the shareable snapshot; treat it as the artifact of record.
 
 ## 9. Testing / verification
 

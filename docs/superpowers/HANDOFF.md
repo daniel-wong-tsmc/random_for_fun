@@ -27,6 +27,17 @@
   and **P2 (F73, Opus)** as parallel worktree lanes; (b) separately open the **P3 v1.4 migration
   spec** for user approval (frozen core — never AFK, only the user merges to main).
 
+## How to update this file (F76 discipline)
+
+- **One CURRENT STATE block.** The H1 title carries the single top-of-file resume marker (the
+  `resume point` phrase, followed by a colon). When state changes, replace the top block
+  **atomically**: in the same edit, move the superseded text down under a new
+  `## HISTORICAL — <what/when>` heading. Never leave two "current" blocks.
+- **Provenance labels are controlled** (see the Provenance vocabulary below): `user-approved`
+  only when an actual user answer exists; `AFK-precedent` / `AFK-default` otherwise.
+- **Retained worktrees** are tracked in the "## RETAINED WORKTREES REGISTRY" section, not in
+  scattered "do not git clean" asides.
+
 ## DISPATCH STATUS — 2026-07-06 (post user "go")
 
 User gave **"go"** 2026-07-06. Actioned:

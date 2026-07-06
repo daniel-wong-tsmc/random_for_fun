@@ -10,7 +10,7 @@ def _store(tmp_path):
 
 
 def _f(fid, entity, *, sources, asOf, capturedAt):
-    ev = [Evidence(source=s, url=f"http://{s}/x", date=asOf, excerpt="e", tier="secondary") for s in sources]
+    ev = [Evidence(source=s, url=f"http://{s}/x", date=asOf, excerpt=f"body:{s}", tier="secondary") for s in sources]
     return Finding(id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
                    impact=Impact(targets=["x"], direction="negative", mechanism="m"),
                    value=None, confidence=Confidence(level="medium", basis="b"), asOf=asOf,

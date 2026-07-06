@@ -3,7 +3,7 @@ import re
 from gpu_agent.schema.finding import Finding, Kind
 from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent.config import min_distinct_publishers
-from gpu_agent.publisher import publisher_key
+from gpu_agent.publisher import collapsed_publisher_set
 
 _ISO_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
@@ -29,10 +29,12 @@ def check_finding(f: Finding, *, valid_targets: frozenset[str] | None = None) ->
         if f.confidence.level == "high":
             errors.append(f"{f.id}: hypothesis confidence capped at medium")
     # F2e — headline protection at finding level (contract v1.3: >=N distinct publishers
-    # unlock high confidence — docs/migrations/2026-07-contract-v1.3.md)
+    # unlock high confidence — docs/migrations/2026-07-contract-v1.3.md). Contract v1.4 (F72):
+    # distinctness is counted over COLLAPSED publisher identities (collapsed_publisher_set),
+    # so a single wire story syndicated across several netlocs can no longer clear the bar.
     if f.evidence and all(e.tier == "secondary" for e in f.evidence) and f.confidence.level == "high":
         n = min_distinct_publishers()
-        publishers = {publisher_key(e) for e in f.evidence}
+        publishers = collapsed_publisher_set(f.evidence)
         if len(publishers) < n:
             errors.append(f"{f.id}: secondary-only evidence cannot support high confidence "
                           f"({len(publishers)} distinct publishers < {n})")

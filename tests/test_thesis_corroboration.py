@@ -9,7 +9,18 @@ CATEGORY_ID = "chips.merchant-gpu"
 
 
 def _sec(url):
-    return Evidence(source="s", url=url, date="2026-07-01", excerpt="e", tier="secondary")
+    # excerpt keyed to the URL: distinct URLs are distinct reporting (distinct bodies), so the
+    # F72 near-dup collapse only merges the byte-identical-wire fixtures below (_syn).
+    return Evidence(source="s", url=url, date="2026-07-01", excerpt=f"body:{url}", tier="secondary")
+
+
+# One wire story, byte-identical across syndicator domains (f72-adversarial-fixture.md §2).
+_WIRE = ("Acme Corp announces expanded GPU capacity agreement with a hyperscale customer, "
+         "effective Q3.")
+
+
+def _syn(url):
+    return Evidence(source="s", url=url, date="2026-07-01", excerpt=_WIRE, tier="secondary")
 
 
 def _finding(fid, evidence):
@@ -66,6 +77,21 @@ def test_two_publisher_reversal_still_defers_with_count():
     assert rec["corroboratedStep"] is False
     assert rec["note"] == "t1: deferred: secondary-only reversal (2 distinct publishers < 3)"
     assert rec["conviction"] == "medium"       # unchanged
+
+
+def test_syndicated_reversal_defers_via_f72_collapse():
+    # F72 consumer proof (thesis rule 6): three syndicator-domain findings quoting ONE wire
+    # story collapse to 1 distinct publisher, so the secondary-only reversal defers, not applies.
+    fbi = {"f1": _finding("f1", [_syn("https://www.stocktitan.net/news/ACME/x.html")]),
+           "f2": _finding("f2", [_syn("https://markets.financialcontent.com/read/ACME/y")]),
+           "f3": _finding("f3", [_syn("https://finance.yahoo.com/news/acme-z.html")])}
+    book, records, notes = apply_answer(
+        _book_with_positive_last_direction(), _weaken_judgment(["f1", "f2", "f3"]),
+        as_of=AS_OF, findings_by_id=fbi, history=[])
+    rec = next(r for r in records if r.get("thesisId") == "t1" and "verdict" in r)
+    assert rec["applied"] is False
+    assert rec["corroboratedStep"] is False
+    assert rec["note"] == "t1: deferred: secondary-only reversal (1 distinct publishers < 3)"
 
 
 def test_primary_reversal_unaffected_no_corroborated_flag():

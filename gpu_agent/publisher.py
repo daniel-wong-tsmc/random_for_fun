@@ -75,3 +75,37 @@ def collapsed_publisher(evidence, *, bodies=None) -> str:
     if netloc and netloc in reg:
         return reg[netloc]
     return publisher_key(evidence)
+
+
+def _near_dup_bodies(evidence_list) -> dict[str, str]:
+    """content_hash(excerpt) -> canonical (registry-collapsed) identity of the FIRST citation
+    carrying that body, so byte-identical wire reprints across different netlocs collapse to
+    one identity (F72(b), L1 exact-hash). Empty/whitespace excerpts carry no comparable body
+    and are never collapsed on content."""
+    from gpu_agent.gathering.dedup import content_hash
+    bodies: dict[str, str] = {}
+    for e in evidence_list:
+        excerpt = (getattr(e, "excerpt", "") or "")
+        if not excerpt.strip():
+            continue
+        h = content_hash(excerpt)
+        if h not in bodies:
+            bodies[h] = collapsed_publisher(e)   # registry-aware; bodies=None avoids recursion
+    return bodies
+
+
+def collapsed_publisher_set(evidence_list) -> set[str]:
+    """THE shared F72 distinct-publisher identity set over a citation list — registry
+    syndicator collapse AND exact-hash near-dup collapse composed. Gate F2e, thesis rule 6,
+    and wiki promotion all route through this so the syndication-resistant distinctness notion
+    can never drift between the three corroboration surfaces (contract v1.4; never re-derive
+    distinctness locally)."""
+    evs = list(evidence_list)
+    bodies = _near_dup_bodies(evs)
+    return {collapsed_publisher(e, bodies=bodies) for e in evs}
+
+
+def distinct_publisher_count(evidence_list) -> int:
+    """len(collapsed_publisher_set) — the syndication-resistant distinct-publisher count that
+    gate F2e's `minDistinctPublishers` bar (registry/corroboration.json) is measured against."""
+    return len(collapsed_publisher_set(evidence_list))

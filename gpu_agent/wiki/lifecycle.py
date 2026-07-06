@@ -57,19 +57,21 @@ def persistence(store, page_id: str) -> int:
 # re-exported under the historical name so this module's callers (and thesis.py's
 # defensive import of it) stay byte-compatible.
 from gpu_agent.publisher import publisher_key as _publisher_key
+from gpu_agent.publisher import collapsed_publisher_set
 
 
 def corroboration(store, page_id: str) -> int:
     """Distinct evidence PUBLISHERS (F31) across all findings observed on the page (Part 10
-    corroboration) - two sources at the same publisher domain corroborate each other only once."""
-    publishers: set[str] = set()
+    corroboration) - two sources at the same publisher domain corroborate each other only once.
+    Contract v1.4 (F72): counted over COLLAPSED identities (collapsed_publisher_set) so a wire
+    story mirrored across syndicator netlocs (or reprinted verbatim) counts as one publisher."""
+    evidence = []
     for o in store.observations(page_id):
         if not store.findings.exists(o.findingId):
             continue
         f = store.findings.get(o.findingId)
-        for e in f.evidence:
-            publishers.add(_publisher_key(e))
-    return len(publishers)
+        evidence.extend(f.evidence)
+    return len(collapsed_publisher_set(evidence))
 
 
 def promotion_candidates(store, config=DEFAULT_LIFECYCLE_CONFIG) -> list[PromotionCandidate]:

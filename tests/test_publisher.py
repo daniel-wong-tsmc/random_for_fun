@@ -1,6 +1,7 @@
 # tests/test_publisher.py
 from types import SimpleNamespace
-from gpu_agent.publisher import publisher_key, collapsed_publisher
+from gpu_agent.publisher import (publisher_key, collapsed_publisher,
+                                 collapsed_publisher_set, distinct_publisher_count)
 
 
 def _e(url="", source="", excerpt="e"):
@@ -63,3 +64,42 @@ def test_syndicated_identity_never_a_genuine_netloc():
     synth = collapsed_publisher(_e(url=_YAHOO))
     assert synth != "finance.yahoo.com"
     assert synth != publisher_key(_e(url="https://reuters.com/a"))
+
+
+# --- F72(b): L1 near-dup exact-hash content collapse over a citation SET ---
+
+_WIRE_BODY = ("Acme Corp announces expanded GPU capacity agreement with a hyperscale "
+              "customer, effective Q3.")
+
+
+def test_near_dup_identical_bodies_collapse_across_unknown_domains():
+    # A verbatim reprint on three UNKNOWN (non-registry) domains -> content-hash near-dup
+    # collapses to ONE identity even though the registry knows none of them.
+    evs = [_e(url="https://alpha-news.example/a", excerpt=_WIRE_BODY),
+           _e(url="https://beta-wire.example/b", excerpt=_WIRE_BODY),
+           _e(url="https://gamma-feed.example/c", excerpt=_WIRE_BODY)]
+    assert distinct_publisher_count(evs) == 1
+    assert len(collapsed_publisher_set(evs)) == 1
+
+
+def test_distinct_bodies_distinct_domains_stay_distinct():
+    # Regression: genuine reporting (different bodies, non-syndicator) still counts as 3.
+    evs = [_e(url="https://reuters.com/a", excerpt="Reuters: capacity up."),
+           _e(url="https://digitimes.com/b", excerpt="DigiTimes: packaging tight."),
+           _e(url="https://tomshardware.com/c", excerpt="Toms: prices move.")]
+    assert distinct_publisher_count(evs) == 3
+
+
+def test_registry_and_near_dup_compose():
+    # A syndicator mirror + a genuine outlet running the SAME wire verbatim -> one identity.
+    evs = [_e(url=_STOCKTITAN, excerpt=_WIRE_BODY),
+           _e(url="https://reuters.com/verbatim-wire", excerpt=_WIRE_BODY)]
+    assert distinct_publisher_count(evs) == 1
+
+
+def test_near_dup_ignores_whitespace_only_bodies():
+    # Empty/whitespace excerpts carry no body to compare -> never collapsed on content alone;
+    # two genuine outlets with blank excerpts stay distinct (keyed by netloc).
+    evs = [_e(url="https://reuters.com/a", excerpt="   "),
+           _e(url="https://digitimes.com/b", excerpt="")]
+    assert distinct_publisher_count(evs) == 2

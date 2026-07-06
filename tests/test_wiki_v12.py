@@ -268,16 +268,18 @@ def test_corroboration_same_publisher_domain_counts_once(tmp_path):
 
 def test_corroboration_www_prefix_stripped_and_distinct_domains_counted(tmp_path):
     ws = _store(tmp_path)
+    # distinct bodies per citation: this test pins netloc-keyed distinctness (www stripping),
+    # not the F72 near-dup content collapse — identical dummy bodies would collapse spuriously.
     ev1 = [Evidence(source="s1", url="https://www.example.com/a",
-                    date="2026-06", excerpt="e", tier="secondary")]
+                    date="2026-06", excerpt="body-a", tier="secondary")]
     ev2 = [Evidence(source="s2", url="https://example.com/b",
-                    date="2026-06", excerpt="e", tier="secondary")]
+                    date="2026-06", excerpt="body-b", tier="secondary")]
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev1)], as_of="2026-06-28")
     route_findings(ws, [_f("f-2", "NVDA", evidence=ev2)], as_of="2026-06-28")
     assert corroboration(ws, "entity:nvda") == 1  # www.example.com == example.com
 
     ev3 = [Evidence(source="s3", url="https://other.org/c",
-                    date="2026-06", excerpt="e", tier="secondary")]
+                    date="2026-06", excerpt="body-c", tier="secondary")]
     route_findings(ws, [_f("f-3", "NVDA", evidence=ev3)], as_of="2026-06-28")
     assert corroboration(ws, "entity:nvda") == 2  # example.com, other.org
 

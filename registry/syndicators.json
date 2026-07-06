@@ -1,0 +1,8 @@
+{
+  "_note": "F72 / contract v1.4 — known wire/PR-syndication and aggregator endpoints. Each netloc (www-stripped, lowercased) maps to a shared originating-publisher identity so that ONE wire story mirrored across several of these domains counts as ONE distinct publisher in gate F2e, thesis rule 6, and wiki promotion (all route through gpu_agent.publisher.collapsed_publisher). These endpoints re-host the SAME PR-wire / IR feeds and are not independent reporting, so aggregator-only coverage collapses to at most one distinct publisher; genuine outlets are unaffected. Exact-hash near-dup collapse (dedup.content_hash) additionally catches verbatim reprints from UNKNOWN syndicators; normalized/shingle similarity is deferred (spec §7 Q6). DATA ONLY — the frozen counting logic lives in publisher.py; this file is edited freely to add endpoints.",
+  "syndicators": {
+    "stocktitan.net": "wire:syndicated",
+    "markets.financialcontent.com": "wire:syndicated",
+    "finance.yahoo.com": "wire:syndicated"
+  }
+}

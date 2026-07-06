@@ -1,21 +1,29 @@
-# HANDOFF — GPU Category Agent (resume point: ablation SCORED — desk won on substance; daily #2 of 2 runs today 2026-07-06)
+# HANDOFF — GPU Category Agent (resume point: desk-LIVE item 1 CLEARED — 2 gate-clean dailies + flagship; ablation verdict recorded; F71/F75/F77 next)
 
-- **Date:** 2026-07-05 (evening — post flagship-v3 commit, daily cycle #1, ablation assembly)
+- **Date:** 2026-07-06 (morning — post daily #2, ablation verdict recorded)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **Desk-LIVE item 1 progress: daily cycle #1 of 2 is DONE and GATE-CLEAN on the current
-  stack** (store commit `d9cfb3f`, pushed): scorecard `store/chips.merchant-gpu/2026-07-05-v1.json`
-  (DMI 0.040 / SMI −0.027 / SDGI 0.067; Strong/worsening; binding constraint = China
-  export-control enforcement, shifted from moat on 3 distinct publishers + a primary SEC
-  filing — the F63 sufficiency gate PASSED with **no bypass**; the F71 deadlock did NOT
-  recur). Voice lint: 3 judge samples re-dispatched once (CFO/CUDA/ZLUDA/SDNY), passed —
-  zero hand edits. Thesis: 12/12 judged first pass; AMD weakened reversal correctly
-  DEFERRED by anti-whipsaw (1 publisher < 3); 4 theses promoted to registered; 1 new
-  proposal. Run artifacts: `work/daily-2026-07-05/` (gitignored); finalized cycle log
-  committed. Known gap logged in the cycle log: the new proposal title carries `CUDA`
-  above the fold (F68a thesis-prose lint wiring is still deferred). Eval pin verified
-  GREEN after the run (no prompts touched).
-  **NEXT: daily cycle #2 (gate-clean, day-grain asOf 2026-07-06) — that plus the 2026-07
-  flagship clears desk-LIVE item 1.**
+- **Desk-LIVE item 1 is CLEARED** (roadmap "unit of the build" checklist): TWO gate-clean
+  daily cycles on the current stack (**#1** `d9cfb3f` asOf 2026-07-05, **#2** `adc7251`
+  asOf 2026-07-06) plus the store-consuming 2026-07 flagship (`99ca522`, F62 corpus merge
+  live). Both dailies passed the F63 sufficiency gate with **no bypass** and zero hand
+  edits; the F71 deadlock never recurred.
+  - **Daily #2** (`store/chips.merchant-gpu/2026-07-06-v1.json`, DMI 0.040 / SMI −0.027 /
+    SDGI 0.067; Strong/worsening): binding constraint shifted export enforcement →
+    HBM/DRAM+NVMe memory scarcity on 3 distinct publishers (sufficiency PASS). Voice lint:
+    one DRAM re-dispatch wave, passed. Thesis: 13/13 first pass — AMD weakened APPLIED on
+    the 2nd consecutive signal (high→medium, pending challenge resolved); custom-asic
+    strengthened DEFERRED (2 publishers < 3); pricing-power strengthened (medium→high);
+    2 promotions; new proposal `rising-memory-costs-inflate-ai-server-economics`. Two
+    primaries chased in-run: SharonAI 8-K (corrects press "rent-back" language — the
+    filing has revenue-sharing + credit-support only) and Meituan's LongCat official blog.
+    First day-over-day PMI computed (+1.00, 2 matched series) with a logged artifact: the
+    lambda.ai delta compares different GPU models (provider-grain D6 series key — F51
+    follow-up candidate, noted in the cycle log; overlay-only). Pin + F74 journal tripwire
+    green after the run.
+  - Remaining desk-LIVE items (2,3,4,6 look satisfied by these runs; 5 = eval archetype
+    coverage already held): item 1 was the last open proof — **next probation step per
+    the roadmap is category #2 (the desk recipe), or the F71/F75 gate-precedence fixes
+    before any unattended loop.**
 - **The 2026-07-05 flagship v3 store state is now COMMITTED** (`99ca522`) — the prior
   session had left it uncommitted in the working tree. Its cycle log (with the F71
   `sufficiency: bypassed` record) is preserved in that commit's `store/cycle-log.json`.
@@ -326,3 +334,20 @@ PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed trig
   Ledger: `.superpowers/sdd/f62/progress.md` (repo root).
 - **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.
+
+## ⚠ 2026-07-06 ~08:57 +0800: SCHEDULED HEADLESS RUN STOOD DOWN (blocker record, AFK-default)
+
+- A scheduled headless session was invoked to run daily `category:chips.merchant-gpu`
+  (mode: daily, live) and found **another instance already mid-run on the same cycle**:
+  `work/daily-2026-07-06/` created 08:46 (gather complete 08:45:49, `extract-dispatch.md`
+  emitted 08:46:04) and 10 fresh uncommitted `store/seen_docs.jsonl` entries with
+  `asOf: 2026-07-06`. No `2026-07-06` scorecard existed yet - the run was in flight
+  (brain dispatch phase).
+- Per the mid-run stop rule, this session STOPPED: no `git pull`, no cycle run, no
+  commits. **AFK-default decision: stand down and cede daily #2 (2026-07-06) to the
+  in-flight instance**, which owns the post-run store/ commit+push and the HANDOFF run
+  summary. This note was appended (uncommitted) by the blocked session; fold or remove
+  it once daily #2 lands.
+- If the in-flight run stalled or died (no `store/chips.merchant-gpu/2026-07-06-*.json`
+  and no new commit hours later), daily #2 still needs to be run - do NOT assume it
+  happened.

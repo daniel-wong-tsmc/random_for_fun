@@ -55,7 +55,8 @@ def test_append_run_grows_history_and_recomputes_epsilon():
     base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.25},
             "seamHistory": {"extract": [6.5, 6.6, 6.4]},
             "replicates": [{"seamMeans": {"extract": 6.5}}]}
-    out = append_run_to_history(base, {"seamMeans": {"extract": 6.55}})
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.55}},
+                                {"extract": 0.125}, {"decision": "pass"})
     assert out["seamHistory"]["extract"] == [6.5, 6.6, 6.4, 6.55]
     assert out["epsilon"]["extract"] > 0            # recomputed, not the stale 0.25 unless equal
 
@@ -64,8 +65,34 @@ def test_append_seeds_history_from_replicates_when_absent():
             "replicates": [{"seamMeans": {"extract": 6.4}},
                            {"seamMeans": {"extract": 6.6}},
                            {"seamMeans": {"extract": 6.5}}]}
-    out = append_run_to_history(base, {"seamMeans": {"extract": 6.5}})
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.5}},
+                                {"extract": 0.125}, {"decision": "pass"})
     assert out["seamHistory"]["extract"] == [6.4, 6.6, 6.5, 6.5]
+
+def test_append_refuses_non_accepted_run_non_poisoning():
+    # F73 review fix: a failing/invalid run must never widen epsilon and hide itself
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.25},
+            "seamHistory": {"extract": [6.5, 6.6, 6.4]}}
+    for bad in ("hard-fail", "marginal-fail", "fail", "invalid-run"):
+        with pytest.raises(ValueError, match="non-poisoning"):
+            append_run_to_history(base, {"seamMeans": {"extract": 5.0}},
+                                  {"extract": 0.125}, {"decision": bad})
+
+def test_append_floors_at_true_quantum_not_stale_epsilon():
+    # F73 review fix: low-noise history + true quantum 0.125 converges to the quantum,
+    # NOT pinned at the stale stored half-range epsilon (0.3125). This would FAIL under the
+    # old _baseline_quanta fallback (which floored at baseline["epsilon"]).
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.3125},
+            "seamHistory": {"extract": [6.50, 6.51, 6.49, 6.50, 6.50]}}
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.50}},
+                                {"extract": 0.125}, {"decision": "pass"})
+    assert out["epsilon"]["extract"] == pytest.approx(0.125)
+
+def test_append_requires_true_quanta():
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.3125},
+            "seamHistory": {"extract": [6.5, 6.6, 6.4]}}
+    with pytest.raises(ValueError, match="true seam quanta"):
+        append_run_to_history(base, {"seamMeans": {"extract": 6.5}}, {}, {"decision": "pass"})
 
 
 from gpu_agent.evals.harness import evaluate_v2

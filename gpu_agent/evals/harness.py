@@ -198,30 +198,33 @@ def _seed_history(baseline: dict) -> dict[str, list[float]]:
             for s in baseline["replicates"][0]["seamMeans"]}
 
 
-def _baseline_quanta(baseline: dict,
-                     history: dict[str, list[float]]) -> dict[str, float]:
-    """The quantum floor per seam. Prefer the quanta stored at build time; for a pre-F73
-    baseline with no stored quanta, fall back to its existing epsilon per seam
-    (compute_epsilon parity — that epsilon is already floored at the quantum), and 0.0 for
-    any seam we have no floor for."""
-    stored = baseline.get("quanta")
-    if stored:
-        return {s: stored.get(s, 0.0) for s in history}
-    eps = baseline.get("epsilon", {})
-    return {s: eps.get(s, 0.0) for s in history}
-
-
-def append_run_to_history(baseline: dict, report: dict) -> dict:
+def append_run_to_history(baseline: dict, report: dict, quanta: dict[str, float],
+                          verdict: dict) -> dict:
     """Append an ACCEPTED run's seam means to the noise pool and recompute epsilon from the
-    widened history. Only an accepted (pass / marginal-resolved-pass) gate run may call
-    this — a failing run must never widen epsilon and hide itself. Returns a NEW baseline
-    dict; does not mutate the input."""
+    widened history. Returns a NEW baseline dict; does not mutate the input.
+
+    NON-POISONING is enforced here, not merely documented (F73 review fix): a run whose
+    `verdict["decision"]` is not pass/marginal-pass is REFUSED, so a regression can never
+    widen epsilon and hide itself. `quanta` is the TRUE per-seam quantum floor
+    (`seam_quanta(cases)`, or the baseline's stored `quanta`) — supplied explicitly so
+    epsilon converges toward real noise instead of being pinned at a stale stored half-range
+    (the pre-F73 fallback floored at `baseline["epsilon"]`, which cannot converge)."""
+    decision = verdict.get("decision")
+    if decision not in ("pass", "marginal-pass"):
+        raise ValueError(
+            f"refusing to append a non-accepted run to the noise pool (decision={decision!r}); "
+            "only pass/marginal-pass may widen the history (non-poisoning invariant)")
+    if not quanta:
+        raise ValueError(
+            "append_run_to_history needs the true seam quanta (seam_quanta(cases) or the "
+            "baseline's stored 'quanta'); refusing to floor at a stale epsilon that cannot "
+            "converge")
     history = _seed_history(baseline)
     for seam, mean in report["seamMeans"].items():
         history.setdefault(seam, []).append(mean)
     new = dict(baseline)
     new["seamHistory"] = history
-    new["epsilon"] = pooled_epsilon(history, _baseline_quanta(baseline, history))
+    new["epsilon"] = pooled_epsilon(history, {s: quanta.get(s, 0.0) for s in history})
     return new
 
 

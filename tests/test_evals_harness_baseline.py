@@ -47,7 +47,9 @@ def test_v2_verdict_embeds_in_report():
             "seamMeans": {"extract": 4.25}, "epsilon": {"extract": 0.25},
             "caseMedians": {"extract-t-01": 4}, "replicates": [], "provenance": {}}
     report = build_report(cases, grades, HASHES, baseline=base, as_of="2026-07-05")
-    assert report["verdict"]["decision"] == "pass"        # 4.0 == bar 4.0 -> bar-touch
+    # F73b: 4.0 == bar 4.0 is a bar-touch, now within the marginal band -> marginal-pass
+    assert report["verdict"]["decision"] == "marginal-pass"
+    assert report["verdict"]["pass"] is True
     tight = dict(base, seamMeans={"extract": 4.5})        # bar 4.25 -> marginal band
     report2 = build_report(cases, grades, HASHES, baseline=tight, as_of="2026-07-05")
     assert report2["verdict"]["decision"] == "marginal-fail"

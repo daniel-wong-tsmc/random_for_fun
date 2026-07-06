@@ -266,13 +266,18 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
 
     seams: dict[str, dict] = {}
     craters: list[dict] = []
-    any_fail = any_hard = False
+    any_fail = any_hard = any_marginal_pass = False
     for seam, base_mean in baseline["seamMeans"].items():
         eps = baseline["epsilon"][seam]
         value = sum(r["seamMeans"][seam] for r in reports) / len(reports)
         bar, hard_bar = base_mean - eps, base_mean - 2 * eps
         ok = value >= bar - _EPS
         seams[seam] = {"value": value, "bar": bar, "hardBar": hard_bar, "ok": ok}
+        # F73b: symmetric marginal band — a seam that clears the bar but sits within one
+        # eps of it (value in [bar, base_mean)) is not a clean pass; flag it so a single
+        # run is replicated once, mirroring the fail-side marginal band.
+        if ok and value < bar + eps - _EPS:
+            any_marginal_pass = True
         if not ok:
             any_fail = True
             reasons.append(f"regression on '{seam}': {value:.3f} < bar {bar:.3f} "
@@ -293,16 +298,20 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
             if value <= median - CRATER_DROP - HARD_CRATER_EXTRA + _EPS:
                 any_hard = True
 
+    # TODO(F73 Task 2 Step 5): the eval-driver skill (machine-local ~/.claude/skills,
+    # not editable from this worktree) must treat 'marginal-pass' like 'marginal-fail' —
+    # replicate exactly once, then decide on the two-run mean. A marginal-pass is NOT a
+    # clean pass. See the completion report for the exact skill edit.
     if not any_fail:
-        decision = "pass"
+        decision = "marginal-pass" if (len(reports) == 1 and any_marginal_pass) else "pass"
     elif len(reports) == 2:
         decision = "fail"
     elif any_hard:
         decision = "hard-fail"
     else:
         decision = "marginal-fail"
-    return {"pass": decision == "pass", "decision": decision, "reasons": reasons,
-            "seams": seams, "craters": craters}
+    return {"pass": decision in ("pass", "marginal-pass"), "decision": decision,
+            "reasons": reasons, "seams": seams, "craters": craters}
 
 
 def build_baseline_v2(reports: list[dict], run_dirs: list[str], cases: list[EvalCase],

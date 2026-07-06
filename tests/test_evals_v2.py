@@ -82,8 +82,31 @@ BASE = {"schemaVersion": 2, "promptHashes": HASHES,
         "caseMedians": {"e1": 7, "e2": 6}}
 
 def test_verdict_pass_on_bar_touch():
+    # F73b: a value sitting exactly on the bar is within the marginal band by definition,
+    # so it now reads marginal-pass (still a pass, but flagged for one replication).
     v = evaluate_v2(BASE, [_report({"extract": 6.25}, {"e1": 7, "e2": 6})])
-    assert (v["decision"], v["pass"]) == ("pass", True)
+    assert (v["decision"], v["pass"]) == ("marginal-pass", True)
+
+
+# --- F73b: symmetric marginal band on the PASS side ----------------------------
+
+def report_with_extract_mean(mean):
+    return _report({"extract": mean}, {"e1": 7, "e2": 6})
+
+def test_verdict_marginal_pass_within_one_epsilon_above_bar():
+    # extract mean 6.30, base 6.5, eps 0.25 -> bar 6.25; 6.30 in [6.25, 6.50) -> marginal-pass
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.30)])
+    assert (v["decision"], v["pass"]) == ("marginal-pass", True)
+
+def test_verdict_clear_pass_when_comfortably_above_bar_plus_epsilon():
+    # 6.80 >= bar 6.25 + eps 0.25 = 6.50 -> plain pass, no replication asked
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.80)])
+    assert v["decision"] == "pass"
+
+def test_two_run_mean_after_marginal_pass_decides_plain():
+    # two reports -> mean decides; never 'marginal-pass' with 2 runs
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.30), report_with_extract_mean(6.40)])
+    assert v["decision"] in ("pass", "fail")
 
 def test_verdict_marginal_within_one_epsilon_below_bar():
     v = evaluate_v2(BASE, [_report({"extract": 6.0}, {"e1": 7, "e2": 5})])

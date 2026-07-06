@@ -1,14 +1,14 @@
 {
  "scope": "category:chips.merchant-gpu",
- "asOf": "2026-07-05",
+ "asOf": "2026-07-06",
  "mode": "daily",
- "capturedAt": "2026-07-05T13:20:00Z",
+ "capturedAt": "2026-07-06T01:15:00Z",
  "entries": [
   {
    "category_id": "chips.merchant-gpu",
    "assignment_path": "fixtures\u0007sg.chips.merchant-gpu.json",
    "status": "ready",
-   "scorecard": "store/chips.merchant-gpu/2026-07-05-v1.json",
+   "scorecard": "store/chips.merchant-gpu/2026-07-06-v1.json",
    "dmi": 0.04,
    "smi": -0.027,
    "sdgi": 0.067,
@@ -26,30 +26,31 @@
     "primaryVsSecondary": "1 primary / 9 secondary (by ingest tiering)",
     "blobsByClass": {
      "price": 2,
-     "news": 4,
+     "news": 3,
      "forward": 3,
-     "filing-chase": 1
+     "filing-chase": 2
     },
     "webReach": {
      "agent-reach": "ok",
      "last30days": "ok"
     },
-    "webReachNote": "agent-reach healthCmd passed but the CLI exposes no read/search verbs in this environment; gatherers fell back to WebSearch/WebFetch/curl (logged)",
-    "discoveryLeads": "work/daily-2026-07-05/last30days-leads.md",
-    "blobs": "work/daily-2026-07-05/blobs.json",
-    "gatherLog": "work/daily-2026-07-05/gather-log.json",
-    "coverageGaps": "work/daily-2026-07-05/coverage-gaps.json",
-    "coverageGapCounts": "6 source gaps (2 paywalled: trendforce-gpu-tracker, semianalysis; never fetched) + 8 indicator gaps (quarterly filing indicators deprioritized in daily mode)",
+    "discoveryLeads": "work/daily-2026-07-06/last30days-leads.md (same 8 clusters as 07-05; no new overnight discovery)",
+    "blobs": "work/daily-2026-07-06/blobs.json",
+    "gatherLog": "work/daily-2026-07-06/gather-log.json",
+    "coverageGaps": "work/daily-2026-07-06/coverage-gaps.json",
+    "coverageGapCounts": "9 source gaps (2 paywalled: trendforce-gpu-tracker, semianalysis; never fetched) + 8 indicator gaps (quarterly filing indicators deprioritized in daily mode)",
     "notableSkips": [
-     "vast.ai/pricing fetched but prices render client-side - no figures readable; counted against price-class cap; logged",
-     "last30days lead 'Nvidia Halos' dropped: out of 7-day window and off-lane",
-     "SMCI 8-K kept although dated 2026-03-20: filing seeds are recency-exempt (F58); no in-window SMCI 8-K exists (EDGAR verified); it is the primary behind the in-window Taiwan-raid reporting",
-     "NVDA/AMD/INTC newsrooms: no new in-window items beyond already-ingested URLs; all candidates dated 2026-06-01..06-23 (out of window, logged)",
-     "Bloomberg originals and The Information paywalled - not fetched; syndications used and logged"
+     "vast.ai attempted again - prices client-side rendered, no figures; 500.farm tracker 404; price class stopped at 2 docs",
+     "SharonAI 8-K kept although press-release-dated 2026-06-12: filing recency-exemption (F58); it is the primary behind the in-window vendor-financing coverage",
+     "Tom's Hardware / Tom's Guide / TechTimes / wccftech DRAM-lawsuit fetches ALL failed (nav shell or 403) - fell back to AppleInsider + Gizmochina; primary court filing left as a PACER lead",
+     "Nebius official announcement (primary for the ~30% hike) not chased: doc cap reached; logged as lead",
+     "No genuinely new 07-05/07-06 headlines found - US July 4 holiday weekend; vendor newsrooms quiet"
     ],
     "paywalledSkipped": [
      "trendforce-gpu-tracker",
-     "semianalysis"
+     "semianalysis",
+     "The Information (Nebius primary)",
+     "Bloomberg subscriber items"
     ]
    },
    "dedup": {
@@ -58,28 +59,28 @@
      "dup": 0,
      "dropped": 0,
      "droppedKnown": 0,
-     "note": "lambda.ai + coreweave.com URLs seen 2026-07-03 but content hashes changed, so they correctly survived (F12 content-hash-first)"
+     "note": "price re-captures survived L1 (page chrome changed); L2 classified their unchanged prices as duplicates - the layered dedup working as designed"
     },
     "L2": {
-     "new": 4,
-     "update": 2,
-     "duplicate": 4,
-     "report": "store/chips.merchant-gpu/dedup-2026-07-05.json"
+     "new": 1,
+     "update": 7,
+     "duplicate": 7,
+     "report": "store/chips.merchant-gpu/dedup-2026-07-06.json"
     }
    },
    "answers": {
-    "extract": "work/daily-2026-07-05/extract-answer.json",
-    "judge": "work/daily-2026-07-05/judge-answer.json (samples also at s1/s2/s3.json)",
-    "thesis": "work/daily-2026-07-05/thesis-answer.json"
+    "extract": "work/daily-2026-07-06/extract-answer.json",
+    "judge": "work/daily-2026-07-06/judge-answer.json (samples at s1/s2/s3.json)",
+    "thesis": "work/daily-2026-07-06/thesis-answer.json"
    },
    "gates": {
-    "extract": "10 findings gated first pass, 0 dropped, no re-dispatch",
-    "voiceLint": "all 3 judge samples re-dispatched once (non-allowlisted acronyms CFO/CUDA/ZLUDA/SDNY); all passed on the re-dispatch; NO bypass",
-    "sufficiency": "PASSED with no bypass - binding-constraint change (moat -> strategicRisk) cited 3 distinct publishers including a primary SEC filing, meeting the F63 bar; the F71 anchor-vs-sufficiency deadlock did NOT recur this cycle",
-    "thesis": "12/12 judged first pass, 0 gate rejections; amd-credible-second-source 'weakened' reversal DEFERRED by anti-whipsaw (secondary-only, 1 publisher < 3) - F5/F63 machinery working as designed",
-    "knownGap": "new proposal title 'CUDA software lock-in sustains the moat' carries the off-allowlist token CUDA into THE CALLS - thesis-prose lint is the deferred F68a wiring; logged, store not hand-edited"
+    "extract": "15 findings gated first pass from 10 docs, 0 dropped, no re-dispatch",
+    "voiceLint": "all 3 judge samples re-dispatched once (non-allowlisted acronym DRAM in narrative/bottleneck.rationale/reason); all passed on the re-dispatch; NO bypass",
+    "sufficiency": "PASSED with no bypass - binding-constraint change (strategicRisk -> bottleneck, i.e. export enforcement -> memory scarcity) cited 3 distinct publishers (AppleInsider, BigGo, Gizmochina), meeting the F63 bar; no F71 recurrence",
+    "thesis": "13/13 judged first pass, 0 gate rejections; amd-credible-second-source weakened APPLIED (2nd consecutive same-direction signal resolved the pending challenge, conviction high->medium); custom-asic-substitution strengthened DEFERRED (secondary-only reversal, 2 publishers < 3) - anti-whipsaw working in both directions",
+    "priceTrackArtifact": "first day-over-day PMI computed (+1.00, 2 matched series) but the lambda.ai delta (+2.70) compares different GPU models (prior rep=H100 3.99, today rep=B200 6.69) - the D6 per-series key is provider-grain, an F51 follow-up candidate; overlay-only, never scores"
    },
-   "wikiWriteBack": "6 deduped findings routed to entity:nvidia; wiki-lint 1 material page, 0 dropped",
+   "wikiWriteBack": "8 deduped findings routed to entity:nvidia; wiki-lint 1 material page, 0 dropped",
    "stageStatus": {
     "category": "done",
     "thesis": "done",
@@ -87,14 +88,15 @@
     "main": "deferred"
    },
    "thesis": {
-    "judgmentsApplied": 11,
-    "deferred": "amd-credible-second-source weakened (anti-whipsaw: secondary-only reversal, 1 publisher < 3) -> CHALLENGED pending confirmation",
-    "notable": "supply-constraint-binding strengthened (conviction high); export-control-exposure strengthened (medium->high); vendor-financed-demand-circularity strengthened + PROMOTED to registered; customer-concentration-risk, networking-attach-as-systems-moat, cheaper-inference-pulls-in-demand also promoted to registered",
+    "judgmentsApplied": 12,
+    "deferred": "custom-asic-substitution strengthened (anti-whipsaw: secondary-only reversal, 2 publishers < 3) -> CHALLENGED pending confirmation",
+    "applied_reversal": "amd-credible-second-source weakened applied on 2nd consecutive signal (conviction high->medium)",
+    "notable": "supply-constraint-binding strengthened; pricing-power-persistence strengthened (medium->high on Nebius +30% hike + level holds); vendor-financed-demand-circularity strengthened again (now backed by the SharonAI 8-K primary); cuda-software-lock-in weakened on its first judgment (LongCat off-stack training); prepaid-hbm + conditional-china promoted to registered",
     "proposed": [
-     "cuda-software-lock-in-sustains-the-moat"
+     "rising-memory-costs-inflate-ai-server-economics"
     ]
    },
-   "report": "rendered board-ready daily (--daily): Strong / worsening; binding constraint China export-control enforcement (shifted from moat, 3 publishers + primary filing)"
+   "report": "rendered board-ready daily (--daily): Strong / worsening; binding constraint HBM/DRAM and NVMe scarcity (shifted from export enforcement on 3 publishers); evidence 0% older than 6 weeks"
   }
  ],
  "stages": [

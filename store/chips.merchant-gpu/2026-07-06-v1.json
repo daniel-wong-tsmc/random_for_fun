@@ -1,0 +1,811 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07-06",
+  "findings": [
+    {
+      "id": "appleinsider-com-82378946-2026-07-06-1",
+      "statement": "Memory makers' alleged shift of DRAM wafer capacity toward HBM for AI accelerators is tightening memory supply and inflating the memory portion of Nvidia GPU/AI-server bills of materials.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Reallocating capacity from commodity DRAM to higher-priced HBM keeps HBM and memory supply tight, and memory is a major cost input to Nvidia GPU and AI-server builds.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Capacity shift toward HBM reduces mainstream DRAM output and keeps memory supply tight, raising component costs embedded in GPU/AI-server BOMs."
+      },
+      "evidence": [
+        {
+          "source": "AppleInsider",
+          "url": "https://appleinsider.com/articles/26/06/29/apple-suppliers-samsung-sk-hynix-micron-hit-by-ram-price-fixing-suit",
+          "date": "2026-06-29",
+          "excerpt": "shifted manufacturing capacity toward HBM, which commands much higher prices from AI companies",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet reporting lawsuit allegations; qualitative capacity-shift claim with no price figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-biggo-com-c310c4ca-2026-07-06-1",
+      "statement": "Nvidia AI-server rack component costs are inflating rapidly — running about 2% to 3% per week, sitting 10% to 15% above baseline, and swinging as much as 40% in a single week — driven by memory and NVMe scarcity.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Rising, volatile component costs on Nvidia rack builds signal a tight supply chain that feeds into merchant-GPU lead-time and pricing expectations.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "infrastructure.ai-storage"
+        ],
+        "direction": "negative",
+        "mechanism": "Memory and NVMe scarcity raises Nvidia rack build costs week over week, tightening effective supply and pressuring pricing."
+      },
+      "evidence": [
+        {
+          "source": "BigGo Finance",
+          "url": "https://finance.biggo.com/news/0be5f491-d712-4383-8c78-b1c1594c9f4a",
+          "date": "2026-07-04",
+          "excerpt": "as much as 40% in a single week",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary outlet citing The Information; qualitative cost-volatility ranges, no contract-price figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-04",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-biggo-com-c310c4ca-2026-07-06-2",
+      "statement": "Nebius raised on-demand GPU cloud rental prices by approximately 30% on June 1, reflecting AI-compute scarcity.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "An on-demand GPU rental price hike is a scarcity/demand signal, but rental price is a display overlay that does not score the index.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Rising rental rates for Nvidia GPU capacity reflect tight supply relative to demand."
+      },
+      "evidence": [
+        {
+          "source": "BigGo Finance",
+          "url": "https://finance.biggo.com/news/0be5f491-d712-4383-8c78-b1c1594c9f4a",
+          "date": "2026-07-04",
+          "excerpt": "raised on-demand computing rental prices by approximately 30% on June 1",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary outlet citing The Information; no direct Nebius quotes or absolute rate disclosed."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-04",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-2026-07-06-1",
+      "statement": "Lambda GPU Cloud lists NVIDIA B200 SXM6 (8x) on-demand at $6.69 per GPU-hour.",
+      "kind": "measured",
+      "value": {
+        "number": 6.69,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Static listed rental price level with no stated baseline or change; captured for the day-over-day price overlay series.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Display-overlay rental price level for Nvidia B200 capacity; informs pricing context but does not score."
+      },
+      "evidence": [
+        {
+          "source": "Lambda",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-06",
+          "excerpt": "NVIDIA B200 SXM6 \"$6.69\"",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own on-demand pricing page; no as-of date shown."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-06",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-2026-07-06-2",
+      "statement": "Lambda GPU Cloud lists NVIDIA H100 SXM (8x) on-demand at $3.99 per GPU-hour.",
+      "kind": "measured",
+      "value": {
+        "number": 3.99,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Static listed rental price level with no stated baseline or change; captured for the day-over-day price overlay series.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Display-overlay rental price level for Nvidia H100 capacity; informs pricing context but does not score."
+      },
+      "evidence": [
+        {
+          "source": "Lambda",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-06",
+          "excerpt": "NVIDIA H100 SXM \"$3.99\"",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own on-demand pricing page; no as-of date shown."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-06",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-2026-07-06-3",
+      "statement": "Lambda GPU Cloud lists NVIDIA A100 SXM (80GB) (8x) on-demand at $2.79 per GPU-hour.",
+      "kind": "measured",
+      "value": {
+        "number": 2.79,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Static listed rental price level with no stated baseline or change; captured for the day-over-day price overlay series.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Display-overlay rental price level for Nvidia A100 capacity; informs pricing context but does not score."
+      },
+      "evidence": [
+        {
+          "source": "Lambda",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-06",
+          "excerpt": "NVIDIA A100 SXM (80GB) \"$2.79\"",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own on-demand pricing page; no as-of date shown."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-06",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "longcat-chat-e59c7f82-2026-07-06-1",
+      "statement": "Meituan's LongCat-2.0, a 1.6-trillion-parameter MoE model, was pretrained entirely on over 50,000 domestic (non-Nvidia) AI ASIC superpods across more than 35 trillion tokens, demonstrating frontier-scale training on alternative hardware.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A successful frontier-scale training run on domestic ASICs shows a viable non-Nvidia alternative, threatening Nvidia's demand especially in China even as Nvidia's software-ecosystem maturity remains an advantage.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "models.open-weight"
+        ],
+        "direction": "mixed",
+        "mechanism": "Domestic AI ASIC superpods substitute for Nvidia GPUs in large-scale training, expanding alternative compute supply and eroding Nvidia's addressable demand."
+      },
+      "evidence": [
+        {
+          "source": "Meituan LongCat",
+          "url": "https://longcat.chat/blog/longcat-2.0/",
+          "date": "2026-06-30",
+          "excerpt": "LongCat-2.0 is pre-trained on over 50K AI ASICs",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own blog (self-reported); model not yet publicly released for independent verification."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "the-decoder-com-52842a16-2026-07-06-1",
+      "statement": "The Decoder independently reports Meituan's LongCat-2.0 (1.6T parameters) was trained on more than 50,000 domestically made AI ASICs with no Nvidia chips, alongside competitive coding-benchmark claims but limited public availability.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "An outside outlet corroborating a large-model training run on non-Nvidia domestic chips strengthens the signal that alternative compute can substitute for Nvidia GPUs, pressuring Nvidia demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "models.reasoning-agentic"
+        ],
+        "direction": "mixed",
+        "mechanism": "Independent confirmation of domestic-ASIC frontier training expands perceived alternative supply and erodes Nvidia's addressable demand."
+      },
+      "evidence": [
+        {
+          "source": "The Decoder",
+          "url": "https://the-decoder.com/meituans-longcat-2-0-shows-china-can-train-massive-ai-models-without-nvidia/",
+          "date": "2026-06-30",
+          "excerpt": "more than 50,000 domestically made AI ASICs",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet; the article notes independent verification remains difficult due to limited public availability and the chipmaker is unnamed."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-coreweave-com-eb7fcb71-2026-07-06-1",
+      "statement": "CoreWeave lists NVIDIA GH200 (1 GPU) on-demand at $6.50 per GPU-hour in North America.",
+      "kind": "measured",
+      "value": {
+        "number": 6.5,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Static listed per-GPU rental price with no stated baseline or change; captured for the day-over-day price overlay series.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Display-overlay rental price level for Nvidia GH200 capacity; informs pricing context but does not score."
+      },
+      "evidence": [
+        {
+          "source": "CoreWeave",
+          "url": "https://www.coreweave.com/pricing",
+          "date": "2026-07-06",
+          "excerpt": "NVIDIA GH200 (1 GPU, 96GB VRAM, 72 vCPUs): \"$6.50\" on-demand/inference",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own instance-pricing page; no as-of date shown; only the single-GPU instance yields a clean per-GPU-hour figure."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-06",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+      "statement": "Taiwanese authorities escalated the Nvidia-GPU smuggling probe, raiding Supermicro's Taiwan office and affiliated sites and detaining employees, tied to US charges alleging some $2.5 billion of servers were shipped to China without an export license.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Intensifying cross-border enforcement against illicit diversion of Nvidia GPUs to China signals tightening export-control pressure on the gray-market China demand channel.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.datacenter-colo"
+        ],
+        "direction": "negative",
+        "mechanism": "Enforcement raids and detentions curtail smuggling routes that supplied restricted Nvidia GPUs to China, constraining that demand channel and raising compliance risk."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/supermicros-taiwan-office-raided-in-ongoing-nvidia-smuggling-probe-more-employees-detained-by-prosecutors-report/",
+          "date": "2026-07-01",
+          "excerpt": "some $2.5 billion in servers were shipped to China, despite Supermicro lacking a Commerce Department license",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet reporting an ongoing investigation still developing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+      "statement": "Nvidia is expanding a vendor-financing/backstop program — backstopping GPU purchases in exchange for revenue sharing and agreeing to rent back unused GPUs at fixed rates — with early adopters Firmus (170,000 GPUs) and Sharon AI (40,000 GB300), about 210,000 GPUs combined, following CoreWeave ($6.3B) and Lambda ($1.5B) support deals.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "By backstopping GPU purchases and guaranteeing rent-back, Nvidia underwrites committed demand for its GPUs, supporting near-term volumes.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Vendor financing converts customer GPU purchases into committed backlog for Nvidia, boosting demand but tying Nvidia revenue to the health of financed neoclouds."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+          "date": "2026-07-02",
+          "excerpt": "Firmus with 170,000 GPUs deploying in Batam, Indonesia, and Sharon AI with 40,000 GB300 GPUs — 210,000 GPUs combined",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet; GPU counts given but no dollar figures for the new Firmus/Sharon commitments."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+      "statement": "Nvidia's backstop and revenue-sharing arrangements may increasingly concentrate its demand in vendor-financed neoclouds, raising circular-financing risk.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "rising",
+      "why": "If a growing share of Nvidia GPU demand depends on Nvidia's own credit support and rent-back guarantees, reported demand may overstate organic end-market pull.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "negative",
+        "mechanism": "Concentration of demand among Nvidia-financed customers creates dependence and circularity that could unwind if those customers falter."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+          "date": "2026-07-02",
+          "excerpt": "both standard product revenue and a share of the cloud revenue on the supported capacity",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "The article describes Nvidia backstopping purchases and renting back unused GPUs, implying part of the demand is self-underwritten; this is an inference about concentration/circularity risk, not a measured fact.",
+      "confidence": {
+        "level": "medium",
+        "basis": "Inference from a single secondary report; no figures on what share of demand is vendor-financed."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-gizmochina-com-8d748ae8-2026-07-06-1",
+      "statement": "A California antitrust suit alleges Samsung, SK hynix and Micron — together controlling nearly 95% of the DRAM market — are restricting standard DRAM output while shifting capacity to high-margin HBM for AI servers, keeping memory supply tight for AI/GPU builds.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A concentrated memory oligopoly shifting capacity to HBM keeps the memory input to Nvidia GPU/AI-server builds tight and costly.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Capacity reallocation to HBM plus near-monopoly memory supply concentration tightens memory availability and raises AI-server/GPU component costs."
+      },
+      "evidence": [
+        {
+          "source": "Gizmochina",
+          "url": "https://www.gizmochina.com/2026/06/30/samsung-micron-and-sk-hynix-sued-over-artificial-ram-shortage-and-price-hikes/",
+          "date": "2026-06-30",
+          "excerpt": "shifting production capacity toward high-margin, high-bandwidth memory (HBM) for AI servers while holding back on standard DRAM",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Lower-ranked fallback secondary outlet with an unverified case number; qualitative allegation, price rise stated only as 'hundreds of percent' with no baseline."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-7e661410-2026-07-06-1",
+      "statement": "Sharon AI signed a six-year compute collaboration with Nvidia to deploy 72MW of new Australian data-center capacity and up to 40,000 Grace Blackwell GB300 GPUs, expecting more than 55,000 total Nvidia GPUs deployed by mid-2027.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A six-year commitment to deploy up to 40,000 GB300 GPUs, with a path to 55,000+ Nvidia GPUs, is contracted Nvidia GPU demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud",
+          "infrastructure.datacenter-colo"
+        ],
+        "direction": "positive",
+        "mechanism": "A multi-year GB300 deployment commitment converts into contracted backlog and recurring, usage-linked Nvidia revenue on the supported capacity."
+      },
+      "evidence": [
+        {
+          "source": "SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0002068385/000149315226028370/ex99-1.htm",
+          "date": "2026-06-12",
+          "excerpt": "NVIDIA and Sharon AI to deploy 72MW AI factory and up to 40,000 Grace Blackwell GB300 GPUs in Australia",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC 8-K exhibit (company press release) disclosing deal terms; GPU/MW counts stated though no dollar amounts disclosed."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-12",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-7e661410-2026-07-06-2",
+      "statement": "The Nvidia-Sharon AI deal uses a revenue-sharing and credit-support model — Nvidia earns standard product revenue plus a share of cloud revenue — to enable capital-constrained customers to adopt Nvidia infrastructure, with no rent-back, backstop, or repurchase language in the filing.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Credit-support plus revenue-sharing expands Nvidia's addressable demand to capital-constrained customers and creates recurring usage-linked earnings, while deepening economic entanglement with the customer.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Economic-alignment financing accelerates Nvidia platform adoption among customers lacking capital, expanding demand but linking Nvidia earnings to the customer's cloud revenue."
+      },
+      "evidence": [
+        {
+          "source": "SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0002068385/000149315226028370/ex99-1.htm",
+          "date": "2026-06-12",
+          "excerpt": "NVIDIA will earn both standard product revenue and a share of the cloud revenue on the supported capacity",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC 8-K exhibit stating revenue-sharing/credit-support terms; filing explicitly contains no backstop or repurchase language."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-12",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    }
+  ],
+  "dimensionRatings": {
+    "bottleneck": {
+      "rating": "Weak",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "appleinsider-com-82378946-2026-07-06-1",
+        "finance-biggo-com-c310c4ca-2026-07-06-1",
+        "www-gizmochina-com-8d748ae8-2026-07-06-1"
+      ],
+      "rationale": "Memory makers holding roughly 95 percent of supply are diverting wafers to HBM, and AI-server rack costs now climb 2 to 3 percent a week with 40 percent single-week swings. Memory and NVMe scarcity now sets how many systems can ship.",
+      "voteSpread": "2/3 Weak, 1/3 Mixed"
+    },
+    "competitiveStructure": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "longcat-chat-e59c7f82-2026-07-06-1",
+        "the-decoder-com-52842a16-2026-07-06-1"
+      ],
+      "rationale": "Two independent reports show Meituan trained a 1.6-trillion-parameter model on more than 50,000 domestic non-Nvidia ASICs, proving frontier-scale training off Nvidia hardware. Limited public availability keeps the threat unproven in market share so far.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "momentum": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+        "www-sec-gov-7e661410-2026-07-06-1"
+      ],
+      "rationale": "A six-year Sharon AI commitment for up to 40,000 GB300 GPUs and a vendor-financing program backstopping about 210,000 GPUs keep orders flowing. Demand widens faster than supply can follow.",
+      "voteSpread": "3/3 Strong"
+    },
+    "strategicRisk": {
+      "rating": "Weak",
+      "direction": "worsening",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+        "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+        "www-sec-gov-7e661410-2026-07-06-2"
+      ],
+      "rationale": "Taiwan's raids on Supermicro over $2.5 billion of diverted servers escalate export enforcement, and backstop revenue-sharing concentrates demand in vendor-financed neoclouds. The Sharon AI filing shows no rent-back or repurchase terms, tempering the circular-financing concern.",
+      "voteSpread": "3/3 Weak"
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.039999999999999994,
+    "smiContribution": -0.02666666666666667,
+    "anchors": {
+      "bottleneck": -0.6666666666666666,
+      "competitiveStructure": -0.6666666666666666,
+      "strategicRisk": -0.2222222222222222,
+      "momentum": 0.6666666666666666
+    },
+    "sdgi": 0.06666666666666667,
+    "sdgiDirection": "demand-led"
+  },
+  "narrative": "Nvidia's position stays strong because demand keeps widening, with new six-year neocloud commitments and vendor-financing backstops underwriting well over 200,000 GPUs, yet the squeeze has moved to memory, where memory makers divert wafers to HBM and AI-server rack costs climb 2 to 3 percent a week. The next rating turns on whether HBM and standard memory output catches demand before component inflation forces neoclouds to slip deliveries, and this read departs from the view that export enforcement is the ceiling because the Taiwan smuggling raids only cap China revenue while the memory shortage caps how many systems ship everywhere. The picture shifts first in spot memory and NVMe prices and in whether Chinese buyers keep proving frontier training on domestic ASICs, either of which would surface as easing rack-cost swings or a fresh non-Nvidia training win before it reaches order books.",
+  "confidence": {
+    "level": "medium",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "AppleInsider",
+    "BigGo Finance",
+    "CoreWeave",
+    "Data Center Dynamics",
+    "Gizmochina",
+    "Lambda",
+    "Meituan LongCat",
+    "SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+    "The Decoder"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.1"
+  },
+  "dimensionStatus": {
+    "momentum": {
+      "evidenceStatus": "grounded",
+      "findingCount": 2,
+      "confidenceCap": null,
+      "note": ""
+    },
+    "unitEconomics": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to unitEconomics this cycle"
+    },
+    "competitiveStructure": {
+      "evidenceStatus": "grounded",
+      "findingCount": 2,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "moat": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to moat this cycle"
+    },
+    "bottleneck": {
+      "evidenceStatus": "grounded",
+      "findingCount": 3,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "strategicRisk": {
+      "evidenceStatus": "grounded",
+      "findingCount": 3,
+      "confidenceCap": null,
+      "note": ""
+    }
+  },
+  "categoryStatus": {
+    "rating": "Strong",
+    "direction": "worsening",
+    "bottleneck": "bottleneck",
+    "reason": "Durable, widening demand keeps the position strong, with six-year neocloud deals and vendor backstops underwriting well over 200,000 GPUs. The binding constraint has shifted from export enforcement to memory: standard-memory-to-HBM wafer diversion and NVMe scarcity, reported by three publishers, inflate rack costs 2 to 3 percent weekly and now cap how many systems ship.",
+    "constraintLabel": "HBM/DRAM and NVMe scarcity"
+  },
+  "indices": {
+    "momentum": {
+      "dmiContribution": -0.02666666666666667,
+      "smiContribution": -0.02666666666666667,
+      "anchors": {},
+      "sdgi": 0.0,
+      "sdgiDirection": "balanced"
+    },
+    "outlook": {
+      "dmiContribution": 0.06666666666666667,
+      "smiContribution": 0.0,
+      "anchors": {},
+      "sdgi": 0.06666666666666667,
+      "sdgiDirection": "demand-led"
+    },
+    "divergence": {
+      "state": "diverging-strengthening",
+      "sdgiGap": 0.06666666666666667,
+      "outlookFindingCount": 2,
+      "momentumFindingCount": 5,
+      "note": ""
+    }
+  }
+}

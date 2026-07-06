@@ -1,0 +1,42 @@
+{
+  "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+  "statement": "Nvidia's backstop and revenue-sharing arrangements may increasingly concentrate its demand in vendor-financed neoclouds, raising circular-financing risk.",
+  "kind": "hypothesis",
+  "value": null,
+  "trend": "rising",
+  "why": "If a growing share of Nvidia GPU demand depends on Nvidia's own credit support and rent-back guarantees, reported demand may overstate organic end-market pull.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "negative",
+    "mechanism": "Concentration of demand among Nvidia-financed customers creates dependence and circularity that could unwind if those customers falter."
+  },
+  "evidence": [
+    {
+      "source": "Data Center Dynamics",
+      "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+      "date": "2026-07-02",
+      "excerpt": "both standard product revenue and a share of the cloud revenue on the supported capacity",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": "The article describes Nvidia backstopping purchases and renting back unused GPUs, implying part of the demand is self-underwritten; this is an inference about concentration/circularity risk, not a measured fact.",
+  "confidence": {
+    "level": "medium",
+    "basis": "Inference from a single secondary report; no figures on what share of demand is vendor-financed."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Data Center Dynamics, SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+  "asOf": "2026-07-06",
+  "indicatorId": "customerConcentration",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "finance-biggo-com-c310c4ca-2026-07-06-1",
+  "statement": "Nvidia AI-server rack component costs are inflating rapidly — running about 2% to 3% per week, sitting 10% to 15% above baseline, and swinging as much as 40% in a single week — driven by memory and NVMe scarcity.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Rising, volatile component costs on Nvidia rack builds signal a tight supply chain that feeds into merchant-GPU lead-time and pricing expectations.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "infrastructure.ai-storage"
+    ],
+    "direction": "negative",
+    "mechanism": "Memory and NVMe scarcity raises Nvidia rack build costs week over week, tightening effective supply and pressuring pricing."
+  },
+  "evidence": [
+    {
+      "source": "BigGo Finance",
+      "url": "https://finance.biggo.com/news/0be5f491-d712-4383-8c78-b1c1594c9f4a",
+      "date": "2026-07-04",
+      "excerpt": "as much as 40% in a single week",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary outlet citing The Information; qualitative cost-volatility ranges, no contract-price figures."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: AppleInsider, BigGo Finance",
+  "asOf": "2026-07-06",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-04",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

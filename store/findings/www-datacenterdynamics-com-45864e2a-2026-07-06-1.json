@@ -1,0 +1,42 @@
+{
+  "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+  "statement": "Nvidia is expanding a vendor-financing/backstop program — backstopping GPU purchases in exchange for revenue sharing and agreeing to rent back unused GPUs at fixed rates — with early adopters Firmus (170,000 GPUs) and Sharon AI (40,000 GB300), about 210,000 GPUs combined, following CoreWeave ($6.3B) and Lambda ($1.5B) support deals.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "By backstopping GPU purchases and guaranteeing rent-back, Nvidia underwrites committed demand for its GPUs, supporting near-term volumes.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Vendor financing converts customer GPU purchases into committed backlog for Nvidia, boosting demand but tying Nvidia revenue to the health of financed neoclouds."
+  },
+  "evidence": [
+    {
+      "source": "Data Center Dynamics",
+      "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+      "date": "2026-07-02",
+      "excerpt": "Firmus with 170,000 GPUs deploying in Batam, Indonesia, and Sharon AI with 40,000 GB300 GPUs — 210,000 GPUs combined",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary outlet; GPU counts given but no dollar figures for the new Firmus/Sharon commitments."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Data Center Dynamics, SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+  "asOf": "2026-07-06",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-02",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

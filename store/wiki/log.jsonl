@@ -59,3 +59,12 @@
 {"seq":58,"asOf":"2026-07-05","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-digitimes-com-e48a6e49-2026-07-05-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":59,"asOf":"2026-07-05","kind":"append-observation","pageId":"entity:nvidia","findingId":"startupfortune-com-6857e872-2026-07-05-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":60,"asOf":"2026-07-05","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 1; dropped 0; stale 4; orphans 5; contradictions 0"}
+{"seq":61,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-coreweave-com-eb7fcb71-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":62,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"finance-biggo-com-c310c4ca-2026-07-06-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":63,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"lambda-ai-845323fc-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":64,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"finance-biggo-com-c310c4ca-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":65,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"longcat-chat-e59c7f82-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":66,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-datacenterdynamics-com-45864e2a-2026-07-06-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":67,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-datacenterdynamics-com-0c76f530-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":68,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-datacenterdynamics-com-45864e2a-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":69,"asOf":"2026-07-06","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 1; dropped 0; stale 4; orphans 5; contradictions 0"}

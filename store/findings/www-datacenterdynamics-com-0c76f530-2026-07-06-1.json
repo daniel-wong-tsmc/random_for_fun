@@ -1,0 +1,42 @@
+{
+  "id": "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+  "statement": "Taiwanese authorities escalated the Nvidia-GPU smuggling probe, raiding Supermicro's Taiwan office and affiliated sites and detaining employees, tied to US charges alleging some $2.5 billion of servers were shipped to China without an export license.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Intensifying cross-border enforcement against illicit diversion of Nvidia GPUs to China signals tightening export-control pressure on the gray-market China demand channel.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.datacenter-colo"
+    ],
+    "direction": "negative",
+    "mechanism": "Enforcement raids and detentions curtail smuggling routes that supplied restricted Nvidia GPUs to China, constraining that demand channel and raising compliance risk."
+  },
+  "evidence": [
+    {
+      "source": "Data Center Dynamics",
+      "url": "https://www.datacenterdynamics.com/en/news/supermicros-taiwan-office-raided-in-ongoing-nvidia-smuggling-probe-more-employees-detained-by-prosecutors-report/",
+      "date": "2026-07-01",
+      "excerpt": "some $2.5 billion in servers were shipped to China, despite Supermicro lacking a Commerce Department license",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary outlet reporting an ongoing investigation still developing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-06",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

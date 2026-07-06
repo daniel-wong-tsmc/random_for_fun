@@ -1,0 +1,45 @@
+{
+  "id": "www-coreweave-com-eb7fcb71-2026-07-06-1",
+  "statement": "CoreWeave lists NVIDIA GH200 (1 GPU) on-demand at $6.50 per GPU-hour in North America.",
+  "kind": "measured",
+  "value": {
+    "number": 6.5,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Static listed per-GPU rental price with no stated baseline or change; captured for the day-over-day price overlay series.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Display-overlay rental price level for Nvidia GH200 capacity; informs pricing context but does not score."
+  },
+  "evidence": [
+    {
+      "source": "CoreWeave",
+      "url": "https://www.coreweave.com/pricing",
+      "date": "2026-07-06",
+      "excerpt": "NVIDIA GH200 (1 GPU, 96GB VRAM, 72 vCPUs): \"$6.50\" on-demand/inference",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor's own instance-pricing page; no as-of date shown; only the single-GPU instance yields a clean per-GPU-hour figure."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-06",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-06",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

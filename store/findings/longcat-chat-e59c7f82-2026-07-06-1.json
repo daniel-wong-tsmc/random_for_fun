@@ -1,0 +1,43 @@
+{
+  "id": "longcat-chat-e59c7f82-2026-07-06-1",
+  "statement": "Meituan's LongCat-2.0, a 1.6-trillion-parameter MoE model, was pretrained entirely on over 50,000 domestic (non-Nvidia) AI ASIC superpods across more than 35 trillion tokens, demonstrating frontier-scale training on alternative hardware.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A successful frontier-scale training run on domestic ASICs shows a viable non-Nvidia alternative, threatening Nvidia's demand especially in China even as Nvidia's software-ecosystem maturity remains an advantage.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.ai-silicon-startups",
+      "models.open-weight"
+    ],
+    "direction": "mixed",
+    "mechanism": "Domestic AI ASIC superpods substitute for Nvidia GPUs in large-scale training, expanding alternative compute supply and eroding Nvidia's addressable demand."
+  },
+  "evidence": [
+    {
+      "source": "Meituan LongCat",
+      "url": "https://longcat.chat/blog/longcat-2.0/",
+      "date": "2026-06-30",
+      "excerpt": "LongCat-2.0 is pre-trained on over 50K AI ASICs",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor's own blog (self-reported); model not yet publicly released for independent verification."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Meituan LongCat, The Decoder",
+  "asOf": "2026-07-06",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": -1,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-06-30",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

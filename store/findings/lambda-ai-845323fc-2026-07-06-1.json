@@ -1,0 +1,45 @@
+{
+  "id": "lambda-ai-845323fc-2026-07-06-1",
+  "statement": "Lambda GPU Cloud lists NVIDIA B200 SXM6 (8x) on-demand at $6.69 per GPU-hour.",
+  "kind": "measured",
+  "value": {
+    "number": 6.69,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Static listed rental price level with no stated baseline or change; captured for the day-over-day price overlay series.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Display-overlay rental price level for Nvidia B200 capacity; informs pricing context but does not score."
+  },
+  "evidence": [
+    {
+      "source": "Lambda",
+      "url": "https://lambda.ai/service/gpu-cloud",
+      "date": "2026-07-06",
+      "excerpt": "NVIDIA B200 SXM6 \"$6.69\"",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor's own on-demand pricing page; no as-of date shown."
+  },
+  "dispersion": "conflicting same-key reports: value 2.79 -> 6.69 (tol 1%); sources: Lambda",
+  "asOf": "2026-07-06",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-06",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

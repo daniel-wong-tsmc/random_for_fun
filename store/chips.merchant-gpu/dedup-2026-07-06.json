@@ -1,0 +1,130 @@
+{
+  "asOf": "2026-07-06",
+  "docsDroppedKnown": [],
+  "findingsNew": [
+    {
+      "findingId": "finance-biggo-com-c310c4ca-2026-07-06-2",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    }
+  ],
+  "findingsUpdate": [
+    {
+      "findingId": "www-coreweave-com-eb7fcb71-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "update",
+      "priorFindingId": "www-coreweave-com-eb7fcb71-2026-07-05-1",
+      "detail": "value 6.155 -> 6.5 (tol 1%)"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "update",
+      "priorFindingId": "lambda-ai-845323fc-2026-07-05-1",
+      "detail": "value 3.99 -> 6.69 (tol 1%)"
+    },
+    {
+      "findingId": "finance-biggo-com-c310c4ca-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "S10",
+      "verdict": "update",
+      "priorFindingId": "blogs-nvidia-com-c8158075-1",
+      "detail": "magnitude 3 -> 2"
+    },
+    {
+      "findingId": "longcat-chat-e59c7f82-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "S9",
+      "verdict": "update",
+      "priorFindingId": "tech-yahoo-com-71aaa132-2026-07-05-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+      "entity": "nvidia",
+      "indicatorId": "customerConcentration",
+      "verdict": "update",
+      "priorFindingId": "www-cnbc-com-d1364ee3-2026-07-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "exportControlExposure",
+      "verdict": "update",
+      "priorFindingId": "finance-yahoo-com-f1703d5e-2026-07-05-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "rpoBacklog",
+      "verdict": "update",
+      "priorFindingId": "startupfortune-com-6857e872-2026-07-05-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    }
+  ],
+  "findingsDuplicate": [
+    {
+      "findingId": "lambda-ai-845323fc-2026-07-06-2",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "lambda-ai-845323fc-2026-07-06-3",
+      "entity": "nvidia",
+      "indicatorId": "D6",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-gizmochina-com-8d748ae8-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "S10",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "appleinsider-com-82378946-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "S10",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "the-decoder-com-52842a16-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "S9",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-sec-gov-7e661410-2026-07-06-2",
+      "entity": "nvidia",
+      "indicatorId": "customerConcentration",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-sec-gov-7e661410-2026-07-06-1",
+      "entity": "nvidia",
+      "indicatorId": "rpoBacklog",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    }
+  ]
+}

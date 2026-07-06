@@ -1,0 +1,42 @@
+{
+  "id": "finance-biggo-com-c310c4ca-2026-07-06-2",
+  "statement": "Nebius raised on-demand GPU cloud rental prices by approximately 30% on June 1, reflecting AI-compute scarcity.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "An on-demand GPU rental price hike is a scarcity/demand signal, but rental price is a display overlay that does not score the index.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Rising rental rates for Nvidia GPU capacity reflect tight supply relative to demand."
+  },
+  "evidence": [
+    {
+      "source": "BigGo Finance",
+      "url": "https://finance.biggo.com/news/0be5f491-d712-4383-8c78-b1c1594c9f4a",
+      "date": "2026-07-04",
+      "excerpt": "raised on-demand computing rental prices by approximately 30% on June 1",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary outlet citing The Information; no direct Nebius quotes or absolute rate disclosed."
+  },
+  "dispersion": null,
+  "asOf": "2026-07-06",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-07-04",
+  "capturedAt": "2026-07-06T01:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

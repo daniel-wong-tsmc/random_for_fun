@@ -1,4 +1,4 @@
-# HANDOFF — GPU Category Agent (resume point: concurrency wave-plan decisions LOCKED, HOLD before dispatch — next instance resumes at the pre-dispatch gate)
+# HANDOFF — GPU Category Agent (resume point: P1+P2 lanes DISPATCHED 2026-07-06; P3 v1.4 migration spec PARKED for user §7 approval — resume by monitoring the two lanes and awaiting P3 sign-off)
 
 - **Date:** 2026-07-06 (planning session — no code change, no cycle run; skill library + wave plan only)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
@@ -26,6 +26,22 @@
 - **NEXT (on user "go" only — nothing is dispatched yet):** (a) claim + dispatch **P1 (F76, Sonnet)**
   and **P2 (F73, Opus)** as parallel worktree lanes; (b) separately open the **P3 v1.4 migration
   spec** for user approval (frozen core — never AFK, only the user merges to main).
+
+## DISPATCH STATUS — 2026-07-06 (post user "go")
+
+User gave **"go"** 2026-07-06. Actioned:
+- **P1 `fix/coord-hygiene` (F76, Sonnet)** and **P2 `fix/eval-gate-power` (F73, Opus)** DISPATCHED as
+  parallel worktree lanes (`.worktrees/coord-hygiene`, `.worktrees/eval-gate-power`), each executing
+  its per-lane plan (`docs/superpowers/plans/2026-07-06-f76-coordination-substrate.md` /
+  `-f73-eval-gate-power.md`) via subagent-driven TDD. Each lane STOPS before merge and writes
+  `.superpowers/handoffs/<lane>-DONE.md`. **Only the user merges to main.**
+- **P3 `fix/contract-v1.4` (F72+F71, +F75 companion) — PARKED, NOT dispatched.** Frozen-core; the
+  design spec `docs/superpowers/specs/2026-07-06-contract-v1.4-migration-design.md` §7 lists **6 open
+  decisions requiring user sign-off** (never AFK). The migration branch opens only after §7 is answered.
+- **User-approved decision D5 (2026-07-06):** F72 fix = BOTH `registry/syndicators.json` + L1 near-dup
+  content collapse.
+- **DEFERRED, MUST NOT LOSE:** F60 `scoring.py` scoring-half → future v1.5 migration (wave plan §6);
+  do NOT tick F60 done when its data half merges.
 
 ## HISTORICAL — desk-LIVE item 1 cleared (2026-07-06 morning; superseded by the section above)
 
@@ -134,6 +150,14 @@
   visible on the main checkout (10 desk-skill `SKILL.md` files + `docs/agent-swarm-charter.md`) —
   **do NOT touch or `git add -A` them.** Presentation work; may overlap the renderer stream
   (F77/F64/F65) — reconcile before claiming a renderer lane.
+- **P1 `coord-hygiene` lane CLAIMED + DISPATCHED (2026-07-06).** Worktree `.worktrees/coord-hygiene`,
+  branch `fix/coord-hygiene` (F76, Sonnet). Touches docs (`HANDOFF.md`, `fix-backlog.md`, wave plan)
+  + `tests/test_handoff_integrity.py`. File-disjoint from P2 and from the dashboard lane. Completion
+  sentinel: `.superpowers/handoffs/coord-hygiene-DONE.md`. STOPS before merge — only the user merges.
+- **P2 `eval-gate-power` lane CLAIMED + DISPATCHED (2026-07-06).** Worktree `.worktrees/eval-gate-power`,
+  branch `fix/eval-gate-power` (F73, Opus). Touches `gpu_agent/evals/harness.py`, `tests/test_evals_*`,
+  `fixtures/evals/canary/`. No emitted prompt bytes → the F6 pin stays green. Completion sentinel:
+  `.superpowers/handoffs/eval-gate-power-DONE.md`. STOPS before merge — only the user merges.
 - **Coordination guard (machine-local, this checkout):** a `concurrent-edit-guard` PreToolUse hook
   now blocks edits to a file another instance is mid-editing (needs `/hooks` reload/restart to arm).
   See the `concurrent-edit-guard` and `instance-sync` skills.

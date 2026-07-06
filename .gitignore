@@ -16,3 +16,6 @@ store/*
 work/
 blobs.json
 .worktrees/
+# plain-language-writer: private writing samples & derived voice profile (never commit)
+.claude/agents/plain-language-writer/voice-samples/
+.claude/agents/plain-language-writer/voice-profile.md

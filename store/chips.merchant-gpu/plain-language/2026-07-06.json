@@ -1,0 +1,131 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07-06",
+  "sourceRefs": {
+    "report": "../../work/daily-2026-07-06/report.txt",
+    "scorecard": "store/chips.merchant-gpu/2026-07-06-v1.json"
+  },
+  "generatedBy": "plain-language-writer",
+  "rewrites": {
+    "stateOfMarket": {
+      "original": "Durable, widening demand keeps the position strong, with six-year neocloud deals and vendor backstops underwriting well over 200,000 GPUs. The binding constraint has shifted from export enforcement to memory: standard-memory-to-HBM wafer diversion and NVMe scarcity, reported by three publishers, inflate rack costs 2 to 3 percent weekly and now cap how many systems ship.",
+      "plain": "Demand keeps growing and staying strong, backed by six-year GPU rental cloud deals and vendor financial guarantees covering well over 200,000 GPUs. But the main bottleneck has shifted from enforcement of US limits on chip sales to China, to memory: three publishers report that manufacturers are shifting production away from standard memory chips toward high-bandwidth memory, and fast storage drives are also scarce. That is pushing rack costs up 2 to 3 percent every week and now limits how many systems can actually ship."
+    },
+    "finding.appleinsider-com-82378946-2026-07-06-1.statement": {
+      "original": "Memory makers' alleged shift of DRAM wafer capacity toward HBM for AI accelerators is tightening memory supply and inflating the memory portion of Nvidia GPU/AI-server bills of materials.",
+      "plain": "Memory makers are reportedly shifting production away from standard memory chips toward high-bandwidth memory for AI chips, which is tightening overall memory supply and driving up the memory costs inside Nvidia's GPU and AI-server parts lists."
+    },
+    "finding.finance-biggo-com-c310c4ca-2026-07-06-1.statement": {
+      "original": "Nvidia AI-server rack component costs are inflating rapidly — running about 2% to 3% per week, sitting 10% to 15% above baseline, and swinging as much as 40% in a single week — driven by memory and NVMe scarcity.",
+      "plain": "The cost of parts for Nvidia AI-server racks is rising fast — about 2% to 3% per week, already 10% to 15% above normal, and sometimes jumping as much as 40% in a single week — because memory chips and fast storage drives are in short supply."
+    },
+    "finding.finance-biggo-com-c310c4ca-2026-07-06-2.statement": {
+      "original": "Nebius raised on-demand GPU cloud rental prices by approximately 30% on June 1, reflecting AI-compute scarcity.",
+      "plain": "Nebius raised its pay-as-you-go GPU cloud rental prices by about 30% on June 1, reflecting a shortage of AI computing power."
+    },
+    "finding.lambda-ai-845323fc-2026-07-06-1.statement": {
+      "original": "Lambda GPU Cloud lists NVIDIA B200 SXM6 (8x) on-demand at $6.69 per GPU-hour.",
+      "plain": "Lambda's GPU rental cloud charges $6.69 per hour per chip for pay-as-you-go access to Nvidia's B200 GPU, in systems with 8 of them installed together."
+    },
+    "finding.lambda-ai-845323fc-2026-07-06-2.statement": {
+      "original": "Lambda GPU Cloud lists NVIDIA H100 SXM (8x) on-demand at $3.99 per GPU-hour.",
+      "plain": "Lambda's GPU rental cloud charges $3.99 per hour per chip for pay-as-you-go access to Nvidia's H100 GPU, in systems with 8 of them installed together."
+    },
+    "finding.lambda-ai-845323fc-2026-07-06-3.statement": {
+      "original": "Lambda GPU Cloud lists NVIDIA A100 SXM (80GB) (8x) on-demand at $2.79 per GPU-hour.",
+      "plain": "Lambda's GPU rental cloud charges $2.79 per hour per chip for pay-as-you-go access to Nvidia's 80GB A100 GPU, in systems with 8 of them installed together."
+    },
+    "finding.longcat-chat-e59c7f82-2026-07-06-1.statement": {
+      "original": "Meituan's LongCat-2.0, a 1.6-trillion-parameter MoE model, was pretrained entirely on over 50,000 domestic (non-Nvidia) AI ASIC superpods across more than 35 trillion tokens, demonstrating frontier-scale training on alternative hardware.",
+      "plain": "Meituan built its LongCat-2.0 AI model — which has 1.6 trillion internal settings and only switches on part of itself at a time, a design called mixture-of-experts — entirely on more than 50,000 Chinese-made custom AI chips (not Nvidia's), linked together in large computing clusters, training on more than 35 trillion chunks of text. This shows that a top-tier AI model can be trained on hardware other than Nvidia's."
+    },
+    "finding.the-decoder-com-52842a16-2026-07-06-1.statement": {
+      "original": "The Decoder independently reports Meituan's LongCat-2.0 (1.6T parameters) was trained on more than 50,000 domestically made AI ASICs with no Nvidia chips, alongside competitive coding-benchmark claims but limited public availability.",
+      "plain": "The Decoder separately confirms that Meituan trained its LongCat-2.0 model (1.6 trillion internal settings) on more than 50,000 Chinese-made custom AI chips with no Nvidia chips involved. Meituan also claims the model does well on coding tests, though the model itself is not widely available to the public yet."
+    },
+    "finding.www-coreweave-com-eb7fcb71-2026-07-06-1.statement": {
+      "original": "CoreWeave lists NVIDIA GH200 (1 GPU) on-demand at $6.50 per GPU-hour in North America.",
+      "plain": "CoreWeave charges $6.50 per hour for pay-as-you-go access to a single Nvidia GH200 chip in North America."
+    },
+    "finding.www-datacenterdynamics-com-0c76f530-2026-07-06-1.statement": {
+      "original": "Taiwanese authorities escalated the Nvidia-GPU smuggling probe, raiding Supermicro's Taiwan office and affiliated sites and detaining employees, tied to US charges alleging some $2.5 billion of servers were shipped to China without an export license.",
+      "plain": "Taiwanese authorities stepped up their investigation into Nvidia GPU smuggling, raiding Supermicro's Taiwan office and related sites and detaining employees. This is tied to US charges alleging that about $2.5 billion worth of servers were shipped to China without the required export license."
+    },
+    "finding.www-datacenterdynamics-com-45864e2a-2026-07-06-1.statement": {
+      "original": "Nvidia is expanding a vendor-financing/backstop program — backstopping GPU purchases in exchange for revenue sharing and agreeing to rent back unused GPUs at fixed rates — with early adopters Firmus (170,000 GPUs) and Sharon AI (40,000 GB300), about 210,000 GPUs combined, following CoreWeave ($6.3B) and Lambda ($1.5B) support deals.",
+      "plain": "Nvidia is expanding a program where it financially backs customers' GPU purchases in exchange for a share of their revenue, and agrees to rent back any unused GPUs at fixed rates. Early customers in the program are Firmus (170,000 GPUs) and Sharon AI (40,000 GB300 chips) — about 210,000 GPUs combined — following earlier support deals with CoreWeave ($6.3 billion) and Lambda ($1.5 billion)."
+    },
+    "finding.www-datacenterdynamics-com-45864e2a-2026-07-06-2.statement": {
+      "original": "Nvidia's backstop and revenue-sharing arrangements may increasingly concentrate its demand in vendor-financed neoclouds, raising circular-financing risk.",
+      "plain": "Nvidia's financial-backing and revenue-sharing deals may mean more and more of its GPU demand comes from GPU rental clouds that Nvidia itself is helping to fund — raising the risk of \"circular financing,\" where Nvidia's own money is what's generating the sales it reports as demand."
+    },
+    "finding.www-gizmochina-com-8d748ae8-2026-07-06-1.statement": {
+      "original": "A California antitrust suit alleges Samsung, SK hynix and Micron — together controlling nearly 95% of the DRAM market — are restricting standard DRAM output while shifting capacity to high-margin HBM for AI servers, keeping memory supply tight for AI/GPU builds.",
+      "plain": "A lawsuit filed in California alleges that Samsung, SK hynix and Micron — which together control nearly 95% of the standard memory chip market — are holding back production of standard memory chips while shifting their factories to make higher-profit high-bandwidth memory for AI servers instead, keeping memory supply tight for AI and GPU builds."
+    },
+    "finding.www-sec-gov-7e661410-2026-07-06-1.statement": {
+      "original": "Sharon AI signed a six-year compute collaboration with Nvidia to deploy 72MW of new Australian data-center capacity and up to 40,000 Grace Blackwell GB300 GPUs, expecting more than 55,000 total Nvidia GPUs deployed by mid-2027.",
+      "plain": "Sharon AI signed a six-year computing deal with Nvidia to build 72 megawatts of new data-center capacity in Australia and deploy up to 40,000 of Nvidia's Grace Blackwell GB300 chips, with more than 55,000 Nvidia GPUs total expected to be running by mid-2027."
+    },
+    "finding.www-sec-gov-7e661410-2026-07-06-2.statement": {
+      "original": "The Nvidia-Sharon AI deal uses a revenue-sharing and credit-support model — Nvidia earns standard product revenue plus a share of cloud revenue — to enable capital-constrained customers to adopt Nvidia infrastructure, with no rent-back, backstop, or repurchase language in the filing.",
+      "plain": "The Nvidia-Sharon AI deal is set up so Nvidia earns its normal product revenue plus a cut of Sharon AI's cloud revenue, which helps a cash-constrained customer afford Nvidia's hardware. Unlike some other Nvidia deals, the filing includes no promise for Nvidia to rent back unused GPUs, financially back the purchase, or buy the equipment back later."
+    },
+    "claim.export-control-exposure.statement": {
+      "original": "Export-control policy materially constrains addressable merchant-GPU demand.",
+      "plain": "US limits on chip sales to China are significantly shrinking the pool of open-market GPU demand that companies can actually sell into."
+    },
+    "claim.nvda-demand-durability.statement": {
+      "original": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
+      "plain": "Demand for data-center GPUs keeps growing faster than Nvidia can supply them."
+    },
+    "claim.pricing-power-persistence.statement": {
+      "original": "GPU rental/spot price levels hold up despite added supply.",
+      "plain": "Prices for renting GPUs, including pay-as-you-go rates, are staying strong even as more GPU supply comes online."
+    },
+    "claim.supply-constraint-binding.statement": {
+      "original": "Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.",
+      "plain": "What's actually capping how much open-market GPU revenue companies can realize is a shortage of advanced chip packaging and high-bandwidth memory — not a shortage of silicon production or of demand."
+    },
+    "claim.vendor-financed-demand-circularity.statement": {
+      "original": "NVIDIA's own revenue-sharing and credit-support financing increasingly underwrites its accelerator demand, coupling reported demand strength to NVIDIA-extended credit and adding circularity risk to buildout durability.",
+      "plain": "More and more of the demand for Nvidia's AI chips is being funded by Nvidia's own revenue-sharing and financing deals. That means the demand strength Nvidia reports is increasingly tied to credit Nvidia itself is extending, adding \"circular financing\" risk to how durable this buildout really is."
+    },
+    "claim.amd-credible-second-source.statement": {
+      "original": "AMD converts its Instinct roadmap into material datacenter share.",
+      "plain": "AMD turns its planned lineup of Instinct AI chips into a meaningful share of the data-center chip market."
+    },
+    "claim.customer-concentration-risk.statement": {
+      "original": "NVIDIA's data-center revenue is increasingly concentrated in a few direct customers, raising demand-durability risk if any single hyperscaler slows orders or shifts to in-house silicon.",
+      "plain": "More and more of Nvidia's data-center revenue comes from just a handful of direct customers, which raises the risk that demand won't hold up if even one of the largest cloud companies slows its orders or switches to chips it builds in-house."
+    },
+    "claim.cheaper-inference-pulls-in-demand.statement": {
+      "original": "NVIDIA's each-generation drop in cost per token pulls more inference workloads onto its GPUs and widens the market it can serve.",
+      "plain": "Each new generation of Nvidia chips lowers the cost of running AI models per unit of output, which pulls more AI workloads onto Nvidia's GPUs and widens the market Nvidia can serve."
+    },
+    "claim.conditional-china-re-opening-with-a-capped-ceiling.statement": {
+      "original": "U.S. regulators now allow case-by-case China sales of H200 and MI325X-class chips, but a 25% tariff, security conditions, and a volume cap keep any China revenue recovery small.",
+      "plain": "US regulators now allow Nvidia's H200 chips and AMD's MI325X-class chips to be sold to China on a case-by-case basis, but a 25% tariff, security conditions, and a cap on how many can be sold mean any recovery in China revenue will stay small."
+    },
+    "claim.custom-asic-substitution.statement": {
+      "original": "Hyperscaler custom silicon meaningfully displaces merchant-GPU demand growth.",
+      "plain": "Custom in-house AI chips built by the largest cloud companies meaningfully cut into the growth of open-market GPU demand."
+    },
+    "claim.networking-attach-as-systems-moat.statement": {
+      "original": "NVIDIA now leads the data-center Ethernet switch market and sells that networking bundled with its GPUs, deepening a full-system moat that raises switching costs versus standalone accelerators and custom chips. NVIDIA took the top revenue spot in data-center Ethernet switching in Q1 2026 by pairing Spectrum-X and Quantum with Blackwell and GB300, and its NVLink systems cut cost per token, but no finding compares networking growth against compute growth, so the sharper claim that networking scales faster than compute is not supported.",
+      "plain": "Nvidia now sells more data-center networking switches — the hardware that connects servers together — than any other company, and bundles that networking with its GPUs. This deepens its full-package advantage and makes it harder for customers to switch to standalone AI chips or custom-built silicon. In the first quarter of 2026, Nvidia took the top revenue spot in data-center networking switches by pairing its Spectrum-X and Quantum networking products with its Blackwell and GB300 chips, and its NVLink connection technology lowers the cost of running AI models per unit of output. However, no evidence found this run actually compares how fast networking sales are growing versus how fast chip sales are growing, so the stronger claim that networking is growing faster than computing is not backed up."
+    },
+    "claim.prepaid-hbm-take-or-pay-locks-in-accelerator-demand.statement": {
+      "original": "Non-cancelable multi-year HBM contracts backed by billions in customer deposits lock a large share of future accelerator demand into place and reduce the chance that today's buildout is speculative.",
+      "plain": "Multi-year high-bandwidth memory contracts that customers can't cancel — backed by billions of dollars in deposits — lock in a large share of future demand for AI chips, which lowers the odds that today's buildout is just speculation."
+    },
+    "claim.cuda-software-lock-in-sustains-the-moat.statement": {
+      "original": "The difficulty of running existing AI software on non-Nvidia chips keeps customers on Nvidia even when rivals cut hardware prices.",
+      "plain": "Because it's hard to run AI software written for Nvidia's chip software on non-Nvidia chips, customers stick with Nvidia even when rivals offer cheaper hardware."
+    },
+    "claim.rising-memory-costs-inflate-ai-server-economics.statement": {
+      "original": "Fast-rising memory and NVMe prices are pushing up what it costs to build each AI server, which could strain buyer budgets and squeeze system margins.  (sources in history)",
+      "plain": "Fast-rising prices for memory chips and fast storage drives are pushing up the cost of building each AI server, which could strain buyers' budgets and squeeze the profit margins on these systems."
+    }
+  }
+}

@@ -1,0 +1,177 @@
+==================================================================================================
+CATEGORY REPORT: chips.merchant-gpu  |  Cycle: 2026-07-06  |  2026-07-06T01:14:40.762952+00:00
+==================================================================================================
+ Evidence: median 2026-07-02 · oldest 2026-06-12 · 0% older than 6 weeks
+ Confidence: vote agreement medium (3 votes) — agreement between raters, not evidence freshness
+
+WHAT MOVED SINCE LAST RUN  (vs 2026-07-05)
+  = MOVED  nvidia — no-state (n/a)  (8 sources), press / analyst report  (early — not yet corroborated)
+
+STATE OF THE MARKET
+  Strong, worsening — Durable, widening demand keeps the position strong, with six-year neocloud deals and vendor backstops underwriting well over 200,000 GPUs. The binding constraint has shifted from export enforcement to memory: standard-memory-to-HBM wafer diversion and NVMe scarcity, reported by three publishers, inflate rack costs 2 to 3 percent weekly and now cap how many systems ship.
+  Demand: FLAT = (was FLAT)
+  Supply: FLAT = (was FLAT)
+  Gap: Demand outrunning supply — shortage pressure forming
+  NOW (Momentum): demand negative ▼ / supply negative ▼    NEXT (Outlook): demand positive ▲ / supply flat =
+  ⚠ DIVERGENCE: 
+  BINDING CONSTRAINT: HBM/DRAM and NVMe scarcity
+
+THE CALLS
+  ● Export control exposure   INTACT, reaffirmed =  (high, 2 cycles)
+      Export-control policy materially constrains addressable merchant-GPU demand.  (1 source)
+      breaks if: Commerce removes H200 China case-by-case licensing and the 25% tariff and NVIDIA books over $2B China Data Center compute revenue per Export-control / China-revenue exposure for 2 consecutive quarters.
+  ● NVDA demand durability   INTACT, reaffirmed =  (high, 6 cycles)
+      Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.  (4 sources, incl. company filing / official post)
+      breaks if: Backlog / purchase commitments stops growing while Merchant-GPU product lead times fall below 26 weeks for 2 consecutive quarters as Data Center revenue keeps rising.
+  ● Pricing power persistence   INTACT, strengthened ▲  (high, 1 cycles)
+      GPU rental/spot price levels hold up despite added supply.  (4 sources)
+      breaks if: GPU rental price H100 median falls below $2.50 per GPU-hour for 2 consecutive quarters, or B200 rental declines at least 15% at two or more providers within one quarter.
+  ● Supply constraint binding   INTACT, strengthened ▲  (high, 5 cycles)
+      Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.  (3 sources)
+      breaks if: CoWoS Merchant-GPU product lead times fall below 26 weeks and HBM per Whole-chain inventory returns to available supply for 2 consecutive quarters while demand stays positive.
+  ● Vendor-financed demand circularity   INTACT, strengthened ▲  (high, 2 cycles)
+      NVIDIA's own revenue-sharing and credit-support financing increasingly underwrites its accelerator demand, coupling reported demand strength to NVIDIA-extended credit and adding circularity risk to buildout durability.  (4 sources, incl. company filing / official post)
+      breaks if: NVIDIA's 10-Q shows customer financing or notes receivable rising for 2 consecutive quarters, or a named financed neocloud customer fails to convert its financed commitment to cash revenue within 1 quarter.
+  ● AMD credible second source   INTACT, weakened ▼  (medium, 1 cycles)
+      AMD converts its Instinct roadmap into material datacenter share.  (2 sources)
+      breaks if: AMD Data Center revenue per DC revenue structure grows below 20% YoY with no new named hyperscaler deployment for 2 consecutive quarters, or Instinct Market share stalls below 6%.
+  ● Customer concentration risk   INTACT, reaffirmed =  (medium, 4 cycles)
+      NVIDIA's data-center revenue is increasingly concentrated in a few direct customers, raising demand-durability risk if any single hyperscaler slows orders or shifts to in-house silicon.  (2 sources, incl. company filing / official post)
+      breaks if: NVIDIA top-3 direct-customer concentration falls below 40% of total revenue for 2 consecutive quarters per Customer & supplier concentration disclosure.
+  ● Cheaper inference pulls in demand   INTACT, reaffirmed =  (low, 3 cycles)
+      NVIDIA's each-generation drop in cost per token pulls more inference workloads onto its GPUs and widens the market it can serve.  (1 source)
+      breaks if: NVIDIA cost per token fails to improve for 2 consecutive product cycles, or Data Center revenue per DC revenue structure growth turns negative for 2 consecutive quarters.
+  ● Conditional China re-opening with a capped ceiling   INTACT, reaffirmed =  (low, 2 cycles)
+      U.S. regulators now allow case-by-case China sales of H200 and MI325X-class chips, but a 25% tariff, security conditions, and a volume cap keep any China revenue recovery small.  (1 source)
+      breaks if: NVIDIA books over $2B China Data Center compute revenue per Export-control / China-revenue exposure for 2 consecutive quarters despite the tariff and volume cap.
+  ● Custom ASIC substitution   CHALLENGED — pending confirmation ⚠, reaffirmed =  (low, 2 cycles)
+      Hyperscaler custom silicon meaningfully displaces merchant-GPU demand growth.  (2 sources)
+      breaks if: NVIDIA Data Center revenue per DC revenue structure grows above 20% YoY for 2 consecutive quarters while GPUs hold above 50% of hyperscaler build-out per Market share.
+  ● Networking attach as systems moat   INTACT, reaffirmed =  (low, 4 cycles)
+      NVIDIA now leads the data-center Ethernet switch market and sells that networking bundled with its GPUs, deepening a full-system moat that raises switching costs versus standalone accelerators and custom chips. NVIDIA took the top revenue spot in data-center Ethernet switching in Q1 2026 by pairing Spectrum-X and Quantum with Blackwell and GB300, and its NVLink systems cut cost per token, but no finding compares networking growth against compute growth, so the sharper claim that networking scales faster than compute is not supported.  (1 source, incl. company filing / official post)
+      breaks if: NVIDIA networking revenue grows slower than Data Center compute revenue for 2 consecutive quarters, or networking falls below 15% of Data Center revenue per Market share.
+  ● Prepaid HBM take-or-pay locks in accelerator demand   INTACT, reaffirmed =  (low, 2 cycles)
+      Non-cancelable multi-year HBM contracts backed by billions in customer deposits lock a large share of future accelerator demand into place and reduce the chance that today's buildout is speculative.  (2 sources)
+      breaks if: Micron or its memory peers report cancellations or renegotiations of these take-or-pay agreements, or Backlog / purchase commitments tied to the deposits falls for 2 consecutive quarters.
+  ● CUDA software lock-in sustains the moat   INTACT, weakened ▼  (low, 1 cycles)  (early — not yet corroborated)
+      The difficulty of running existing AI software on non-Nvidia chips keeps customers on Nvidia even when rivals cut hardware prices.  (2 sources)
+      breaks if: A funded compatibility layer or a rival software stack reaches parity such that two or more named hyperscalers move production inference off Nvidia within 2 consecutive quarters.
+  ● Rising memory costs inflate AI-server economics   INTACT, not yet judged  (low, 0 cycles)  (early — not yet corroborated)
+      Fast-rising memory and NVMe prices are pushing up what it costs to build each AI server, which could strain buyer budgets and squeeze system margins.  (sources in history)
+      breaks if: AI-server memory bill-of-materials cost per Whole-chain inventory falls back toward baseline for 2 consecutive quarters, or DRAM output restrictions ease.
+
+WHY (drivers -> constraints)
+  Pulling demand:
+    • Buyers keep placing more accelerator orders than Nvidia and its suppliers can build, so lead times and rental prices stay high.  (NVDA demand durability)  (4 sources)
+    • Providers are raising on-demand GPU rental prices as compute stays scarce, so rates hold or climb even as more capacity comes online.  (Pricing power persistence)  (4 sources)
+  Capping supply:
+    • Memory makers move capacity to HBM and hold back DRAM, so the memory and packaging bottleneck caps how many accelerators actually ship.  (Supply constraint binding)  (3 sources)
+  Contested:
+    • Buyers seeking a non-Nvidia option are turning to custom ASICs rather than AMD, so AMD's roadmap is not translating into datacenter share.  (AMD credible second source — medium conviction)  (2 sources)
+    • Aggressive enforcement against unlicensed China shipments keeps the legal, licensed channel narrow, so any revenue recovery there stays small.  (Conditional China re-opening with a capped ceiling — low conviction)  (1 source)
+    • A frontier model was trained entirely on non-Nvidia ASICs, showing teams can run large AI workloads without Nvidia's software stack when they must.  (CUDA software lock-in sustains the moat — early — not yet corroborated)  (2 sources)
+    • Hyperscalers and Chinese firms build their own or domestic accelerators for some workloads, but this adds to total AI silicon demand rather than cutting Nvidia GPU orders.  (Custom ASIC substitution — CHALLENGED ⚠)  (2 sources)
+    • Customers keep buying complete Grace Blackwell systems that come with Nvidia networking, so the bundle raises the cost of switching to standalone accelerators.  (Networking attach as systems moat — low conviction)  (1 source)
+    • Memory makers are moving capacity to high-margin HBM and holding back standard DRAM, so the memory portion of each AI-server bill of materials keeps rising.  (Rising memory costs inflate AI-server economics — early — not yet corroborated)  (sources in history)
+
+DEMAND | SUPPLY
+  DEMAND
+    Backlog / purchase commitments  +strong ▲  [leading, ⚠ one source]
+  SUPPLY
+    Whole-chain inventory     −strong ▲  [⚠ one source]
+    Alternative supply        +strong ▲  [⚠ one source]
+
+STORYLINES (tracked over time)
+  ESTABLISHED
+    (none tracked yet)
+  EARLY (not yet corroborated)
+    • AMD   →   (last updated 2026-07)  ·
+    • NVDA   →   (last updated 2026-07-02)  ·
+    • market   →   (last updated 2026-07-02)  ·
+    • multi   →   (last updated 2026-07)  ·
+    • nvidia   →   (last updated 2026-07-06)  ·
+
+TRUST & COVERAGE (caveat)
+  the index level varies run to run until longer history accumulates — read direction, not level
+  Evidence: 15 findings — 2 evidence items from company filing / official post, 13 from press / analyst report
+  Thin evidence: 2 of 6 dimensions (detail in appendix)
+
+──────────────────────────── APPENDIX ────────────────────────────
+
+OVERALL CATEGORY STATUS
+  Status:     Strong  ↓ worsening
+  Bottleneck: bottleneck
+  Reason:     see State of the Market above
+
+DIMENSION RATINGS  (Δ vs prior cycle: 2026-07-05 (prior))
+  momentum                Strong        ↑ improving     high      grounded  Δ: = same
+  unitEconomics           —/under-supported  (findings: 0; confidence capped at low; no findings mapped to unitEconomics this cycle)  Δ: absent in prior too
+  competitiveStructure    Mixed         ↓ worsening     medium    grounded  Δ: = same
+  moat                    —/under-supported  (findings: 0; confidence capped at low; no findings mapped to moat this cycle)  Δ: absent in prior too
+  bottleneck              Weak          ↓ worsening     medium    grounded  Δ: ↓ worsened
+  strategicRisk           Weak          ↓ worsening     high      grounded  Δ: = same
+
+  Coverage: 4/6 dimensions grounded; 2 under-supported
+
+Raw indices (DMI/SMI/SDGI):
+    DMI 0.040  Δ +0.000  (was FLAT)
+    SMI -0.027  Δ +0.000  (was FLAT)
+    SDGI 0.067  Δ +0.000  (was FIRM)
+
+PRICE TRACK  (overlay — displayed, never blended into DMI/SMI)
+  D6 [coreweave.com] 6.5 USD_per_gpu_hr   Δ vs prior: +0.34
+  D6 [lambda.ai] 6.69 USD_per_gpu_hr   Δ vs prior: +2.70
+  PMI: +1.00 ▲   (2 matched series)
+
+ENTITY PANEL
+  nvidia  (15 findings)
+    Demand signal: −slight   Supply signal: −slight
+    Key signals:
+      [demand/observed]  Nvidia is expanding a vendor-financing/backstop program — backstopping GPU purchases in exchange for...
+      [demand/observed]  Sharon AI signed a six-year compute collaboration with Nvidia to deploy 72MW of new Australian data-...
+      [supply/observed]  Memory makers' alleged shift of DRAM wafer capacity toward HBM for AI accelerators is tightening mem...
+
+EVIDENCE QUALITY  (per dimension)
+  momentum                  2 findings  (primary/secondary evidence: 1/1)  [grounded]
+  unitEconomics            0 findings  ——  [under-supported]
+  competitiveStructure      2 findings  (primary/secondary evidence: 0/2)  [grounded]
+  moat                     0 findings  ——  [under-supported]
+  bottleneck                3 findings  (primary/secondary evidence: 0/3)  [grounded]
+  strategicRisk             3 findings  (primary/secondary evidence: 1/2)  [grounded]
+  (unattributed)            5 findings  (primary/secondary evidence: 0/5)
+
+  Total: 15 findings  (primary/secondary evidence: 2/13)
+
+SOURCES  (10 unique; primary first, then by date descending)
+  [primary]     www.sec.gov                     2026-06-12   SharonAI Holdings (SEC Form 8-K exhibit 99.1)
+  [secondary]   lambda.ai                       2026-07-06   Lambda
+  [secondary]   www.coreweave.com               2026-07-06   CoreWeave
+  [secondary]   finance.biggo.com               2026-07-04   BigGo Finance
+  [secondary]   www.datacenterdynamics.com      2026-07-02   Data Center Dynamics
+  [secondary]   www.datacenterdynamics.com      2026-07-01   Data Center Dynamics
+  [secondary]   longcat.chat                    2026-06-30   Meituan LongCat
+  [secondary]   the-decoder.com                 2026-06-30   The Decoder
+  [secondary]   www.gizmochina.com              2026-06-30   Gizmochina
+  [secondary]   appleinsider.com                2026-06-29   AppleInsider
+
+COVERAGE / SKIP GAPS
+  unitEconomics           — 0 findings this cycle; dimension under-supported
+  moat                    — 0 findings this cycle; dimension under-supported
+  (No orphan source references detected)
+
+CITATION MAP
+  appleinsider-com-82378946-2026-07-06-1  secondary  2026-06-29  AppleInsider
+  finance-biggo-com-c310c4ca-2026-07-06-1  secondary  2026-07-04  BigGo Finance
+  finance-biggo-com-c310c4ca-2026-07-06-2  secondary  2026-07-04  BigGo Finance
+  lambda-ai-845323fc-2026-07-06-1  secondary  2026-07-06  Lambda
+  lambda-ai-845323fc-2026-07-06-2  secondary  2026-07-06  Lambda
+  lambda-ai-845323fc-2026-07-06-3  secondary  2026-07-06  Lambda
+  longcat-chat-e59c7f82-2026-07-06-1  secondary  2026-06-30  Meituan LongCat
+  the-decoder-com-52842a16-2026-07-06-1  secondary  2026-06-30  The Decoder
+  www-coreweave-com-eb7fcb71-2026-07-06-1  secondary  2026-07-06  CoreWeave
+  www-datacenterdynamics-com-0c76f530-2026-07-06-1  secondary  2026-07-01  Data Center Dynamics
+  www-datacenterdynamics-com-45864e2a-2026-07-06-1  secondary  2026-07-02  Data Center Dynamics
+  www-datacenterdynamics-com-45864e2a-2026-07-06-2  secondary  2026-07-02  Data Center Dynamics
+  www-gizmochina-com-8d748ae8-2026-07-06-1  secondary  2026-06-30  Gizmochina
+  www-sec-gov-7e661410-2026-07-06-1  primary  2026-06-12  SharonAI Holdings (SEC Form 8-K exhibit 99.1)
+  www-sec-gov-7e661410-2026-07-06-2  primary  2026-06-12  SharonAI Holdings (SEC Form 8-K exhibit 99.1)

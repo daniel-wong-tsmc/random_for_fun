@@ -1,0 +1,11 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07-06",
+  "generatedBy": "plain-language-writer",
+  "rewrites": {
+    "stateOfMarket": {
+      "original": "Binding constraint is HBM.",
+      "plain": "The main thing holding growth back is a shortage of the specialized memory AI chips need."
+    }
+  }
+}

@@ -1,4 +1,33 @@
-# HANDOFF — GPU Category Agent (resume point: desk-LIVE item 1 CLEARED — 2 gate-clean dailies + flagship; ablation verdict recorded; F71/F75/F77 next)
+# HANDOFF — GPU Category Agent (resume point: concurrency wave-plan decisions LOCKED, HOLD before dispatch — next instance resumes at the pre-dispatch gate)
+
+- **Date:** 2026-07-06 (planning session — no code change, no cycle run; skill library + wave plan only)
+- **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
+- **This session (all on main, `main == origin/main`):**
+  - Committed + pushed the 15-skill **desk skill library** at `6fe1841` (was untracked; now version-controlled).
+  - Authored the **concurrency wave plan** for the open backlog →
+    `docs/superpowers/plans/2026-07-06-concurrency-wave-plan.md` (committed this session). **Read it
+    first** — it has the full wave/lane/barrier/merge-order map and the model-tier assignment.
+  - **Four user-approved decisions (2026-07-06) — NOT AFK-defaults:** (1) the gate cluster ships as
+    **ONE contract v1.4** = **F72 + F71**, with **F75** as companion doctrine on the same branch;
+    (2) **F60 = registry-weight DATA half now**, `scoring.py` side-semantics **DEFERRED**; (3) **F72**
+    records the originating publisher as **gather-blob metadata, NO schema bump** — v1.4 stays
+    schemaVersion 1.2; (4) **HOLD all dispatch** until per-lane plans are reviewed and the user says go.
+  - **DEFERRED — MUST NOT LOSE (user-directed):** F60's `scoring.py` side-semantics ships as a
+    **future v1.5 migration**; do **not** tick F60 done when the data half merges (plan §6 ledger).
+  - **Machine-local coordination tooling (NOT in the repo):** new `concurrent-edit-guard` skill
+    (`~/.claude/skills`) + a PreToolUse/PostToolUse hook (`.claude/settings.local.json`, git-excluded
+    via `.git/info/exclude`) that blocks editing a file another instance is mid-editing. **Needs a
+    `/hooks` reload or restart to activate.** `instance-sync` now cross-references it.
+- **Open pre-reqs before ANY dispatch (plan §7):** reconcile the live `dashboard-showcase` lane (its
+  uncommitted desk-skill + charter edits sit on the main checkout — do NOT touch them); write the
+  **P3 contract-v1.4 migration spec** for user approval; finalize the F76 + F73 per-lane task plans.
+- **Concurrent instance still live:** `dashboard-showcase` in `.worktrees/dashboard` (presentation/
+  dashboard work — may overlap the renderer stream F77/F64/F65; reconcile before claiming it).
+- **NEXT (on user "go" only — nothing is dispatched yet):** (a) claim + dispatch **P1 (F76, Sonnet)**
+  and **P2 (F73, Opus)** as parallel worktree lanes; (b) separately open the **P3 v1.4 migration
+  spec** for user approval (frozen core — never AFK, only the user merges to main).
+
+## HISTORICAL — desk-LIVE item 1 cleared (2026-07-06 morning; superseded by the section above)
 
 - **Date:** 2026-07-06 (morning — post daily #2, ablation verdict recorded)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
@@ -98,6 +127,16 @@
   the authoritative full HANDOFF still lives on the f63-corroboration-doctrine branch.)
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
+
+- **`dashboard-showcase` lane is ACTIVE (another instance) — 2026-07-06.** Worktree
+  `.worktrees/dashboard`, branch `dashboard-showcase` @ `6fe1841`; spec
+  `docs/superpowers/specs/2026-07-06-merchant-gpu-dashboard-design.md`. Its uncommitted edits are
+  visible on the main checkout (10 desk-skill `SKILL.md` files + `docs/agent-swarm-charter.md`) —
+  **do NOT touch or `git add -A` them.** Presentation work; may overlap the renderer stream
+  (F77/F64/F65) — reconcile before claiming a renderer lane.
+- **Coordination guard (machine-local, this checkout):** a `concurrent-edit-guard` PreToolUse hook
+  now blocks edits to a file another instance is mid-editing (needs `/hooks` reload/restart to arm).
+  See the `concurrent-edit-guard` and `instance-sync` skills.
 
 - **F74 (cycle-log clobber fix) is DONE — merged to main `257cf1b` (2026-07-05, user go);
   claim RELEASED; branch + worktree removed.** Sentinel:

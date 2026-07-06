@@ -63,7 +63,12 @@ def normalize_documents(blobs: list[dict], *, primary_sources: list[str],
             duplicates += 1
             continue
         seen.add(norm)
+        # F72: carry the gatherer's structured originating-publisher datum onto blob metadata
+        # (optional; not in REQUIRED — a blob without it is unchanged). Blank -> None.
+        op = blob.get("originatingPublisher")
+        originating = op.strip() if isinstance(op, str) and op.strip() else None
         documents.append(RawDocument(
             id=_doc_id(norm, as_of), source=blob["source"], url=blob["url"], date=blob["date"],
-            tier=_tier(blob["url"], primary_sources), entity=blob["entity"], content=blob["content"]))
+            tier=_tier(blob["url"], primary_sources), entity=blob["entity"], content=blob["content"],
+            originatingPublisher=originating))
     return IngestOutcome(documents=documents, dropped=dropped, duplicates=duplicates)

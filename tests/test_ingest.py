@@ -67,3 +67,29 @@ def test_doc_id_carries_the_vintage_and_differs_across_as_of():
 def test_blank_as_of_fails_loud():
     with pytest.raises(ValueError):
         normalize_documents([_blob()], primary_sources=PRIMARY, as_of="")
+
+
+# --- F72 (contract v1.4): originating publisher as structured gather-blob metadata (F69) ---
+
+def test_originating_publisher_recorded_as_blob_metadata():
+    # A chased/corroborated blob records its ORIGINATING publisher as a structured field on the
+    # blob metadata (RawDocument), not as free text buried in `content`. Closes F69's handoff
+    # note. schemaVersion (the Finding schema) is untouched — this rides RawDocument, per D3.
+    blob = _blob(url="https://www.stocktitan.net/news/NVDA/x.html",
+                 source="StockTitan (wire syndication)")
+    blob["originatingPublisher"] = "Business Wire"
+    out = normalize_documents([blob], primary_sources=PRIMARY, as_of="2026-07")
+    assert out.documents[0].originatingPublisher == "Business Wire"
+
+
+def test_originating_publisher_optional_defaults_none():
+    # Backward compatible: a blob with no originating-publisher datum yields None.
+    out = normalize_documents([_blob()], primary_sources=PRIMARY, as_of="2026-07")
+    assert out.documents[0].originatingPublisher is None
+
+
+def test_originating_publisher_blank_is_none():
+    blob = _blob()
+    blob["originatingPublisher"] = "   "
+    out = normalize_documents([blob], primary_sources=PRIMARY, as_of="2026-07")
+    assert out.documents[0].originatingPublisher is None

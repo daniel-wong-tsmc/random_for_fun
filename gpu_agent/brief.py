@@ -143,17 +143,61 @@ def render_demand_supply_board(sc: Scorecard, horizons, registry=None) -> str:
     return "\n".join(lines)
 
 
-def render_market_caveat(sc: Scorecard) -> str:
+# F75 (contract v1.4 companion): cycle-log gate keys -> exec-plain names for the
+# trust-footer waiver line. A gate whose recorded status was BYPASSED/WAIVED surfaces
+# one honest line; a clean gate (its status names "no bypass") surfaces nothing.
+_GATE_PLAIN_NAME = {
+    "sufficiency": "evidence-sufficiency",
+    "voiceLint": "analyst-voice",
+    "voice-lint": "analyst-voice",
+}
+
+
+def _gate_bypassed(status: str) -> bool:
+    """True iff a cycle-log gate status records a bypass/waiver (F75). Guards against the
+    common clean phrasings ('no bypass', 'no waiver', 'not bypassed') so a PASSED gate that
+    merely mentions the word does not falsely trip the disclosure."""
+    t = (status or "").lower()
+    if "no bypass" in t or "no waiver" in t or "not bypass" in t:
+        return False
+    return "bypass" in t or "waiv" in t
+
+
+def gate_waivers_from_cycle_log(gates) -> list[str]:
+    """Exec-plain trust-footer waiver lines for every gate the cycle log records as
+    bypassed/waived (F75). One line per bypassed gate, deterministic (sorted by gate key),
+    free of acronyms / ids / jargon so it passes the same above-the-fold lint as the caveat.
+    A clean cycle (or absent `gates`) yields []."""
+    if not isinstance(gates, dict):
+        return []
+    lines: list[str] = []
+    for key in sorted(gates):
+        if _gate_bypassed(gates.get(key) if isinstance(gates.get(key), str) else ""):
+            name = _GATE_PLAIN_NAME.get(key, "a coverage")
+            lines.append(f"a recorded waiver applied to the {name} check this cycle — "
+                         f"read the affected calls with added caution")
+    return lines
+
+
+def render_market_caveat(sc: Scorecard, *, gate_waivers: list[str] | None = None) -> str:
     """The one honest trust-footer caveat: the index level is run-to-run noisy until
     longer history accumulates, so the brief is a read of direction and change, not
     level. F67 Task 8: reworded to drop internal jargon ("the 4-4 memory") and an
     off-allowlist all-caps word ("DIRECTION") — this caveat renders above
     reader.APPENDIX_DIVIDER, so it must pass the same acronym/jargon lint as every
     other above-the-fold line. The raw DMI/SMI/SDGI table that used to sit below this
-    caveat has moved to its own appendix section (report.render_raw_indices)."""
-    return ("TRUST & COVERAGE (caveat)\n"
-            "  the index level varies run to run until longer history accumulates — "
-            "read direction, not level")
+    caveat has moved to its own appendix section (report.render_raw_indices).
+
+    F75 (contract v1.4 companion): `gate_waivers` (from gate_waivers_from_cycle_log over
+    the cycle log's gates.*) each render one honest line — a cycle that bypassed/waived any
+    gate cannot present a clean footer. A clean cycle passes None/[] and renders exactly
+    today's two lines, byte-for-byte."""
+    lines = ["TRUST & COVERAGE (caveat)",
+             "  the index level varies run to run until longer history accumulates — "
+             "read direction, not level"]
+    for w in (gate_waivers or []):
+        lines.append(f"  {w}")
+    return "\n".join(lines)
 
 
 # ── store-fed sections (4-5b) ────────────────────────────────────────────────

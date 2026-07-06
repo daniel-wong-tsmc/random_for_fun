@@ -181,8 +181,10 @@ flips (Part 23). Later, the entry point for the interactive path (Part 14).
 ## Standing constraints (bind every phase — never re-decided per phase)
 
 - **Frozen contract v1.2** — `gate.py`, `scoring.py`, `schema/*`, `judgment/briefing.py`,
-  `judge.py` aggregation, `pipeline.py`, `JsonStore` change only as **versioned migrations**
-  (charter Part 33), never piecemeal. All new work is additive behind the Part 38 seams.
+  `judge.py` aggregation, `pipeline.py`, `sufficiency.py`, `JsonStore` change only as
+  **versioned migrations** (charter Part 33), never piecemeal. All new work is additive
+  behind the Part 38 seams. (`sufficiency.py` added to this frozen-core list by contract
+  v1.4, F71 — its exemption logic is gate semantics as directly as `gate.py`; spec §7 D1.)
 - **Modularity is binding** (Part 18 principles 1–8; Part 38 seams) — every component ships
   behind a named seam or registry: brains behind `--emit-prompt`/`--recorded`, tiers behind
   the uniform tier interface, stores behind the store/read seam, fetchers behind the

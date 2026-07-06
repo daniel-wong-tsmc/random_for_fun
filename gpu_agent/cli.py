@@ -464,19 +464,20 @@ def _judge(args) -> int:
                 return _report_voice_violations(violations)
         # F63: evidence-sufficiency gate — rating/bottleneck changes vs the SAME
         # prior-cycle MEMORY the emitted prompt carried need primary or >=N-publisher
-        # citations. No prior scorecard -> memory is None -> inert.
-        if not args.no_sufficiency:
-            horizons = IndicatorHorizons.load(REGISTRY_PATH)
-            memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
-                                         registry, horizons)
-            # F71: pass the measured anchors so an anchor-FORCED rating move (prior rating made
-            # illegal by the Part 7 bound) is exempt from the sufficiency gate — no whole-run
-            # --no-sufficiency needed for the anchor-forced case.
-            anchors = build_briefing(findings, registry, args.category).anchors
-            violations = check_sufficiency(answers, memory, {f.id: f for f in findings},
-                                           anchors=anchors, exemptions={})
-            if violations:
-                return _report_sufficiency_violations(violations)
+        # citations. No prior scorecard -> memory is None -> inert. F75 (v1.4): the whole-run
+        # --no-sufficiency bypass is REMOVED — the gate always runs; F71's anchor-forced
+        # exemption handles the one deadlock the bypass used to cover, and the residual
+        # re-dispatches (never a whole-run skip) before the unattended pilot.
+        horizons = IndicatorHorizons.load(REGISTRY_PATH)
+        memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
+                                     registry, horizons)
+        # F71: pass the measured anchors so an anchor-FORCED rating move (prior rating made
+        # illegal by the Part 7 bound) is exempt from the sufficiency gate.
+        anchors = build_briefing(findings, registry, args.category).anchors
+        violations = check_sufficiency(answers, memory, {f.id: f for f in findings},
+                                       anchors=anchors, exemptions={})
+        if violations:
+            return _report_sufficiency_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
@@ -805,7 +806,8 @@ def _pipeline(args) -> int:
     # provided (the live cycle always passes --corpus-store); without it there is no
     # prior-state source here -> inert, matching the memory-less legacy pipeline.
     anchor_bounded: set[str] = set()   # F71: dims whose move was anchor-forced (trust-footer stamp)
-    if args.recorded_judge and not args.no_sufficiency:
+    # F75 (v1.4): whole-run --no-sufficiency removed — the gate always runs on the recorded path.
+    if args.recorded_judge:
         memory = None
         if args.corpus_store:
             horizons = IndicatorHorizons.load(REGISTRY_PATH)
@@ -967,11 +969,26 @@ def _report(args) -> int:
         prev_as_of = prior.asOf if prior is not None else None
         movement = collect_movement(store, as_of=sc.asOf, prev_as_of=prev_as_of,
                                     registry=registry, horizons=horizons)
+    # F75: surface any bypassed/waived gate from the run's cycle log in the trust footer.
+    from gpu_agent import brief
+    gate_waivers: list[str] = []
+    cycle_log = getattr(args, "cycle_log", None)
+    if cycle_log:
+        try:
+            log = json.loads(pathlib.Path(cycle_log).read_text("utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"gpu-agent report: warning: could not read cycle log {cycle_log}: {e}",
+                  file=sys.stderr)
+        else:
+            entries = log.get("entries", []) if isinstance(log, dict) else []
+            entry = next((e for e in entries
+                          if isinstance(e, dict) and e.get("category_id") == sc.categoryId), None)
+            gate_waivers = brief.gate_waivers_from_cycle_log((entry or {}).get("gates"))
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
-                         daily=getattr(args, "daily", False))
+                         daily=getattr(args, "daily", False), gate_waivers=gate_waivers)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -1078,8 +1095,8 @@ def main(argv=None) -> int:
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     jg.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint (legacy recorded fixtures)")
-    jg.add_argument("--no-sufficiency", action="store_true",
-                    help="skip the F63 evidence-sufficiency gate (legacy recorded fixtures)")
+    # F75 (v1.4): the whole-run --no-sufficiency bypass is removed — the evidence-sufficiency
+    # gate always runs; F71's anchor-forced exemption covers its one sanctioned use.
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--persona", default=None,
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")
@@ -1126,8 +1143,7 @@ def main(argv=None) -> int:
     pl.add_argument("--recorded-judge", default=None)
     pl.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
-    pl.add_argument("--no-sufficiency", action="store_true",
-                    help="skip the F63 evidence-sufficiency gate on --recorded-judge (legacy recorded fixtures)")
+    # F75 (v1.4): the whole-run --no-sufficiency bypass is removed — the gate always runs.
     pl.add_argument("--corpus-store", default=None,
                     help="store root; when given, merge the windowed store corpus (F62) "
                          "into the judged + scored findings")
@@ -1154,6 +1170,9 @@ def main(argv=None) -> int:
     rp.add_argument("--daily", action="store_true",
                     help="daily cadence: lead with WHAT MOVED instead of STATE OF THE MARKET "
                          "(F67 §4; same renderer/section order otherwise)")
+    rp.add_argument("--cycle-log", default=None,
+                    help="path to the run's cycle-log JSON; any gate the log records as "
+                         "bypassed/waived (gates.*) surfaces a waiver line in the trust footer (F75)")
     # --prior and --no-prior are mutually exclusive: passing both is a usage error.
     grp = rp.add_mutually_exclusive_group()
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")

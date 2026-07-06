@@ -110,13 +110,15 @@ def test_judge_recorded_passes_with_primary_citation(tmp_path):
     assert out.returncode == 0, out.stderr
 
 
-def test_no_sufficiency_flag_skips_gate(tmp_path):
+def test_no_sufficiency_flag_is_removed(tmp_path):
+    # F75 (contract v1.4): the whole-run --no-sufficiency bypass is removed from live paths —
+    # argparse now rejects it (returncode 2), so no run can skip the sufficiency gate wholesale.
     store = _seed_prior_store(tmp_path)
-    findings_p, fid = _findings_file(tmp_path, "secondary")   # same failing setup as test 1
+    findings_p, fid = _findings_file(tmp_path, "secondary")
     rec = _recorded_file(tmp_path, fid)
     out = _run(*_judge_args(tmp_path, findings_p, rec, store, "--no-sufficiency"))
-    assert out.returncode == 0, out.stderr
-    assert "sufficiency:" not in out.stderr
+    assert out.returncode == 2
+    assert "no-sufficiency" in out.stderr and "unrecognized arguments" in out.stderr
 
 
 def test_judge_recorded_without_prior_scorecard_is_inert(tmp_path):

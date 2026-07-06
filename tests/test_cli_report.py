@@ -16,6 +16,7 @@ Fixtures:
 from __future__ import annotations
 import argparse
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -162,6 +163,38 @@ def test_cli_report_prior_and_no_prior_are_mutually_exclusive():
     )
     assert result.returncode == 2
     assert "not allowed with" in result.stderr or "usage" in result.stderr.lower()
+
+
+# ── F75 (contract v1.4): cycle-log gate-bypass disclosure in the trust footer ─
+
+
+def _write_cycle_log(tmp_path, gates):
+    p = tmp_path / "cycle-log.json"
+    p.write_text(json.dumps({"scope": "category:chips.merchant-gpu", "entries": [
+        {"category_id": "chips.merchant-gpu", "gates": gates}]}), "utf-8")
+    return p
+
+
+def test_cli_report_bypassed_gate_renders_footer_waiver(tmp_path):
+    log = _write_cycle_log(tmp_path, {
+        "sufficiency": "bypassed - moat Weak->Mixed forced by +0.50 anchor; --no-sufficiency; logged",
+        "voiceLint": "all passed on the re-dispatch; NO bypass"})
+    result = _run("report", "--scorecard", CURRENT, "--no-prior", "--cycle-log", str(log))
+    assert result.returncode == 0, result.stderr
+    assert "recorded waiver applied to the evidence-sufficiency check" in result.stdout
+    # the waiver rides the trust footer, above the appendix divider (its own lint-cleanliness
+    # is pinned in tests/test_brief_stubs.py; this fixture's narrative carries its own acronyms)
+    top = result.stdout.split(reader.APPENDIX_DIVIDER)[0]
+    assert "recorded waiver" in top
+
+
+def test_cli_report_clean_cycle_renders_no_waiver(tmp_path):
+    log = _write_cycle_log(tmp_path, {
+        "sufficiency": "PASSED with no bypass - cited 3 distinct publishers",
+        "voiceLint": "all passed; NO bypass"})
+    result = _run("report", "--scorecard", CURRENT, "--no-prior", "--cycle-log", str(log))
+    assert result.returncode == 0, result.stderr
+    assert "recorded waiver" not in result.stdout
 
 
 # ── find_prior correctness tests (prior-chain fixtures, NOT store/) ───────────

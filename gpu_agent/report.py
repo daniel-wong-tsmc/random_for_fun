@@ -629,7 +629,7 @@ def render_coverage_gaps(sc: Scorecard) -> str:
     return "\n".join(lines)
 
 
-def render_trust_footer(sc: Scorecard) -> str:
+def render_trust_footer(sc: Scorecard, *, gate_waivers=None) -> str:
     """TRUST & COVERAGE: the one honest caveat (brief.render_market_caveat) — read
     direction, not level. Renders above reader.APPENDIX_DIVIDER, so it carries no raw
     index numbers or off-allowlist acronyms.
@@ -646,7 +646,7 @@ def render_trust_footer(sc: Scorecard) -> str:
     no jargon words) renders only when at least one of the six dimensions is not grounded,
     reusing the exact is_grounded rule render_dimensions/render_coverage_gaps use.
     """
-    lines = [brief.render_market_caveat(sc)]
+    lines = [brief.render_market_caveat(sc, gate_waivers=gate_waivers)]
     n = len(sc.findings)
     primary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "primary")
     secondary_n = sum(1 for f in sc.findings for ev in f.evidence if ev.tier == "secondary")
@@ -717,6 +717,7 @@ def render_report(
     thesis_book=None,
     thesis_last_findings=None,
     daily: bool = False,
+    gate_waivers=None,
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -771,7 +772,7 @@ def render_report(
         brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
         brief.render_demand_supply_board(sc, horizons, registry=registry),
         brief.render_storylines(movement),
-        render_trust_footer(sc),                              # the one honest caveat
+        render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
     ]
     if daily:   # F67 §4: the daily's headline is the diff
         top[1], top[2] = top[2], top[1]

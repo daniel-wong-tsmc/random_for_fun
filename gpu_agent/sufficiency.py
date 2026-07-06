@@ -13,7 +13,12 @@ from __future__ import annotations
 import json
 
 from gpu_agent.config import min_distinct_publishers
+from gpu_agent.gate import _rating_consistent_with_anchor
 from gpu_agent.publisher import publisher_key
+
+# F71 (contract v1.4): the trust-footer stamp an anchor-forced move rides on. Kept as a
+# named constant so the exemption path and any renderer name the exact same string.
+ANCHOR_BOUNDED_STAMP = "anchor-bounded on thin evidence"
 
 
 def _sufficient(finding_ids, findings_by_id, n) -> tuple[bool, int]:
@@ -28,15 +33,36 @@ def _sufficient(finding_ids, findings_by_id, n) -> tuple[bool, int]:
     return len(publishers) >= n, len(publishers)
 
 
-def check_sufficiency(raw_answers: list, memory, findings_by_id) -> list[str]:
+def _anchor_forced(prior_rating, new_rating, anchor) -> bool:
+    """F71: the move is anchor-FORCED (exempt from sufficiency) iff the PRIOR rating is illegal
+    under the measured anchor (the Part 7 bias guardrail bounds it) AND the NEW rating resolves
+    that conflict (is anchor-legal). A move where the prior is still anchor-legal is a genuine
+    judgment re-rate and stays gated; a new rating that is itself still illegal is the anchor
+    gate's problem, not an exemption."""
+    if anchor is None:
+        return False
+    return (not _rating_consistent_with_anchor(prior_rating, anchor)
+            and _rating_consistent_with_anchor(new_rating, anchor))
+
+
+def check_sufficiency(raw_answers: list, memory, findings_by_id, *,
+                      anchors: dict | None = None, exemptions: dict | None = None) -> list[str]:
     """`raw_answers` is the recorded-samples list (each item a JudgmentResult JSON string,
     RecordedClient's replay shape — same input contract as cli._voice_lint_samples).
-    `memory` is the MemoryBundle the emitted prompt carried, or None (-> inert)."""
+    `memory` is the MemoryBundle the emitted prompt carried, or None (-> inert).
+
+    F71 (contract v1.4): `anchors` (dim -> measured anchor, from build_briefing) enables the
+    anchor-forced-move exemption — a rating change forced by the anchor making the prior rating
+    illegal is code-computed measured evidence, not a judgment re-rate, so it is NOT gated for
+    sufficiency. When exempted, the dimension is recorded in `exemptions` (dim -> stamp) if a
+    dict is supplied, so the caller can stamp the trust footer. Omitting `anchors` reproduces
+    the pre-v1.4 behavior byte-for-byte (no exemption path)."""
     if memory is None:
         return []
     n = min_distinct_publishers()
     prior_ratings = memory.priorRatings or {}
     prior_bottleneck = (memory.priorCategoryStatus or {}).get("bottleneck")
+    anchors = anchors or {}
     violations: list[str] = []
     for i, raw in enumerate(raw_answers):
         sample = json.loads(raw)
@@ -48,6 +74,10 @@ def check_sufficiency(raw_answers: list, memory, findings_by_id) -> list[str]:
                 continue
             ok, count = _sufficient(d.get("findingIds") or [], findings_by_id, n)
             if not ok:
+                if _anchor_forced(prior.get("rating"), d.get("rating"), anchors.get(dim)):
+                    if exemptions is not None:
+                        exemptions[dim] = ANCHOR_BOUNDED_STAMP
+                    continue
                 violations.append(
                     prefix + f"{dim}: rating changed {prior.get('rating')}->"
                     f"{d.get('rating')} with insufficient evidence "

@@ -94,3 +94,49 @@ def test_multi_sample_prefixes():
     bad = _answer({"momentum": ("Very strong", ["s1"])})
     violations = check_sufficiency([good, bad], mem, FBI)
     assert len(violations) == 1 and violations[0].startswith("sample 2: ")
+
+
+# --- F71 (contract v1.4): anchor-forced-move exemption from the sufficiency gate ---
+
+def test_anchor_forced_move_is_exempt_and_stamped():
+    # Prior "Weak" is ILLEGAL under a +1.0 anchor, so the move to (anchor-legal) "Mixed" is
+    # anchor-FORCED code-computed evidence, not a judgment re-rate -> exempt from sufficiency
+    # even though the citation is under-sourced (1 publisher). Stamped for the trust footer.
+    mem = _memory({"momentum": "Weak"})
+    ans = _answer({"momentum": ("Mixed", ["s1"])})
+    exemptions = {}
+    violations = check_sufficiency([ans], mem, FBI, anchors={"momentum": 1.0},
+                                   exemptions=exemptions)
+    assert violations == []
+    assert exemptions == {"momentum": "anchor-bounded on thin evidence"}
+
+
+def test_genuine_rerate_same_thin_evidence_still_blocked():
+    # Over-loosening guard: prior "Strong" is STILL anchor-legal at +1.0, so a move to "Very
+    # strong" is a genuine judgment re-rate, not anchor-forced -> blocked exactly as before.
+    mem = _memory({"momentum": "Strong"})
+    ans = _answer({"momentum": ("Very strong", ["s1"])})
+    exemptions = {}
+    violations = check_sufficiency([ans], mem, FBI, anchors={"momentum": 1.0},
+                                   exemptions=exemptions)
+    assert len(violations) == 1 and "insufficient evidence" in violations[0]
+    assert exemptions == {}
+
+
+def test_exemption_requires_anchors_argument():
+    # Without anchors (today's callers), behavior is byte-identical: no exemption path exists.
+    mem = _memory({"momentum": "Weak"})
+    ans = _answer({"momentum": ("Mixed", ["s1"])})
+    assert len(check_sufficiency([ans], mem, FBI)) == 1
+
+
+def test_exemption_only_when_new_rating_resolves_the_conflict():
+    # The move must RESOLVE the anchor conflict: prior "Weak" illegal AND new "Very weak" still
+    # illegal at +1.0 -> not exempt (the anchor gate owns the still-illegal rating separately).
+    mem = _memory({"momentum": "Weak"})
+    ans = _answer({"momentum": ("Very weak", ["s1"])})
+    exemptions = {}
+    violations = check_sufficiency([ans], mem, FBI, anchors={"momentum": 1.0},
+                                   exemptions=exemptions)
+    assert len(violations) == 1
+    assert exemptions == {}

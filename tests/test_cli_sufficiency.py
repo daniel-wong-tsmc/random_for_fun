@@ -125,3 +125,58 @@ def test_judge_recorded_without_prior_scorecard_is_inert(tmp_path):
     rec = _recorded_file(tmp_path, fid)
     out = _run(*_judge_args(tmp_path, findings_p, rec, store))
     assert out.returncode == 0, out.stderr
+
+
+# --- F71 (contract v1.4): anchor-forced-move exemption + clean anchor-conflict handler ---
+
+def _prior_store_with_rating(tmp_path, rating):
+    prior = _prior_scorecard()
+    prior["dimensionRatings"]["momentum"]["rating"] = rating
+    store = tmp_path / "store"
+    (store / CATEGORY).mkdir(parents=True)
+    (store / CATEGORY / "2026-06-v1.json").write_text(json.dumps(prior), "utf-8")
+    return store
+
+
+def _recorded_rating(tmp_path, fid, rating):
+    j = _judgment(fid)
+    j["dimensions"]["momentum"]["rating"] = rating
+    j["categoryStatus"]["rating"] = rating
+    p = tmp_path / "rec.json"
+    p.write_text(json.dumps([json.dumps(j)]), "utf-8")
+    return p
+
+
+def test_anchor_forced_move_resolves_via_exemption_no_flag(tmp_path):
+    # Prior momentum "Weak" is ILLEGAL under the +0.67 anchor (D2, pD=1, mag=2); the recorded
+    # anchor-legal "Mixed" is under-sourced (1 secondary) but exempt as anchor-forced -> the run
+    # completes with returncode 0, NO --no-sufficiency, and no sufficiency rejection.
+    store = _prior_store_with_rating(tmp_path, "Weak")
+    findings_p, fid = _findings_file(tmp_path, "secondary")
+    rec = _recorded_rating(tmp_path, fid, "Mixed")
+    out = _run(*_judge_args(tmp_path, findings_p, rec, store))
+    assert out.returncode == 0, out.stderr
+    assert "sufficiency:" not in out.stderr
+
+
+def test_genuine_rerate_same_thin_evidence_still_blocked_cli(tmp_path):
+    # Prior "Strong" is still anchor-legal at +0.67, so "Very strong" is a genuine re-rate ->
+    # the sufficiency gate still blocks the under-sourced change (no exemption).
+    store = _prior_store_with_rating(tmp_path, "Strong")
+    findings_p, fid = _findings_file(tmp_path, "secondary")
+    rec = _recorded_rating(tmp_path, fid, "Very strong")
+    out = _run(*_judge_args(tmp_path, findings_p, rec, store))
+    assert out.returncode == 1, out.stderr
+    assert "sufficiency: sample 1: momentum: rating changed Strong->Very strong" in out.stderr
+
+
+def test_anchor_conflict_recorded_reports_clean_no_traceback(tmp_path):
+    # F71 §3: a recorded judge answer whose rating contradicts the measured anchor must exit
+    # cleanly with a re-dispatchable `anchor:` line, never an uncaught traceback.
+    store = tmp_path / "empty-store"   # no memory -> sufficiency inert -> judge_findings runs
+    findings_p, fid = _findings_file(tmp_path, "secondary")
+    rec = _recorded_rating(tmp_path, fid, "Very weak")   # illegal under the +0.67 anchor
+    out = _run(*_judge_args(tmp_path, findings_p, rec, store))
+    assert out.returncode == 1
+    assert "anchor:" in out.stderr
+    assert "Traceback" not in out.stderr

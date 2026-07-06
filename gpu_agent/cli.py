@@ -23,7 +23,8 @@ from gpu_agent.wiki.lint import lint
 from gpu_agent.wiki.lifecycle import lifecycle, apply_lifecycle
 from gpu_agent.wiki.movement import collect_movement
 from gpu_agent.judgment.judge import judge_findings
-from gpu_agent.judgment.judge import JudgmentResult
+from gpu_agent.judgment.judge import JudgmentResult, JudgmentError
+from gpu_agent.llm.client import LLMError
 from gpu_agent.judgment.prompt import (
     SYSTEM as JUDGE_SYSTEM, build_system as build_judge_system,
     build_user_prompt as build_judge_user_prompt)
@@ -423,6 +424,22 @@ def _report_sufficiency_violations(violations: list[str]) -> int:
     return 1
 
 
+def _report_judgment_conflict(exc: Exception) -> int:
+    """F71 §3: a clean, re-dispatchable exit for an anchor/aggregation conflict judge_findings
+    could not resolve — analogous to _report_sufficiency_violations. A session hitting an
+    anchor conflict under --recorded/--recorded-judge sees an `anchor: ` line to re-dispatch
+    on (the run-cycle skill can grep the prefix), never an uncaught traceback. Two shapes:
+    a JudgmentError carries the specific gate/anchor violations; an LLMError means the recorded
+    answer deque emptied mid-resample before an anchor-legal rating was reached (the §3 trap)."""
+    if isinstance(exc, JudgmentError):
+        for v in exc.violations:
+            print(f"anchor: {v}", file=sys.stderr)
+    else:
+        print(f"anchor: recorded judge exhausted before an anchor-legal rating was reached "
+              f"— re-dispatch with a rating the measured anchor allows ({exc})", file=sys.stderr)
+    return 1
+
+
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
@@ -452,14 +469,22 @@ def _judge(args) -> int:
             horizons = IndicatorHorizons.load(REGISTRY_PATH)
             memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
                                          registry, horizons)
-            violations = check_sufficiency(answers, memory, {f.id: f for f in findings})
+            # F71: pass the measured anchors so an anchor-FORCED rating move (prior rating made
+            # illegal by the Part 7 bound) is exempt from the sufficiency gate — no whole-run
+            # --no-sufficiency needed for the anchor-forced case.
+            anchors = build_briefing(findings, registry, args.category).anchors
+            violations = check_sufficiency(answers, memory, {f.id: f for f in findings},
+                                           anchors=anchors, exemptions={})
             if violations:
                 return _report_sufficiency_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
-    bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
-                            model=args.model, persona=getattr(args, "persona", None))
+    try:
+        bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
+                                model=args.model, persona=getattr(args, "persona", None))
+    except (JudgmentError, LLMError) as e:   # F71 §3: clean anchor-conflict exit, not a traceback
+        return _report_judgment_conflict(e)
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "ratings.json").write_text(
@@ -779,25 +804,36 @@ def _pipeline(args) -> int:
     # -- aren't available until this point. Memory comes from the F62 corpus store when
     # provided (the live cycle always passes --corpus-store); without it there is no
     # prior-state source here -> inert, matching the memory-less legacy pipeline.
+    anchor_bounded: set[str] = set()   # F71: dims whose move was anchor-forced (trust-footer stamp)
     if args.recorded_judge and not args.no_sufficiency:
         memory = None
         if args.corpus_store:
             horizons = IndicatorHorizons.load(REGISTRY_PATH)
             memory = build_memory_bundle(args.corpus_store, a.category, args.as_of,
                                          registry, horizons)
-        violations = check_sufficiency(judge_answers, memory, {f.id: f for f in findings})
+        # F71: measured anchors enable the anchor-forced-move exemption; exempted dims are
+        # collected so build_scorecard can stamp them on the existing dimensionStatus note.
+        anchors = build_briefing(findings, registry, a.category).anchors
+        exemptions: dict[str, str] = {}
+        violations = check_sufficiency(judge_answers, memory, {f.id: f for f in findings},
+                                       anchors=anchors, exemptions=exemptions)
         if violations:
             return _report_sufficiency_violations(violations)
+        anchor_bounded = set(exemptions)
     # F5: judge_findings' signature is frozen and builds its own prompt internally, so this
     # recorded-judge path threads no memory of its own -- the skill's live cycle gets prior-cycle
     # MEMORY via the `judge --emit-prompt --store ...` call in Step 3(c), whose emitted user
     # prompt is what the dispatched brain actually answers; --recorded-judge here just replays
     # that saved answer through the frozen gate/scorer.
-    bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
-                            model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
+    try:
+        bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
+                                model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
+    except (JudgmentError, LLMError) as e:   # F71 §3: clean anchor-conflict exit, not a traceback
+        return _report_judgment_conflict(e)
     horizons = IndicatorHorizons.load(REGISTRY_PATH)
     sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
-                         category_status=bundle.categoryStatus, horizons=horizons)
+                         category_status=bundle.categoryStatus, horizons=horizons,
+                         anchor_bounded=frozenset(anchor_bounded))
     path = JsonStore(pathlib.Path(args.out)).append(sc)
     print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
           f"SMI={sc.demandSupply.smiContribution:.3f}")

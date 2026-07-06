@@ -1,4 +1,4 @@
-# HANDOFF — GPU Category Agent (resume point: daily #1 of 2 DONE gate-clean; daily #2 runs tomorrow; blind ablation awaits USER scoring)
+# HANDOFF — GPU Category Agent (resume point: ablation SCORED — desk won on substance; daily #2 of 2 runs today 2026-07-06)
 
 - **Date:** 2026-07-05 (evening — post flagship-v3 commit, daily cycle #1, ablation assembly)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
@@ -19,12 +19,13 @@
 - **The 2026-07-05 flagship v3 store state is now COMMITTED** (`99ca522`) — the prior
   session had left it uncommitted in the working tree. Its cycle log (with the F71
   `sufficiency: bypassed` record) is preserved in that commit's `store/cycle-log.json`.
-- **Blind baseline ablation ASSEMBLED — awaiting USER scoring** (`639c00d`, pushed):
-  `docs/ablation-2026-07/{A,B,C}.md` = the desk render vs an RSS-digest baseline vs a
-  one-shot deep-research baseline (both web-only, zero repo context; citations verified
-  web-only), randomly assigned; mapping ONLY in `ANSWER-KEY.md`. **The user scores
-  `SCORING.md` before opening `ANSWER-KEY.md`** — do not reveal or consult the mapping in
-  session output; record the verdict in `docs/action-items.md` once scored.
+- **Blind baseline ablation SCORED by the user (2026-07-06) — the desk (B) WON on
+  substance.** Verdict recorded in `docs/action-items.md` ("Verdict — blind baseline
+  ablation 2026-07"): the desk was the only artifact giving implications + watch items
+  (the thesis-book machinery); both web-only baselines were stale and non-actionable.
+  Every desk deficit named is presentation-layer → logged as **F77** in the backlog
+  (order by importance, consolidate sections, cap volume; renderer-only). The blinding
+  is spent — `docs/ablation-2026-07/` is now a historical record.
 - F71 (anchor-bound vs sufficiency-gate precedence) remains OPEN in the backlog — it did
   not fire this cycle but must land before any unattended loop runs a cycle.
 

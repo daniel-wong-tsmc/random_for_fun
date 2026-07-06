@@ -68,6 +68,36 @@ definition of done was not met — recorded here, not quietly dropped.
 - **Cover layout:** (a) stacked above (b) — a quick market read (status + binding bottleneck +
   top recommendation) on top, the full 5-layer cake with per-layer ratings underneath.
 
+## Verdict — blind baseline ablation 2026-07 (user-scored 2026-07-06)
+
+**Question:** does the desk beat cheap baselines? **Setup:** `docs/ablation-2026-07/` — three
+artifacts on the same scope (merchant GPU market state, ~45 days, as of 2026-07-05), blind,
+random A/B/C: A = RSS-digest baseline (one web-only subagent), B = the desk (2026-07 flagship
+render + 2026-07-05 daily render), C = one-shot deep-research baseline (one web-only subagent).
+The user read blind and judged without the rubric; verbatim substance of the verdict:
+
+- **A (RSS digest):** "tells me a lot but doesn't tell me what to look out for / the
+  implications. It is just a bunch of news articles that are put together"; many items old and
+  not relevant.
+- **B (the desk):** "I quite like every single section that [is] there because it tells me the
+  implications and what to look out for." Criticisms: "topics and sections are very scattered
+  and all over the place"; "way too much information so we would need to order by importance
+  and adjust format."
+- **C (deep-research):** organized and easier to digest, names risks/constraint/demand-supply,
+  but much of the information is old and "I can't really take this information back to my desk
+  and start working on a particular aspect."
+
+**Read:** the desk won the blind comparison on substance — implications and watch items are
+exactly the thesis-book/trigger machinery, and neither baseline produced them. Every desk
+deficit named is presentation-layer: section ordering, importance ranking, volume control.
+The baselines' shared failure (stale, non-actionable) also validates the freshness lanes
+(F57/F58) and the actionability direction (F64 trigger-first brief, F65 "So what for TSMC").
+
+**Actions:** presentation fixes logged as **F77** in `docs/fix-backlog.md` (order the brief by
+importance, consolidate scattered sections, cap volume); F64/F65 remain the actionability
+vehicles. The desk's intelligence layer is validated; the next investment frontier is the
+render, not the gathering or judging machinery.
+
 ## Open — decision-area expansion (proposed, awaiting confirmation)
 
 Current four (capacity/capex, pricing, accounts, risk) are "how much and for whom." Proposed adds

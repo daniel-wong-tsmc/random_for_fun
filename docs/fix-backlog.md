@@ -663,3 +663,18 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   otherwise; **(c)** a retained-worktrees registry (one doc section: each retained worktree,
   why, what's inside, when it can go) replacing the scattered warnings. Docs/process only; no
   code, no eval impact.
+- [ ] **F77 - Brief hierarchy: order by importance, consolidate sections, cap volume** (born
+  from the 2026-07 blind baseline ablation, user-scored 2026-07-06 - verdict recorded in
+  `docs/action-items.md`). The desk WON the blind read on substance (implications + watch
+  items; neither web-only baseline produced them), and every deficit the user named is
+  presentation: "topics and sections are very scattered and all over the place"; "way too
+  much information so we would need to order by importance and adjust format." Concretely:
+  the render gives all ~13 calls equal visual weight regardless of conviction/recency of
+  change; WHY, DEMAND|SUPPLY, STORYLINES, and TRUST read as parallel flat sections with no
+  salience ranking; a daily-plus-monthly render concatenation duplicates state. Fix direction
+  (renderer-only, `report.py` - pure projection, $0 replay): a ranked top section (what
+  changed this cycle + the 3-5 highest-conviction/most-moved calls), remaining calls
+  compressed to one line each, section consolidation, an explicit length budget above the
+  appendix. Interacts with F64 (trigger-first daily leads with the same ranking) and F65
+  (the "So what" slot is the actionability anchor); does not touch prompts (no eval-gate
+  impact). *(Feature-track lean, renderer lane)*

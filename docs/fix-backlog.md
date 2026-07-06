@@ -12,6 +12,10 @@
 > lane. Frozen-contract items (`gate.py` / `scoring.py` / Finding schema) ship as **one versioned
 > v1.2 migration** (charter Part 33), never piecemeal.
 
+> **Provenance labels:** `user-approved` = an actual user answer exists; `AFK-precedent` =
+> proceeded on best judgment while the user was away; `AFK-default` = a specific reversible
+> decision taken while away, re-surfaced on the user's return.
+
 > **Wave 2 MERGED 2026-07-02** (main d933b7e, suite 626 passed / 3 skipped): lanes F (F18, F29,
 > F33, F34, F49 Price Momentum overlay, F51 per-series price dedup incl. the cross-cycle fix), G
 > (F41 minus the frozen schemaVersion-default bump - explicitly skipped, F42, F50, F26-cli), H

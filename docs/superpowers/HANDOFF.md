@@ -212,6 +212,13 @@ F57/F58/F59 → F60 → F64 → F65 → F66. Eval-v2, if approved, slots in as i
 F63's re-gate. F56 remains a safe tiny side item.
 
 ## Newest state (newest first)
+  - **SHOWCASE DASHBOARD shipped + merged + pushed (2026-07-06, `75db88f`; sentinel
+    `.superpowers/handoffs/dashboard-showcase-DONE.md`).** New plain-English HTML dashboard from
+    report.txt + scorecards: `gpu_agent/dashboard/` + `scripts/build_dashboard.py` → `docs/dashboard.html`
+    (ranked most-important-first; 8 sections), plus the reusable `plain-language-writer` subagent with
+    voice calibration. Additive only — no frozen-core / brain-prompt / wave interaction; suite 1103/4.
+    OPEN: (1) voice calibration not run (no samples dropped — prose is neutral plain English);
+    (2) claims section sourced from gitignored `work/report.txt`, so rebuild in place post-cycle.
   - **`docs/roadmap.md` — the phased roadmap from this one desk to the full charter product
     (2026-07-04): forks user-approved live (layer tier after cats #2–3, Main after ~2 layers,
     coarse size tags); final doc committed under the AFK precedent — open questions inside.**

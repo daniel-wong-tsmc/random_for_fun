@@ -1,5 +1,22 @@
 # HANDOFF — GPU Category Agent (resume point: P1+P2 lanes DISPATCHED 2026-07-06; P3 v1.4 migration spec PARKED for user §7 approval — resume by monitoring the two lanes and awaiting P3 sign-off)
 
+> **[SCHEDULED HEADLESS RUN BLOCKED] - 2026-07-07 (daily LIVE cycle, `category:chips.merchant-gpu`).**
+> The scheduled daily live cycle could NOT gather: this non-interactive session has **no outbound web
+> access** - every egress path (Bash/PowerShell -> `agent-reach`, `WebSearch`, `WebFetch`) is
+> permission-denied with no interactive grantor. All **3 round-1 daily gatherers returned zero blobs**,
+> and a direct main-session `WebSearch` was denied too. Per `gather-category` step 7 / `run-cycle`
+> 3(a): **zero documents -> category SKIPPED (skipped-no-gather); no scorecard written.** Nothing was
+> fabricated and **recorded/demo mode was NOT used** (LIVE-by-default standing rule - never silently
+> substitute). **Store untouched:** no new `store/` artifacts; `store/cycle-log.json` still holds the
+> finalized **2026-07-06** journal (NOT clobbered to a skeleton); pin + F74 journal tripwire unaffected.
+> Preflight had passed (git ff-only clean, `import gpu_agent` OK, `web-reach-ensure` = tools
+> installed/ok) - but *installed != network-permitted*; the doctor checks presence, not egress.
+> **AFK-default (headless, user away):** stopped and recorded the blocker rather than switching to
+> recorded mode or inventing data; nothing merged, no branch/worktree touched, fully reversible.
+> **RE-RUN** the 2026-07-07 daily from a session with web egress (grant `WebFetch`/`WebSearch`, or Bash
+> access to `agent-reach`), then resume `run-cycle` daily mode at Step 3(a) gather; asOf stays
+> `2026-07-07`. Scratch left at `work/daily-2026-07-07/cycle-plan.json` (plan only; gitignored).
+
 - **Date:** 2026-07-06 (planning session — no code change, no cycle run; skill library + wave plan only)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
 - **This session (all on main, `main == origin/main`):**

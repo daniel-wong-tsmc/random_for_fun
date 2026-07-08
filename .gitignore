@@ -16,6 +16,8 @@ store/*
 work/
 blobs.json
 .worktrees/
+# gpu_agent/scrape_data/: scraped cloud GPU rental-price CSVs (large ~20MB, regenerable) - never commit
+gpu_agent/scrape_data/
 # plain-language-writer: private writing samples & derived voice profile (never commit)
 .claude/agents/plain-language-writer/voice-samples/
 .claude/agents/plain-language-writer/voice-profile.md

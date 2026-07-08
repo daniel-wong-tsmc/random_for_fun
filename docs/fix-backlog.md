@@ -304,7 +304,10 @@
 
 ### Fixes (bounded — lane-style)
 
-- [ ] **F57 — Headline + forward-signal slices in the standard gather.** Round-1 seeds in
+- [x] **F57 — Headline + forward-signal slices in the standard gather. DONE — merged `72261a4`
+  (lane-freshness, 2026-07-04): headline + forward-signal slices, per-class doc floors, a
+  price-fetch cap, and don't-re-fetch-seen-filings; gather-skill prose + `tests/test_lane_freshness.py`.**
+  Round-1 seeds in
   `.claude/skills/gather-category/SKILL.md` contain no news angle; the only open-web query is
   one `"<entity-names> <source.label>"` per free-web source, and the entity×metric slices
   append "latest official filing / 10-Q / 10-K / investor relations". Add per-entity headline
@@ -318,12 +321,16 @@
   scrapes), and **stop re-fetching already-seen filings mid-quarter** (thread the L1 seen-doc
   filter, today daily-only, into the standard live path for filing URLs, or skip known-hash
   filing seeds).
-- [ ] **F58 — Recency window in live mode.** `recencyDays`, "since <date> / past week"
+- [x] **F58 — Recency window in live mode. DONE — merged `72261a4` (lane-freshness, 2026-07-04):
+  live-mode `recencyDays = 45` window, filing seeds exempt. SUPERSEDED by F78 — the window rule is
+  reworked to a 7-day initial sweep + discretionary older-lead pursuit (logged).** `recencyDays`, "since <date> / past week"
   qualifiers, and the date-window lead drop exist only in Daily mode; the standard live path
   has no freshness bias at all — which is how a 2026-07 flagship's freshest substantive doc was
   an April filing. Add a live-mode recency dial (wider than daily's 7, e.g. 45 days; filing
   seeds exempt) applied to seed queries and the on-topic filter.
-- [ ] **F59 — Primary allowlist matches the charter's definition of primary.** Charter says
+- [x] **F59 — Primary allowlist matches the charter's definition of primary. DONE — merged `72261a4`
+  (lane-freshness, 2026-07-04): official IR/newsroom domains count as primary via the manifest's
+  `primaryDomains` allowlist (not a hardcoded pair); `tests/test_lane_freshness.py`.** Charter says
   primary = "filings, **official posts**", but ingest stamps primary only for
   `--primary-sources sec.gov,investor.nvidia.com` (gather-category SKILL.md:114; `cli.py:590`
   defaults to `sec.gov`). So `blogs.nvidia.com`, `nvidianews.nvidia.com`, `ir.amd.com`,
@@ -376,7 +383,9 @@
   MERGED to main `eb925bc` (2026-07-04, user go); suite on merged main 974/3/0. The f62
   worktree is retained for the gitignored eval raw data (attempts 1-3) — see the RETAINED
   WORKTREES REGISTRY in `docs/superpowers/HANDOFF.md`.**
-- [ ] **F63 — Corroboration doctrine for secondary evidence.** Secondary evidence is
+- [x] **F63 — Corroboration doctrine for secondary evidence. DONE — merged `017b592`
+  (2026-07-05), re-gated under eval-v2; charter Part 37 + gate F2e secondary-corroboration
+  exception (contract v1.3), migration note docs/migrations/2026-07-contract-v1.3.md.** Secondary evidence is
   confidence-capped at medium (extraction prompt + gate F2e) and secondary-only findings may
   not move headline status (Part 37) — so no quantity of independent open-web reporting can
   move status or conviction until a filing confirms it. The desk resolves at filing cadence;
@@ -390,7 +399,9 @@
   / a dimension rating this cycle?" — so corroborated news can move ratings and insufficient
   news cannot. Loosening without the tightening half reintroduces the whipsaw the anti-whipsaw
   machinery exists to prevent.
-- [ ] **F64 — Trigger-first daily brief.** The thesis book's falsifiable triggers are the one
+- [ ] **F64 — Trigger-first daily brief — FOLDED INTO F78.** (F78's change-first opening leads with
+  which theses moved and why — F64's core; its optional Brier-scoring add-on folds into F78 or defers.
+  Do not build separately; tick when F78 ships.) The thesis book's falsifiable triggers are the one
   asset an exec cannot get from a news terminal, but the daily output leads with findings and
   trigger matching stays implicit inside judging. Lead the daily brief with a trigger-watch:
   which standing theses' `falsifiableTrigger`s did today's findings touch, which conviction
@@ -442,7 +453,7 @@
   map for tier/status jargon; index acronyms words-first), an industry-standard acronym
   allowlist is lint-enforced, brain prompts embed the stop-slop pattern rules (tool-less
   brains can't invoke skills), and the session runs stop-slop on its final message.
-- [ ] **F68 — F67 follow-ups (born from the F67 final review, 2026-07-04).** Bundle of small
+- [ ] **F68 — F67 follow-ups (born from the F67 final review, 2026-07-04) — partly ABSORBED by F78's brief rewrite.** Bundle of small
   deferred items, none merge-blocking: **(a)** thesis-prose deterministic lint (spec §2b thesis
   slice ships as prompt rules only; add a lint symmetrical to the judgment one — statement ≤1
   sentence, mechanism ≤1, ids only in `falsifiableTrigger`); **(b)** citation map renders only
@@ -475,8 +486,9 @@
   concept (gather-category tool-roles block + charter Part 37 clause + `docs/web-reach.md`); future
   same-role tools stay pure data entries. User-approved 2026-07-04 (discovery/leads-only). Frozen
   core untouched.
-- [ ] **F71 — Gate precedence: anchor bound vs. evidence-sufficiency deadlock; `--no-sufficiency`
-  too blunt** (born from the first live flagship on the post-F63 stack, 2026-07-05 monthly v3;
+- [x] **F71 — Gate precedence: anchor bound vs. evidence-sufficiency deadlock; `--no-sufficiency`
+  too blunt — DONE: shipped in the contract v1.4 migration, merged `e16672a` (P3, 2026-07-08).**
+  (born from the first live flagship on the post-F63 stack, 2026-07-05 monthly v3;
   user-approved 2026-07-05). Two code guards demanded contradictory outcomes with no defined
   precedence: the judge rated moat Weak; the +0.50 measured anchor makes Weak illegal (the
   Part 7 bias guardrail — code bounds the rating), forcing Weak→Mixed; F63's
@@ -579,7 +591,10 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > right after F71 (both are gate-semantics Part-33 work), **F75 before any unattended loop**
 > (same bar F71 set), F73/F76 as capacity allows.
 
-- [ ] **F72 — Cross-domain wire syndication defeats the F31 corroboration key** (must-have
+- [x] **F72 — Cross-domain wire syndication defeats the F31 corroboration key. DONE — shipped in
+  the contract v1.4 migration, merged `e16672a` (P3, 2026-07-08): `registry/syndicators.json` + L1
+  near-dup collapse. FOLLOW-UP: `sufficiency.py::_sufficient` still counts raw `publisher_key`, not
+  the collapsed set (flagged for a user decision).** (must-have
   caliber: lets one press release move judgments, silently). `publisher_key`
   (`gpu_agent/publisher.py:17`) is the evidence URL's netloc, nothing else; the F63 spec
   collapses only *same-domain* syndication ("N outlets hosted at one domain collapses to one
@@ -604,8 +619,10 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   run-eval. Acceptance: test-pinned — one story with near-identical bodies on 3 syndicator
   domains fails the ≥3 bar; 3 genuinely distinct outlets still pass; thesis rule 6 and wiki
   promotion inherit via the shared key.
-- [ ] **F73 — Eval-v2 gate power: ε is small against documented run noise; the gate has never
-  demonstrably caught a real regression.** ε = max(half-range of 3 replicate means, quantum)
+- [x] **F73 — Eval-v2 gate power: ε is small against documented run noise; the gate has never
+  demonstrably caught a real regression. DONE — merged `6d098a7` (P2, 2026-07-08): pooled-dispersion
+  ε + symmetric marginal-pass band + seeded-regression canary (scaffolded). FOLLOW-UP: the canary
+  fixture still needs a one-time live eval capture to fill it (must not be hand-authored).** ε = max(half-range of 3 replicate means, quantum)
   yields 0.19–0.5 per seam, but the F63 run notes document identical-prompt seam swings of
   6.25–7.50; the F63 re-gate passed extract by **0.042** (6.625 vs bar 6.5833) — deep inside
   noise. Both error directions are live: draw-luck passes of true regressions, and draw-luck
@@ -652,7 +669,8 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   the deeper fix); three dated 2026-06 plan/spec docs still show the old
   `--out store/cycle-log.json` invocation (historical records, left as-is — the guard fails
   loud with the corrective message if followed).
-- [ ] **F75 — No whole-run gate bypass flags (umbrella policy over F71).** The pattern, not
+- [x] **F75 — No whole-run gate bypass flags (umbrella policy over F71). DONE — shipped as
+  companion doctrine on the contract v1.4 branch, merged `e16672a` (P3, 2026-07-08).** The pattern, not
   the incident: every gate ships a whole-run bypass (`--no-sufficiency`, `--no-voice-lint`),
   and on the sufficiency gate's first live contest the bypass won after one rewrite attempt —
   meaning the first flagship on the post-F63 stack ran in the exact configuration the F63 spec
@@ -665,8 +683,10 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   right surface). Acceptance: no whole-run `--no-<gate>` flags remain on live paths; the
   bypass ledger renders in the trust footer; run-cycle instructs re-dispatch/hold — never
   bypass — when a gate contests.
-- [ ] **F76 — Coordination-substrate integrity: handoff self-consistency, provenance labels,
-  retained-worktree registry.** Three wounds in four days, all concurrent-instance shaped:
+- [x] **F76 — Coordination-substrate integrity: handoff self-consistency, provenance labels,
+  retained-worktree registry. DONE — merged `a0e3123` (P1, 2026-07-08): handoff discipline +
+  controlled provenance vocabulary + retained-worktrees registry + `test_handoff_integrity.py`.**
+  Three wounds in four days, all concurrent-instance shaped:
   the HANDOFF was self-contradictory (title `da58b94` says F63 merged; the body's top section
   still said "Remaining before merge" — unreadable without git); decisions are recorded
   "user-approved" under the AFK precedent (F52–F54's spec flags it; the label is now
@@ -678,7 +698,7 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   otherwise; **(c)** a retained-worktrees registry (one doc section: each retained worktree,
   why, what's inside, when it can go) replacing the scattered warnings. Docs/process only; no
   code, no eval impact.
-- [ ] **F77 - Brief hierarchy: order by importance, consolidate sections, cap volume** (born
+- [ ] **F77 - Brief hierarchy: order by importance, consolidate sections, cap volume — FOLDED INTO F78** (born
   from the 2026-07 blind baseline ablation, user-scored 2026-07-06 - verdict recorded in
   `docs/action-items.md`). The desk WON the blind read on substance (implications + watch
   items; neither web-only baseline produced them), and every deficit the user named is
@@ -693,3 +713,51 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   appendix. Interacts with F64 (trigger-first daily leads with the same ranking) and F65
   (the "So what" slot is the actionability anchor); does not touch prompts (no eval-gate
   impact). *(Feature-track lean, renderer lane)*
+
+---
+
+## From the 2026-07-08 daily-refresh redesign (F78)
+
+> Source: this session started as "retune the F58 recency window to 7 days" and, on inspecting the
+> live 2026-07 **v4** flagship, uncovered that the brief leans on old evidence for a structural
+> reason, not a broken threshold. Evidence (live store, run ref 2026-07-08):
+>
+> - **Dailies are clean** (07-02/03/05/06: zero stale open-web evidence — the 7-day daily window
+>   holds). **The monthly flagship accumulates staleness and it worsens each top-up**: stale
+>   secondary evidence went 5 → 5 → 8 across v2 → v3 → v4; oldest item grew 170 → 320 days
+>   (a NVIDIA product/spec page dated 2025-08-22 freshly pulled into v4).
+> - **Two root causes, neither is the threshold value.** (a) The gather recency window is *advisory
+>   skill prose*, so the agent keeps old-dated evergreen official pages by discretion (v4 logged 0
+>   recency drops for the kept pages). (b) The corpus (F62) windows on a finding's *cycle stamp*
+>   (`asOf`), never the evidence's real publication date (`gpu_agent/corpus.py::in_window`), so old-
+>   content findings ride forward and pile up.
+> - **It changes ratings.** In v4, `strategicRisk` and `unitEconomics` (both stamped HIGH confidence)
+>   rest ENTIRELY on stale evidence; the headline `momentum` ("Very strong, improving") is 3-of-4
+>   supported by ~2-month-old earnings echoes; `competitiveStructure`/`moat` lean on AMD web content
+>   from January (~174 days). Caveat: a large share of "stale" is quarterly filings/earnings
+>   (49-64d) — inherently the freshest primary that exists; that part is by design, not the leak.
+>
+> **User direction (user-approved 2026-07-08):** retire the separate "monthly" product. Ship ONE
+> market-state brief run **every day** that keeps BOTH the fresh gather AND the corpus, and leads
+> with **what is different** across three horizons — since yesterday / last week / last month —
+> saying "unchanged since <date>" explicitly rather than repeating the same standings. The corpus's
+> job is reframed from "don't forget" to "the baseline we measure change against"; carried-forward
+> fundamentals render with their real age. OPEN design question (to confirm): last-week/last-month =
+> exactly 7/30 days ago (point-in-time) vs this-week-whole-vs-last-week (aggregate).
+
+- [ ] **F78 — Daily-refreshed, change-first market-state brief (retires the monthly product).**
+  One brief, run daily. Fresh gather = a **7-day initial sweep** with **discretionary older-lead
+  pursuit that is LOGGED** (reworks F58, replacing its 45-day hard-drop; the agent may chase an
+  older lead when it judges it worth it and records the age + one-line reason — closing the v4 gap
+  where old pages entered with no recency record). Corpus = the change-detection baseline: window /
+  age it by the evidence's **real publication date**, not the cycle stamp, so old-content findings
+  stop accumulating (fixes the v2→v4 pile-up). Renderer leads with three horizon deltas (day / week
+  / month) over the six ratings + demand/supply direction + thesis watch-items + headline numbers,
+  with explicit "unchanged" states and real-age tags on carried fundamentals. **Delivers F64**
+  (trigger-first daily) **and F77** (importance-ordered, consolidated, length-capped brief);
+  **supersedes F58**'s window rule; **absorbs part of F68**. Does **NOT** subsume F60 (index scoring
+  math — arguably more important now), F25 (store speed — B reads the store daily at 3 lookbacks,
+  so it matters more), F65 ("so what for TSMC"), or F66 (citation audit). Frozen-core caveat: any
+  `scoring.py`/schema change ships as a versioned migration (Part 33); the corpus-window change is
+  in `corpus.py` (not frozen core) but must be shadow-checked against stored scorecards.
+  *(Feature — own spec/plan/SDD; brainstorming in progress 2026-07-08.)*

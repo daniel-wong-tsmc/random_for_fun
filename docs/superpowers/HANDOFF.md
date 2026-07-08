@@ -270,10 +270,14 @@ ledgers). Never `git clean` these. Remove a worktree only when its "can go when"
 | `.worktrees/eval-v2` | `eval-v2-replicate-baseline` | raw replicate-baseline eval run + SDD ledger | `work/eval-v2-migration/`; `.superpowers/sdd/` (5 task briefs/reports + 7 review diffs) | v2 baseline superseded + notes committed |
 | `.worktrees/f62-flagship-store` | `f62-flagship-consumes-store` | raw eval runs (attempts 1-3) + SDD ledger | `work/eval-f62-2026-07-04/`; `.superpowers/sdd/` (8 task briefs + 9 review diffs) | F62 eval history no longer referenced |
 | `.worktrees/f63-corroboration` | `f63-corroboration-doctrine` | raw eval runs (2026-07-04/05) + SDD ledger | `work/eval-f63-2026-07-04/`, `work/eval-f63-2026-07-04-r2/`, `work/eval-f63-regate-2026-07-05/`; `.superpowers/sdd/` (progress.md + 7 task briefs/reports + 8 review diffs) | F63 re-gate history archived |
-| `.worktrees/dashboard` | `dashboard-showcase` | **MERGED (`75db88f`) — safe to retire** | none worth keeping | now (merged; branch already deleted) |
-| `.worktrees/coord-hygiene` | `fix/coord-hygiene` | **MERGED (`a0e3123`, P1/F76) — safe to retire** | none worth keeping | now |
-| `.worktrees/eval-gate-power` | `fix/eval-gate-power` | **MERGED (`6d098a7`, P2/F73) — safe to retire** | none worth keeping | now |
-| `.worktrees/contract-v1.4` | `fix/contract-v1.4` | **MERGED (`e16672a`, P3/F72+F71+F75) — safe to retire** | none worth keeping | now |
+
+**Removed 2026-07-08 (merged, no gitignored data worth keeping):** `.worktrees/{dashboard, coord-hygiene,
+eval-gate-power, contract-v1.4}` and their branches (`dashboard-showcase`, `fix/coord-hygiene`,
+`fix/eval-gate-power`, `fix/contract-v1.4`) — all merged (`75db88f`/`a0e3123`/`6d098a7`/`e16672a`).
+
+**Concurrent active lanes (another instance — NOT retained-only, do not touch):** `.worktrees/crawl4ai`
+(`feat/crawl4ai-webreach`) and `.worktrees/freshness-weights` (`fix/freshness-weights`) appeared 2026-07-08,
+unmerged. Owned by a live concurrent instance; that instance manages their registry entries and merge.
 
 Update this table whenever a worktree is added or removed. It replaces every scattered
 "do not git clean <path>" warning — delete those asides as you migrate them here.

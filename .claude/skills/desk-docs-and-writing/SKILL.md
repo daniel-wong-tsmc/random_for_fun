@@ -77,15 +77,17 @@ checkbox.** `docs/superpowers/sp4-relaunch-prompt.md` is the same class of fossi
 prompt for a sub-project phase long since merged) — treat any doc whose own last commit predates
 the feature it claims to describe as suspect until you check.
 
-**The one unresolved internal contradiction — flag it, do not resolve it.** `docs/agent-swarm-charter.md`
-Part 37 amends corroboration doctrine at line 1575 ("Hard multi-source corroboration landed as
-**F63 (contract v1.3)**: three distinct publishers ... unlock one bounded step ...") and then, 62
-lines later at line 1637, still reads: **"Not yet (deferred, by decision): hard corroboration + a
-hard secondary-confidence cap."** Both sentences are in the charter today. This is a real
-authoring gap (the F63 amendment updated its own paragraph but never revisited the Part's closing
-deferred-list sentence) — a maintainer ruling is needed on which one governs; do not silently pick
-a side and do not "fix" the charter to resolve it yourself. Re-verify: `grep -n "F63 (contract
-v1.3)\|Not yet (deferred, by decision)" docs/agent-swarm-charter.md`.
+**The cautionary tale that got fixed — the "amend one sentence, orphan another" gap.** For most of the
+library's life `docs/agent-swarm-charter.md` Part 37 said two contradictory things: line ~1575 ("Hard
+multi-source corroboration landed as **F63 (contract v1.3)**: three distinct publishers ... unlock one
+bounded step ...") while the Part's closing deferred-list sentence, ~60 lines later, still read "Not yet
+(deferred, by decision): hard corroboration...". The F63 amendment updated its own paragraph but never
+revisited the closing sentence. **Reconciled 2026-07-06** (maintainer ruling: state the shipped reality):
+the deferred-list sentence now says the *staged* 3-publisher step **shipped** as F63/F2e and narrows
+"deferred" to the **full Part 26 hard-corroboration requirement + a hard secondary-confidence cap** that
+genuinely remain unbuilt. The lesson survives the fix: an amendment inside a Part does not revisit the
+Part's other sentences — you must. Re-verify the reconciliation held: `grep -n "staged multi-source
+corroboration\|Still deferred (by decision)" docs/agent-swarm-charter.md`.
 
 ## 2. Docs of record and their maintenance contracts
 
@@ -133,9 +135,9 @@ authorized them (e.g., "landed as **F63 (contract v1.3)**" inside Part 37, not a
 do not get their own changelog section. This is *load-bearing* prose, not incidental — but see §1
 above: amending one sentence inside a Part does not guarantee every other sentence in that Part
 gets revisited. **When you land a charter amendment, grep the rest of the Part for stale "not yet"
-/ "deferred" language your change may now contradict, and say so explicitly rather than leaving a
-silent gap** — the Part 37 line-1637 contradiction is the cautionary tale, not a template to
-repeat.
+/ "deferred" language your change may now contradict, and reconcile it in the same edit rather than
+leaving a silent gap** — the Part 37 deferred-list contradiction (unreconciled for weeks, fixed
+2026-07-06; see §1) is the cautionary tale, not a template to repeat.
 
 ### `docs/migrations/` — the two precedents define the required shape
 
@@ -346,8 +348,9 @@ stale`) so the next reader knows this was a deliberate, dated act, not a continu
   you the code doesn't exist yet.
 - **Treating HANDOFF's lower sections as actionable** — they are historical strata, kept for
   archaeology, not a queue.
-- **Resolving the Part 37 line-1637 contradiction yourself** — flag it; it needs a maintainer
-  ruling, not a silent pick.
+- **Silently picking a side on a live charter contradiction** — the Part 37 deferred-list case was
+  reconciled 2026-07-06 by a maintainer ruling (state the shipped reality); the *next* such gap needs
+  the same — surface it and get the ruling, don't quietly rewrite doctrine to suit your change.
 - **Letting internal vocabulary (gate/Finding/brain/corroboration) leak into outward brief prose**
   — the reader is a TSMC executive, not another engineer on this repo.
 - **Inventing a synonym for a bands.py or rating-anchors.md word** ("robust," "resilient" for a
@@ -370,7 +373,7 @@ teaches:
   *differently* (two skills disagreeing about the same fact is worse than one skill being silent).
 - **Label unproven/open things as open or candidate**, explicitly, in the skill text itself —
   do not let a skill's confident tone imply something is settled when the repo's own docs mark it
-  open (F71–F76, the eval-gate power question, the charter contradiction above).
+  open (F71–F76, the eval-gate power question).
 
 ## Provenance and maintenance
 
@@ -403,8 +406,8 @@ grep -n '^- \[.\] \*\*F5[6-9]\|^- \[.\] \*\*F6[13]\|^- \[.\] \*\*F68' docs/fix-b
 # START-HERE.md fossil status (only commit should be its creation, unless someone has since fixed it)
 git log --oneline -- docs/superpowers/START-HERE.md
 
-# The Part 37 contradiction (both lines should still exist; if one was removed, re-read the Part)
-grep -n "F63 (contract v1.3)\|Not yet (deferred, by decision)" docs/agent-swarm-charter.md
+# Part 37 corroboration reconciliation held (reconciled 2026-07-06; expect the "shipped/still deferred" pair)
+grep -n "staged multi-source corroboration\|Still deferred (by decision)" docs/agent-swarm-charter.md
 
 # frontier-closed store status (should still be absent + ungitignored)
 ls store/models.frontier-closed 2>/dev/null; grep -n "models.frontier-closed" .gitignore

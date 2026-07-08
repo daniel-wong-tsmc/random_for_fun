@@ -133,7 +133,7 @@ These were real and mostly OPEN as of 2026-07-05 (main @ 639c00d); **F74 has sin
 | **CWD-dependent registry reads** | `reader.py` reads `registry/acronyms.json` / `registry/indicators.json` via relative `Path` literals (env-var-blind, cached in module globals); `briefing.py` defaults `DimensionTracks.load("registry/indicators.json")`. The CLI only works from repo root. | Latent portability bug; unfixed. |
 | **Category-hardcoded gitignore whitelist** | The whitelist negates `!store/chips.merchant-gpu/` only. A `models.frontier-closed` live run would mint scorecards into an IGNORED directory — silently untracked, violating "a cycle that isn't committed didn't happen". No test guards this. | OPEN trap; amend `.gitignore` BEFORE any second-category run (change routes through `desk-change-control`). |
 
-Also flag, don't resolve: **charter Part 37 contradicts itself** — lines 1637-1639 say "Not yet (deferred, by decision): hard corroboration + a hard secondary-confidence cap" while the F63 amendment ~60 lines above (lines 1574-1587) says hard multi-source corroboration "landed as F63 (contract v1.3)". Which reading governs is undecided (maintainer ruling pending); quote neither line as the whole truth.
+Formerly-contradictory, now reconciled (2026-07-06): **charter Part 37** used to say a flat "Not yet: hard corroboration + a hard secondary-confidence cap" in its closing line while the F63 amendment ~60 lines above said corroboration "landed as F63 (contract v1.3)". The deferred-list line now states the precise reality — the *staged* 3-publisher step **shipped** (F63/F2e), and only the **full** Part 26 hard-corroboration requirement + a hard secondary-confidence cap remain deferred. When citing Part 37 on corroboration, quote the "Still deferred (by decision)" wording, not the pre-fix line.
 
 ## 9. Deliberate choices — do NOT "fix"
 
@@ -180,7 +180,7 @@ Authored 2026-07-05 against discovery baseline main @ `a8ec757`; every fact abov
 | CLI verb list (16) | `.venv/Scripts/python -m gpu_agent.cli --help` |
 | Anchor tolerance / corroboration bar | `Select-String -Path gpu_agent/gate.py -Pattern '_ANCHOR_TOL'; Get-Content registry/corroboration.json` |
 | Wiki entity fragmentation (F24) | `Get-ChildItem store/wiki/entity/` (nvda.md + nvidia.md coexisting = still open) |
-| Charter key lines (drift with amendments) | `(Get-Content docs/agent-swarm-charter.md)[1636..1638]` (PowerShell is 0-indexed: this prints file lines 1637-1639, the "Not yet" list) and `Select-String -Path docs/agent-swarm-charter.md -Pattern 'contract v1.3'` |
+| Charter Part 37 corroboration (reconciled 2026-07-06; line numbers drift) | `Select-String -Path docs/agent-swarm-charter.md -Pattern 'Still deferred \(by decision\)','staged multi-source corroboration','contract v1.3'` (expect the staged-shipped/full-deferred pair) |
 | Second-category store dir still absent | `Test-Path store/models.frontier-closed` (False = never run live) |
 | Frozen-surface size sanity | `Get-Content gpu_agent/scoring.py | Measure-Object -Line` (24 lines at authoring) |
 

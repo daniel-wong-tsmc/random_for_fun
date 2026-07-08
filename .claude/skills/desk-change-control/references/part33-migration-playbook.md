@@ -98,7 +98,8 @@ inherits the full §4 eval governance on top of this playbook.
 - [ ] Full suite green; pin re-checked; eval flow if prompts moved.
 - [ ] Opus-class review on the frozen diff; branch to "awaiting user merge go"; user merges.
 - [ ] Charter reconciled: if the migration lands doctrine the charter defers ("Not yet…"), amend
-      the deferred list too — the Part 37 line-~1637 contradiction exists because F63 didn't.
+      the deferred list too — F63 skipped this and left Part 37 self-contradictory for weeks (finally
+      reconciled 2026-07-06). Don't repeat it: amend the deferred list in the same change.
 
 ## Candidates already queued for this path (2026-07-05)
 

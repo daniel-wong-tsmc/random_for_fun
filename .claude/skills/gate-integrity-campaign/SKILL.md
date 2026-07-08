@@ -378,11 +378,11 @@ an aspiration into a shipped fact.
   Different gates, different mechanisms — even though the backlog's own priority lean suggests
   bundling them into ONE Part-33 migration, each needs its OWN acceptance criteria and its own
   shadow-run/replay evidence inside that migration doc.
-- **Quoting charter Part 37 line ~1637's "Not yet: hard corroboration…" as if it settles F72's
-  status.** It contradicts the F63 amendment ~60 lines above it — an unresolved internal
-  contradiction (`desk-change-control` §1 DOCTRINE row, `market-state-reference` §6). Flag it,
-  don't resolve it, and don't let it stand in for this campaign's own F72 status (which is: open,
-  unbuilt, verified above).
+- **Reading Part 37's corroboration status as settling F72.** Part 37 (reconciled 2026-07-06) says the
+  *staged* 3-publisher step shipped (F63/F2e) and the **full** Part 26 requirement is still deferred — that
+  is a statement about the doctrine roadmap, NOT about whether the shipped step is sound. This campaign's F72
+  finding (the staged step is defeated by cross-domain wire syndication) is open, unbuilt, verified above —
+  don't let Part 37's "staged shipped" wording imply F72 is handled.
 - **Picking solution-menu option 3 (Phase 1) because it looks like less code.** It is the
   backlog's own explicitly rejected-lean path, with its rejection reason stated in the same
   sentence that considered it. Reopening it needs new evidence via `desk-research-methodology`,

@@ -182,4 +182,4 @@ Re-verification commands (run from repo root):
 | store/ gitignore whitelist | `sed -n '1,20p' .gitignore` |
 | Second-category (frontier-closed) live-run status | `ls store/models.frontier-closed 2>&1` (absence = never run live) |
 | Suite health | `.venv/Scripts/python -m pytest -q` (1066 passed / 4 skipped / 0 failed, observed 2026-07-06; expect drift) |
-| Charter Part 37 internal contradiction | `grep -n "Not yet\|hard corroboration" docs/agent-swarm-charter.md` (compare line ~1235 vs ~1637 — unresolved by design, do not resolve it in this skill) |
+| Charter Part 37 corroboration status | `grep -n "Still deferred (by decision)\|staged multi-source corroboration" docs/agent-swarm-charter.md` (reconciled 2026-07-06: staged step shipped as F63/F2e; full Part 26 corroboration still deferred) |

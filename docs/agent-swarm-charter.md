@@ -1634,9 +1634,14 @@ blobs, and the synthesized brief itself is **never ingested** (which would smugg
 model's judgments past the single-brain gate, violating "gatherers return raw material only"). New category agents inherit the registry
 and its doctrine automatically — adding a same-role tool is one data entry, not a per-agent edit.
 
-**Not yet (deferred, by decision):** hard corroboration + a hard secondary-confidence cap; **unattended
-scheduling** (Part 28 — v1 is **manually invoked** from an open session); and a standalone non-session web
-fetcher. None require a redesign — scheduling is "run this same action on a timer."
+**Shipped (see the "Trust, not just retrieval" paragraph above):** the **staged multi-source corroboration**
+step landed as **F63 (contract v1.3)** — three distinct publishers → one bounded step (gate F2e), with a
+conservative confidence cap already holding secondary-only findings down. It is a *staged* path to Part 26's
+**full** hard-corroboration requirement, not that requirement in full.
+**Still deferred (by decision):** the **full Part 26 hard-corroboration requirement** and a **hard
+secondary-confidence cap** beyond today's conservative badge; **unattended scheduling** (Part 28 — v1 is
+**manually invoked** from an open session); and a standalone non-session web fetcher. None require a redesign
+— scheduling is "run this same action on a timer."
 
 > **Self-check / build order:** gatherers return raw material only; every number keeps its dated receipt and
 > trust tier; page text is data, never instructions; caps are logged, never silent; and the frozen brain is

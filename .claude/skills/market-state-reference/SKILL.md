@@ -219,11 +219,13 @@ Full table in `references/worked-example.md`.
   the logged publisher set for syndication by hand. Fix work: **gate-integrity-campaign**.
 - **The standing floor** (Parts 8/26): a status flip may never rest on a single source; high-stakes
   flips gate to a human; a source downstream of our own dashboard cannot corroborate us.
-- **UNRESOLVED CHARTER CONTRADICTION — flag, don't resolve**: Part 37's deferred list (line ~1637 at
-  a8ec757) still says "Not yet: hard corroboration + a hard secondary-confidence cap", while the
-  F63 amendment ~60 lines above it (lines ~1574–1586) and the shipped F2e cap read as exactly that,
-  staged. Do not quote Part 37's deferred list as current fact without noting this; a maintainer
-  ruling is needed before amending either passage.
+- **CHARTER CORROBORATION STATUS (reconciled 2026-07-06)**: Part 37's deferred list formerly read a flat
+  "Not yet: hard corroboration + a hard secondary-confidence cap", contradicting the F63 amendment ~60 lines
+  above it that said corroboration "landed as F63 (contract v1.3)". It now states the precise reality: the
+  *staged* 3-publisher step **shipped** (F63/F2e, with a conservative secondary-only confidence cap already
+  live), and only the **full** Part 26 hard-corroboration requirement + a **hard** secondary-confidence cap
+  remain deferred. Quote the "Still deferred (by decision)" wording; don't collapse it to "corroboration
+  is/isn't built" (and remember F72: the staged step is syndication-exploitable today).
 
 ## 7. Thesis-book rules
 
@@ -349,5 +351,5 @@ commands run from repo root, PowerShell-compatible.
 | F60/F71/F72 still open | `Select-String -Path docs/fix-backlog.md -Pattern "F60|F71|F72"` then `git log --oneline --grep="F60"` etc. — checkboxes are known-stale; git is truth (see desk-change-control) |
 | Thesis book state / counts | `.venv\Scripts\python -c "from gpu_agent.thesis import ThesisStore; b=ThesisStore('store/theses/chips.merchant-gpu').load(); print(len(b.entries), [(e.id, e.status) for e in b.entries if e.status=='provisional'])"` |
 | dimensionTracks / leading set | `.venv\Scripts\python -c "import json; r=json.load(open('registry/indicators.json', encoding='utf-8')); print(r['dimensionTracks'], [k for k,v in r['cadenceHorizon'].items() if v['horizon']=='leading'])"` |
-| Charter Part line numbers (they drift) | `Select-String -Path docs/agent-swarm-charter.md -Pattern "Not yet \(deferred"` and `-Pattern "F63 \(contract v1.3\)"` |
+| Charter Part 37 corroboration (reconciled 2026-07-06; lines drift) | `Select-String -Path docs/agent-swarm-charter.md -Pattern "Still deferred \(by decision\)","staged multi-source corroboration"` |
 | Flagship worked-example numbers | see `references/worked-example.md` provenance block |

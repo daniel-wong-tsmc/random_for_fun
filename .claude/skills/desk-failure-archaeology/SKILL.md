@@ -143,7 +143,7 @@ The backlog's checkbox state was stale for 7 merged items at the 2026-07-05 snap
 - **SYMPTOM:** F63 (corroboration doctrine — all three seam prompts amended) FAILED two full eval runs against the F62 incumbents: attempt 1 extract 6.38 / judge 7.00 / thesis 6.00-tie; full replication 6.38 / 6.75 / 5.50.
 - **ROOT CAUSE:** The bar, not the candidate. The v1 baseline was a single lucky run (F62's high-draw attempt 3); identical-prompt runs swing 6.25–7.50, exceeding the pass margin. No graded deduction traced to the F63 changes, and F63's mechanisms graded WELL (the F2e gate caught within-document corroboration in both runs — the gate doing its job on a real brain failure mode).
 - **EVIDENCE:** FAIL record `345fc31` + `docs/superpowers/eval-notes/2026-07-04-f63-run-notes.md`; BLOCKED-on-user `6b75d33`; resolution = rebuild the bar, not force past it: eval-v2 replicate baseline designed (`a0dfe41`) and built as its own branch, merged `c0d5dd2`, all on 2026-07-05 (baseline = mean of 3 unfiltered replicates − ε, per-case crater prong, marginal band, verdict.json governance — mechanics owned by **desk-validation-and-qa**); F63 folded in eval-run fixes (`5923619`: "across separately fetched documents" corroboration scope, impact.direction enum stated, CEO allowlisted), re-gated PASS r1 extract 6.625 vs bar 6.5833 — **margin 0.042** (`ef52790`), merged `017b592`.
-- **STATUS:** settled mechanism / OPEN question. The 0.042 margin is "deep inside noise" (F73's words, `docs/fix-backlog.md:592-605`), and **the eval-v2 gate has never demonstrably caught a real regression** — that is F73, an open problem, not a solved gate. Also flag, don't resolve: charter Part 37 line ~1637 still says "Not yet (deferred, by decision): hard corroboration + a hard secondary-confidence cap" while the F63 amendment sits ~60 lines above it — an unresolved internal contradiction; get a maintainer ruling before quoting either side as current doctrine.
+- **STATUS:** settled mechanism / OPEN question. The 0.042 margin is "deep inside noise" (F73's words, `docs/fix-backlog.md:592-605`), and **the eval-v2 gate has never demonstrably caught a real regression** — that is F73, an open problem, not a solved gate. Related doc-reconciliation note: charter Part 37's closing "Not yet" line contradicted the F63 amendment ~60 lines above for weeks; reconciled 2026-07-06 to say the *staged* corroboration step shipped (F63/F2e) and only the *full* Part 26 requirement is still deferred. Quote the current "Still deferred (by decision)" wording.
 - **DO NOT RETRY:** (a) Don't treat a marginal eval verdict (either direction) as meaningful signal until F73 lands — a 0.04 pass decides alone today. (b) Don't propose "just --force past a noisy FAIL": the one time the bar was wrong, the project rebuilt the bar in a day instead. (c) Don't re-derive the replicate math from scratch — **desk-proof-and-analysis-toolkit** has the worked example. (d) The v1 single-run baseline lived <24h; any doc calling a single run "the incumbent" predates `c0d5dd2` and is stale.
 
 ### 10. F69/F70 — concurrent-instance collisions (2026-07-04)
@@ -194,7 +194,7 @@ Dated 2026-07-05; re-verify each before acting.
 | Deleting "stale" worktrees/branches; `git clean` | Retained worktrees hold the gitignored raw eval evidence behind the committed baseline | Check `git branch --merged main` + merge parents; never clean |
 | Grepping `anthropic` and reporting a live SDK path | The file is a dormant, doctrine-forbidden seam | Fight 1 |
 | Reading F-numbers as chronology | F6 executed after F55; F62/F63 after F67–F70 | Date-stamps and git log are the timeline |
-| Quoting charter Part 37's "Not yet" list as current | Line ~1637 contradicts the F63 amendment above it — unresolved | Flag it; ask the maintainer; don't pick a side silently |
+| Quoting charter Part 37's old flat "Not yet: hard corroboration" line | That contradiction was reconciled 2026-07-06: the deferred list now says the *staged* 3-publisher step shipped (F63/F2e) and only *full* Part 26 hard corroboration remains deferred | Quote the current "Still deferred (by decision)" wording, not the pre-fix line |
 
 ## Provenance and maintenance
 
@@ -214,7 +214,7 @@ Volatile facts and their one-line re-verification commands (run from repo root):
 | Eval baseline bars / margin claims | `python -c "import json;b=json.load(open('fixtures/evals/baseline.json'));print(b['seamMeans'],b.get('epsilon'))"` |
 | Bypass flags still taught by run-cycle | `grep -n "no-sufficiency\|neither check" .claude/skills/run-cycle/SKILL.md` |
 | frontier-closed still never run / not whitelisted | `ls store/ \| grep frontier` (expect nothing) and `sed -n '7,15p' .gitignore` |
-| Charter Part 37 contradiction unresolved | `grep -n "Not yet" docs/agent-swarm-charter.md` (line ~1637) |
+| Charter Part 37 corroboration reconciled (2026-07-06) | `grep -n "Still deferred (by decision)" docs/agent-swarm-charter.md` (expect the staged-shipped/full-deferred pair) |
 | Retained worktrees | `git worktree list` |
 
 Bash-syntax note: the commands above use POSIX tools (`sed`, `grep`, `|`); on this Windows 11 machine run them in Git Bash, or via the Claude Code Bash tool — not PowerShell 5.1 (whose `sed`/`grep` don't exist and whose pipes pass objects).

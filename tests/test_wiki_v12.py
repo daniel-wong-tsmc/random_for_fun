@@ -324,16 +324,23 @@ def test_lint_record_true_appends_exactly_one_lint_event_per_asof(tmp_path):
     assert len(lint_events) == 1
 
 
-def test_quiet_age_lint_event_mints_no_cycle(tmp_path):
+def test_quiet_age_lint_event_does_not_move_baseline(tmp_path):
+    # F32 preserved under calendar-day aging: a read-only 'lint' event does NOT reset the decay
+    # baseline. The page was created 06-01 and evaluated at 06-02, so its quiet age is exactly
+    # the 1 calendar day of real elapsed time -- identical to the no-lint case. If the lint event
+    # wrongly counted as material, the baseline would move to 06-02 and quiet age would be 0.
     from gpu_agent.wiki.lint import lint, quiet_age
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     ws.create_page("entity:x", "entity", "X", as_of="2026-06-01")
     lint(ws, as_of="2026-06-02", registry=reg, horizons=hz, record=True)  # only a "lint" event lands at 06-02
-    assert quiet_age(ws, "entity:x", "2026-06-02") == 0
+    assert quiet_age(ws, "entity:x", "2026-06-02") == 1
 
 
-def test_quiet_age_ingest_event_mints_a_cycle(tmp_path):
+def test_quiet_age_ingest_event_does_not_move_baseline(tmp_path):
+    # An 'ingest' provenance event is likewise non-material: it does not reset the baseline. The
+    # quiet age is the pure calendar gap createdAsOf 06-01 -> as_of 06-02 = 1 day (0 if ingest
+    # wrongly reset the baseline to 06-02).
     from gpu_agent.wiki.lint import quiet_age
     ws = _store(tmp_path)
     ws.create_page("entity:x", "entity", "X", as_of="2026-06-01")

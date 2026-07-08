@@ -63,18 +63,13 @@ def test_quiet_age_fresh_is_zero(tmp_path):
     assert quiet_age(ws, "entity:a", "2026-06") == 0
 
 
-def test_quiet_age_counts_intervening_cycles(tmp_path):
+def test_quiet_age_is_calendar_days_since_last_material(tmp_path):
     ws = _store(tmp_path)
     ws.create_page("entity:a", "entity", "A", as_of="2026-04")
     ws.findings.append(_f("f1", "A"))
     ws.append_observation("entity:a", "f1", as_of="2026-04")
-    # two later cycles touch OTHER pages -> distinct asOf cycles 2026-05, 2026-06
-    ws.create_page("entity:b", "entity", "B", as_of="2026-05")
-    ws.findings.append(_f("f2", "B"))
-    ws.append_observation("entity:b", "f2", as_of="2026-05")
-    ws.findings.append(_f("f3", "B"))
-    ws.append_observation("entity:b", "f3", as_of="2026-06")
-    assert quiet_age(ws, "entity:a", "2026-06") == 2
+    # a is untouched through 2026-06; quiet age = period_end(2026-06) - period_end(2026-04)
+    assert quiet_age(ws, "entity:a", "2026-06") == 61
 
 
 def test_quiet_age_material_update_resets(tmp_path):
@@ -82,10 +77,7 @@ def test_quiet_age_material_update_resets(tmp_path):
     ws.create_page("entity:a", "entity", "A", as_of="2026-04")
     ws.findings.append(_f("f1", "A"))
     ws.append_observation("entity:a", "f1", as_of="2026-04")
-    ws.create_page("entity:b", "entity", "B", as_of="2026-05")
-    ws.findings.append(_f("f2", "B"))
-    ws.append_observation("entity:b", "f2", as_of="2026-05")
-    # a gets a NEW observation at 2026-06 -> quietness resets
+    # a gets a NEW observation at 2026-06 -> quietness resets to 0 days
     ws.findings.append(_f("f3", "A"))
     ws.append_observation("entity:a", "f3", as_of="2026-06")
     assert quiet_age(ws, "entity:a", "2026-06") == 0

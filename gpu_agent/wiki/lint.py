@@ -5,6 +5,7 @@ from gpu_agent.wiki.store import WikiStore
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.wiki.ingest import parse_contradiction_detail
+from gpu_agent.asof import days_between
 
 
 class IndicatorMove(BaseModel):
@@ -126,23 +127,19 @@ def half_life(findings, horizons, config=DEFAULT_LINT_CONFIG):
     return (max(classes) if classes else config.h_med_days), untagged
 
 
-_MATERIAL_CYCLE_KINDS = {"create-page", "append-observation", "state-change", "ingest"}
-
-
 def quiet_age(store, page_id, as_of) -> int:
-    """Number of distinct asOf cycles in the log strictly after the page's last MATERIAL event
-    (append-observation or state-change), up to as_of. A body-only edit is not material. A page
-    with no material events decays from its createdAsOf.
+    """Calendar days between the page's last MATERIAL event (append-observation or
+    state-change, up to as_of) and `as_of`, via label period-ends — deterministic, never
+    wall-clock. A page with no material events decays from its createdAsOf. Returns days >= 0.
 
-    F32: the CYCLE SET itself is provenance-blind — only a real run (create-page,
-    append-observation, state-change, ingest) mints a decay cycle. Read-only 'lint' events and
-    header-only 'header-change' events cannot age a page just by having run."""
-    events = [e for e in store.log.read() if e.asOf <= as_of]
-    cycles = sorted({e.asOf for e in events if e.kind in _MATERIAL_CYCLE_KINDS})
-    materials = [e.asOf for e in events
-                 if e.pageId == page_id and e.kind in ("append-observation", "state-change")]
+    F32 preserved: only material events set the baseline; read-only 'lint'/'header-change'
+    events cannot age a page, because they neither move the baseline nor the as_of label."""
+    materials = [e.asOf for e in store.log.read()
+                 if e.pageId == page_id
+                 and e.kind in ("append-observation", "state-change")
+                 and e.asOf <= as_of]
     baseline = max(materials) if materials else store.get_page(page_id).createdAsOf
-    return sum(1 for c in cycles if c > baseline)
+    return max(0, days_between(as_of, baseline))
 
 
 def decay(quiet_age: int, half_life: int) -> float:

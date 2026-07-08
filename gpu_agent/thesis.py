@@ -475,6 +475,7 @@ def lint_thesis_prose(statement: str, mechanism: str) -> list[str]:
 # F31 identity — shared module (gpu_agent/publisher.py) since F63; wiki/lifecycle re-exports
 # the same object, so the two publisher-identity notions can never drift.
 from gpu_agent.publisher import publisher_key as _evidence_publisher
+from gpu_agent.publisher import collapsed_publisher_set
 from gpu_agent.config import min_distinct_publishers
 
 
@@ -491,16 +492,14 @@ def _has_primary(finding_ids: list[str], findings_by_id: dict[str, Finding]) -> 
 
 
 def _publisher_domains(finding_ids: list[str], findings_by_id: dict[str, Finding]) -> list[str]:
-    """Publisher domains (F31 key) cited by a judgment, sorted for determinism. Stored on
+    """Publisher identities (F31 key) cited by a judgment, sorted for determinism. Stored on
     the judgment record itself (see `_apply_judgment_record`'s comment) so rule-5 promotion
-    counting can read every past cycle's domains straight from history without needing
-    those past findingIds to resolve against THIS cycle's findings_by_id."""
-    domains = {
-        _evidence_publisher(evidence)
-        for fid in finding_ids
-        for evidence in findings_by_id[fid].evidence
-    }
-    return sorted(domains)
+    counting can read every past cycle's identities straight from history without needing
+    those past findingIds to resolve against THIS cycle's findings_by_id. Contract v1.4 (F72):
+    counted over COLLAPSED identities (collapsed_publisher_set) so a wire story syndicated
+    across several netlocs is one identity for rule 6's corroborated-reversal bar."""
+    evidence = [e for fid in finding_ids for e in findings_by_id[fid].evidence]
+    return sorted(collapsed_publisher_set(evidence))
 
 
 def _bump_conviction(conviction: str, steps: int) -> str:

@@ -23,7 +23,8 @@ from gpu_agent.wiki.lint import lint
 from gpu_agent.wiki.lifecycle import lifecycle, apply_lifecycle
 from gpu_agent.wiki.movement import collect_movement
 from gpu_agent.judgment.judge import judge_findings
-from gpu_agent.judgment.judge import JudgmentResult
+from gpu_agent.judgment.judge import JudgmentResult, JudgmentError
+from gpu_agent.llm.client import LLMError
 from gpu_agent.judgment.prompt import (
     SYSTEM as JUDGE_SYSTEM, build_system as build_judge_system,
     build_user_prompt as build_judge_user_prompt)
@@ -423,6 +424,22 @@ def _report_sufficiency_violations(violations: list[str]) -> int:
     return 1
 
 
+def _report_judgment_conflict(exc: Exception) -> int:
+    """F71 §3: a clean, re-dispatchable exit for an anchor/aggregation conflict judge_findings
+    could not resolve — analogous to _report_sufficiency_violations. A session hitting an
+    anchor conflict under --recorded/--recorded-judge sees an `anchor: ` line to re-dispatch
+    on (the run-cycle skill can grep the prefix), never an uncaught traceback. Two shapes:
+    a JudgmentError carries the specific gate/anchor violations; an LLMError means the recorded
+    answer deque emptied mid-resample before an anchor-legal rating was reached (the §3 trap)."""
+    if isinstance(exc, JudgmentError):
+        for v in exc.violations:
+            print(f"anchor: {v}", file=sys.stderr)
+    else:
+        print(f"anchor: recorded judge exhausted before an anchor-legal rating was reached "
+              f"— re-dispatch with a rating the measured anchor allows ({exc})", file=sys.stderr)
+    return 1
+
+
 def _judge(args) -> int:
     if args.emit_prompt:
         return _emit_judge_prompt(args)
@@ -447,19 +464,28 @@ def _judge(args) -> int:
                 return _report_voice_violations(violations)
         # F63: evidence-sufficiency gate — rating/bottleneck changes vs the SAME
         # prior-cycle MEMORY the emitted prompt carried need primary or >=N-publisher
-        # citations. No prior scorecard -> memory is None -> inert.
-        if not args.no_sufficiency:
-            horizons = IndicatorHorizons.load(REGISTRY_PATH)
-            memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
-                                         registry, horizons)
-            violations = check_sufficiency(answers, memory, {f.id: f for f in findings})
-            if violations:
-                return _report_sufficiency_violations(violations)
+        # citations. No prior scorecard -> memory is None -> inert. F75 (v1.4): the whole-run
+        # --no-sufficiency bypass is REMOVED — the gate always runs; F71's anchor-forced
+        # exemption handles the one deadlock the bypass used to cover, and the residual
+        # re-dispatches (never a whole-run skip) before the unattended pilot.
+        horizons = IndicatorHorizons.load(REGISTRY_PATH)
+        memory = build_memory_bundle(args.store, args.category, findings[0].asOf,
+                                     registry, horizons)
+        # F71: pass the measured anchors so an anchor-FORCED rating move (prior rating made
+        # illegal by the Part 7 bound) is exempt from the sufficiency gate.
+        anchors = build_briefing(findings, registry, args.category).anchors
+        violations = check_sufficiency(answers, memory, {f.id: f for f in findings},
+                                       anchors=anchors, exemptions={})
+        if violations:
+            return _report_sufficiency_violations(violations)
         client = RecordedClient(answers)
     else:
         client = make_client(args.backend)
-    bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
-                            model=args.model, persona=getattr(args, "persona", None))
+    try:
+        bundle = judge_findings(findings, client, registry, args.category, samples=args.samples,
+                                model=args.model, persona=getattr(args, "persona", None))
+    except (JudgmentError, LLMError) as e:   # F71 §3: clean anchor-conflict exit, not a traceback
+        return _report_judgment_conflict(e)
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "ratings.json").write_text(
@@ -779,25 +805,37 @@ def _pipeline(args) -> int:
     # -- aren't available until this point. Memory comes from the F62 corpus store when
     # provided (the live cycle always passes --corpus-store); without it there is no
     # prior-state source here -> inert, matching the memory-less legacy pipeline.
-    if args.recorded_judge and not args.no_sufficiency:
+    anchor_bounded: set[str] = set()   # F71: dims whose move was anchor-forced (trust-footer stamp)
+    # F75 (v1.4): whole-run --no-sufficiency removed — the gate always runs on the recorded path.
+    if args.recorded_judge:
         memory = None
         if args.corpus_store:
             horizons = IndicatorHorizons.load(REGISTRY_PATH)
             memory = build_memory_bundle(args.corpus_store, a.category, args.as_of,
                                          registry, horizons)
-        violations = check_sufficiency(judge_answers, memory, {f.id: f for f in findings})
+        # F71: measured anchors enable the anchor-forced-move exemption; exempted dims are
+        # collected so build_scorecard can stamp them on the existing dimensionStatus note.
+        anchors = build_briefing(findings, registry, a.category).anchors
+        exemptions: dict[str, str] = {}
+        violations = check_sufficiency(judge_answers, memory, {f.id: f for f in findings},
+                                       anchors=anchors, exemptions=exemptions)
         if violations:
             return _report_sufficiency_violations(violations)
+        anchor_bounded = set(exemptions)
     # F5: judge_findings' signature is frozen and builds its own prompt internally, so this
     # recorded-judge path threads no memory of its own -- the skill's live cycle gets prior-cycle
     # MEMORY via the `judge --emit-prompt --store ...` call in Step 3(c), whose emitted user
     # prompt is what the dispatched brain actually answers; --recorded-judge here just replays
     # that saved answer through the frozen gate/scorer.
-    bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
-                            model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
+    try:
+        bundle = judge_findings(findings, jdg_client, registry, a.category, samples=args.samples,
+                                model=args.model, persona=a.personaLabel)   # F26: assignment-driven persona
+    except (JudgmentError, LLMError) as e:   # F71 §3: clean anchor-conflict exit, not a traceback
+        return _report_judgment_conflict(e)
     horizons = IndicatorHorizons.load(REGISTRY_PATH)
     sc = build_scorecard(findings, bundle.ratings, bundle.anchors, a, bundle.narrative, bundle.confidence, registry,
-                         category_status=bundle.categoryStatus, horizons=horizons)
+                         category_status=bundle.categoryStatus, horizons=horizons,
+                         anchor_bounded=frozenset(anchor_bounded))
     path = JsonStore(pathlib.Path(args.out)).append(sc)
     print(f"wrote {path}  DMI={sc.demandSupply.dmiContribution:.3f} "
           f"SMI={sc.demandSupply.smiContribution:.3f}")
@@ -931,11 +969,26 @@ def _report(args) -> int:
         prev_as_of = prior.asOf if prior is not None else None
         movement = collect_movement(store, as_of=sc.asOf, prev_as_of=prev_as_of,
                                     registry=registry, horizons=horizons)
+    # F75: surface any bypassed/waived gate from the run's cycle log in the trust footer.
+    from gpu_agent import brief
+    gate_waivers: list[str] = []
+    cycle_log = getattr(args, "cycle_log", None)
+    if cycle_log:
+        try:
+            log = json.loads(pathlib.Path(cycle_log).read_text("utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"gpu-agent report: warning: could not read cycle log {cycle_log}: {e}",
+                  file=sys.stderr)
+        else:
+            entries = log.get("entries", []) if isinstance(log, dict) else []
+            entry = next((e for e in entries
+                          if isinstance(e, dict) and e.get("category_id") == sc.categoryId), None)
+            gate_waivers = brief.gate_waivers_from_cycle_log((entry or {}).get("gates"))
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
-                         daily=getattr(args, "daily", False))
+                         daily=getattr(args, "daily", False), gate_waivers=gate_waivers)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -1042,8 +1095,8 @@ def main(argv=None) -> int:
     jg.add_argument("--recorded", default=None, help="JSON array of recorded judgment responses")
     jg.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint (legacy recorded fixtures)")
-    jg.add_argument("--no-sufficiency", action="store_true",
-                    help="skip the F63 evidence-sufficiency gate (legacy recorded fixtures)")
+    # F75 (v1.4): the whole-run --no-sufficiency bypass is removed — the evidence-sufficiency
+    # gate always runs; F71's anchor-forced exemption covers its one sanctioned use.
     jg.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
     jg.add_argument("--persona", default=None,
                     help="analyst persona for the judgment system prompt (F26; default: GPU market)")
@@ -1090,8 +1143,7 @@ def main(argv=None) -> int:
     pl.add_argument("--recorded-judge", default=None)
     pl.add_argument("--no-voice-lint", action="store_true",
                     help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
-    pl.add_argument("--no-sufficiency", action="store_true",
-                    help="skip the F63 evidence-sufficiency gate on --recorded-judge (legacy recorded fixtures)")
+    # F75 (v1.4): the whole-run --no-sufficiency bypass is removed — the gate always runs.
     pl.add_argument("--corpus-store", default=None,
                     help="store root; when given, merge the windowed store corpus (F62) "
                          "into the judged + scored findings")
@@ -1118,6 +1170,9 @@ def main(argv=None) -> int:
     rp.add_argument("--daily", action="store_true",
                     help="daily cadence: lead with WHAT MOVED instead of STATE OF THE MARKET "
                          "(F67 §4; same renderer/section order otherwise)")
+    rp.add_argument("--cycle-log", default=None,
+                    help="path to the run's cycle-log JSON; any gate the log records as "
+                         "bypassed/waived (gates.*) surfaces a waiver line in the trust footer (F75)")
     # --prior and --no-prior are mutually exclusive: passing both is a usage error.
     grp = rp.add_mutually_exclusive_group()
     grp.add_argument("--prior", default=None, help="explicit path to prior-cycle scorecard")

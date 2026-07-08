@@ -58,7 +58,8 @@ def _index_for(findings, registry, category, weights) -> tuple[DemandSupply, int
                          sdgi=sdgi, sdgiDirection=_sdgi_direction(sdgi)), count)
 
 def _dimension_status(ratings: dict[str, DimensionRating],
-                      findings_by_id: dict[str, Finding]) -> dict[str, DimensionStatus]:
+                      findings_by_id: dict[str, Finding],
+                      anchor_bounded: frozenset[str] = frozenset()) -> dict[str, DimensionStatus]:
     status: dict[str, DimensionStatus] = {}
     for dim in DIMENSIONS:
         r = ratings.get(dim)
@@ -66,12 +67,17 @@ def _dimension_status(ratings: dict[str, DimensionRating],
             cited = [findings_by_id[fid] for fid in r.findingIds if fid in findings_by_id]
             secondary_only = bool(cited) and not any(
                 e.tier == "primary" for f in cited for e in f.evidence)
-            if secondary_only:   # F3: headline protection — no primary evidence under this rating
-                status[dim] = DimensionStatus(
-                    evidenceStatus="grounded", findingCount=len(r.findingIds),
-                    confidenceCap="medium", note="secondary-only evidence")
-            else:
-                status[dim] = DimensionStatus(evidenceStatus="grounded", findingCount=len(r.findingIds))
+            # F3: headline protection — no primary evidence under this rating caps confidence.
+            # F71 (contract v1.4): an anchor-forced move rides the SAME note surface (no schema
+            # field) with the "anchor-bounded on thin evidence" stamp; both can coexist.
+            notes = []
+            if secondary_only:
+                notes.append("secondary-only evidence")
+            if dim in anchor_bounded:
+                notes.append("anchor-bounded on thin evidence")
+            status[dim] = DimensionStatus(
+                evidenceStatus="grounded", findingCount=len(r.findingIds),
+                confidenceCap="medium" if secondary_only else None, note="; ".join(notes))
         else:
             status[dim] = DimensionStatus(
                 evidenceStatus="under-supported", findingCount=0, confidenceCap="low",
@@ -88,7 +94,8 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
                     anchors: dict[str, float], assignment: Assignment,
                     narrative: str, confidence: Confidence, registry,
                     *, category_status: CategoryStatus | None = None,
-                    horizons: IndicatorHorizons | None = None) -> Scorecard:
+                    horizons: IndicatorHorizons | None = None,
+                    anchor_bounded: frozenset[str] | None = None) -> Scorecard:
     ratings = dict(ratings)   # F3 caps replace entries; never mutate the caller's dict
     findings_by_id = {f.id: f for f in findings}
     side_violations = [
@@ -100,7 +107,7 @@ def build_scorecard(findings: list[Finding], ratings: dict[str, DimensionRating]
         raise GateError(side_violations)   # F37: the registry is the side authority
     dmi, smi = dmi_smi_contribution(findings, registry, assignment.category, assignment.weights)
     sdgi = dmi - smi
-    status = _dimension_status(ratings, findings_by_id)
+    status = _dimension_status(ratings, findings_by_id, anchor_bounded or frozenset())
     # F3: cap a grounded rating whose cited findings carry no primary evidence
     for dim, st in status.items():
         r = ratings.get(dim)

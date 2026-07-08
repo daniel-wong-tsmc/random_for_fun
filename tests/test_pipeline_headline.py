@@ -45,6 +45,33 @@ def test_primary_backed_dimension_not_capped():
     assert sc.dimensionRatings["momentum"].confidence.level == "high"
 
 
+# 2b. F71 (contract v1.4) — an anchor-forced move stamps the EXISTING dimensionStatus note
+def test_anchor_bounded_stamp_rides_dimension_status_note():
+    sc = build_scorecard([_finding(tier="secondary")],
+        {"momentum": _rating(["f-1"], level="high")}, {"momentum": 0.4},
+        A, "n", Confidence(level="medium", basis="b"), REG,
+        anchor_bounded={"momentum"})
+    note = sc.dimensionStatus["momentum"].note
+    assert "anchor-bounded on thin evidence" in note
+    assert "secondary-only evidence" in note   # the F3 note and the F71 stamp coexist
+
+
+def test_anchor_bounded_stamp_alone_when_no_other_note():
+    sc = build_scorecard([_finding(tier="primary")],
+        {"momentum": _rating(["f-1"], level="high")}, {"momentum": 0.4},
+        A, "n", Confidence(level="medium", basis="b"), REG,
+        anchor_bounded={"momentum"})
+    assert sc.dimensionStatus["momentum"].note == "anchor-bounded on thin evidence"
+
+
+def test_no_anchor_bounded_leaves_notes_byte_identical():
+    # Default (no anchor_bounded) must be byte-identical to today: secondary-only note unchanged.
+    sc = build_scorecard([_finding(tier="secondary")],
+        {"momentum": _rating(["f-1"], level="high")}, {"momentum": 0.4},
+        A, "n", Confidence(level="medium", basis="b"), REG)
+    assert sc.dimensionStatus["momentum"].note == "secondary-only evidence"
+
+
 # 3. F37 — Finding.side must match the registry spec side
 def test_side_contradicting_registry_raises():
     bad = _finding(fid="f-2", indicatorId="S10", side="demand", pd=1, ps=0, tier="primary")

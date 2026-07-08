@@ -1437,6 +1437,15 @@ versions, with old data always readable.**
 - **A deprecation policy.** A field is deprecated for ≥ N cycles (still written, marked) before removal, so
   no consumer breaks on a flag day.
 
+**Migrations shipped (the register — every frozen-core change lands here):**
+- **#1 — contract v1.2** (2026-07-02): the Wave-1 evidence-integrity/scoring bundle; `schemaVersion` → 1.2;
+  goldens regenerated once; shadow-run + replay. `docs/migrations/2026-07-contract-v1.2.md`.
+- **#2 — contract v1.3** (2026-07-04): F63 corroboration lift — all-secondary can be `high` at ≥N distinct
+  publishers; no schema/scoring delta. `docs/migrations/2026-07-contract-v1.3.md`.
+- **#3 — contract v1.4** (2026-07-06): F72 syndication-resistant publisher distinctness + F71 anchor-forced-move
+  sufficiency exemption (companion F75). `schemaVersion` stays 1.2; no scoring delta; goldens unchanged.
+  `docs/migrations/2026-07-contract-v1.4.md`.
+
 ## Part 34 — Cold-start & bootstrapping (the temporal engine is empty on day one)
 
 The swarm's headline value — "vs. prior," "did my concern materialize," calibration (Parts 4, 12) — is
@@ -1573,8 +1582,10 @@ pages → **secondary** (Part 1 rule 5). The tier rides into each Finding's `evi
 keeps its **receipt** (url + source + date — enforced by the gate, Part 7), and a **secondary-only finding
 is confidence-capped** so junk cannot drive a strong rating on its own. Hard multi-source **corroboration**
 landed as **F63 (contract v1.3)**: **three distinct
-publishers** (F31 netloc identity — syndication of one story counts once), within the corpus
-window, unlock **one bounded step** — a corroborated secondary-only finding may carry high
+publishers** (F31 netloc identity; contract **v1.4 / F72** makes this syndication-resistant —
+a wire story mirrored across syndicator netlocs, or reprinted verbatim, counts **once** via
+`collapsed_publisher_set`, so distinctness can no longer be inflated by syndication), within the
+corpus window, unlock **one bounded step** — a corroborated secondary-only finding may carry high
 confidence (gate F2e), a corroborated secondary-only thesis reversal applies instead of
 deferring (rule 6), and a judge may change a dimension rating or the binding constraint only
 with primary or ≥3-publisher citations (the deterministic **evidence-sufficiency gate** —
@@ -1636,12 +1647,20 @@ and its doctrine automatically — adding a same-role tool is one data entry, no
 
 **Shipped (see the "Trust, not just retrieval" paragraph above):** the **staged multi-source corroboration**
 step landed as **F63 (contract v1.3)** — three distinct publishers → one bounded step (gate F2e), with a
-conservative confidence cap already holding secondary-only findings down. It is a *staged* path to Part 26's
-**full** hard-corroboration requirement, not that requirement in full.
-**Still deferred (by decision):** the **full Part 26 hard-corroboration requirement** and a **hard
-secondary-confidence cap** beyond today's conservative badge; **unattended scheduling** (Part 28 — v1 is
+conservative secondary-only confidence cap already live — and was hardened by **contract v1.4 / F72**, which
+makes publisher distinctness **syndication-resistant**: a wire story mirrored across syndicator netlocs, or
+reprinted verbatim, collapses to one via `collapsed_publisher_set`, so distinctness can no longer be inflated
+by syndication. It is a *staged* path to Part 26's **full** hard-corroboration requirement, not that
+requirement in full.
+**Still deferred (by decision):** a **normalized/shingle near-dup** similarity pass (v1.4 ships the syndicator
+registry + **exact-hash** collapse; wrapper-different reprints from *unknown* syndicators still count as
+distinct — contract-v1.4 §7 Q6); the **full Part 26 hard-corroboration requirement** and a **hard**
+secondary-confidence cap beyond today's conservative badge; **unattended scheduling** (Part 28 — v1 is
 **manually invoked** from an open session); and a standalone non-session web fetcher. None require a redesign
-— scheduling is "run this same action on a timer."
+— scheduling is "run this same action on a timer." (This clause was reconciled with the F63/F72 corroboration
+doctrine above in the same change that landed contract v1.4 — the earlier flat "hard corroboration deferred"
+wording contradicted the F63 amendment for weeks; see the charter-hygiene note in
+`docs/migrations/2026-07-contract-v1.4.md`.)
 
 > **Self-check / build order:** gatherers return raw material only; every number keeps its dated receipt and
 > trust tier; page text is data, never instructions; caps are logged, never silent; and the frozen brain is

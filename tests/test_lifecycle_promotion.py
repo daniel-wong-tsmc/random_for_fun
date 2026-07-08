@@ -10,7 +10,9 @@ def _store(tmp_path):
 
 
 def _f(fid, entity, indicatorId, *, sources, asOf, capturedAt):
-    ev = [Evidence(source=s, url=f"http://{s}/x", date=asOf, excerpt="e", tier="secondary")
+    # excerpt keyed to the source so distinct sources carry distinct bodies (genuine, separate
+    # reporting); the F72 near-dup collapse would otherwise merge byte-identical dummy bodies.
+    ev = [Evidence(source=s, url=f"http://{s}/x", date=asOf, excerpt=f"body:{s}", tier="secondary")
           for s in sources]
     return Finding(id=fid, statement="s", kind=Kind.observed, trend="flat", why="w",
                    impact=Impact(targets=["x"], direction="negative", mechanism="m"),
@@ -41,6 +43,17 @@ def test_corroboration_counts_distinct_sources(tmp_path):
     _seed(store, _f("f1", "NVDA", "rpoBacklog", sources=["sec", "reuters"], asOf="2026-06", capturedAt="2026-06-01"), "2026-06")
     _seed(store, _f("f2", "NVDA", "rpoBacklog", sources=["sec"], asOf="2026-07", capturedAt="2026-07-01"), "2026-07")
     assert corroboration(store, "entity:nvda") == 2  # {sec, reuters}
+
+
+def test_corroboration_collapses_syndicators(tmp_path):
+    # F72 consumer proof (wiki promotion): two findings whose only sources are syndicator
+    # netlocs collapse to ONE distinct publisher, so corroboration counts 1, not 2.
+    store = _store(tmp_path)
+    _seed(store, _f("f1", "NVDA", "rpoBacklog", sources=["stocktitan.net"],
+                    asOf="2026-06", capturedAt="2026-06-01"), "2026-06")
+    _seed(store, _f("f2", "NVDA", "rpoBacklog", sources=["finance.yahoo.com"],
+                    asOf="2026-07", capturedAt="2026-07-01"), "2026-07")
+    assert corroboration(store, "entity:nvda") == 1  # both -> wire:syndicated
 
 
 def test_promote_when_persist_and_corroborate_met(tmp_path):

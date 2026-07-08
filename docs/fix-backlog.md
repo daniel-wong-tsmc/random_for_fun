@@ -340,6 +340,16 @@
   `registry/indicators.json` and/or admit a news-sourced leading indicator. **Frozen-contract
   caveat:** registry-weight changes are DATA and safe; any `scoring.py`/side-semantics change
   ships only as a versioned migration (Part 33), never piecemeal.
+  **STATUS 2026-07-08 (S1 lane `fix/freshness-weights`): DATA half done — Option A reweighted the
+  leading DEMAND set (`rpoBacklog` 0.10→0.14, `vendorRevenueGuidance` 0.12→0.16) so
+  corpus-persisted leading findings move DMI. Weight-only → F6 pin stayed green; `scoring.py`
+  untouched. Verified effective in live scoring (the assignment overrides only `{D2,D6,S9,S10}`, so
+  these two use the registry default). One consequence handled: the v1.2 replay-fidelity test was
+  frozen to its historical weight vector (no store scorecard edited). F60 STAYS OPEN
+  (wave-plan §6 Deferred Ledger): (1) the `scoring.py` side-semantics half ships as the future
+  v1.5 migration; (2) the `smiContribution: 0.0` residual is a SUPPLY gap — no leading *supply*
+  indicator exists, so a demand reweight cannot move it; needs an Option-C indicator or the v1.5
+  half. Do NOT tick F60 done on this merge.**
 - [ ] **F61 — Staleness & coverage banner; honest confidence label.** The brief renders
   "confidence: high (self-consistency over 3 samples)" — vote agreement, not evidence currency
   — atop evidence with a ~6-week median age, while the gather-log quietly records

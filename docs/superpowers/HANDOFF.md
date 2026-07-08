@@ -44,6 +44,17 @@
   and **P2 (F73, Opus)** as parallel worktree lanes; (b) separately open the **P3 v1.4 migration
   spec** for user approval (frozen core — never AFK, only the user merges to main).
 
+## How to update this file (F76 discipline)
+
+- **One CURRENT STATE block.** The H1 title carries the single top-of-file resume marker (the
+  `resume point` phrase, followed by a colon). When state changes, replace the top block
+  **atomically**: in the same edit, move the superseded text down under a new
+  `## HISTORICAL — <what/when>` heading. Never leave two "current" blocks.
+- **Provenance labels are controlled** (see the Provenance vocabulary below): `user-approved`
+  only when an actual user answer exists; `AFK-precedent` / `AFK-default` otherwise.
+- **Retained worktrees** are tracked in the "## RETAINED WORKTREES REGISTRY" section, not in
+  scattered "do not git clean" asides.
+
 ## DISPATCH STATUS — 2026-07-06 (post user "go")
 
 User gave **"go"** 2026-07-06. Actioned:
@@ -107,13 +118,14 @@ User gave **"go"** 2026-07-06. Actioned:
   `--verdict` governance path (no force); suite on the branch 1059/4/0. F63 then MERGED
   to main `017b592`. Run journal:
   `docs/superpowers/eval-notes/2026-07-05-f63-regate-run-notes.md`; raw runs (gitignored):
-  `work/eval-f63-regate-2026-07-05/{r1,r2,r3}` plus the 2026-07-04 runs — never `git clean`.
+  `work/eval-f63-regate-2026-07-05/{r1,r2,r3}` plus the 2026-07-04 runs — see the RETAINED
+  WORKTREES REGISTRY below.
 
 ## HISTORICAL — F63 pre-eval-v2 state (superseded 2026-07-05 by the section above)
 
 - **Tasks 1–7 complete, reviewed, committed** on branch `f63-corroboration-doctrine`
-  (worktree `.worktrees/f63-corroboration` — do NOT `git clean` it; gitignored `work/` holds
-  both eval runs' raw data). Ledger: worktree `.superpowers/sdd/progress.md`.
+  (worktree `.worktrees/f63-corroboration` — see the RETAINED WORKTREES REGISTRY below;
+  gitignored `work/` holds both eval runs' raw data). Ledger: worktree `.superpowers/sdd/progress.md`.
   Built: `gpu_agent/publisher.py` (F31 identity, single source of truth); `registry/corroboration.json`
   (`minDistinctPublishers: 3`) + `config.min_distinct_publishers()`; the ONE sanctioned frozen-core
   edit — `gate.py` F2e secondary-corroboration exception (contract v1.2→v1.3, migration note in
@@ -213,6 +225,23 @@ User gave **"go"** 2026-07-06. Actioned:
   had briefly swept an earlier untracked copy in via `git add -A`; that was un-bundled, so F70's own
   commits contain only F70 files.)
 
+## RETAINED WORKTREES REGISTRY
+
+Merged-feature worktrees are kept ONLY for gitignored data (raw eval replicate runs, SDD
+ledgers). Never `git clean` these. Remove a worktree only when its "can go when" condition holds.
+
+| Worktree | Branch | Retained because | Contains (gitignored) | Can be removed when |
+|---|---|---|---|---|
+| `.worktrees/eval-v2` | `eval-v2-replicate-baseline` | raw replicate-baseline eval run + SDD ledger | `work/eval-v2-migration/`; `.superpowers/sdd/` (5 task briefs/reports + 7 review diffs) | v2 baseline superseded + notes committed |
+| `.worktrees/f62-flagship-store` | `f62-flagship-consumes-store` | raw eval runs (attempts 1-3) + SDD ledger | `work/eval-f62-2026-07-04/`; `.superpowers/sdd/` (8 task briefs + 9 review diffs) | F62 eval history no longer referenced |
+| `.worktrees/f63-corroboration` | `f63-corroboration-doctrine` | raw eval runs (2026-07-04/05) + SDD ledger | `work/eval-f63-2026-07-04/`, `work/eval-f63-2026-07-04-r2/`, `work/eval-f63-regate-2026-07-05/`; `.superpowers/sdd/` (progress.md + 7 task briefs/reports + 8 review diffs) | F63 re-gate history archived |
+| `.worktrees/dashboard` | `dashboard-showcase` | **ACTIVE lane** (not retained-only) | in-progress presentation/dashboard work | lane merges or is abandoned |
+| `.worktrees/coord-hygiene` | `fix/coord-hygiene` | **ACTIVE lane** (not retained-only — P1, this lane) | in-progress F76 docs/process work | P1 merges or is abandoned |
+| `.worktrees/eval-gate-power` | `fix/eval-gate-power` | **ACTIVE lane** (not retained-only — P2) | in-progress F73 eval-gate-power work | P2 merges or is abandoned |
+
+Update this table whenever a worktree is added or removed. It replaces every scattered
+"do not git clean <path>" warning — delete those asides as you migrate them here.
+
 ## STANDING RULE (F6 gate, now ACTIVE)
 
 Any edit that changes the emitted brain prompts (extraction/judgment/thesis prompt files, their
@@ -238,7 +267,7 @@ F63's re-gate. F56 remains a safe tiny side item.
     (2) claims section sourced from gitignored `work/report.txt`, so rebuild in place post-cycle.
   - **`docs/roadmap.md` — the phased roadmap from this one desk to the full charter product
     (2026-07-04): forks user-approved live (layer tier after cats #2–3, Main after ~2 layers,
-    coarse size tags); final doc committed under the AFK precedent — open questions inside.**
+    coarse size tags); final doc committed under AFK-precedent — open questions inside.**
   - **F6 TASK 10 DONE — initial eval baseline committed (`0344949`), hash-pin gate ARMED.**
     Live run 2026-07-04 (all tool-less Opus): 14 fresh brains + 1 F38-safe voice re-dispatch, all
     gate-clean; 18 rubric graders + 1 schema re-dispatch. Seam means extract 6.62 / judge 6.75 /
@@ -417,7 +446,7 @@ PMI matches ≥1 series once two post-fix cycles exist; brains echoing seed trig
   judges) and the baseline was rebaselined WITHOUT --force (`f605a77`). Suite on the branch:
   **970 passed / 3 skipped / 0 failed.** Full three-attempt history in
   `docs/superpowers/2026-07-04-f62-eval-run-notes.md`; raw runs in the worktree's gitignored
-  `work/eval-f62-2026-07-04/` (attempts 1-3 preserved — do not `git clean` that worktree).
+  `work/eval-f62-2026-07-04/` (attempts 1-3 preserved — see the RETAINED WORKTREES REGISTRY).
   Ledger: `.superpowers/sdd/f62/progress.md` (repo root).
 - **Open user decision:** repo is still named `random_for_fun` — rename before TSMC-branded
   exposure.

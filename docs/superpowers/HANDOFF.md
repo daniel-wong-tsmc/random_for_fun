@@ -284,9 +284,11 @@ ledgers). Never `git clean` these. Remove a worktree only when its "can go when"
 eval-gate-power, contract-v1.4}` and their branches (`dashboard-showcase`, `fix/coord-hygiene`,
 `fix/eval-gate-power`, `fix/contract-v1.4`) — all merged (`75db88f`/`a0e3123`/`6d098a7`/`e16672a`).
 
-**Concurrent active lanes (another instance — NOT retained-only, do not touch):** `.worktrees/crawl4ai`
-(`feat/crawl4ai-webreach`) and `.worktrees/freshness-weights` (`fix/freshness-weights`) appeared 2026-07-08,
-unmerged. Owned by a live concurrent instance; that instance manages their registry entries and merge.
+**Concurrent active lane (another instance — NOT retained-only, do not touch):** `.worktrees/freshness-weights`
+(`fix/freshness-weights`) appeared 2026-07-08, unmerged; owned by a live concurrent instance that manages its
+registry entry and merge. The `.worktrees/crawl4ai` (`feat/crawl4ai-webreach`) lane is now DONE: merged to
+main (`6f53c9c`, in `origin/main`), worktree removed + branch deleted; crawl4ai web-reach **fetch** tool #3
+also installed and smoke-verified on the operator machine (`crawl4ai 0.9.0`; real `crwl` crawl OK) 2026-07-08.
 
 Update this table whenever a worktree is added or removed. It replaces every scattered
 "do not git clean <path>" warning — delete those asides as you migrate them here.

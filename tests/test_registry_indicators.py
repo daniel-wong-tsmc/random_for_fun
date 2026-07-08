@@ -83,3 +83,17 @@ def test_new_indicators_pass_validate_against_taxonomy():
     reg = IndicatorRegistry.load(REG)
     tax = Taxonomy.load(pathlib.Path("docs/taxonomy.json"))
     reg.validate_against(tax)  # must not raise (overlay indicators are skipped)
+
+
+def test_leading_demand_indicators_reweighted_for_freshness():
+    # F60 data-half (Option A): give the forward/leading demand set real weight so
+    # fresh, corpus-persisted leading findings move DMI. Weight-only -> no emitted-
+    # prompt change -> F6 pin stays green. Invariants (side/dimension/scoring) MUST
+    # be preserved: a side change would be Option B and trip the pin.
+    reg = IndicatorRegistry.load(REG)
+    rpo = reg.resolve("rpoBacklog", "chips.merchant-gpu")
+    vrg = reg.resolve("vendorRevenueGuidance", "chips.merchant-gpu")
+    assert rpo.weight == 0.14
+    assert vrg.weight == 0.16
+    assert rpo.scoring is True and rpo.side == "demand" and rpo.dimension == "momentum"
+    assert vrg.scoring is True and vrg.side == "demand" and vrg.dimension == "momentum"

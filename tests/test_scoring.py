@@ -50,3 +50,15 @@ def test_new_scoring_indicators_contribute_to_dmi_smi():
     dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu", weights)
     assert math.isclose(dmi, 0.10 * 1 * 1.0)   # rpoBacklog demand contribution
     assert math.isclose(smi, 0.08 * -1 * 1.0)  # leadTimes supply contribution
+
+
+def test_reweighted_leading_demand_moves_dmi_via_registry_default():
+    # F60 data-half: no weight_overrides -> dmi_smi_contribution reads spec.weight
+    # (the registry default), proving the reweight flows through the FROZEN scoring
+    # path unchanged. _f uses mag=3 and the formula divides magnitude by 3, so each
+    # contribution == its weight.
+    reg = IndicatorRegistry.load("registry/indicators.json")
+    findings = [_f("rpoBacklog", 1, 0, 3), _f("vendorRevenueGuidance", 1, 0, 3)]
+    dmi, smi = dmi_smi_contribution(findings, reg, "chips.merchant-gpu")
+    assert math.isclose(dmi, 0.14 + 0.16)   # new registry-default demand weights
+    assert math.isclose(smi, 0.0)           # leading set is demand-only -> SMI unmoved (scope boundary)

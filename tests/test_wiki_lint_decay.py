@@ -30,29 +30,29 @@ _HZ = IndicatorHorizons({
 
 def test_half_life_daily_short():
     hl, untagged = half_life([_f("f1", "A", "daily-coin")], _HZ, DEFAULT_LINT_CONFIG)
-    assert hl == 1 and untagged == []
+    assert hl == 7 and untagged == []
 
 
 def test_half_life_quarterly_long():
     hl, _ = half_life([_f("f1", "A", "quarterly-coin")], _HZ, DEFAULT_LINT_CONFIG)
-    assert hl == 6
+    assert hl == 120
 
 
 def test_half_life_leading_floor():
-    # daily would be 1, but a leading-horizon signal is floored at H_med (3)
+    # daily would be 7, but a leading-horizon signal is floored at H_med (21 days)
     hl, _ = half_life([_f("f1", "A", "daily-lead")], _HZ, DEFAULT_LINT_CONFIG)
-    assert hl == 3
+    assert hl == 21
 
 
 def test_half_life_longest_class_wins():
     hl, _ = half_life([_f("f1", "A", "daily-coin"), _f("f2", "A", "quarterly-coin")],
                       _HZ, DEFAULT_LINT_CONFIG)
-    assert hl == 6
+    assert hl == 120
 
 
 def test_half_life_untagged_default_and_logged():
     hl, untagged = half_life([_f("f1", "A", "ghost-ind")], _HZ, DEFAULT_LINT_CONFIG)
-    assert hl == 3 and untagged == ["ghost-ind"]
+    assert hl == 21 and untagged == ["ghost-ind"]
 
 
 def test_quiet_age_fresh_is_zero(tmp_path):

@@ -7,7 +7,7 @@ from gpu_agent.wiki.lint import (
 def test_lint_config_defaults():
     c = DEFAULT_LINT_CONFIG
     assert (c.w_contra, c.w_state, c.w_new, c.w_ind) == (1.0, 0.6, 0.5, 0.3)
-    assert (c.h_short, c.h_med, c.h_long) == (1, 3, 6)
+    assert (c.h_short_days, c.h_med_days, c.h_long_days) == (7, 21, 120)
     assert c.material_threshold == 0.3
     assert c.stale_threshold == 0.1
     assert (c.tier_primary, c.tier_secondary) == (1.0, 0.6)

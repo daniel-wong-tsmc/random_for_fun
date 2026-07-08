@@ -80,15 +80,16 @@ class LintConfig(BaseModel):
     horizon_boost_leading: float = 0.5
     salience_floor: float = 0.5
     material_threshold: float = 0.3
-    h_short: int = 1
-    h_med: int = 3
-    h_long: int = 6
+    # F78 Stage 1: half-lives in CALENDAR DAYS (provisional — D5, recalibrate later).
+    h_short_days: int = 7     # daily-cadence facts fade within ~a week if unrefreshed
+    h_med_days: int = 21      # weekly cadence + the leading-horizon floor + untagged default
+    h_long_days: int = 120    # quarterly facts persist ~a third of a year
     stale_threshold: float = 0.1
 
 
 DEFAULT_LINT_CONFIG = LintConfig()
 
-_CADENCE_HL = {"daily": "h_short", "weekly": "h_med", "quarterly": "h_long"}
+_CADENCE_HL = {"daily": "h_short_days", "weekly": "h_med_days", "quarterly": "h_long_days"}
 
 
 def _findings_for(store, page_id, observations):
@@ -106,23 +107,23 @@ def _findings_for(store, page_id, observations):
 
 
 def half_life(findings, horizons, config=DEFAULT_LINT_CONFIG):
-    """Longest-persistence half-life (in cycles) among the findings' cadence-horizon tags.
-    cadence drives persistence (daily->short, weekly->med, quarterly->long); a leading-horizon
-    finding is floored at H_med. Untagged indicator ids fall back to H_med and are RETURNED
-    (the caller logs them — nothing silent). No findings -> H_med (neutral)."""
+    """Longest-persistence half-life IN CALENDAR DAYS among the findings' cadence-horizon
+    tags. cadence drives persistence (daily->short, weekly->med, quarterly->long); a
+    leading-horizon finding is floored at H_med. Untagged indicator ids fall back to H_med
+    and are RETURNED (the caller logs them). No findings -> H_med (neutral)."""
     untagged: list[str] = []
     classes: list[int] = []
     for f in findings:
         tag = horizons.get(f.indicatorId)
         if tag is None or tag.get("cadence") not in _CADENCE_HL:
             untagged.append(f.indicatorId)
-            classes.append(config.h_med)
+            classes.append(config.h_med_days)
             continue
         hl = getattr(config, _CADENCE_HL[tag["cadence"]])
         if tag.get("horizon") == "leading":
-            hl = max(hl, config.h_med)
+            hl = max(hl, config.h_med_days)
         classes.append(hl)
-    return (max(classes) if classes else config.h_med), untagged
+    return (max(classes) if classes else config.h_med_days), untagged
 
 
 _MATERIAL_CYCLE_KINDS = {"create-page", "append-observation", "state-change", "ingest"}

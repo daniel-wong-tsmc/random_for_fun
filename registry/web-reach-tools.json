@@ -57,6 +57,42 @@
       "capabilities": ["search", "reddit", "twitter", "youtube", "tiktok", "hackernews", "polymarket", "github"],
       "defaultTier": "secondary",
       "notes": "DISCOVERY role — recency-focused (last-30-days) multi-platform synthesizer. Use for LEADS ONLY: mine its cited sources / hot threads, then fetch those underlying sources as raw blobs and chase to primary. NEVER ingest its synthesized brief as a blob (charter Part 37: gatherers return raw material only). Free core (Reddit/HN/Polymarket/GitHub/X-via-cookies); optional keys (Brave/Perplexity/ScrapeCreators/etc). Install: '/plugin marketplace add mvanhorn/last30days-skill' or 'npx skills add mvanhorn/last30days-skill -g'. healthCmd is an OS-keyed probe resolved by web-reach-ensure, not an install-relative file path."
+    },
+    {
+      "id": "crawl4ai",
+      "enabled": true,
+      "role": "fetch",
+      "repo": "https://github.com/unclecode/crawl4ai",
+      "installDocUrl": "https://docs.crawl4ai.com/core/installation/",
+      "healthCmd": {
+        "windows": "crwl --help",
+        "macos": "crwl --help",
+        "linux": "crwl --help"
+      },
+      "install": {
+        "windows": [
+          "py -3 -m pip install --user pipx",
+          "py -3 -m pipx install crawl4ai",
+          "py -3 -m pipx ensurepath",
+          "crawl4ai-setup"
+        ],
+        "macos": [
+          "python3 -m pip install --user pipx || brew install pipx",
+          "pipx ensurepath",
+          "pipx install crawl4ai",
+          "crawl4ai-setup"
+        ],
+        "linux": [
+          "python3 -m pip install --user pipx",
+          "python3 -m pipx ensurepath",
+          "pipx install crawl4ai",
+          "crawl4ai-setup"
+        ]
+      },
+      "invokeHint": "crwl <url> -o markdown   # headless-browser crawl -> clean markdown; -o json|markdown-fit|all, -q <question>",
+      "capabilities": ["web", "crawl", "markdown", "javascript-render", "deep-crawl", "structured-extract"],
+      "defaultTier": "secondary",
+      "notes": "FETCH role - LLM-friendly crawler that renders pages in a managed headless browser (Chromium via Playwright), so it reaches JavaScript / dynamic pages agent-reach's Jina-Reader path cannot. Returns clean markdown ingested as secondary blobs: confidence-capped, gated, and chased toward a primary like any open-web page. The paywalled boundary still holds - never point crwl at licensed/inventoried sources (SemiAnalysis, TrendForce, ...). Install via pipx (isolated) + crawl4ai-setup (downloads Chromium); healthCmd is a fast console-script presence check that does not launch a browser."
     }
   ]
 }

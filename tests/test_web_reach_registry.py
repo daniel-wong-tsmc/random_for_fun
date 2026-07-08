@@ -83,6 +83,16 @@ def test_last30days_registered_as_discovery():
     assert t["role"] == "discovery"
 
 
+# --- crawl4ai (fetch-role) tool #3 ---
+
+
+def test_crawl4ai_registered_as_fetch():
+    t = next((x for x in _load()["tools"] if x["id"] == "crawl4ai"), None)
+    assert t is not None
+    assert t["enabled"] is True
+    assert t["role"] == "fetch"
+
+
 def test_skill_and_charter_document_discovery_role():
     skill = SKILL.read_text(encoding="utf-8")
     charter = CHARTER.read_text(encoding="utf-8")

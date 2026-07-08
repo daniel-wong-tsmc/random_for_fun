@@ -2,9 +2,11 @@
 Spec: docs/superpowers/specs/2026-07-05-eval-v2-replicate-baseline-design.md."""
 from __future__ import annotations
 import json
+import statistics
 import pytest
 from gpu_agent.evals.cases import EvalCase
-from gpu_agent.evals.harness import case_medians, compute_epsilon, seam_quanta
+from gpu_agent.evals.harness import (
+    append_run_to_history, case_medians, compute_epsilon, pooled_epsilon, seam_quanta)
 
 HASHES = {"extract": "a" * 64, "judge": "b" * 64, "thesis": "c" * 64}
 DOC = {"id": "d1", "source": "s", "url": "http://x", "date": "2026-07-01",
@@ -38,6 +40,61 @@ def test_case_medians_positives_only_median_of_three():
     assert case_medians(scores, {"e1", "e2"}) == {"e1": 6, "e2": 6}
 
 
+# --- F73c: pooled-dispersion epsilon that converges on real run noise ----------
+
+def test_pooled_epsilon_uses_sample_stdev_over_quantum_floor():
+    hist = {"extract": [6.5, 6.6, 6.4, 6.7, 6.3]}   # spread ~0.158 stdev
+    eps = pooled_epsilon(hist, {"extract": 0.01})
+    # 2 * sample stdev, above the tiny quantum floor
+    assert eps["extract"] == pytest.approx(2 * 0.158113883, abs=1e-6)
+
+def test_pooled_epsilon_quantum_floor_when_history_too_short():
+    assert pooled_epsilon({"thesis": [6.0]}, {"thesis": 0.5}) == {"thesis": 0.5}
+
+def test_append_run_grows_history_and_recomputes_epsilon():
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.25},
+            "seamHistory": {"extract": [6.5, 6.6, 6.4]},
+            "replicates": [{"seamMeans": {"extract": 6.5}}]}
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.55}},
+                                {"extract": 0.125}, {"decision": "pass"})
+    assert out["seamHistory"]["extract"] == [6.5, 6.6, 6.4, 6.55]
+    assert out["epsilon"]["extract"] > 0            # recomputed, not the stale 0.25 unless equal
+
+def test_append_seeds_history_from_replicates_when_absent():
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.5},
+            "replicates": [{"seamMeans": {"extract": 6.4}},
+                           {"seamMeans": {"extract": 6.6}},
+                           {"seamMeans": {"extract": 6.5}}]}
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.5}},
+                                {"extract": 0.125}, {"decision": "pass"})
+    assert out["seamHistory"]["extract"] == [6.4, 6.6, 6.5, 6.5]
+
+def test_append_refuses_non_accepted_run_non_poisoning():
+    # F73 review fix: a failing/invalid run must never widen epsilon and hide itself
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.25},
+            "seamHistory": {"extract": [6.5, 6.6, 6.4]}}
+    for bad in ("hard-fail", "marginal-fail", "fail", "invalid-run"):
+        with pytest.raises(ValueError, match="non-poisoning"):
+            append_run_to_history(base, {"seamMeans": {"extract": 5.0}},
+                                  {"extract": 0.125}, {"decision": bad})
+
+def test_append_floors_at_true_quantum_not_stale_epsilon():
+    # F73 review fix: low-noise history + true quantum 0.125 converges to the quantum,
+    # NOT pinned at the stale stored half-range epsilon (0.3125). This would FAIL under the
+    # old _baseline_quanta fallback (which floored at baseline["epsilon"]).
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.3125},
+            "seamHistory": {"extract": [6.50, 6.51, 6.49, 6.50, 6.50]}}
+    out = append_run_to_history(base, {"seamMeans": {"extract": 6.50}},
+                                {"extract": 0.125}, {"decision": "pass"})
+    assert out["epsilon"]["extract"] == pytest.approx(0.125)
+
+def test_append_requires_true_quanta():
+    base = {"seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.3125},
+            "seamHistory": {"extract": [6.5, 6.6, 6.4]}}
+    with pytest.raises(ValueError, match="true seam quanta"):
+        append_run_to_history(base, {"seamMeans": {"extract": 6.5}}, {}, {"decision": "pass"})
+
+
 from gpu_agent.evals.harness import evaluate_v2
 
 def _report(seam_means, scores, hashes=HASHES, calibration=None):
@@ -52,8 +109,31 @@ BASE = {"schemaVersion": 2, "promptHashes": HASHES,
         "caseMedians": {"e1": 7, "e2": 6}}
 
 def test_verdict_pass_on_bar_touch():
+    # F73b: a value sitting exactly on the bar is within the marginal band by definition,
+    # so it now reads marginal-pass (still a pass, but flagged for one replication).
     v = evaluate_v2(BASE, [_report({"extract": 6.25}, {"e1": 7, "e2": 6})])
-    assert (v["decision"], v["pass"]) == ("pass", True)
+    assert (v["decision"], v["pass"]) == ("marginal-pass", True)
+
+
+# --- F73b: symmetric marginal band on the PASS side ----------------------------
+
+def report_with_extract_mean(mean):
+    return _report({"extract": mean}, {"e1": 7, "e2": 6})
+
+def test_verdict_marginal_pass_within_one_epsilon_above_bar():
+    # extract mean 6.30, base 6.5, eps 0.25 -> bar 6.25; 6.30 in [6.25, 6.50) -> marginal-pass
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.30)])
+    assert (v["decision"], v["pass"]) == ("marginal-pass", True)
+
+def test_verdict_clear_pass_when_comfortably_above_bar_plus_epsilon():
+    # 6.80 >= bar 6.25 + eps 0.25 = 6.50 -> plain pass, no replication asked
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.80)])
+    assert v["decision"] == "pass"
+
+def test_two_run_mean_after_marginal_pass_decides_plain():
+    # two reports -> mean decides; never 'marginal-pass' with 2 runs
+    v = evaluate_v2(BASE, [report_with_extract_mean(6.30), report_with_extract_mean(6.40)])
+    assert v["decision"] in ("pass", "fail")
 
 def test_verdict_marginal_within_one_epsilon_below_bar():
     v = evaluate_v2(BASE, [_report({"extract": 6.0}, {"e1": 7, "e2": 5})])
@@ -131,10 +211,20 @@ def test_build_baseline_v2_shape():
     b = build_baseline_v2(reports, ["r1", "r2", "r3"], _cases3(), None, "spot-checked")
     assert b["schemaVersion"] == 2
     assert b["seamMeans"]["extract"] == pytest.approx((6.5 + 6.0 + 6.5) / 3)
-    assert b["epsilon"]["extract"] == pytest.approx(0.5)      # half-range 0.25 < quantum 0.5
+    # F73c: epsilon is now 2*sample-stdev of the replicate seam means (0.577), above the
+    # 0.5 quantum floor — the pooled-dispersion band replaces the v1 half-range.
+    assert b["epsilon"]["extract"] == pytest.approx(2 * statistics.stdev([6.5, 6.0, 6.5]))
     assert b["caseMedians"] == {"e1": 7, "e2": 6}
     assert [r["runDir"] for r in b["replicates"]] == ["r1", "r2", "r3"]
     assert b["provenance"]["humanReview"] == "spot-checked"
+
+def test_build_baseline_v2_stores_quanta_and_history():
+    reports = [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6), _rep_full(6.5, 8, 5)]
+    b = build_baseline_v2(reports, ["r1", "r2", "r3"], _cases3(), None, "spot-checked")
+    assert b["quanta"]["extract"] == pytest.approx(0.5)      # 2 positives -> 1/2
+    assert b["seamHistory"]["extract"] == [r["seamMeans"]["extract"] for r in reports]
+    assert b["epsilon"]["extract"] == pytest.approx(pooled_epsilon(
+        {"extract": b["seamHistory"]["extract"]}, {"extract": 0.5})["extract"])
 
 def test_rebaseline_v2_bootstrap_writes(tmp_path):
     dirs = _write_runs(tmp_path, [_rep_full(6.5, 7, 6), _rep_full(6.0, 6, 6),

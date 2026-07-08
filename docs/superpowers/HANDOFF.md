@@ -1,4 +1,4 @@
-# HANDOFF — GPU Category Agent (resume point: P1+P2 lanes DISPATCHED 2026-07-06; P3 v1.4 migration spec PARKED for user §7 approval — resume by monitoring the two lanes and awaiting P3 sign-off)
+# HANDOFF — GPU Category Agent (resume point: P1+P2+P3 lanes ALL MERGED + pushed 2026-07-08, main == origin/main == e16672a — next is the S1 serial pipeline (F60 data half → F64 → F65), after re-running the BLOCKED 2026-07-07 daily live cycle)
 
 > **[SCHEDULED HEADLESS RUN BLOCKED] - 2026-07-07 (daily LIVE cycle, `category:chips.merchant-gpu`).**
 > The scheduled daily live cycle could NOT gather: this non-interactive session has **no outbound web
@@ -17,9 +17,41 @@
 > access to `agent-reach`), then resume `run-cycle` daily mode at Step 3(a) gather; asOf stays
 > `2026-07-07`. Scratch left at `work/daily-2026-07-07/cycle-plan.json` (plan only; gitignored).
 
+- **Date:** 2026-07-08 — the three finished lanes (P1/P2/P3) were merged to main and pushed on an
+  explicit interactive user "go" (NOT an AFK-default). `main == origin/main == e16672a`. Suite 1150/5.
+- **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
+- **This session (all merges on main, in wave-plan order P1,P2 → P3):**
+  - **P1 `fix/coord-hygiene` (F76) MERGED + pushed** (`a0e3123`): handoff discipline, controlled
+    provenance vocabulary, retained-worktrees registry, `test_handoff_integrity.py` tripwire.
+  - **P2 `fix/eval-gate-power` (F73) MERGED + pushed** (`6d098a7`): pooled-dispersion epsilon +
+    symmetric marginal-pass band + seeded-regression canary (scaffolded). Barrier B1 satisfied
+    (merged before any product rebaseline). No emitted prompt bytes → F6 pin stayed green.
+  - **P3 `fix/contract-v1.4` (F72 + F71, +F75) MERGED + pushed** (`e16672a`): the frozen-core v1.4
+    migration (all §7 decisions were user-approved 2026-07-06). Its charter Part 37 amendment collided
+    with an orphaned 2026-07-06 dashboard-era reconciliation of the same paragraph — that orphan work
+    was committed first as `d6abfaf`, then the conflict was hand-resolved into ONE paragraph carrying
+    both v1.3/F63 and v1.4/F72. All 28 non-charter files byte-matched the branch; schemaVersion stays
+    1.2; goldens/store untouched; F6 pin green. Barrier B2 satisfied (v1.4 lands before S1).
+- **DEFERRED — MUST NOT LOSE (user-directed):** (1) F60's `scoring.py` side-semantics ships as a
+  **future v1.5 migration** — do **not** tick F60 done when its data half merges (wave-plan §6 ledger).
+  (2) **NEW from the P3 lane:** `sufficiency.py::_sufficient` still counts raw `publisher_key`, not
+  `collapsed_publisher_set` (it was outside P3's 3-consumer scope; `sufficiency.py` is now
+  frozen-core-listed) — a bounded follow-up the lane flagged for a user decision.
+- **LIVE TODO (see the blocked-run callout above):** re-run the BLOCKED 2026-07-07 daily live cycle from a
+  web-enabled session; asOf stays `2026-07-07`. Also: P2's seeded-regression canary needs a ONE-TIME live
+  eval capture (Opus brains + graders) to fill its skipped fixture — must not be hand-authored.
+- **NEXT (approved sequence, wave-plan §5):** the S1 serial pipeline — F57/F58/F59 gather-freshness wave →
+  **F60 data half** (v1.5 scoring deferred) → F64 → F65 → F66. Each prompt-changing step passes `run-eval`
+  one at a time, no retry-until-green (barrier B3).
+- **Merged-lane cleanup (user's call, not yet done):** the three `fix/*` worktrees + branches
+  (`coord-hygiene`, `eval-gate-power`, `contract-v1.4`) and the `dashboard-showcase` lane are all merged
+  and hold no gitignored data worth keeping — safe to retire (see the RETAINED WORKTREES REGISTRY).
+
+## HISTORICAL — 2026-07-06 planning & P1/P2/P3 lane dispatch (superseded 2026-07-08 by the block above)
+
 - **Date:** 2026-07-06 (planning session — no code change, no cycle run; skill library + wave plan only)
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
-- **This session (all on main, `main == origin/main`):**
+- **That session (all on main, `main == origin/main`):**
   - Committed + pushed the 15-skill **desk skill library** at `6fe1841` (was untracked; now version-controlled).
   - Authored the **concurrency wave plan** for the open backlog →
     `docs/superpowers/plans/2026-07-06-concurrency-wave-plan.md` (committed this session). **Read it
@@ -56,6 +88,9 @@
   scattered "do not git clean" asides.
 
 ## DISPATCH STATUS — 2026-07-06 (post user "go")
+
+> **SUPERSEDED 2026-07-08:** all three lanes below (P1, P2, and the then-PARKED P3) are now MERGED +
+> pushed — see the current-state block at the top of this file. Kept as the dispatch-time record.
 
 User gave **"go"** 2026-07-06. Actioned:
 - **P1 `fix/coord-hygiene` (F76, Sonnet)** and **P2 `fix/eval-gate-power` (F73, Opus)** DISPATCHED as
@@ -235,9 +270,10 @@ ledgers). Never `git clean` these. Remove a worktree only when its "can go when"
 | `.worktrees/eval-v2` | `eval-v2-replicate-baseline` | raw replicate-baseline eval run + SDD ledger | `work/eval-v2-migration/`; `.superpowers/sdd/` (5 task briefs/reports + 7 review diffs) | v2 baseline superseded + notes committed |
 | `.worktrees/f62-flagship-store` | `f62-flagship-consumes-store` | raw eval runs (attempts 1-3) + SDD ledger | `work/eval-f62-2026-07-04/`; `.superpowers/sdd/` (8 task briefs + 9 review diffs) | F62 eval history no longer referenced |
 | `.worktrees/f63-corroboration` | `f63-corroboration-doctrine` | raw eval runs (2026-07-04/05) + SDD ledger | `work/eval-f63-2026-07-04/`, `work/eval-f63-2026-07-04-r2/`, `work/eval-f63-regate-2026-07-05/`; `.superpowers/sdd/` (progress.md + 7 task briefs/reports + 8 review diffs) | F63 re-gate history archived |
-| `.worktrees/dashboard` | `dashboard-showcase` | **ACTIVE lane** (not retained-only) | in-progress presentation/dashboard work | lane merges or is abandoned |
-| `.worktrees/coord-hygiene` | `fix/coord-hygiene` | **ACTIVE lane** (not retained-only — P1, this lane) | in-progress F76 docs/process work | P1 merges or is abandoned |
-| `.worktrees/eval-gate-power` | `fix/eval-gate-power` | **ACTIVE lane** (not retained-only — P2) | in-progress F73 eval-gate-power work | P2 merges or is abandoned |
+| `.worktrees/dashboard` | `dashboard-showcase` | **MERGED (`75db88f`) — safe to retire** | none worth keeping | now (merged; branch already deleted) |
+| `.worktrees/coord-hygiene` | `fix/coord-hygiene` | **MERGED (`a0e3123`, P1/F76) — safe to retire** | none worth keeping | now |
+| `.worktrees/eval-gate-power` | `fix/eval-gate-power` | **MERGED (`6d098a7`, P2/F73) — safe to retire** | none worth keeping | now |
+| `.worktrees/contract-v1.4` | `fix/contract-v1.4` | **MERGED (`e16672a`, P3/F72+F71+F75) — safe to retire** | none worth keeping | now |
 
 Update this table whenever a worktree is added or removed. It replaces every scattered
 "do not git clean <path>" warning — delete those asides as you migrate them here.

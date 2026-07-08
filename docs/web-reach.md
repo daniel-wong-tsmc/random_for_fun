@@ -14,6 +14,10 @@ doctrine lives in charter **Part 37**; the tool list is data in
   - `last30days` (https://github.com/mvanhorn/last30days-skill) — **discovery** role: a
     recency-focused (last-30-days) multi-platform synthesizer (Reddit, X, YouTube, TikTok,
     Hacker News, Polymarket, GitHub, Brave/Perplexity web search) ranked by social engagement.
+  - `crawl4ai` (https://github.com/unclecode/crawl4ai) — **fetch** role: an LLM-friendly
+    crawler that renders pages in a managed headless browser (Chromium via Playwright), so it
+    reaches JavaScript / dynamic pages agent-reach's static Jina-Reader path cannot. Returns
+    clean markdown ingested as `secondary` blobs.
 - Consulted every gather cycle by every category agent, alongside the built-in tools.
 
 ## Doctrine (binding — charter Part 37)

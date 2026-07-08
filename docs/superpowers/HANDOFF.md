@@ -1,21 +1,12 @@
-# HANDOFF — GPU Category Agent (resume point: P1+P2+P3 lanes ALL MERGED + pushed 2026-07-08, main == origin/main == e16672a — next is the S1 serial pipeline (F60 data half → F64 → F65), after re-running the BLOCKED 2026-07-07 daily live cycle)
+# HANDOFF — GPU Category Agent (resume point: P1+P2+P3 lanes ALL MERGED + pushed 2026-07-08, main == origin/main synced — next is the S1 serial pipeline (F60 data half → F64 → F65); the blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08)
 
-> **[SCHEDULED HEADLESS RUN BLOCKED] - 2026-07-07 (daily LIVE cycle, `category:chips.merchant-gpu`).**
-> The scheduled daily live cycle could NOT gather: this non-interactive session has **no outbound web
-> access** - every egress path (Bash/PowerShell -> `agent-reach`, `WebSearch`, `WebFetch`) is
-> permission-denied with no interactive grantor. All **3 round-1 daily gatherers returned zero blobs**,
-> and a direct main-session `WebSearch` was denied too. Per `gather-category` step 7 / `run-cycle`
-> 3(a): **zero documents -> category SKIPPED (skipped-no-gather); no scorecard written.** Nothing was
-> fabricated and **recorded/demo mode was NOT used** (LIVE-by-default standing rule - never silently
-> substitute). **Store untouched:** no new `store/` artifacts; `store/cycle-log.json` still holds the
-> finalized **2026-07-06** journal (NOT clobbered to a skeleton); pin + F74 journal tripwire unaffected.
-> Preflight had passed (git ff-only clean, `import gpu_agent` OK, `web-reach-ensure` = tools
-> installed/ok) - but *installed != network-permitted*; the doctor checks presence, not egress.
-> **AFK-default (headless, user away):** stopped and recorded the blocker rather than switching to
-> recorded mode or inventing data; nothing merged, no branch/worktree touched, fully reversible.
-> **RE-RUN** the 2026-07-07 daily from a session with web egress (grant `WebFetch`/`WebSearch`, or Bash
-> access to `agent-reach`), then resume `run-cycle` daily mode at Step 3(a) gather; asOf stays
-> `2026-07-07`. Scratch left at `work/daily-2026-07-07/cycle-plan.json` (plan only; gitignored).
+> **[2026-07-07 BLOCKED DAILY — CLOSED, will NOT be re-run] (by user decision, 2026-07-08).**
+> The scheduled 2026-07-07 headless daily (`category:chips.merchant-gpu`) could not gather — that
+> non-interactive session had no web egress, so all 3 gatherers returned zero blobs → category SKIPPED
+> (skipped-no-gather), no scorecard written, `store/` untouched, nothing fabricated, recorded/demo mode
+> not used. **Per user direction 2026-07-08 this cycle will NOT be re-run:** the day is skipped,
+> `store/cycle-log.json` keeps its finalized **2026-07-06** journal, and the next live cycle just resumes
+> on its normal cadence. The gitignored scratch `work/daily-2026-07-07/` can be discarded.
 
 - **Date:** 2026-07-08 — the three finished lanes (P1/P2/P3) were merged to main and pushed on an
   explicit interactive user "go" (NOT an AFK-default). `main == origin/main == e16672a`. Suite 1150/5.
@@ -37,9 +28,9 @@
   (2) **NEW from the P3 lane:** `sufficiency.py::_sufficient` still counts raw `publisher_key`, not
   `collapsed_publisher_set` (it was outside P3's 3-consumer scope; `sufficiency.py` is now
   frozen-core-listed) — a bounded follow-up the lane flagged for a user decision.
-- **LIVE TODO (see the blocked-run callout above):** re-run the BLOCKED 2026-07-07 daily live cycle from a
-  web-enabled session; asOf stays `2026-07-07`. Also: P2's seeded-regression canary needs a ONE-TIME live
-  eval capture (Opus brains + graders) to fill its skipped fixture — must not be hand-authored.
+- **FOLLOW-UP:** P2's seeded-regression canary needs a ONE-TIME live eval capture (Opus brains + graders)
+  to fill its skipped fixture — must not be hand-authored. (The 2026-07-07 blocked daily will NOT be
+  re-run — user decision 2026-07-08; see the closed callout above.)
 - **NEXT (approved sequence, wave-plan §5):** the S1 serial pipeline — F57/F58/F59 gather-freshness wave →
   **F60 data half** (v1.5 scoring deferred) → F64 → F65 → F66. Each prompt-changing step passes `run-eval`
   one at a time, no retry-until-green (barrier B3).

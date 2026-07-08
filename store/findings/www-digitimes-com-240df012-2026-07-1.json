@@ -1,0 +1,42 @@
+{
+  "id": "www-digitimes-com-240df012-2026-07-1",
+  "statement": "ASE is boosting advanced-packaging capacity and Hanmi Semiconductor is expanding from HBM tools into advanced chip packaging, adding CoWoS packaging capacity.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "OSAT and equipment capacity build-out for CoWoS advanced packaging eases a key AI-GPU supply bottleneck.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.hbm-memory"
+    ],
+    "direction": "positive",
+    "mechanism": "Added advanced-packaging capacity from ASE and new equipment entrants relieves the CoWoS bottleneck, increasing whole-chain GPU supply."
+  },
+  "evidence": [
+    {
+      "source": "DIGITIMES",
+      "url": "https://www.digitimes.com/news/a20260708PD211/ase-hanmi-cowos-packaging-equipment-demand.html",
+      "date": "2026-07-08",
+      "excerpt": "South Korean equipment maker Hanmi Semiconductor is moving beyond high-bandwidth memory (HBM) tools into advanced chip packaging, a shift that could affect the global semiconductor supply chain. As ASE boosts capacity to meet TSMC-linked demand, Hanmi is...",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (DIGITIMES), free lede only; no capacity or wafer figures disclosed."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend falling -> rising); sources: DIGITIMES",
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-07-08",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

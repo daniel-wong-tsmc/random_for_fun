@@ -1,0 +1,44 @@
+{
+  "id": "gpucost-org-e7551659-2026-07-1",
+  "statement": "NVIDIA B200 secondary-market hardware price approximately $45k (MSRP $40k) per third-party pricing index.",
+  "kind": "measured",
+  "value": {
+    "number": 45000.0,
+    "unit": "USD_per_gpu"
+  },
+  "trend": "unknown",
+  "why": "Third-party pricing indexes list B200 purchase price since NVIDIA does not publish list prices; a static price level with no stated baseline change.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Reference hardware price level for B200; display overlay that does not score demand or supply."
+  },
+  "evidence": [
+    {
+      "source": "gpucost.org live pricing index",
+      "url": "https://gpucost.org/gpu/b200",
+      "date": "2026-06-20",
+      "excerpt": "NVIDIA B200: purchase 'market price ~$45k' with 'MSRP: $40k'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary third-party pricing aggregator (gpucost.org); vendor does not publish list prices."
+  },
+  "dispersion": "market price ~$45k vs MSRP $40k",
+  "asOf": "2026-07",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-06-20",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

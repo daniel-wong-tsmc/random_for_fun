@@ -1,0 +1,42 @@
+{
+  "id": "www-nvidia-com-8c5514fc-2026-07-1",
+  "statement": "NVIDIA Blackwell Ultra (B300) delivers 15 PFLOPS dense NVFP4 per GPU at up to 1400W TDP, ~50% more NVFP4 compute and HBM capacity per chip than the ~1000W Blackwell (B200) at 10 PFLOPS.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Generational compute-density gains (more FLOPS and HBM per chip) improve effective throughput per rack and per watt.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "energy.efficiency"
+    ],
+    "direction": "positive",
+    "mechanism": "Higher per-chip NVFP4 compute and HBM capacity raise performance density, improving effective compute-per-watt supply."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Developer technical blog / DGX product pages",
+      "url": "https://www.nvidia.com/en-us/data-center/dgx-b300/",
+      "date": "2025-08-22",
+      "excerpt": "Blackwell Ultra provides '50% more NVFP4 compute and 50% more HBM capacity per chip', NVFP4 '1.5x compared to Blackwell GPU'.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Vendor spec pages and developer blog (secondary tier); relative compute figures without independent perf-per-watt benchmark."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "perfPerWatt",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2025-08-22",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

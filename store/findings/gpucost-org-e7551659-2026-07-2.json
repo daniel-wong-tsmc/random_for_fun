@@ -1,0 +1,45 @@
+{
+  "id": "gpucost-org-e7551659-2026-07-2",
+  "statement": "NVIDIA B200 cloud rental price around $3.99/GPU-hour median (range $3.75-$5.19/hr on-demand, $3.59/hr spot) on gpucost index.",
+  "kind": "measured",
+  "value": {
+    "number": 3.99,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Cloud-rental price inputs for FLOPS-per-dollar; a static price level with no stated change over time.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Reference GPU rental price level; display overlay that does not score demand or supply."
+  },
+  "evidence": [
+    {
+      "source": "gpucost.org live pricing index",
+      "url": "https://gpucost.org/gpu/b200",
+      "date": "2026-06-20",
+      "excerpt": "cloud rental per GPU-hour: minimum '$3.75/hr' (Genesis Cloud), median '$3.99/hr' (Datacrunch), maximum '$5.19/hr' (RunPod on-demand), spot '$3.59/hr'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary pricing aggregators (gpucost.org, corroborated directionally by getdeploying.com); two publishers, not filing-grade."
+  },
+  "dispersion": "median $3.99/hr (gpucost) vs $6.11 (getdeploying); range $2.74-$16.11/hr across providers",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "nvidia",
+  "observedAt": "2026-06-20",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

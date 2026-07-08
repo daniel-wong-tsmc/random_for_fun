@@ -68,3 +68,11 @@
 {"seq":67,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-datacenterdynamics-com-0c76f530-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":68,"asOf":"2026-07-06","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-datacenterdynamics-com-45864e2a-2026-07-06-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":69,"asOf":"2026-07-06","kind":"lint","pageId":null,"findingId":null,"state":null,"trajectory":null,"salience":null,"detail":"material 1; dropped 0; stale 4; orphans 5; contradictions 0"}
+{"seq":70,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"ir-amd-com-f416295d-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":71,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"www-digitimes-com-240df012-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":72,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"gpucost-org-e7551659-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":73,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-fool-com-12d961c0-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":74,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"gpucost-org-e7551659-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":75,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"investor-nvidia-com-c649ac13-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":76,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-nvidia-com-8c5514fc-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":77,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-fool-com-12d961c0-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}

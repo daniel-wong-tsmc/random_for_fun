@@ -1,0 +1,53 @@
+{
+  "id": "www-fool-com-12d961c0-2026-07-1",
+  "statement": "NVIDIA increased total supply, inclusive of inventory purchase commitments and prepaids, to $145 billion in Q1 FY2027.",
+  "kind": "measured",
+  "value": {
+    "number": 145.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "A large increase in total supply commitments shows NVIDIA scaling its supply chain to meet demand it describes as parabolic.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "chips.foundry-packaging"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising inventory purchase commitments and prepaids expand forward GPU supply capacity across the chain."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+      "url": "https://www.fool.com/earnings/call-transcripts/2026/05/20/nvidia-nvda-q1-2027-earnings-transcript/",
+      "date": "2026-05-20",
+      "excerpt": "In Q1, we increased total supply inclusive of inventory purchase commitments on prepaids to $145 billion.",
+      "tier": "secondary"
+    },
+    {
+      "source": "NVIDIA Form 10-Q (SEC EDGAR)",
+      "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000052/nvda-20260426.htm",
+      "date": "2026-05-20",
+      "excerpt": "total supply inclusive of inventory purchase commitments and prepaids was increased to $145 billion in Q1.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary transcript of official IR earnings call (single publisher); figure corroborated in NVIDIA 10-Q materials."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

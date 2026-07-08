@@ -1,0 +1,43 @@
+{
+  "id": "ir-amd-com-f416295d-2026-07-3",
+  "statement": "AMD announced plans to deploy up to 6 gigawatts of AMD Instinct GPUs with Meta, the first 1-GW powered by a custom MI450-based GPU.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A multi-gigawatt Instinct deployment commitment is a major merchant-GPU design win expanding AMD's AI accelerator demand pipeline.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud",
+      "energy.power-generation"
+    ],
+    "direction": "positive",
+    "mechanism": "Large multi-year GPU deployment commitment locks in future demand for AMD Instinct accelerators."
+  },
+  "evidence": [
+    {
+      "source": "AMD Investor Relations Q1 2026 earnings release",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+      "date": "2026-05-05",
+      "excerpt": "announced plans to deploy up to 6 gigawatts of AMD Instinct GPUs, with the first 1-GW to be powered by a custom AMD Instinct MI450-based GPU",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary official AMD IR earnings release."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "amd",
+  "observedAt": "2026-05-05",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

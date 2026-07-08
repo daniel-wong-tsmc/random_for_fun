@@ -1,0 +1,45 @@
+{
+  "id": "www-fool-com-12d961c0-2026-07-2",
+  "statement": "NVIDIA cited visibility to nearly $20 billion in total CPU revenue this year, with purchase orders in hand from almost all major customers ahead of the Vera Rubin ramp in Q3.",
+  "kind": "measured",
+  "value": {
+    "number": 20.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Committed purchase orders and multi-billion-dollar forward revenue visibility indicate a strong booked demand backlog.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "positive",
+    "mechanism": "Booked POs and forward revenue visibility for the Vera Rubin platform reflect committed demand backlog."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+      "url": "https://www.fool.com/earnings/call-transcripts/2026/05/20/nvidia-nvda-q1-2027-earnings-transcript/",
+      "date": "2026-05-20",
+      "excerpt": "We have visibility to nearly $20 billion in total CPU revenue this year",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary transcript of official IR earnings call; single publisher, forward-looking management commentary."
+  },
+  "dispersion": "conflicting same-key reports: value 2.6 -> 20.0 (tol 1%); sources: NVIDIA Form 10-Q (SEC EDGAR), NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+  "asOf": "2026-07",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "investor-nvidia-com-c649ac13-2026-07-3",
+  "statement": "NVIDIA Q1 FY2027 non-GAAP gross margin was 75.0% (GAAP 74.9%), with Q2 guidance holding at 75.0% non-GAAP.",
+  "kind": "measured",
+  "value": {
+    "number": 75.0,
+    "unit": "pct"
+  },
+  "trend": "flat",
+  "why": "Sustained ~75% gross margin indicates strong pricing power and demand-driven mix for AI accelerators.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "High and stable gross margin reflects supply-constrained pricing power amid strong GPU demand."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Investor Relations press release",
+      "url": "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-First-Quarter-Fiscal-2027/default.aspx",
+      "date": "2026-05-20",
+      "excerpt": "GAAP and non-GAAP gross margins were 74.9% and 75.0%, respectively.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary official NVIDIA IR earnings release."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "grossMargin",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-08T10:53:12Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

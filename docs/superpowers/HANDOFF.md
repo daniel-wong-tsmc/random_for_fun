@@ -1,4 +1,4 @@
-# HANDOFF — GPU Category Agent (resume point: P1+P2+P3 lanes ALL MERGED + pushed 2026-07-08, main == origin/main synced — next is the S1 serial pipeline (F60 data half → F64 → F65); the blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08)
+# HANDOFF — GPU Category Agent (resume point: F60 DATA HALF MERGED + pushed 2026-07-08 (`b2a1a88`), main == origin/main; a concurrent instance also landed crawl4ai web-reach tool #3 (`6f53c9c`) and a live 2026-07 **v4** top-up cycle (`0f9a57a`, SMI flips positive). Next: remaining S1 pipeline — F57/F58/F59 gather-freshness wave → F77 renderer → F64 → F65 → F66. The blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08.)
 
 > **[2026-07-07 BLOCKED DAILY — CLOSED, will NOT be re-run] (by user decision, 2026-07-08).**
 > The scheduled 2026-07-07 headless daily (`category:chips.merchant-gpu`) could not gather — that
@@ -8,6 +8,19 @@
 > `store/cycle-log.json` keeps its finalized **2026-07-06** journal, and the next live cycle just resumes
 > on its normal cadence. The gitignored scratch `work/daily-2026-07-07/` can be discarded.
 
+- **Date: 2026-07-08 (LATEST) — F60 DATA HALF MERGED + pushed (`b2a1a88`).** Authoritative current state:
+  `main == origin/main == b2a1a88`, suite **1153/5**. Lane `fix/freshness-weights` (S1) reweighted the
+  leading DEMAND set in `registry/indicators.json` — `rpoBacklog` 0.10→0.14, `vendorRevenueGuidance`
+  0.12→0.16 — so fresh, corpus-persisted leading findings move DMI (Option A, user-approved). Weight-only
+  → **F6 pin stayed green**; `scoring.py` byte-identical (side-semantics deferred to v1.5). One consequence
+  handled: the v1.2 replay-fidelity test was frozen to its historical weight vector `_WEIGHTS_AS_OF_2026_06`
+  (verified reproduces the stored dmi/smi/sdgi; **no store scorecard edited**). Lane commits
+  `57cbb4d..d3d97e4`; note `docs/superpowers/eval-notes/2026-07-08-f60-freshness-weights-note.md`. **F60 is
+  NOT ticked done** (see DEFERRED below). The merge landed cleanly on top of concurrent-instance work that
+  advanced main first — crawl4ai web-reach tool #3 (`6f53c9c`), worktree-registry cleanup (`b1cf664`), and
+  a live 2026-07 **v4** top-up cycle (`0f9a57a`, Strong/improving, SMI flips positive) — all file-disjoint
+  (my 7 files vs its 21, zero overlap). **Lane cleanup pending (user's call):** the `fix/freshness-weights`
+  worktree + local + remote branch are fully merged and safe to retire.
 - **Date:** 2026-07-08 — the three finished lanes (P1/P2/P3) were merged to main and pushed on an
   explicit interactive user "go" (NOT an AFK-default). `main == origin/main == e16672a`. Suite 1150/5.
 - **Repo:** https://github.com/daniel-wong-tsmc/random_for_fun
@@ -23,17 +36,22 @@
     was committed first as `d6abfaf`, then the conflict was hand-resolved into ONE paragraph carrying
     both v1.3/F63 and v1.4/F72. All 28 non-charter files byte-matched the branch; schemaVersion stays
     1.2; goldens/store untouched; F6 pin green. Barrier B2 satisfied (v1.4 lands before S1).
-- **DEFERRED — MUST NOT LOSE (user-directed):** (1) F60's `scoring.py` side-semantics ships as a
-  **future v1.5 migration** — do **not** tick F60 done when its data half merges (wave-plan §6 ledger).
+- **DEFERRED — MUST NOT LOSE (user-directed):** (1) F60 DATA HALF is now MERGED (`b2a1a88`) but F60 stays
+  **OPEN**: its `scoring.py` side-semantics ships as a **future v1.5 migration**, AND the
+  `smiContribution: 0.0` residual is a SUPPLY-leading gap (no leading supply indicator exists) that a
+  demand reweight cannot move — needs an Option-C news-sourced leading supply indicator or the v1.5 half.
+  Do **not** tick F60 done (wave-plan §6 ledger).
   (2) **NEW from the P3 lane:** `sufficiency.py::_sufficient` still counts raw `publisher_key`, not
   `collapsed_publisher_set` (it was outside P3's 3-consumer scope; `sufficiency.py` is now
   frozen-core-listed) — a bounded follow-up the lane flagged for a user decision.
 - **FOLLOW-UP:** P2's seeded-regression canary needs a ONE-TIME live eval capture (Opus brains + graders)
   to fill its skipped fixture — must not be hand-authored. (The 2026-07-07 blocked daily will NOT be
   re-run — user decision 2026-07-08; see the closed callout above.)
-- **NEXT (approved sequence, wave-plan §5):** the S1 serial pipeline — F57/F58/F59 gather-freshness wave →
-  **F60 data half** (v1.5 scoring deferred) → F64 → F65 → F66. Each prompt-changing step passes `run-eval`
-  one at a time, no retry-until-green (barrier B3).
+- **NEXT (approved sequence, wave-plan §5):** **F60 data half ✅ MERGED (`b2a1a88`).** Remaining serial
+  pipeline — F57/F58/F59 gather-freshness wave → **F77 renderer** (reconcile vs the merged dashboard-showcase
+  first) → F64 → F65 → F66. Each prompt-changing step passes `run-eval` one at a time, no retry-until-green
+  (barrier B3). (Ordering note: the resume line lists F57/F58/F59 ahead of F77 per the roadmap; wave-plan
+  §5's forced-serial starts at F77 — an unresolved priority call, not a dependency; pick either first.)
 - **Merged-lane cleanup (user's call, not yet done):** the three `fix/*` worktrees + branches
   (`coord-hygiene`, `eval-gate-power`, `contract-v1.4`) and the `dashboard-showcase` lane are all merged
   and hold no gitignored data worth keeping — safe to retire (see the RETAINED WORKTREES REGISTRY).

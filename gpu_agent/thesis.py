@@ -644,18 +644,28 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
 
 
 def _promotion_eligible(thesis_id: str, records: list[dict]) -> tuple[bool, int, int]:
-    """Rule 5: eligible when judgments for `thesis_id` across `records` span >=2 distinct
-    asOf values AND their (record-carried) publisherDomains collectively span >=2 distinct
-    publishers. Only records with a 'verdict' key count (lifecycle records are skipped);
-    applied and deferred judgments both count — a deferred judgment still cited real,
-    distinct-publisher findings, which is what corroboration is about."""
+    """Rule 5, calendar-day form (F78 Stage 2): eligible when this thesis's judgments span
+    at least MIN_PROMOTION_SPAN_DAYS calendar days (latest judged asOf's period-end minus
+    the earliest's) AND their record-carried publisherDomains collectively span >= 2 distinct
+    publishers. Replaces the old '>= 2 distinct asOf cycles' persistence bar so a daily
+    cadence cannot promote in two consecutive days; under the old ~monthly cadence the second
+    cycle already spans ~30 days, so this reproduces today's 'promotes on the 2nd cycle'
+    behavior. Only records with a 'verdict' key count (lifecycle records skipped); applied and
+    deferred judgments both count. Returns (eligible, span_days, n_domains) for the note.
+    Span uses period_end, never string min/max, so mixed-grain labels ('2026-07' vs
+    '2026-07-03') order correctly."""
     as_ofs: set[str] = set()
     domains: set[str] = set()
     for record in records:
         if record.get("thesisId") == thesis_id and "verdict" in record:
             as_ofs.add(record["asOf"])
             domains.update(record.get("publisherDomains", []))
-    return len(as_ofs) >= 2 and len(domains) >= 2, len(as_ofs), len(domains)
+    if as_ofs:
+        ends = [period_end(a) for a in as_ofs]
+        span_days = (max(ends) - min(ends)).days
+    else:
+        span_days = 0
+    return span_days >= MIN_PROMOTION_SPAN_DAYS and len(domains) >= 2, span_days, len(domains)
 
 
 def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
@@ -732,14 +742,14 @@ def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
     for entry in working_book.entries:
         if entry.status != "provisional":
             continue
-        eligible, n_asofs, n_domains = _promotion_eligible(entry.id, combined_records)
+        eligible, span_days, n_domains = _promotion_eligible(entry.id, combined_records)
         if not eligible:
             continue
         promoted_record = {
             "asOf": as_of, "event": "promoted", "thesisId": entry.id, "detail": None,
             "note": (
                 f"{entry.id}: promoted to registered "
-                f"({n_asofs} distinct asOfs, {n_domains} publisher domains)"
+                f"({span_days} days judged, {n_domains} publisher domains)"
             ),
         }
         records.append(promoted_record)

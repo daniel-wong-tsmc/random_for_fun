@@ -305,7 +305,7 @@ def test_j1_promotion_across_two_asofs_two_domains():
     entry = _entry("thesis-j", status="provisional", conviction="low")
     book = _book(entry)
     history = [{
-        "asOf": AS_OF_PRIOR, "thesisId": "thesis-j", "verdict": "reaffirmed",
+        "asOf": "2026-06-05", "thesisId": "thesis-j", "verdict": "reaffirmed",
         "applied": True, "conviction": "low", "rationale": "r", "findingIds": ["f-0"],
         "mechanism": "m", "falsifiableTrigger": "t", "sensitivity": "s", "note": "n",
         "publisherDomains": ["domain-a.com"],
@@ -329,7 +329,7 @@ def test_j2_single_domain_stays_provisional():
     entry = _entry("thesis-j2", status="provisional", conviction="low")
     book = _book(entry)
     history = [{
-        "asOf": AS_OF_PRIOR, "thesisId": "thesis-j2", "verdict": "reaffirmed",
+        "asOf": "2026-06-05", "thesisId": "thesis-j2", "verdict": "reaffirmed",
         "applied": True, "conviction": "low", "rationale": "r", "findingIds": ["f-0"],
         "mechanism": "m", "falsifiableTrigger": "t", "sensitivity": "s", "note": "n",
         "publisherDomains": ["domain-a.com"],

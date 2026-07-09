@@ -163,3 +163,56 @@ def test_reversal_steps_conviction_immediately_despite_recent_signal():
     assert records[0]["applied"] is True
     assert e.conviction == "medium"            # high -> medium, one step, despite 1-day gap
     assert e.lastDirection == -1
+
+
+# --- rule-5 promotion pacing -----------------------------------------------------------
+
+def _history_reaffirm(thesis_id, as_of, domain):
+    return {
+        "asOf": as_of, "thesisId": thesis_id, "verdict": "reaffirmed", "applied": True,
+        "conviction": "low", "rationale": "r", "findingIds": ["f-0"], "mechanism": "m",
+        "falsifiableTrigger": "t", "sensitivity": "s", "note": "n",
+        "publisherDomains": [domain],
+    }
+
+
+def test_promotion_needs_calendar_span_not_two_cycles():
+    # two judgments only 7 days apart, 2 distinct domains: NOT promotable (span 7 < 21).
+    entry = _entry("t", status="provisional", conviction="low")
+    history = [_history_reaffirm("t", "2026-07-01", "domain-a.com")]
+    findings = {"f-1": _fd("f-1", "domain-b.com")}
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", finding_ids=("f-1",))),
+        as_of="2026-07-08", findings_by_id=findings, history=history,
+    )
+    assert new_book.get("t").status == "provisional"
+    assert not any(r.get("event") == "promoted" for r in records)
+
+
+def test_promotion_when_span_and_domains_met():
+    # 33-day span (period_end 2026-06-05 -> 2026-07-08) and 2 distinct domains -> promotes.
+    entry = _entry("t", status="provisional", conviction="low")
+    history = [_history_reaffirm("t", "2026-06-05", "domain-a.com")]
+    findings = {"f-1": _fd("f-1", "domain-b.com")}
+    new_book, records, notes = apply_answer(
+        _book(entry), _answer(_judgment("t", finding_ids=("f-1",))),
+        as_of="2026-07-08", findings_by_id=findings, history=history,
+    )
+    assert new_book.get("t").status == "registered"
+    promoted = [r for r in records if r.get("event") == "promoted"]
+    assert len(promoted) == 1
+    assert "days judged" in promoted[0]["note"]
+    assert any("promoted" in n for n in notes)
+
+
+def test_promotion_blocked_by_single_domain_even_when_span_met():
+    # 33-day span but only ONE distinct domain -> the domain bar (unchanged) still blocks.
+    entry = _entry("t", status="provisional", conviction="low")
+    history = [_history_reaffirm("t", "2026-06-05", "domain-a.com")]
+    findings = {"f-1": _fd("f-1", "domain-a.com")}
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", finding_ids=("f-1",))),
+        as_of="2026-07-08", findings_by_id=findings, history=history,
+    )
+    assert new_book.get("t").status == "provisional"
+    assert not any(r.get("event") == "promoted" for r in records)

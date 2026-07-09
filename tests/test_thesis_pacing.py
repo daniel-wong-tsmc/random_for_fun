@@ -118,3 +118,48 @@ def test_streak_advances_when_confirmation_clears_the_gap():
     e = new_book.get("t")
     assert e.streak == 5
     assert e.lastPaceAsOf == "2026-08-01"     # re-anchored
+
+
+# --- conviction pacing -----------------------------------------------------------------
+
+def test_conviction_holds_when_strengthened_too_soon():
+    # strengthened again only 7 days after the last counted signal must NOT walk medium->high.
+    entry = _entry("t", conviction="medium", lastDirection=1, streak=1,
+                   lastPaceAsOf="2026-07-01", lastChangedAsOf="2026-07-01")
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", verdict="strengthened")),
+        as_of="2026-07-08", findings_by_id=SEC, history=[],
+    )
+    e = new_book.get("t")
+    assert records[0]["applied"] is True       # a same-direction strengthen still applies
+    assert records[0]["conviction"] == "medium"
+    assert e.conviction == "medium"            # but the level is rate-limited: held
+    assert e.streak == 1                        # no conviction change, too soon -> held
+
+
+def test_conviction_steps_when_strengthened_clears_the_gap():
+    entry = _entry("t", conviction="medium", lastDirection=1, streak=1,
+                   lastPaceAsOf="2026-07-01", lastChangedAsOf="2026-07-01")
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", verdict="strengthened")),
+        as_of="2026-08-01", findings_by_id=SEC, history=[],   # 31-day gap clears the pace
+    )
+    e = new_book.get("t")
+    assert e.conviction == "high"
+    assert e.streak == 1                        # conviction change re-anchors the streak
+
+
+def test_reversal_steps_conviction_immediately_despite_recent_signal():
+    # a reversal is a genuine event: even 1 day after the last counted signal, a primary
+    # weakened reversal steps conviction and is NOT rate-limited.
+    entry = _entry("t", conviction="high", lastDirection=1, streak=3,
+                   lastPaceAsOf="2026-07-07", lastChangedAsOf="2026-07-07")
+    findings = {"f-1": _finding("f-1", evidence=[_evidence("primary")])}
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", verdict="weakened")),
+        as_of="2026-07-08", findings_by_id=findings, history=[],
+    )
+    e = new_book.get("t")
+    assert records[0]["applied"] is True
+    assert e.conviction == "medium"            # high -> medium, one step, despite 1-day gap
+    assert e.lastDirection == -1

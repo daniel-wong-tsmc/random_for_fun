@@ -596,13 +596,20 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
     )
     applied = confirmed_by_pending or not is_reversal or has_primary or corroborated_step
 
+    # F78 Stage 2: a same-direction conviction step is rate-limited to the calendar pace
+    # (MIN_PACE_GAP_DAYS) so daily re-runs cannot walk low->high (or high->low) in a few
+    # days. A reversal or a break is a genuine, evidence-gated event -> steps immediately.
+    # Same _pace_counts predicate _apply_judgment_record uses for the streak, so the record's
+    # post-apply conviction and the streak reset stay consistent by construction.
+    steps_now = _pace_counts(entry.lastPaceAsOf, as_of) or is_reversal
+
     if applied:
         if verdict == "broken":
             new_conviction = "low"
         elif verdict == "strengthened":
-            new_conviction = _bump_conviction(entry.conviction, +1)
+            new_conviction = _bump_conviction(entry.conviction, +1) if steps_now else entry.conviction
         elif verdict == "weakened":
-            new_conviction = _bump_conviction(entry.conviction, -1)
+            new_conviction = _bump_conviction(entry.conviction, -1) if steps_now else entry.conviction
         else:  # reaffirmed / adjusted: unchanged
             new_conviction = entry.conviction
         if corroborated_step:

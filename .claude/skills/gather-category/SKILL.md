@@ -132,16 +132,30 @@ filing URL, check it against the dedup store's known-hash index and skip already
 unchanged URLs mid-quarter — freeing that fetch for a fresh headline or forward-signal slice
 instead.
 
-**Recency window (live mode).** Bias the round-1 search-query seeds (free-web query seeds,
-standard slices, headline slices, forward-signal slices) and the on-topic lead filter (step 4)
-to the last **N days** (a dial; default `recencyDays = 45` — wider than Daily mode's
-`recencyDays = 7`, since this is the periodic full-crawl path, not a daily "what's new" sweep).
-Add "since <date> / past month / latest" style qualifiers to those queries, scaled to the
-45-day window. Unlike those query-built seeds, filing-URL seeds are exempt: the priority seeds
-bullet's `urlPatterns` matches are attempted as-is, with no date qualifier and no drop, because
-a fresh 10-K or 10-Q legitimately cites and discusses older reporting periods. DROP any
-non-filing lead whose document date is older than the window (log it in `skipped[]` as
-`"lead '<x>' older than recency window (<date>)"`), exactly like Daily mode step 1.
+**Recency window (live mode) — 7-day initial sweep.** Bias the round-1 search-query seeds
+(free-web query seeds, standard slices, headline slices, forward-signal slices) and the on-topic
+lead filter (step 4) to the last **N days** (a dial; default `recencyDays = 7`). Add
+"since <date> / past week / latest" style qualifiers to those queries, scaled to the 7-day
+window. This 7-day net is the **initial sweep**, not a hard boundary — it decides what the
+round-1 seeds *reach for*, not what may ultimately be kept.
+
+Filing-URL seeds are exempt from the sweep: the priority seeds bullet's `urlPatterns` matches
+are attempted as-is, with no date qualifier and no age check, because a fresh 10-K or 10-Q
+legitimately cites and discusses older reporting periods. Filing seeds never need a
+`pursuedDespiteAge` entry.
+
+**Discretionary pursuit (documents older than the 7-day sweep).** A non-filing lead whose
+document date is older than the 7-day window is **no longer auto-dropped**. The agent MAY chase
+and keep it when it judges the content materially worth it (e.g. a still-authoritative
+spec/pricing page, or a structural announcement with no fresher restatement). Discretion is not
+free: when you KEEP such a document, you MUST record it — never silent (Part 29). Log each kept
+older-than-sweep document in `pursuedDespiteAge[]` (written to the snapshot envelope, step 5)
+with its age and a one-line justification:
+`{"ref": "<url-or-lead>", "date": "<doc date>", "ageDays": <n>, "reason": "<one line: why this stale doc earns its place>"}`.
+This is **symmetric to `skipped[]`**: `skipped[]` records what a cap or window turned *away*;
+`pursuedDespiteAge[]` records what the sweep would have turned away but the agent chose to
+*keep*. An older document you do NOT keep needs no entry — it simply was not gathered. This
+closes the v4 gap where a 320-day page entered the corpus with zero recency record.
 
 If no manifest: build only the standard entity×metric slices (original behavior).
 

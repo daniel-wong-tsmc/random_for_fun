@@ -61,6 +61,7 @@ def _apply_judgment_to_book(book, entry_id, **kwargs):
                 "falsifiableTrigger": kwargs["trigger"],
                 "sensitivity": kwargs["sensitivity"],
                 "streak": kwargs["streak"],
+                "lastPaceAsOf": kwargs["as_of"],   # F78 S2: applied signal counts -> anchors here
                 "lastChangedAsOf": kwargs["as_of"],
                 "lastJudgedAsOf": kwargs["as_of"],
                 "pendingChallenge": None,
@@ -319,11 +320,13 @@ def test_adjusted_rewrites_statement_on_rebuild(tmp_path):
     assert entry.streak == 1  # conviction unchanged, no reversal: 0 + 1
 
 
-def test_streak_is_code_derived_from_record_and_prior_state(tmp_path):
+def test_streak_is_code_derived_in_calendar_days(tmp_path):
     """streak is NOT in the record contract; apply_record derives it: reset to 1 on a
-    conviction change or a non-zero direction reversal, else prior streak + 1."""
+    conviction change or a non-zero direction reversal (re-anchoring lastPaceAsOf); on a
+    same-direction confirmation it advances ONLY when the signal is >= MIN_PACE_GAP_DAYS
+    (21) after the prior counted signal, else it holds."""
     thesis_id = "nvda-demand-durability"
-    book1 = seed_book(SEED_PATH, CATEGORY_ID, AS_OF_1)
+    book1 = seed_book(SEED_PATH, CATEGORY_ID, AS_OF_1)   # AS_OF_1 = 2026-07-03
     store = ThesisStore(tmp_path / "theses" / CATEGORY_ID)
     store.root.mkdir(parents=True, exist_ok=True)
 
@@ -333,24 +336,30 @@ def test_streak_is_code_derived_from_record_and_prior_state(tmp_path):
 
     append(_seeded_record(book1, AS_OF_1))
 
-    # two reaffirmed cycles, conviction unchanged -> streak increments 1, 2
-    append(_judgment_record(thesis_id, as_of="2026-07-10", verdict="reaffirmed", conviction="medium"))
+    # first reaffirm: seeded entry has no prior counted signal -> counts -> streak 1
+    append(_judgment_record(thesis_id, as_of="2026-08-01", verdict="reaffirmed", conviction="medium"))
     assert store.rebuild().get(thesis_id).streak == 1
-    append(_judgment_record(thesis_id, as_of="2026-07-17", verdict="reaffirmed", conviction="medium"))
+
+    # only 7 days later: too soon -> streak HOLDS at 1
+    append(_judgment_record(thesis_id, as_of="2026-08-08", verdict="reaffirmed", conviction="medium"))
+    assert store.rebuild().get(thesis_id).streak == 1
+
+    # 31 days after the last counted signal (2026-08-01) -> advances to 2
+    append(_judgment_record(thesis_id, as_of="2026-09-01", verdict="reaffirmed", conviction="medium"))
     assert store.rebuild().get(thesis_id).streak == 2
 
-    # strengthened WITH conviction change -> reset to 1, lastDirection +1
-    append(_judgment_record(thesis_id, as_of="2026-07-24", verdict="strengthened", conviction="high"))
+    # strengthened WITH conviction change -> reset to 1, lastDirection +1 (re-anchors clock)
+    append(_judgment_record(thesis_id, as_of="2026-09-25", verdict="strengthened", conviction="high"))
     entry = store.rebuild().get(thesis_id)
     assert entry.streak == 1
     assert entry.lastDirection == 1
 
-    # same direction, conviction unchanged -> increments to 2
-    append(_judgment_record(thesis_id, as_of="2026-07-31", verdict="strengthened", conviction="high"))
+    # same direction, conviction unchanged, 25-day gap -> advances to 2
+    append(_judgment_record(thesis_id, as_of="2026-10-20", verdict="strengthened", conviction="high"))
     assert store.rebuild().get(thesis_id).streak == 2
 
     # pure direction reversal (conviction unchanged) -> reset to 1, lastDirection -1
-    append(_judgment_record(thesis_id, as_of="2026-08-07", verdict="weakened", conviction="high"))
+    append(_judgment_record(thesis_id, as_of="2026-11-15", verdict="weakened", conviction="high"))
     entry = store.rebuild().get(thesis_id)
     assert entry.streak == 1
     assert entry.lastDirection == -1

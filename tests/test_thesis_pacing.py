@@ -90,3 +90,31 @@ def test_pace_counts_handles_mixed_grain_labels():
     # month-grain vs day-grain, resolved by period_end, never lexicographically.
     assert _pace_counts("2026-06", "2026-07-31") is True        # Jun30 -> Jul31 = 31 days
     assert _pace_counts("2026-07", "2026-07-15") is False       # Jul31 -> Jul15 = -16 days
+
+
+# --- streak pacing (via apply_answer's applied path) -----------------------------------
+
+def test_streak_holds_when_confirmation_is_too_soon():
+    # a same-direction reaffirm only 7 days after the last counted signal must NOT advance.
+    entry = _entry("t", conviction="medium", lastDirection=0, streak=4,
+                   lastPaceAsOf="2026-07-01", lastChangedAsOf="2026-07-01")
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", verdict="reaffirmed")),
+        as_of="2026-07-08", findings_by_id=SEC, history=[],
+    )
+    e = new_book.get("t")
+    assert records[0]["applied"] is True
+    assert e.streak == 4                      # held, not 5
+    assert e.lastPaceAsOf == "2026-07-01"     # clock still runs from the prior counted signal
+
+
+def test_streak_advances_when_confirmation_clears_the_gap():
+    entry = _entry("t", conviction="medium", lastDirection=0, streak=4,
+                   lastPaceAsOf="2026-07-01", lastChangedAsOf="2026-07-01")
+    new_book, records, _ = apply_answer(
+        _book(entry), _answer(_judgment("t", verdict="reaffirmed")),
+        as_of="2026-08-01", findings_by_id=SEC, history=[],   # 31 days after 2026-07-01
+    )
+    e = new_book.get("t")
+    assert e.streak == 5
+    assert e.lastPaceAsOf == "2026-08-01"     # re-anchored

@@ -162,10 +162,14 @@ def apply_record(book: ThesisBook, record: dict) -> ThesisBook:
     the anti-whipsaw business logic that produced them. Everything else is code-derived
     here from the prior entry state + the record (the spec: streak is code-computed and
     the record shape has no streak field):
-      - `streak` (applied records only): reset to 1 when the record's after-conviction
-        differs from the entry's prior conviction, or when the verdict's direction is a
-        non-zero reversal of a non-zero prior lastDirection; otherwise entry.streak + 1.
-        Non-applied records leave streak unchanged.
+      - `streak` and `lastPaceAsOf` (applied records only): reset streak to 1 when the
+        record's after-conviction differs from the entry's prior conviction, or when the
+        verdict's direction is a non-zero reversal of a non-zero prior lastDirection — a
+        genuine change re-anchors lastPaceAsOf to this record's asOf. Otherwise a
+        same-direction confirmation advances the streak (entry.streak + 1) and re-anchors
+        lastPaceAsOf ONLY when it is >= MIN_PACE_GAP_DAYS after the prior counted signal
+        (entry.lastPaceAsOf); a closer-spaced re-run holds both (F78 Stage 2 calendar-day
+        pacing). Non-applied records leave streak and lastPaceAsOf unchanged.
       - `lastDirection` via DIRECTION[verdict], applied only when non-zero.
       - an `adjusted` verdict's new `statement`, parsed from an `"ADJUSTED:"`-prefixed
         rationale.
@@ -236,7 +240,19 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
             direction = DIRECTION[verdict]
             conviction_changed = record["conviction"] != entry.conviction
             reversal = direction != 0 and entry.lastDirection != 0 and direction != entry.lastDirection
-            streak = 1 if (conviction_changed or reversal) else entry.streak + 1
+            # F78 Stage 2: streak is paced in CALENDAR DAYS. A conviction change or a
+            # direction reversal is a genuine event -> reset to 1 and re-anchor the pace
+            # clock. A same-direction confirmation advances only when it clears the day-gap
+            # from the prior counted signal; otherwise it holds and the clock keeps running.
+            if conviction_changed or reversal:
+                streak = 1
+                last_pace = record["asOf"]
+            elif _pace_counts(entry.lastPaceAsOf, record["asOf"]):
+                streak = entry.streak + 1
+                last_pace = record["asOf"]
+            else:
+                streak = entry.streak
+                last_pace = entry.lastPaceAsOf
             updates.update({
                 "statement": statement,
                 "lastVerdict": verdict,
@@ -245,6 +261,7 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
                 "falsifiableTrigger": record["falsifiableTrigger"],
                 "sensitivity": record["sensitivity"],
                 "streak": streak,
+                "lastPaceAsOf": last_pace,
                 "lastChangedAsOf": record["asOf"],
                 "pendingChallenge": None,
             })

@@ -266,3 +266,40 @@ def _gcp_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
             region="Americas", term="on_demand", usd_per_gpu_hour=round(price, 6),
             price_date=pdate, as_of=as_of, instance=name))
     return sorted(points, key=lambda p: (p.model, p.instance))
+
+
+# --- CoreWeave ------------------------------------------------------------------------
+# Best-effort: the priced rows carry a BLANK Region (the NORTH AMERICA label lands on
+# other, price-blank rows), and the Instance Price feed goes stale after ~260310. We
+# relax the region (CoreWeave is a single US-centric neocloud) and take the nearest
+# PRICED date at/before as_of. Staleness is surfaced via price_date (Task 6 filters it).
+
+def _coreweave_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    path = Path(data_dir) / "coreweave_gpu_price.csv"
+    if not path.exists():
+        return []
+    rows = _read_csv(path)
+    h = {name: i for i, name in enumerate(rows[0])}
+    gi, ci, ip, di = h["GPU Model"], h["GPU Count"], h["Instance Price (Per Hour)"], h["date"]
+    target = _label_to_yymmdd(as_of)
+    by_model: dict[str, dict[str, float]] = defaultdict(dict)
+    for row in rows[1:]:
+        price = _money(row[ip])
+        count = _lead_int(row[ci])
+        if price is None or not count:
+            continue
+        model = _match_model(row[gi])
+        if model is None:
+            continue
+        by_model[model][row[di]] = price / count
+    points: list[PricePoint] = []
+    for model, series in by_model.items():
+        pdate = _nearest_at_or_before(target, sorted(series))
+        if pdate is None:
+            continue
+        points.append(PricePoint(
+            provider="coreweave", vendor="nvidia", model=model, gpu_class="gpu",
+            region="NORTH AMERICA (CoreWeave default)", term="on_demand",
+            usd_per_gpu_hour=round(series[pdate], 6), price_date=pdate, as_of=as_of,
+            instance=model))
+    return sorted(points, key=lambda p: (p.model,))

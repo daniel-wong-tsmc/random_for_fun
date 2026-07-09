@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from gpu_agent import reader
+from gpu_agent.asof import days_between, period_end
 from gpu_agent.schema.finding import Finding
 
 # --- models ---
@@ -14,6 +15,29 @@ VERDICTS = ("reaffirmed", "strengthened", "weakened", "adjusted", "broken")
 DIRECTION = {"strengthened": 1, "weakened": -1, "broken": -1, "reaffirmed": 0, "adjusted": 0}
 LENSES = ("demand", "supply", "competitive", "risk")
 CONVICTION_RANK = {"low": 0, "medium": 1, "high": 2}
+
+# --- F78 Stage 2: calendar-day thesis pacing (D5; provisional — recalibrate later) ---
+# The retired monthly flagship advanced pacing once per ~30-day cycle; running the brief
+# daily would advance ~30x faster. We re-express "one cycle" as a minimum calendar-day gap
+# (from asOf period-ends, never the wall clock), so a same-direction signal only counts
+# toward the streak / a conviction step / promotion when it is at least this many days after
+# the prior counted signal. 21 days sits below the shortest month (Feb, 28d) so a monthly
+# cadence still counts every cycle — reproducing today's behavior — and well above the
+# daily/weekly cadence so runs no longer inflate pacing.
+MIN_PACE_GAP_DAYS = 21        # streak advance + conviction-step gate
+MIN_PROMOTION_SPAN_DAYS = 21  # rule-5 persistence: judged asOfs must span >= this many days
+
+
+def _pace_counts(last_pace_asof: str, as_of: str) -> bool:
+    """True iff a signal at `as_of` COUNTS toward pacing: it is at least MIN_PACE_GAP_DAYS
+    (calendar days, via period-ends) after the prior counted signal `last_pace_asof`. An
+    entry with no prior counted signal (freshly seeded/proposed: last_pace_asof == "")
+    always counts, so a thesis's first judgment is unchanged. A negative gap (out-of-order
+    mixed-grain labels) does not count — the streak safely holds rather than crashing."""
+    if not last_pace_asof:
+        return True
+    return days_between(as_of, last_pace_asof) >= MIN_PACE_GAP_DAYS
+
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -36,6 +60,8 @@ class ThesisEntry(BaseModel):
     lastDirection: Literal[-1, 0, 1] = 0
     pendingChallenge: Optional[PendingChallenge] = None
     streak: int = 0
+    lastPaceAsOf: str = ""  # F78 S2: asOf of the last signal that COUNTED toward pacing;
+                            # code-derived (like streak), defaults empty (first signal counts)
     mechanism: str
     falsifiableTrigger: str
     sensitivity: str

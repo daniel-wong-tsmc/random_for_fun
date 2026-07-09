@@ -1,0 +1,92 @@
+# tests/test_thesis_pacing.py
+"""F78 Stage 2: calendar-day thesis pacing. streak advance, conviction swing, and rule-5
+promotion are measured in CALENDAR DAYS derived from asOf labels, not per cycle."""
+import pytest
+
+from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact, Kind
+from gpu_agent.thesis import (
+    MIN_PACE_GAP_DAYS,
+    MIN_PROMOTION_SPAN_DAYS,
+    ThesisAnswer,
+    ThesisBook,
+    ThesisEntry,
+    ThesisJudgment,
+    _pace_counts,
+    apply_answer,
+)
+
+CATEGORY_ID = "chips.merchant-gpu"
+
+
+def _evidence(tier, url="https://example.com/a"):
+    return Evidence(source="Example", url=url, date="2026-07-01", excerpt="e", tier=tier)
+
+
+def _finding(fid, *, evidence, indicator="D2"):
+    return Finding(
+        id=fid, statement="x", kind=Kind.observed, trend="flat", why="w",
+        impact=Impact(targets=["nvidia"], direction="negative", mechanism="m"),
+        confidence=Confidence(level="medium", basis="b"),
+        asOf="2026-07", indicatorId=indicator, side="demand",
+        polarityDemand=0, polaritySupply=-1, magnitude=2, entity="nvidia",
+        observedAt="2026-07-01", capturedAt="2026-07-01", evidence=evidence,
+    )
+
+
+def _fd(fid, domain):
+    return _finding(fid, evidence=[_evidence("secondary", url=f"https://{domain}/p")])
+
+
+def _entry(entry_id, **kw):
+    base = dict(
+        title="T", statement="s", lens="demand", status="registered",
+        conviction="medium", lastDirection=0, streak=0,
+        mechanism="m", falsifiableTrigger="Reassessed next quarter.",
+        sensitivity="s", createdAsOf="2026-05-01", lastChangedAsOf="2026-05-01",
+    )
+    base.update(kw)
+    return ThesisEntry(id=entry_id, **base)
+
+
+def _book(*entries):
+    return ThesisBook(categoryId=CATEGORY_ID, entries=list(entries))
+
+
+def _judgment(thesis_id, *, verdict="reaffirmed", finding_ids=("f-1",), rationale="r"):
+    return ThesisJudgment(
+        thesisId=thesis_id, verdict=verdict, rationale=rationale,
+        findingIds=list(finding_ids), mechanism="m",
+        falsifiableTrigger="Reassessed next quarter.", sensitivity="s",
+    )
+
+
+def _answer(*judgments):
+    return ThesisAnswer(judgments=list(judgments), proposed=[])
+
+
+SEC = {"f-1": _finding("f-1", evidence=[_evidence("secondary")])}
+
+
+def test_dials_are_the_provisional_defaults():
+    assert MIN_PACE_GAP_DAYS == 21
+    assert MIN_PROMOTION_SPAN_DAYS == 21
+
+
+def test_pace_counts_first_signal_always_counts():
+    # no prior counted signal (freshly seeded/proposed: lastPaceAsOf == "") -> counts,
+    # so a thesis's FIRST judgment behaves exactly as before this change.
+    assert _pace_counts("", "2026-07-03") is True
+
+
+def test_pace_counts_below_gap_does_not_count():
+    assert _pace_counts("2026-07-01", "2026-07-21") is False    # 20 days < 21
+
+
+def test_pace_counts_at_gap_boundary_counts():
+    assert _pace_counts("2026-07-01", "2026-07-22") is True     # exactly 21 days
+
+
+def test_pace_counts_handles_mixed_grain_labels():
+    # month-grain vs day-grain, resolved by period_end, never lexicographically.
+    assert _pace_counts("2026-06", "2026-07-31") is True        # Jun30 -> Jul31 = 31 days
+    assert _pace_counts("2026-07", "2026-07-15") is False       # Jul31 -> Jul15 = -16 days

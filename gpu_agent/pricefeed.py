@@ -191,6 +191,12 @@ def _aws_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
 # --- Oracle ---------------------------------------------------------------------------
 # Oracle's "GPU Price Per Hour **" is ALREADY per-GPU; no region/term columns (single
 # region, on-demand implied). Shape carries a trailing "\n(new)" to strip.
+# Model match runs over "<shape> <gtext>" JOINTLY: the GB200/GB300 NVL72 rack shapes name
+# only the constituent chip in their GPUs text ("4 x Nvidia B200 189GB (NVL72)"), so the
+# shape's GB200/GB300 token (ranked ahead of bare B200/B300 in _MODEL_PATTERNS) must win —
+# otherwise the rack SKU is mislabeled B200/B300 and folded into that headline (pinned map
+# line 79 / self-review gap #2: GB200 is its own non-headline model). Legacy shapes whose
+# NAME lacks a token (BM.GPU4.8, VM.GPU3.x, VM.GPU2.x) still resolve via the GPUs text.
 
 def _oracle_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
     path = Path(data_dir) / "oracle_gpu_price.csv"
@@ -213,7 +219,7 @@ def _oracle_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
         if pdate is None:
             continue
         price, gtext = series[pdate]
-        model = _match_model(gtext) or _match_model(shape)
+        model = _match_model(f"{shape} {gtext}")
         if model is None:
             continue
         points.append(PricePoint(

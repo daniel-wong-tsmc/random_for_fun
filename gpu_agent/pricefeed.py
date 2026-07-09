@@ -186,3 +186,38 @@ def _aws_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
             region=region, term="on_demand", usd_per_gpu_hour=round(price, 6),
             price_date=pdate, as_of=as_of, instance=instance))
     return sorted(points, key=lambda p: (p.model, p.instance))
+
+
+# --- Oracle ---------------------------------------------------------------------------
+# Oracle's "GPU Price Per Hour **" is ALREADY per-GPU; no region/term columns (single
+# region, on-demand implied). Shape carries a trailing "\n(new)" to strip.
+
+def _oracle_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    path = Path(data_dir) / "oracle_gpu_price.csv"
+    if not path.exists():
+        return []
+    rows = _read_csv(path)
+    h = {name: i for i, name in enumerate(rows[0])}
+    si, gi, pi, di = h["Shape"], h["GPUs"], h["GPU Price Per Hour **"], h["date"]
+    target = _label_to_yymmdd(as_of)
+    by_shape: dict[str, dict[str, tuple[float, str]]] = defaultdict(dict)
+    for row in rows[1:]:
+        price = _money(row[pi])
+        if price is None:
+            continue
+        shape = row[si].split("\n")[0].strip()
+        by_shape[shape][row[di]] = (price, row[gi])
+    points: list[PricePoint] = []
+    for shape, series in by_shape.items():
+        pdate = _nearest_at_or_before(target, sorted(series))
+        if pdate is None:
+            continue
+        price, gtext = series[pdate]
+        model = _match_model(gtext) or _match_model(shape)
+        if model is None:
+            continue
+        points.append(PricePoint(
+            provider="oracle", vendor=_vendor(gtext), model=model, gpu_class="gpu",
+            region="(global)", term="on_demand", usd_per_gpu_hour=round(price, 6),
+            price_date=pdate, as_of=as_of, instance=shape))
+    return sorted(points, key=lambda p: (p.model, p.instance))

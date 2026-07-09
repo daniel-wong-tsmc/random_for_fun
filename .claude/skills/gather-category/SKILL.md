@@ -277,10 +277,14 @@ still the default). It exists because *noise control is the product*: the daily 
 brings it in cheaply, and — via the two dedup layers — surfaces only what actually changed, logging the rest.
 Trigger it when the caller asks for a daily/recency run (e.g. "daily merchant-gpu sweep").
 
-**1. Recency window.** Bias every seed search and the on-topic filter to the last **N days** (a dial;
-default `recencyDays = 7`). Add "since <date> / past week / latest" style qualifiers to the round-1 queries and
-DROP any lead whose document date is older than the window (log it in `skipped[]` as
-`"lead '<x>' older than recency window (<date>)"`). This is a "what's new" sweep, not a full re-crawl.
+**1. Recency window (the shared 7-day sweep).** Recency behavior is now **identical to the
+standard path** — see the standard "Round building" block's "Recency window (live mode) — 7-day
+initial sweep" and "Discretionary pursuit" rules. Bias every seed search and the on-topic filter
+to the last 7 days (`recencyDays = 7`) with "since <date> / past week / latest" qualifiers; a
+non-filing lead older than the sweep is **not hard-dropped** but may be pursued by judgment and,
+when kept, logged in `pursuedDespiteAge[]` (filing-URL seeds sweep-exempt). Daily mode no longer
+owns a separate recency rule; it differs from the standard path only in its **caps** (step 4)
+and **dedup wiring** (step 5). This is still a "what's new" sweep, not a full re-crawl.
 
 **2. Cadence prioritization.** Prioritize the indicators tagged **`daily`/`weekly`** in the 4-2 `cadenceHorizon`
 map, read via `registry/horizon.py`:

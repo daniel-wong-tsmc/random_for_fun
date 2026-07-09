@@ -221,3 +221,48 @@ def _oracle_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
             region="(global)", term="on_demand", usd_per_gpu_hour=round(price, 6),
             price_date=pdate, as_of=as_of, instance=shape))
     return sorted(points, key=lambda p: (p.model, p.instance))
+
+
+# --- GCP ------------------------------------------------------------------------------
+# The name encodes model + pricing-mode + region. The on-demand ("running in ...", no
+# Commitment/Spot/DWS prefix) + Americas SKUs are exactly these four; price is per-GPU.
+# NOTE (data fact): the GCP file contains NO TPU / custom silicon — every SKU is H100/
+# H200/B200 Nvidia. So there is no GCP custom-silicon series (see Task 6).
+GCP_ONDEMAND_AMERICAS = {
+    "Nvidia H100 80GB GPU running in Americas": "H100",
+    "Nvidia H100 80GB Plus GPU running in Americas": "H100",
+    "H200 141GB GPU running in Americas": "H200",
+    "A4 Nvidia B200 (1 gpu slice) running in Americas": "B200",
+}
+
+
+def _gcp_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    path = Path(data_dir) / "gcp_gpu_price.csv"
+    if not path.exists():
+        return []
+    target = _label_to_yymmdd(as_of)
+    by_name: dict[str, dict[str, str]] = defaultdict(dict)
+    with open(path, newline="", encoding="utf-8") as f:
+        r = csv.reader(f)
+        header = next(r)
+        ni, pi, di = header.index("name"), header.index("price"), header.index("date")
+        for row in r:
+            name = row[ni]
+            if name in GCP_ONDEMAND_AMERICAS:
+                by_name[name][row[di]] = row[pi]
+    points: list[PricePoint] = []
+    for name, model in GCP_ONDEMAND_AMERICAS.items():
+        series = by_name.get(name)
+        if not series:
+            continue
+        pdate = _nearest_at_or_before(target, sorted(series))
+        if pdate is None:
+            continue
+        price = _money(series[pdate])            # per-GPU already; _money also tolerates plain floats
+        if price is None:
+            continue
+        points.append(PricePoint(
+            provider="gcp", vendor="nvidia", model=model, gpu_class="gpu",
+            region="Americas", term="on_demand", usd_per_gpu_hour=round(price, 6),
+            price_date=pdate, as_of=as_of, instance=name))
+    return sorted(points, key=lambda p: (p.model, p.instance))

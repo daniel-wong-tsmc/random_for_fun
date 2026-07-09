@@ -303,3 +303,80 @@ def _coreweave_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]
             usd_per_gpu_hour=round(series[pdate], 6), price_date=pdate, as_of=as_of,
             instance=model))
     return sorted(points, key=lambda p: (p.model,))
+
+
+# --- aggregation (public API) ---------------------------------------------------------
+
+def load_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    """Every normalized PricePoint across all four providers for `as_of` (nearest scrape
+    at/before the label). Deterministic; read-only."""
+    return (_aws_points(as_of, data_dir) + _coreweave_points(as_of, data_dir)
+            + _gcp_points(as_of, data_dir) + _oracle_points(as_of, data_dir))
+
+
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    if n == 0:
+        return None
+    mid = n // 2
+    return xs[mid] if n % 2 else (xs[mid - 1] + xs[mid]) / 2
+
+
+def _fresh(points, as_of, max_staleness_days):
+    """Keep points whose selected price_date is within max_staleness_days of as_of
+    (measured in calendar days via the asOf convention — never wall-clock)."""
+    out = []
+    for p in points:
+        pd_label = datetime.datetime.strptime(p.price_date, "%y%m%d").date().isoformat()
+        if 0 <= days_between(as_of, pd_label) <= max_staleness_days:
+            out.append(p)
+    return out
+
+
+def headline_prices(as_of: str, data_dir=DEFAULT_DATA_DIR,
+                    max_staleness_days: int = 45) -> dict[str, float]:
+    """Representative $/GPU-hr per headline model (H100/H200/B200/B300): the median of
+    per-provider medians over fresh gpu-class points. A model absent from the data is
+    omitted. Two-level median keeps a provider with several SKUs (e.g. GCP's H100 base +
+    Plus) as a single vote."""
+    pts = _fresh([p for p in load_points(as_of, data_dir)
+                  if p.gpu_class == "gpu" and p.model in HEADLINE_MODELS],
+                 as_of, max_staleness_days)
+    out: dict[str, float] = {}
+    for model in HEADLINE_MODELS:
+        prov_medians = []
+        for prov in PROVIDERS:
+            vals = [p.usd_per_gpu_hour for p in pts if p.model == model and p.provider == prov]
+            m = _median(vals)
+            if m is not None:
+                prov_medians.append(m)
+        agg = _median(prov_medians)
+        if agg is not None:
+            out[model] = round(agg, 4)
+    return out
+
+
+def price_delta(as_of: str, lookback: str, data_dir=DEFAULT_DATA_DIR,
+                max_staleness_days: int = 45) -> dict[str, dict]:
+    """Per headline model: current headline price at `as_of`, prior at `lookback`, and the
+    absolute + percent change. Missing either side -> deltas are None (honest 'no
+    comparison', never a fabricated 0)."""
+    cur = headline_prices(as_of, data_dir, max_staleness_days)
+    prev = headline_prices(lookback, data_dir, max_staleness_days)
+    out: dict[str, dict] = {}
+    for model in HEADLINE_MODELS:
+        c, p = cur.get(model), prev.get(model)
+        if c is None or p is None:
+            out[model] = {"current": c, "prior": p, "abs_delta": None, "pct_delta": None}
+        else:
+            out[model] = {"current": c, "prior": p, "abs_delta": round(c - p, 4),
+                          "pct_delta": round((c - p) / p * 100, 2) if p else None}
+    return out
+
+
+def custom_silicon_series(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    """The custom-silicon points (AWS Trainium) as a separate labeled series — the
+    substitution signal (§5.6 Optional). NOTE: GCP TPU is NOT present in the scrape data,
+    so this series is Trainium-only today."""
+    return [p for p in load_points(as_of, data_dir) if p.gpu_class == "custom_silicon"]

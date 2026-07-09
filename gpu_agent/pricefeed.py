@@ -117,3 +117,72 @@ def _vendor(text: str) -> str:
     if "amd" in low or "mi300" in low or "mi355" in low:
         return "amd"
     return "nvidia"
+
+
+# --- shared CSV reader ----------------------------------------------------------------
+
+def _read_csv(path: Path) -> list[list[str]]:
+    with open(path, newline="", encoding="utf-8") as f:
+        return list(csv.reader(f))
+
+
+def _first_available(order, mapping):
+    """First key in `order` that is present in `mapping`, else None (region fallback)."""
+    for key in order:
+        if key in mapping:
+            return key
+    return None
+
+
+# --- AWS ------------------------------------------------------------------------------
+# The CSV has NO GPU-count column, so this table is the AUTHORITY for per-GPU
+# normalization. Counts are pinned from AWS instance specs and sanity-checked in Task 7.
+# (vendor, model, gpu_class, gpu_count)
+AWS_INSTANCE_MAP = {
+    "p5.48xlarge":      ("nvidia", "H100", "gpu", 8),
+    "p5en.48xlarge":    ("nvidia", "H200", "gpu", 8),
+    "p6-b200.48xlarge": ("nvidia", "B200", "gpu", 8),
+    "p6-b300.48xlarge": ("nvidia", "B300", "gpu", 8),
+    "trn1.2xlarge":     ("aws", "Trainium1", "custom_silicon", 1),
+    "trn1.32xlarge":    ("aws", "Trainium1", "custom_silicon", 16),
+    "trn1n.32xlarge":   ("aws", "Trainium1", "custom_silicon", 16),
+    "trn2.48xlarge":    ("aws", "Trainium2", "custom_silicon", 16),
+    "u-p6e-gb200x36":   ("nvidia", "GB200", "gpu", 36),
+    "u-p6e-gb200x72":   ("nvidia", "GB200", "gpu", 72),
+}
+# Preferred USA region, then documented fallbacks (some instances live only in Ohio/Oregon).
+AWS_REGION_FALLBACKS = ["US East (N. Virginia)", "US East (Ohio)", "US West (Oregon)"]
+
+
+def _aws_points(as_of: str, data_dir=DEFAULT_DATA_DIR) -> list[PricePoint]:
+    path = Path(data_dir) / "aws_price.csv"
+    if not path.exists():
+        return []
+    rows = _read_csv(path)
+    date_cols = rows[0][3:]
+    target = _label_to_yymmdd(as_of)
+    # instance -> region -> {date: price} over non-blank on_demand cells only
+    by_inst: dict[str, dict[str, dict[str, str]]] = defaultdict(dict)
+    for row in rows[1:]:
+        instance, term, region = row[0], row[1], row[2]
+        if term != "on_demand" or instance not in AWS_INSTANCE_MAP:
+            continue
+        series = {date_cols[i]: v for i, v in enumerate(row[3:]) if v.strip()}
+        if series:
+            by_inst[instance][region] = series
+    points: list[PricePoint] = []
+    for instance, regions in by_inst.items():
+        vendor, model, gpu_class, gpu_count = AWS_INSTANCE_MAP[instance]
+        region = _first_available(AWS_REGION_FALLBACKS, regions)
+        if region is None:
+            continue                                   # no USA on_demand row for this instance
+        series = regions[region]
+        pdate = _nearest_at_or_before(target, sorted(series))
+        if pdate is None:
+            continue
+        price = float(series[pdate]) / gpu_count
+        points.append(PricePoint(
+            provider="aws", vendor=vendor, model=model, gpu_class=gpu_class,
+            region=region, term="on_demand", usd_per_gpu_hour=round(price, 6),
+            price_date=pdate, as_of=as_of, instance=instance))
+    return sorted(points, key=lambda p: (p.model, p.instance))

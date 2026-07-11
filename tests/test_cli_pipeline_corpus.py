@@ -52,7 +52,7 @@ def _extract_fresh(tmp_path):
 
 
 def _seed_store(tmp_path):
-    """One in-window store finding on a dimension-less, non-scoring indicator
+    """One surfaced store finding on a dimension-less, non-scoring indicator
     (flopsPerDollar): lands in scorecard.findings without touching anchors,
     citation groups, or DMI/SMI — the recorded judge fixture replays unchanged."""
     store = _store(tmp_path / "store")
@@ -102,7 +102,7 @@ def test_pipeline_corpus_merges_store_finding_and_matches_corpus_cli(tmp_path):
              "--corpus-store", store_root, "--corpus-report", str(report_p),
              "--out", str(tmp_path / "out"))
     assert r.returncode == 0, r.stderr
-    assert "corpus: store 1 in-window" in r.stderr
+    assert "corpus: store 1 aged" in r.stderr
     sc = json.loads(next((tmp_path / "out" / "chips.merchant-gpu").glob("*.json"))
                     .read_text("utf-8"))
     assert [f["id"] for f in sc["findings"]] == merged_ids       # the equality pin

@@ -48,8 +48,9 @@ from gpu_agent.evals.harness import (
     BASELINE_SCHEMA_VERSION, build_grade_prompt, build_report, evaluate_v2,
     gate_brain_answer, load_baseline, rebaseline_v2, record_grades)
 from gpu_agent.evals.prompt_hash import compute_prompt_hashes
+from gpu_agent.asof import AsOfError
 from gpu_agent.corpus import (
-    WINDOW_DAYS_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
+    SALIENCE_FLOOR_DEFAULT, CorpusError, assemble as corpus_assemble, render_coverage_text)
 
 # F56-core: --as-of is embedded verbatim in doc/finding ids (F52), which become
 # snapshot + FindingStore filenames -- a fat-fingered "2026/07/03" would mint a
@@ -174,6 +175,7 @@ def _corpus(args) -> int:
     merged corpus + deduped-fresh stream + CorpusReport. Every skip/drop is a stderr
     line AND a report field — nothing silent."""
     registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
     fresh = []
     if args.fresh:
         if not args.out_merged:
@@ -183,19 +185,21 @@ def _corpus(args) -> int:
                  for d in json.loads(pathlib.Path(args.fresh).read_text("utf-8"))]
     try:
         result = corpus_assemble(args.store, args.category, args.as_of, fresh,
-                                 registry, window_days=args.window_days)
-    except CorpusError as e:
+                                 registry, horizons, salience_floor=args.salience_floor)
+    except (CorpusError, AsOfError) as e:
         print(f"gpu-agent corpus: error: {e}", file=sys.stderr)
         return 1
     report = result.report
     for sp in report.skippedPages:
         print(f"SKIPPED-PAGE {sp.id}: category={sp.category}", file=sys.stderr)
+    for sp in report.lifecycleExcluded:
+        print(f"LIFECYCLE-EXCLUDED {sp.id}: pruned page", file=sys.stderr)
     for fc in report.freshDuplicate:
         print(f"DROPPED-DUPLICATE {fc.findingId}: {fc.detail or 'duplicate'}", file=sys.stderr)
     for fid in report.idOverlaps:
         print(f"ID-OVERLAP {fid}: store copy kept", file=sys.stderr)
-    if report.outOfWindow:
-        print(f"out-of-window: {report.outOfWindow} store finding(s) excluded", file=sys.stderr)
+    if report.fadedOut:
+        print(f"faded-out: {report.fadedOut} store finding(s) below salience floor", file=sys.stderr)
     if args.report:
         pathlib.Path(args.report).write_text(report.model_dump_json(indent=2), "utf-8")
     if args.fresh:
@@ -204,7 +208,7 @@ def _corpus(args) -> int:
         if args.out_deduped_fresh:
             pathlib.Path(args.out_deduped_fresh).write_text(
                 json.dumps([f.model_dump() for f in result.dedupedFresh], indent=2), "utf-8")
-        print(f"store {len(report.storeIncluded)} in-window ({report.outOfWindow} out), "
+        print(f"store {len(report.storeIncluded)} aged ({report.fadedOut} faded), "
               f"fresh new {len(report.freshNew)} update {len(report.freshUpdate)} "
               f"duplicate {len(report.freshDuplicate)} -> merged {len(result.merged)}")
     else:
@@ -782,22 +786,23 @@ def _pipeline(args) -> int:
         a = a.model_copy(update={"asOf": args.as_of})
     registry, taxonomy = _load_registry()
     _gate_assignment(a, registry, taxonomy)
-    # F62: merge the windowed store corpus into the judged + scored findings. Same
+    # F62: merge the aged store corpus into the judged + scored findings. Same
     # deterministic assemble() the `corpus` command runs over the emit step's findings
     # file, so the emitted prompt's anchors/citation groups and the gate's match —
     # provided the session reused one --captured-at (run-cycle states this).
     if args.corpus_store:
+        horizons = IndicatorHorizons.load(REGISTRY_PATH)
         try:
             cres = corpus_assemble(args.corpus_store, a.category, args.as_of, findings,
-                                   registry, window_days=args.corpus_window_days)
-        except CorpusError as e:
+                                   registry, horizons, salience_floor=args.corpus_salience_floor)
+        except (CorpusError, AsOfError) as e:
             print(f"gpu-agent pipeline: corpus error: {e}", file=sys.stderr)
             return 1
         findings = cres.merged
         rep = cres.report
         if args.corpus_report:
             pathlib.Path(args.corpus_report).write_text(rep.model_dump_json(indent=2), "utf-8")
-        print(f"corpus: store {len(rep.storeIncluded)} in-window ({rep.outOfWindow} out), "
+        print(f"corpus: store {len(rep.storeIncluded)} aged ({rep.fadedOut} faded), "
               f"fresh new {len(rep.freshNew)} update {len(rep.freshUpdate)} "
               f"duplicate {len(rep.freshDuplicate)} -> merged {len(findings)}",
               file=sys.stderr)
@@ -1079,8 +1084,8 @@ def main(argv=None) -> int:
     co.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
     co.add_argument("--category", required=True, help="category id (scopes wiki pages)")
     co.add_argument("--as-of", required=True, help="run vintage (YYYY-MM or YYYY-MM-DD)")
-    co.add_argument("--window-days", type=int, default=WINDOW_DAYS_DEFAULT,
-                    help=f"corpus recency window in days (default {WINDOW_DAYS_DEFAULT})")
+    co.add_argument("--salience-floor", type=float, default=SALIENCE_FLOOR_DEFAULT,
+                    help=f"aged-corpus decay cutoff (default {SALIENCE_FLOOR_DEFAULT})")
     co.add_argument("--fresh", default=None,
                     help="this cycle's gated findings JSON; enables assemble mode")
     co.add_argument("--out-merged", default=None,
@@ -1147,10 +1152,10 @@ def main(argv=None) -> int:
                     help="skip the F67 analyst-voice lint on --recorded-judge (legacy recorded fixtures)")
     # F75 (v1.4): the whole-run --no-sufficiency bypass is removed — the gate always runs.
     pl.add_argument("--corpus-store", default=None,
-                    help="store root; when given, merge the windowed store corpus (F62) "
+                    help="store root; when given, merge the aged store corpus (F62) "
                          "into the judged + scored findings")
-    pl.add_argument("--corpus-window-days", type=int, default=WINDOW_DAYS_DEFAULT,
-                    help=f"corpus recency window in days (default {WINDOW_DAYS_DEFAULT})")
+    pl.add_argument("--corpus-salience-floor", type=float, default=SALIENCE_FLOOR_DEFAULT,
+                    help=f"aged-corpus decay cutoff (default {SALIENCE_FLOOR_DEFAULT})")
     pl.add_argument("--corpus-report", default=None, help="write the CorpusReport JSON here")
     cp = sub.add_parser("cycle-plan")
     cp.add_argument("--scope", required=True,

@@ -769,6 +769,22 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   triggers) and a dashboard-parity task — spec
   `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md` (amendment mechanics §5).
 
+## From the 2026-07-12 F78-stage-3 lane (F80 + one doc fix)
+
+- [ ] **F80 — Live-store data gap: `category: null` wiki pages silently excluded from every
+  corpus.** The F78-stage-3 shadow-check (2026-07-12, independently verified) found
+  `store/wiki/entity/nvidia.md` and `store/wiki/entity/multi.md` carry `category: null`, so
+  `enumerate_store`'s category filter (unchanged since F62's first commit) skips them whole —
+  NVIDIA, the anchor entity of chips.merchant-gpu, contributes ZERO store findings to its own
+  category corpus, under the old window rule and the new aged rule alike. Fix = tag the two
+  pages (a `store/` edit — decide the mechanism: hand edit with user sign-off vs a lint/repair
+  step in the next cycle; the corpus's SKIPPED-PAGE stderr lines have been reporting this on
+  every run). After tagging, the ~343-day NVIDIA spec-page fact correctly fades under aging
+  (eff 0.069 < 0.1 floor). *(Small but judgment-bearing: store writes are sacred.)*
+- [ ] Doc drift (non-blocking, plan-flagged): `.claude/skills/desk-config-and-flags/references/cli-verbs.md`
+  still documents the removed `--window-days`/`--corpus-window-days`; replace with
+  `--salience-floor`/`--corpus-salience-floor` once stage 3 merges.
+
 ## From the 2026-07-11 executive-format session (F79)
 
 - [ ] **F79 — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**

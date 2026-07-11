@@ -255,12 +255,14 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **F78 stage-3 lane CLAIMED + DISPATCHED (2026-07-12, interactive session).** Worktree
-  `.worktrees/f78-stage3-corpus`, branch `f78-stage3-corpus-ages-via-wiki`, base `fdbc7fb`
-  (main with stages 1/4/5 merged). Plan
-  `docs/superpowers/plans/2026-07-08-f78-stage3-corpus-ages-via-wiki.md`, subagent-driven.
-  Touches `gpu_agent/corpus.py`, `gpu_agent/cli.py` (corpus wiring), corpus tests. Completion
-  sentinel: `.superpowers/handoffs/f78-stage3-DONE.md`. STOPS before merge.
+- **F78 stage-3 lane DONE (2026-07-12) — READY TO MERGE, awaiting the user.** Worktree
+  `.worktrees/f78-stage3-corpus`, branch `f78-stage3-corpus-ages-via-wiki` @ `d0f35d3` (7 commits
+  on base `fdbc7fb`). Suite 1187/5, eval pin green, frozen-core diff empty; final opus
+  whole-branch review: Ready to merge. Sentinel `.superpowers/handoffs/f78-stage3-DONE.md`
+  (full delivered-list + follow-ups). Two follow-ups logged as F80 + a doc line in
+  `docs/fix-backlog.md` (live-store `category: null` on entity:nvidia/entity:multi; cli-verbs
+  doc drift). Mid-execution user-approved decisions recorded in the sentinel (any-page-keeps
+  dedup rule; red-import window between Tasks 1–3; WINDOW_DAYS_DEFAULT retirement path).
 - **F78 stages 4+5 MERGED to main by the user 2026-07-12** (`b9a3251`, `fdbc7fb`; suite
   1188/5; pushed). Stage-2 worktree (`f78-stage2`, another instance) looks complete
   ("suite green" commit, clean tree) but carries NO DONE sentinel — treat as that

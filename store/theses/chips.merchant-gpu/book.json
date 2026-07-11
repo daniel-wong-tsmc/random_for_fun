@@ -9,6 +9,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "demand",
       "mechanism": "AI buildout orders keep arriving faster than packaging and memory capacity can be turned into finished GPUs, so backlog and lead times stay stretched.",
@@ -17,7 +18,7 @@
       "sensitivity": "The pace at which advanced-packaging capacity closes the supply-demand gap.",
       "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
       "status": "registered",
-      "streak": 8,
+      "streak": 2,
       "title": "NVDA demand durability"
     },
     {
@@ -28,6 +29,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": -1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "weakened",
       "lens": "supply",
       "mechanism": "Because advanced packaging and high-bandwidth memory are the scarcest inputs, the number of accelerators that can ship each quarter tracks packaging and memory capacity rather than wafer starts or order volume.",
@@ -47,6 +49,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "strengthened",
       "lens": "competitive",
       "mechanism": "Large named hyperscaler commitments plus a competitive MI450 and Helios roadmap turn AMD into a real second supply source, pulling orders and share into a market that used to have one vendor.",
@@ -55,7 +58,7 @@
       "sensitivity": "Whether the signed Meta, OpenAI, Oracle, and Rackspace commitments convert to shipped, revenue-generating deployments on schedule.",
       "statement": "AMD converts its Instinct roadmap into material datacenter share.",
       "status": "registered",
-      "streak": 2,
+      "streak": 1,
       "title": "AMD credible second source"
     },
     {
@@ -66,6 +69,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": -1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "weakened",
       "lens": "competitive",
       "mechanism": "When hyperscalers deploy their own chips such as Trainium and TPU, they buy fewer merchant GPUs, which would slow NVIDIA's and AMD's demand growth.",
@@ -84,7 +88,7 @@
       "sensitivity": "Most sensitive to whether Trainium and TPU volumes grow faster than hyperscaler merchant-GPU orders.",
       "statement": "Hyperscaler custom silicon meaningfully displaces merchant-GPU demand growth.",
       "status": "registered",
-      "streak": 3,
+      "streak": 1,
       "title": "Custom ASIC substitution"
     },
     {
@@ -95,6 +99,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "demand",
       "mechanism": "Strong utilization keeps every available GPU busy, so added supply gets absorbed at existing rental rates instead of forcing price cuts.",
@@ -103,7 +108,7 @@
       "sensitivity": "Whether the second-half 2026 multi-vendor supply ramp outpaces demand and forces rental discounting.",
       "statement": "GPU rental/spot price levels hold up despite added supply.",
       "status": "registered",
-      "streak": 3,
+      "streak": 2,
       "title": "Pricing power persistence"
     },
     {
@@ -114,6 +119,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "strengthened",
       "lens": "risk",
       "mechanism": "U.S. rules on selling advanced accelerators to China remove a large market from NVIDIA and AMD and force inventory write-downs, directly shrinking addressable demand.",
@@ -122,7 +128,7 @@
       "sensitivity": "U.S.-China policy shifts that reopen or further close China accelerator sales.",
       "statement": "Export-control policy materially constrains addressable merchant-GPU demand.",
       "status": "registered",
-      "streak": 4,
+      "streak": 2,
       "title": "Export control exposure"
     },
     {
@@ -133,6 +139,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "strengthened",
       "lens": "risk",
       "mechanism": "When NVIDIA finances customers' purchases of its own hardware through revenue-sharing and credit support, part of reported demand rests on credit NVIDIA itself extends, so a customer stumble feeds back onto NVIDIA.",
@@ -141,7 +148,7 @@
       "sensitivity": "How much of NVIDIA's demand rests on credit it extends versus customers' own cash.",
       "statement": "NVIDIA's own revenue-sharing and credit-support financing increasingly underwrites its accelerator demand, coupling reported demand strength to NVIDIA-extended credit and adding circularity risk to buildout durability.",
       "status": "registered",
-      "streak": 4,
+      "streak": 2,
       "title": "Vendor-financed demand circularity"
     },
     {
@@ -152,6 +159,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "strengthened",
       "lens": "risk",
       "mechanism": "NVIDIA's data-center sales lean on a handful of hyperscalers, so if one cuts orders or moves to in-house silicon, a large block of revenue is exposed at once.",
@@ -171,6 +179,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "competitive",
       "mechanism": "By pairing its Spectrum-X and Quantum networking with Blackwell and GB300 systems, NVIDIA raises the cost of swapping its GPUs for standalone accelerators, deepening a full-system lock-in.",
@@ -179,7 +188,7 @@
       "sensitivity": "Whether customers accept open, standalone networking instead of NVIDIA's bundled stack.",
       "statement": "NVIDIA now leads the data-center Ethernet switch market and sells that networking bundled with its GPUs, deepening a full-system moat that raises switching costs versus standalone accelerators and custom chips. NVIDIA took the top revenue spot in data-center Ethernet switching in Q1 2026 by pairing Spectrum-X and Quantum with Blackwell and GB300, and its NVLink systems cut cost per token, but no finding compares networking growth against compute growth, so the sharper claim that networking scales faster than compute is not supported.",
       "status": "registered",
-      "streak": 6,
+      "streak": 1,
       "title": "Networking attach as systems moat"
     },
     {
@@ -190,6 +199,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "demand",
       "mechanism": "Each new NVIDIA generation does more work per watt, which lowers the cost of running a model and pulls more inference workloads onto its GPUs.",
@@ -198,7 +208,7 @@
       "sensitivity": "Whether each new generation keeps cutting the cost of running inference.",
       "statement": "NVIDIA's each-generation drop in cost per token pulls more inference workloads onto its GPUs and widens the market it can serve.",
       "status": "registered",
-      "streak": 5,
+      "streak": 1,
       "title": "Cheaper inference pulls in demand"
     },
     {
@@ -209,6 +219,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "demand",
       "mechanism": "Because large accelerator supply commitments are non-cancelable and backed by upfront money, buyers are contractually bound to take the capacity, so today's buildout is committed rather than easily reversed.",
@@ -217,7 +228,7 @@
       "sensitivity": "Whether any memory supplier reports a cancellation or renegotiation of a take-or-pay contract.",
       "statement": "Non-cancelable multi-year HBM contracts backed by billions in customer deposits lock a large share of future accelerator demand into place and reduce the chance that today's buildout is speculative.",
       "status": "registered",
-      "streak": 4,
+      "streak": 2,
       "title": "Prepaid HBM take-or-pay locks in accelerator demand"
     },
     {
@@ -228,6 +239,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "adjusted",
       "lens": "risk",
       "mechanism": "Even where a license path exists, tariffs, security inspections, and volume caps make China accelerator sales uneconomic, so China revenue stays near zero.",
@@ -236,7 +248,7 @@
       "sensitivity": "Whether Washington eases tariffs, inspections, or volume caps on China accelerator sales.",
       "statement": "China data-center compute is effectively closed to NVIDIA after its China revenue roughly halved to $4,550 million, and the only remaining path is narrow, license-by-license sales of AMD MI325-class chips carrying a 25% tariff and U.S. inspection, so any China revenue recovery stays minimal.",
       "status": "registered",
-      "streak": 4,
+      "streak": 2,
       "title": "Conditional China re-opening with a capped ceiling"
     },
     {
@@ -247,6 +259,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": -1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "weakened",
       "lens": "competitive",
       "mechanism": "As AMD's ROCm software and hyperscaler chips mature, large customers can run production workloads on non-NVIDIA hardware, so the software barrier that once locked them in is weakening.",
@@ -255,7 +268,7 @@
       "sensitivity": "How close AMD's ROCm and hyperscaler software stacks get to matching NVIDIA's for production workloads.",
       "statement": "The difficulty of running existing AI software on non-Nvidia chips keeps customers on Nvidia even when rivals cut hardware prices.",
       "status": "registered",
-      "streak": 3,
+      "streak": 2,
       "title": "CUDA software lock-in sustains the moat"
     },
     {
@@ -266,6 +279,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": -1,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "weakened",
       "lens": "risk",
       "mechanism": "If memory and storage prices climb faster than the rest of an AI server's parts, buyers either pay more per server or vendors absorb the cost and lose margin.",
@@ -274,7 +288,7 @@
       "sensitivity": "The direction of memory and storage prices relative to overall server cost.",
       "statement": "Fast-rising memory and NVMe prices are pushing up what it costs to build each AI server, which could strain buyer budgets and squeeze system margins.",
       "status": "provisional",
-      "streak": 2,
+      "streak": 1,
       "title": "Rising memory costs inflate AI-server economics"
     },
     {
@@ -285,6 +299,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "supply",
       "mechanism": "NVIDIA, AMD, AWS, and Google are all ramping new accelerators to mass production at once, and expanding advanced-packaging capacity lets those ramps add up to more total supply in the second half of 2026.",
@@ -304,6 +319,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "2026-07",
+      "lastPaceAsOf": "2026-07",
       "lastVerdict": "reaffirmed",
       "lens": "risk",
       "mechanism": "A few very large commitments from Meta, OpenAI, and Oracle drive most of AMD's accelerator growth, so the timing of those specific deals sets both its upside and its risk.",
@@ -323,6 +339,7 @@
       "lastChangedAsOf": "2026-07",
       "lastDirection": 0,
       "lastJudgedAsOf": "",
+      "lastPaceAsOf": "",
       "lastVerdict": null,
       "lens": "supply",
       "mechanism": "By using standard LPDDR5X memory instead of high-bandwidth memory, an inference chip avoids the advanced-packaging and memory queues that limit other accelerators, so it can be built with capacity that is not fought over.",

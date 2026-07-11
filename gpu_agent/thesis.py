@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from gpu_agent import reader
+from gpu_agent.asof import days_between, period_end
 from gpu_agent.schema.finding import Finding
 
 # --- models ---
@@ -14,6 +15,29 @@ VERDICTS = ("reaffirmed", "strengthened", "weakened", "adjusted", "broken")
 DIRECTION = {"strengthened": 1, "weakened": -1, "broken": -1, "reaffirmed": 0, "adjusted": 0}
 LENSES = ("demand", "supply", "competitive", "risk")
 CONVICTION_RANK = {"low": 0, "medium": 1, "high": 2}
+
+# --- F78 Stage 2: calendar-day thesis pacing (D5; provisional — recalibrate later) ---
+# The retired monthly flagship advanced pacing once per ~30-day cycle; running the brief
+# daily would advance ~30x faster. We re-express "one cycle" as a minimum calendar-day gap
+# (from asOf period-ends, never the wall clock), so a same-direction signal only counts
+# toward the streak / a conviction step / promotion when it is at least this many days after
+# the prior counted signal. 21 days sits below the shortest month (Feb, 28d) so a monthly
+# cadence still counts every cycle — reproducing today's behavior — and well above the
+# daily/weekly cadence so runs no longer inflate pacing.
+MIN_PACE_GAP_DAYS = 21        # streak advance + conviction-step gate
+MIN_PROMOTION_SPAN_DAYS = 21  # rule-5 persistence: judged asOfs must span >= this many days
+
+
+def _pace_counts(last_pace_asof: str, as_of: str) -> bool:
+    """True iff a signal at `as_of` COUNTS toward pacing: it is at least MIN_PACE_GAP_DAYS
+    (calendar days, via period-ends) after the prior counted signal `last_pace_asof`. An
+    entry with no prior counted signal (freshly seeded/proposed: last_pace_asof == "")
+    always counts, so a thesis's first judgment is unchanged. A negative gap (out-of-order
+    mixed-grain labels) does not count — the streak safely holds rather than crashing."""
+    if not last_pace_asof:
+        return True
+    return days_between(as_of, last_pace_asof) >= MIN_PACE_GAP_DAYS
+
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -36,6 +60,8 @@ class ThesisEntry(BaseModel):
     lastDirection: Literal[-1, 0, 1] = 0
     pendingChallenge: Optional[PendingChallenge] = None
     streak: int = 0
+    lastPaceAsOf: str = ""  # F78 S2: asOf of the last signal that COUNTED toward pacing;
+                            # code-derived (like streak), defaults empty (first signal counts)
     mechanism: str
     falsifiableTrigger: str
     sensitivity: str
@@ -136,10 +162,14 @@ def apply_record(book: ThesisBook, record: dict) -> ThesisBook:
     the anti-whipsaw business logic that produced them. Everything else is code-derived
     here from the prior entry state + the record (the spec: streak is code-computed and
     the record shape has no streak field):
-      - `streak` (applied records only): reset to 1 when the record's after-conviction
-        differs from the entry's prior conviction, or when the verdict's direction is a
-        non-zero reversal of a non-zero prior lastDirection; otherwise entry.streak + 1.
-        Non-applied records leave streak unchanged.
+      - `streak` and `lastPaceAsOf` (applied records only): reset streak to 1 when the
+        record's after-conviction differs from the entry's prior conviction, or when the
+        verdict's direction is a non-zero reversal of a non-zero prior lastDirection — a
+        genuine change re-anchors lastPaceAsOf to this record's asOf. Otherwise a
+        same-direction confirmation advances the streak (entry.streak + 1) and re-anchors
+        lastPaceAsOf ONLY when it is >= MIN_PACE_GAP_DAYS after the prior counted signal
+        (entry.lastPaceAsOf); a closer-spaced re-run holds both (F78 Stage 2 calendar-day
+        pacing). Non-applied records leave streak and lastPaceAsOf unchanged.
       - `lastDirection` via DIRECTION[verdict], applied only when non-zero.
       - an `adjusted` verdict's new `statement`, parsed from an `"ADJUSTED:"`-prefixed
         rationale.
@@ -210,7 +240,19 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
             direction = DIRECTION[verdict]
             conviction_changed = record["conviction"] != entry.conviction
             reversal = direction != 0 and entry.lastDirection != 0 and direction != entry.lastDirection
-            streak = 1 if (conviction_changed or reversal) else entry.streak + 1
+            # F78 Stage 2: streak is paced in CALENDAR DAYS. A conviction change or a
+            # direction reversal is a genuine event -> reset to 1 and re-anchor the pace
+            # clock. A same-direction confirmation advances only when it clears the day-gap
+            # from the prior counted signal; otherwise it holds and the clock keeps running.
+            if conviction_changed or reversal:
+                streak = 1
+                last_pace = record["asOf"]
+            elif _pace_counts(entry.lastPaceAsOf, record["asOf"]):
+                streak = entry.streak + 1
+                last_pace = record["asOf"]
+            else:
+                streak = entry.streak
+                last_pace = entry.lastPaceAsOf
             updates.update({
                 "statement": statement,
                 "lastVerdict": verdict,
@@ -219,6 +261,7 @@ def _apply_judgment_record(book: ThesisBook, record: dict) -> ThesisBook:
                 "falsifiableTrigger": record["falsifiableTrigger"],
                 "sensitivity": record["sensitivity"],
                 "streak": streak,
+                "lastPaceAsOf": last_pace,
                 "lastChangedAsOf": record["asOf"],
                 "pendingChallenge": None,
             })
@@ -553,13 +596,20 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
     )
     applied = confirmed_by_pending or not is_reversal or has_primary or corroborated_step
 
+    # F78 Stage 2: a same-direction conviction step is rate-limited to the calendar pace
+    # (MIN_PACE_GAP_DAYS) so daily re-runs cannot walk low->high (or high->low) in a few
+    # days. A reversal or a break is a genuine, evidence-gated event -> steps immediately.
+    # Same _pace_counts predicate _apply_judgment_record uses for the streak, so the record's
+    # post-apply conviction and the streak reset stay consistent by construction.
+    steps_now = _pace_counts(entry.lastPaceAsOf, as_of) or is_reversal
+
     if applied:
         if verdict == "broken":
             new_conviction = "low"
         elif verdict == "strengthened":
-            new_conviction = _bump_conviction(entry.conviction, +1)
+            new_conviction = _bump_conviction(entry.conviction, +1) if steps_now else entry.conviction
         elif verdict == "weakened":
-            new_conviction = _bump_conviction(entry.conviction, -1)
+            new_conviction = _bump_conviction(entry.conviction, -1) if steps_now else entry.conviction
         else:  # reaffirmed / adjusted: unchanged
             new_conviction = entry.conviction
         if corroborated_step:
@@ -594,18 +644,28 @@ def _build_judgment_records(entry: ThesisEntry, judgment: ThesisJudgment, *, as_
 
 
 def _promotion_eligible(thesis_id: str, records: list[dict]) -> tuple[bool, int, int]:
-    """Rule 5: eligible when judgments for `thesis_id` across `records` span >=2 distinct
-    asOf values AND their (record-carried) publisherDomains collectively span >=2 distinct
-    publishers. Only records with a 'verdict' key count (lifecycle records are skipped);
-    applied and deferred judgments both count — a deferred judgment still cited real,
-    distinct-publisher findings, which is what corroboration is about."""
+    """Rule 5, calendar-day form (F78 Stage 2): eligible when this thesis's judgments span
+    at least MIN_PROMOTION_SPAN_DAYS calendar days (latest judged asOf's period-end minus
+    the earliest's) AND their record-carried publisherDomains collectively span >= 2 distinct
+    publishers. Replaces the old '>= 2 distinct asOf cycles' persistence bar so a daily
+    cadence cannot promote in two consecutive days; under the old ~monthly cadence the second
+    cycle already spans ~30 days, so this reproduces today's 'promotes on the 2nd cycle'
+    behavior. Only records with a 'verdict' key count (lifecycle records skipped); applied and
+    deferred judgments both count. Returns (eligible, span_days, n_domains) for the note.
+    Span uses period_end, never string min/max, so mixed-grain labels ('2026-07' vs
+    '2026-07-03') order correctly."""
     as_ofs: set[str] = set()
     domains: set[str] = set()
     for record in records:
         if record.get("thesisId") == thesis_id and "verdict" in record:
             as_ofs.add(record["asOf"])
             domains.update(record.get("publisherDomains", []))
-    return len(as_ofs) >= 2 and len(domains) >= 2, len(as_ofs), len(domains)
+    if as_ofs:
+        ends = [period_end(a) for a in as_ofs]
+        span_days = (max(ends) - min(ends)).days
+    else:
+        span_days = 0
+    return span_days >= MIN_PROMOTION_SPAN_DAYS and len(domains) >= 2, span_days, len(domains)
 
 
 def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
@@ -682,14 +742,14 @@ def apply_answer(book: ThesisBook, answer: ThesisAnswer, *, as_of: str,
     for entry in working_book.entries:
         if entry.status != "provisional":
             continue
-        eligible, n_asofs, n_domains = _promotion_eligible(entry.id, combined_records)
+        eligible, span_days, n_domains = _promotion_eligible(entry.id, combined_records)
         if not eligible:
             continue
         promoted_record = {
             "asOf": as_of, "event": "promoted", "thesisId": entry.id, "detail": None,
             "note": (
                 f"{entry.id}: promoted to registered "
-                f"({n_asofs} distinct asOfs, {n_domains} publisher domains)"
+                f"({span_days} days judged, {n_domains} publisher domains)"
             ),
         }
         records.append(promoted_record)

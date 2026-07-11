@@ -1,0 +1,43 @@
+{
+  "id": "www-trendforce-com-368d8402-2026-07-2",
+  "statement": "TSMC monthly CoWoS capacity could reach 120,000 to 140,000 wafers in 2026, and with OSAT partners total industry capacity could approach 200,000 wafers per month, expanding AI packaging supply.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Rapid packaging capacity expansion adds AI chip supply headroom, the main lever loosening the current bottleneck.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.hbm-memory",
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising CoWoS and OSAT packaging capacity expands the supply of assembled AI accelerators."
+  },
+  "evidence": [
+    {
+      "source": "TrendForce News CoWoS supply-demand gap",
+      "url": "https://www.trendforce.com/news/2026/06/15/news-tsmc-cowos-supply-demand-gap-reportedly-seen-narrowing-from-20-to-10-by-end-2026-as-capacity-expands/",
+      "date": "2026-06-15",
+      "excerpt": "TSMC's monthly CoWoS capacity could reach a record 120,000 to 140,000 wafers in 2026.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary TrendForce free news desk; capacity figures from cited institutional estimates."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 3 -> 2; sources: Tom's Hardware custom AI ASIC state of play, TrendForce News CoWoS supply-demand gap",
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-06-15",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

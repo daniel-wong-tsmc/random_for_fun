@@ -1,0 +1,46 @@
+{
+  "id": "www-tomshardware-com-f77e9757-2026-07-2",
+  "statement": "Broadcom carries a $73 billion AI backlog and targets $100 billion in annual AI chip revenue by 2027, underscoring hyperscaler ASIC demand.",
+  "kind": "measured",
+  "value": {
+    "number": 73.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "A large and growing custom-silicon backlog signals strong committed demand for hyperscaler ASICs that competes with merchant GPUs.",
+  "impact": {
+    "targets": [
+      "chips.hyperscaler-asic",
+      "chips.networking-silicon",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Broadcom ASIC backlog reflects hyperscaler demand shifting some AI compute from merchant GPUs to custom silicon."
+  },
+  "evidence": [
+    {
+      "source": "Tom's Hardware custom AI ASIC state of play",
+      "url": "https://www.tomshardware.com/tech-industry/semiconductors/custom-ai-asics-examined-from-broadcom-to-mtia",
+      "date": "2026-05-21",
+      "excerpt": "Broadcom alone carries a $73 billion AI backlog and is targeting $100 billion in annual AI chip revenue by 2027.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary trade-press feature; single source."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "broadcom",
+  "observedAt": "2026-05-21",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

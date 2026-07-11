@@ -1,0 +1,42 @@
+{
+  "id": "www-sec-gov-125b52f2-2026-07-1",
+  "statement": "NVIDIA disclosed heavy customer concentration in Q1 FY2027, with three direct customers representing 21%, 17%, and 16% of total revenue.",
+  "kind": "observed",
+  "value": null,
+  "trend": "unknown",
+  "why": "More than half of revenue coming from three buyers is a structural concentration risk to demand durability.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "negative",
+    "mechanism": "Revenue concentrated in a few hyperscale buyers exposes demand to any single customer pulling back."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Form 10-Q Q1 FY2027",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000052/nvda-20260426.htm",
+      "date": "2026-05-21",
+      "excerpt": "For the first quarter of fiscal year 2027, three direct customers represented 21%, 17%, and 16% of total revenue",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary NVIDIA 10-Q filing; concentration disclosed verbatim."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "customerConcentration",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-21",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

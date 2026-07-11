@@ -1,11 +1,14 @@
 # tests/test_corpus_coverage.py
 from gpu_agent.corpus import CorpusReport, assemble, coverage, render_coverage_text
+from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact
 from gpu_agent.store import FindingStore
 from gpu_agent.wiki.store import PageNotFound, WikiStore
 
 REGISTRY = IndicatorRegistry.load("registry/indicators.json")
+HZ = IndicatorHorizons({"designWins": {"cadence": "weekly", "horizon": "coincident"},
+                        "rpoBacklog": {"cadence": "quarterly", "horizon": "lagging"}})
 
 
 # local factories — repo convention, same block as tests/test_corpus_enumerate.py
@@ -63,35 +66,31 @@ def test_coverage_empty_store():
 
 def test_assemble_fills_coverage(tmp_path):
     store = _store(tmp_path)
-    _seed(store, _f("store-1", as_of="2026-07-02"), "2026-07-02")
-    res = assemble(tmp_path, "chips.merchant-gpu", "2026-07", [], REGISTRY)
+    _seed(store, _f("store-1", as_of="2026-07-02", observedAt="2026-07-30"), "2026-07-02")
+    res = assemble(tmp_path, "chips.merchant-gpu", "2026-07", [], REGISTRY, HZ)
     assert [e.indicatorId for e in res.report.coverage] == ["designWins"]
     assert "designWins" not in res.report.notCovered
 
 
 def test_render_coverage_text_covered_and_gaps():
     report = CorpusReport(
-        asOf="2026-07", category="chips.merchant-gpu", windowDays=45,
-        windowStart="2026-06-16", windowEnd="2026-07-31",
+        asOf="2026-07", category="chips.merchant-gpu", salienceFloor=0.1,
         storeIncluded=["a-1"],
         coverage=[{"entity": "NVDA", "indicatorId": "designWins", "count": 2,
                    "latestAsOf": "2026-07-03", "latestObservedAt": "2026-07-03"}],
         notCovered=["leadTimes", "rpoBacklog"])
     text = render_coverage_text(report)
     lines = text.splitlines()
-    assert lines[0] == ("STORE COVERAGE (window 2026-06-16 < asOf <= 2026-07-31, "
-                        "1 finding(s)):")
+    assert lines[0] == "STORE COVERAGE (aged, salience floor 0.1, 1 finding(s)):"
     assert "  NVDA designWins: 2 finding(s), latest asOf 2026-07-03 (observed 2026-07-03)" in lines
     assert "  not covered: leadTimes, rpoBacklog" in lines
 
 
 def test_render_coverage_text_empty_store_names_full_gather():
-    report = CorpusReport(asOf="2026-07", category="c", windowDays=45,
-                          windowStart="2026-06-16", windowEnd="2026-07-31")
+    report = CorpusReport(asOf="2026-07", category="c", salienceFloor=0.1)
     assert "(no store coverage — full gather)" in render_coverage_text(report)
 
 
 def test_render_deterministic():
-    report = CorpusReport(asOf="2026-07", category="c", windowDays=45,
-                          windowStart="2026-06-16", windowEnd="2026-07-31")
+    report = CorpusReport(asOf="2026-07", category="c", salienceFloor=0.1)
     assert render_coverage_text(report) == render_coverage_text(report)

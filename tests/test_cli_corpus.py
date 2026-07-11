@@ -91,7 +91,7 @@ def test_assemble_mode_writes_artifacts_and_summary(tmp_path):
     assert [f["id"] for f in merged] == ["store-1", "fresh-1"]
     deduped = json.loads(deduped_p.read_text("utf-8"))
     assert [f["id"] for f in deduped] == ["fresh-1"]
-    assert "store 1 in-window (0 out), fresh new 1 update 0 duplicate 0 -> merged 2" \
+    assert "store 1 aged (0 faded), fresh new 1 update 0 duplicate 0 -> merged 2" \
         in out.stdout
 
 

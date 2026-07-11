@@ -1,59 +1,75 @@
-"""gpu_agent/corpus.py — the flagship input corpus (F62).
+"""gpu_agent/corpus.py — the flagship input corpus (F62; F78 Stage 3: ages via the wiki).
 
 Read-only consumer of existing stores: the wiki (page index + observations) as the
-category-scoped index over the canonical FindingStore, and the L2 dedup classifier
-for fresh-vs-store classification. Assembles the windowed accumulated store findings
-plus this cycle's fresh gated findings into ONE merged corpus for the judge/thesis
-brains and the scorecard, and reports coverage so the gather can run as a top-up.
+category-scoped index over the canonical FindingStore, and the L2 dedup classifier for
+fresh-vs-store classification. Assembles the AGED accumulated store findings plus this
+cycle's fresh gated findings into ONE merged corpus for the judge/thesis brains and the
+scorecard, and reports coverage so the gather can run as a top-up.
 
-This module never writes anything: no store mutation, no file writes, no clock
-reads. Same inputs -> byte-identical CorpusResult, always. Window membership is
-label-based (asOf period ends), never wall-clock, so replays/backtests are
-deterministic and a past cycle never sees a future label.
+F78 Stage 3 (D4): the flat 45-day `asOf` window is gone. A store fact now survives on its
+decayed effective salience — the page's intrinsic salience (floored at the wiki's
+salience_floor, as _score_move already treats it) decayed over the fact's REAL age in
+calendar days (`as_of` period-end minus the fact's `observedAt`) via the fact's cadence
+half-life — against a salience floor, PLUS its page's lifecycle state (pruned pages
+excluded). Genuinely superseded old facts fade toward zero and drop out; a fresh
+observation dominates. It reuses the wiki's decay curve unchanged (half_life/decay/
+effective_salience, now in calendar days — F78 Stage 1); only the corpus's SELECTION rule
+changes.
+
+This module never writes anything: no store mutation, no file writes, no clock reads. All
+day-math derives from `asOf`/`observedAt` labels via gpu_agent.asof — never wall-clock — so
+replays/backtests are deterministic and a past cycle never sees a future label.
 """
 from __future__ import annotations
-import calendar
-import datetime
-import re
 from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from gpu_agent.asof import AsOfError, days_between, period_end  # F78-3: shared date logic (was corpus-local)
 from gpu_agent.gathering.dedup import DEFAULT_DEDUP_CONFIG, FindingClass, classify_findings
 from gpu_agent.schema.finding import Finding
 from gpu_agent.store import FindingNotFound, FindingStore
+from gpu_agent.wiki.lifecycle import DEFAULT_LIFECYCLE_CONFIG
+from gpu_agent.wiki.lint import DEFAULT_LINT_CONFIG, effective_salience, half_life
 from gpu_agent.wiki.store import WikiStore
 
-WINDOW_DAYS_DEFAULT = 45
-
-_DAY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-_MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
+# F78 Stage 3: the decayed-effective-salience cutoff below which an aged store fact drops
+# from the baseline corpus. This is the wiki's OWN "this fact has faded" line
+# (LintConfig.stale_threshold, 0.1) — a decay-based cutoff, never a cycle-count window (D4).
+# NOTE: distinct from LintConfig.salience_floor (0.5), which is the intrinsic-salience WEIGHT
+# floor reused inside aged_salience below.
+SALIENCE_FLOOR_DEFAULT = DEFAULT_LINT_CONFIG.stale_threshold  # 0.1
 
 
 class CorpusError(ValueError):
-    """Raised on invalid labels or canonical-store integrity violations (fail loud)."""
+    """Raised on canonical-store integrity violations (fail loud). Invalid asOf/observedAt
+    labels raise gpu_agent.asof.AsOfError (a sibling ValueError) from the shared date logic."""
 
 
-def period_end(label: str) -> datetime.date:
-    """A label's period end: a day-grain label is its own day; a month-grain label is
-    that month's last calendar day. Any other shape fails loud (F56-adjacent defense)."""
-    try:
-        if _DAY_RE.match(label):
-            return datetime.date.fromisoformat(label)
-        if _MONTH_RE.match(label):
-            y, m = int(label[:4]), int(label[5:7])
-            return datetime.date(y, m, calendar.monthrange(y, m)[1])
-    except ValueError as e:
-        raise CorpusError(f"invalid asOf label: {label!r} ({e})") from e
-    raise CorpusError(f"invalid asOf label: {label!r} (want YYYY-MM or YYYY-MM-DD)")
+def aged_salience(finding: Finding, page_salience: float, as_of: str, horizons,
+                  config=DEFAULT_LINT_CONFIG) -> float:
+    """A store fact's decayed effective salience at `as_of`: the page's intrinsic salience —
+    floored at the wiki's salience_floor so an unscored page still starts from a baseline
+    (matching _score_move's `max(salience_floor, page.salience)` treatment) — decayed over the
+    fact's REAL age in calendar days (`as_of` period-end minus the fact's `observedAt`, clamped
+    at 0) via the fact's cadence half-life. Uses the wiki's own decay/effective_salience curve
+    (now in calendar days — F78 Stage 1)."""
+    intrinsic = max(config.salience_floor, page_salience)
+    age_days = max(0, days_between(as_of, finding.observedAt))
+    hl, _ = half_life([finding], horizons, config)
+    return effective_salience(intrinsic, age_days, hl)
 
 
-def in_window(label: str, as_of: str, window_days: int) -> bool:
-    """Spec window rule: period_end(as_of) - window_days < period_end(label) <= period_end(as_of)."""
-    end = period_end(as_of)
-    start = end - datetime.timedelta(days=window_days)
-    return start < period_end(label) <= end
+def _is_pruned(store, page_id, page, lifecycle_config=DEFAULT_LIFECYCLE_CONFIG) -> bool:
+    """True iff the page has been lifecycle-pruned. The wiki represents a prune by flooring a
+    (previously scored) page's salience to prune_salience_floor via a state-change
+    (lifecycle.apply_lifecycle). A page whose salience is at/below that floor AND that carries a
+    state-change history was scored then pruned; a never-scored page (salience default 0.0, no
+    state-change) is NOT pruned. archived/retired are not wiki-page states in the current model,
+    so 'pruned' is the operative lifecycle exclusion."""
+    return (page.salience <= lifecycle_config.prune_salience_floor
+            and bool(store.state_history(page_id)))
 
 
 class CoverageEntry(BaseModel):
@@ -72,12 +88,11 @@ class SkippedPage(BaseModel):
 class CorpusReport(BaseModel):
     asOf: str
     category: str
-    windowDays: int
-    windowStart: str   # ISO day, exclusive lower bound
-    windowEnd: str     # ISO day, inclusive upper bound
+    salienceFloor: float
     storeIncluded: list[str] = Field(default_factory=list)      # finding ids, sorted with merged order
-    outOfWindow: int = 0
-    skippedPages: list[SkippedPage] = Field(default_factory=list)
+    fadedOut: int = 0                                           # aged below the floor, dropped
+    skippedPages: list[SkippedPage] = Field(default_factory=list)        # wrong/absent category
+    lifecycleExcluded: list[SkippedPage] = Field(default_factory=list)   # pruned pages
     freshNew: list[FindingClass] = Field(default_factory=list)
     freshUpdate: list[FindingClass] = Field(default_factory=list)
     freshDuplicate: list[FindingClass] = Field(default_factory=list)
@@ -92,72 +107,80 @@ class CorpusResult(BaseModel):
     report: CorpusReport
 
 
-def enumerate_store(store_root, category: str, as_of: str,
-                    window_days: int) -> tuple[list[Finding], int, list[SkippedPage]]:
-    """The windowed store corpus for `category`: every finding observed by a wiki page
-    whose header category matches, deduplicated across pages, window-filtered, sorted by
-    (asOf, id). Pages with a different or absent category are skipped AND reported (the
-    caller logs them — nothing silent). A dangling/unreadable observation finding fails
-    loud: the canonical store is trusted input, corruption is a stop-the-line event."""
+def enumerate_store(store_root, category: str, as_of: str, horizons, *,
+                    salience_floor: float = SALIENCE_FLOOR_DEFAULT,
+                    config=DEFAULT_LINT_CONFIG,
+                    ) -> tuple[list[Finding], int, list["SkippedPage"], list["SkippedPage"]]:
+    """The AGED store corpus for `category`: every finding observed by a category-matching wiki
+    page, deduplicated across pages, kept iff its decayed effective salience (aged_salience) is at
+    or above `salience_floor`, sorted by (asOf, id). Pruned pages are excluded whole (lifecycle
+    gate) BEFORE per-fact aging. Pages with a different or absent category are skipped AND reported.
+    A shared finding (observed by multiple surviving pages) is evaluated ONCE against the MAX
+    page.salience across every category-matching, non-pruned page that observes it (any-page-keeps):
+    it survives if ANY such page holds it above the floor, not just whichever page sorts first.
+    A faded fact (below the floor under its best page) is COUNTED, not listed. A dangling/unreadable
+    observation finding fails loud: the canonical store is trusted input, corruption is a
+    stop-the-line event.
+    Returns (included, faded_out, skipped_wrong_category, lifecycle_excluded)."""
+    period_end(as_of)   # fail loud on a malformed asOf label even when there's nothing to age yet
     store_root = Path(store_root)
     wiki_dir = store_root / "wiki"
     if not wiki_dir.is_dir():
-        return [], 0, []   # honest empty: no wiki yet (first-ever cycle)
+        return [], 0, [], []   # honest empty: no wiki yet (first-ever cycle)
     store = WikiStore(wiki_dir, FindingStore(store_root / "findings"))
     included: list[Finding] = []
-    seen_ids: set[str] = set()
-    out_of_window = 0
+    best: dict[str, float] = {}
+    faded_out = 0
     skipped: list[SkippedPage] = []
+    lifecycle_excluded: list[SkippedPage] = []
     for entry in store.index():
         if entry.category != category:
             skipped.append(SkippedPage(id=entry.id, category=entry.category))
             continue
+        page = store.get_page(entry.id)
+        if _is_pruned(store, entry.id, page):
+            lifecycle_excluded.append(SkippedPage(id=entry.id, category=entry.category))
+            continue
         for obs in store.observations(entry.id):
-            if obs.findingId in seen_ids:
-                continue
-            seen_ids.add(obs.findingId)
-            try:
-                f = store.findings.get(obs.findingId)
-            except (FindingNotFound, ValueError) as e:
-                raise CorpusError(
-                    f"store integrity: page {entry.id} observation references "
-                    f"unreadable finding {obs.findingId}: {e}") from e
-            if in_window(f.asOf, as_of, window_days):
-                included.append(f)
-            else:
-                out_of_window += 1
+            best[obs.findingId] = max(best.get(obs.findingId, 0.0), page.salience)
+    for fid in sorted(best):
+        try:
+            f = store.findings.get(fid)
+        except (FindingNotFound, ValueError) as e:
+            raise CorpusError(
+                f"store integrity: observation references unreadable finding {fid}: {e}") from e
+        if aged_salience(f, best[fid], as_of, horizons, config) >= salience_floor:
+            included.append(f)
+        else:
+            faded_out += 1
     included.sort(key=lambda f: (f.asOf, f.id))
-    return included, out_of_window, skipped
+    return included, faded_out, skipped, lifecycle_excluded
 
 
-def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, *,
-             window_days: int = WINDOW_DAYS_DEFAULT) -> CorpusResult:
-    """The F62 merged corpus: windowed store findings + this cycle's fresh gated
-    findings, classified against the store by the existing L2 machinery (intra-batch
-    collapse + evidence-merge, then cross-store NEW/UPDATE keep vs DUPLICATE drop).
-    The store part is never collapsed: it holds only NEW/UPDATE vintages by
-    construction and multiple vintages of one series are deliberate history — scoring
-    takes latest-per-series, the judge sees the (dated) evolution. An id overlap means
-    the identical finding is already stored: the store copy is kept and the event
-    reported. `registry` feeds the coverage table (store part only).
-    """
+def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, horizons, *,
+             salience_floor: float = SALIENCE_FLOOR_DEFAULT, config=DEFAULT_LINT_CONFIG) -> CorpusResult:
+    """The F62 merged corpus: the AGED store findings (F78 Stage 3) + this cycle's fresh gated
+    findings, classified against the store by the existing L2 machinery (intra-batch collapse +
+    evidence-merge, then cross-store NEW/UPDATE keep vs DUPLICATE drop). The store part is never
+    collapsed: it holds only NEW/UPDATE vintages by construction and multiple vintages of one
+    series are deliberate history — scoring takes latest-per-series, the judge sees the (dated)
+    evolution. An id overlap means the identical finding is already stored: the store copy is kept
+    and the event reported. `registry` feeds the coverage table (store part only); `horizons`
+    supplies each fact's cadence half-life for aging."""
     store_root = Path(store_root)
-    store_findings, out_of_window, skipped = enumerate_store(
-        store_root, category, as_of, window_days)
+    store_findings, faded_out, skipped, lifecycle_excluded = enumerate_store(
+        store_root, category, as_of, horizons, salience_floor=salience_floor, config=config)
     wiki = WikiStore(store_root / "wiki", FindingStore(store_root / "findings"))
     res = classify_findings(fresh, wiki, config=DEFAULT_DEDUP_CONFIG)
     store_ids = {f.id for f in store_findings}
     id_overlaps = sorted(f.id for f in res.outFindings if f.id in store_ids)
     fresh_keeps = [f for f in res.outFindings if f.id not in store_ids]
     merged = store_findings + fresh_keeps
-    end = period_end(as_of)
     cov_entries, not_covered = coverage(store_findings, registry)
     report = CorpusReport(
-        asOf=as_of, category=category, windowDays=window_days,
-        windowStart=(end - datetime.timedelta(days=window_days)).isoformat(),
-        windowEnd=end.isoformat(),
+        asOf=as_of, category=category, salienceFloor=salience_floor,
         storeIncluded=[f.id for f in store_findings],
-        outOfWindow=out_of_window, skippedPages=skipped,
+        fadedOut=faded_out, skippedPages=skipped, lifecycleExcluded=lifecycle_excluded,
         freshNew=res.new, freshUpdate=res.update, freshDuplicate=res.duplicate,
         idOverlaps=id_overlaps,
         coverage=cov_entries, notCovered=not_covered,
@@ -166,8 +189,8 @@ def assemble(store_root, category: str, as_of: str, fresh: list[Finding], regist
 
 
 def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntry], list[str]]:
-    """Per (entity, indicatorId) over the windowed STORE part: count + latest vintage.
-    not_covered = every registered indicator id with zero windowed store findings
+    """Per (entity, indicatorId) over the AGED STORE part: count + latest vintage.
+    not_covered = every registered indicator id with zero surviving aged store findings
     (price included — the gather top-up aims at these). Sorted, deterministic."""
     by_key: dict[tuple[str, str], list[Finding]] = {}
     for f in store_findings:
@@ -185,9 +208,9 @@ def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntr
 
 def render_coverage_text(report: CorpusReport) -> str:
     """Deterministic coverage block for the gather-category dispatch (run-cycle step a0):
-    one header line naming the window, one line per covered series, one not-covered line."""
-    lines = [f"STORE COVERAGE (window {report.windowStart} < asOf <= "
-             f"{report.windowEnd}, {len(report.storeIncluded)} finding(s)):"]
+    one header line naming the aged salience floor, one line per covered series, one not-covered line."""
+    lines = [f"STORE COVERAGE (aged, salience floor {report.salienceFloor:g}, "
+             f"{len(report.storeIncluded)} finding(s)):"]
     if not report.coverage:
         lines.append("  (no store coverage — full gather)")
     for c in report.coverage:

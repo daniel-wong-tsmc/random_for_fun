@@ -1,0 +1,41 @@
+{
+  "id": "www-sec-gov-125b52f2-2026-07-2",
+  "statement": "NVIDIA China (including Hong Kong) revenue fell to $4,550 million in Q1 FY2027 from $9,659 million a year earlier, and it is effectively foreclosed from China data-center compute.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Export controls roughly halved China revenue and shut NVIDIA out of China data-center compute, a material structural exposure.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Export controls and licensing frictions foreclose the China data-center market, cutting addressable GPU demand."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA Form 10-Q Q1 FY2027",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000052/nvda-20260426.htm",
+      "date": "2026-05-21",
+      "excerpt": "we were effectively foreclosed from competing in China's data center computing/compute market",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary NVIDIA 10-Q filing; disclosures verbatim."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: NVIDIA CFO Commentary Q1 FY2027, NVIDIA Form 10-Q Q1 FY2027",
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-21",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

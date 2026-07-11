@@ -1,0 +1,45 @@
+{
+  "id": "www-tomshardware-com-f77e9757-2026-07-1",
+  "statement": "NVIDIA still holds about 70% of the AI chip market, but that share is projected to erode as custom ASIC shipments (projected 27.8% of the market in 2026) grow 44.6% year over year versus 16.1% for merchant GPUs.",
+  "kind": "measured",
+  "value": {
+    "number": 70.0,
+    "unit": "pct_segment_rev"
+  },
+  "trend": "falling",
+  "why": "Hyperscaler custom silicon is growing far faster than merchant GPUs and is projected to take share from NVIDIA.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hyperscaler-asic"
+    ],
+    "direction": "mixed",
+    "mechanism": "Faster ASIC growth erodes merchant-GPU market share while lifting hyperscaler ASIC share."
+  },
+  "evidence": [
+    {
+      "source": "Tom's Hardware custom AI ASIC state of play",
+      "url": "https://www.tomshardware.com/tech-industry/semiconductors/custom-ai-asics-examined-from-broadcom-to-mtia",
+      "date": "2026-05-21",
+      "excerpt": "Nvidia still holds approximately 70% of the AI chip market share, but that share is projected to erode",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary trade-press feature; share figures attributed to TrendForce within one document."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-21",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

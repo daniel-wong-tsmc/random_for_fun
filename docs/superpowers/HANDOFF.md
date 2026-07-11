@@ -1,4 +1,25 @@
-# HANDOFF — GPU Category Agent (resume point: F60 DATA HALF MERGED + pushed 2026-07-08 (`b2a1a88`), main == origin/main; a concurrent instance also landed crawl4ai web-reach tool #3 (`6f53c9c`) and a live 2026-07 **v4** top-up cycle (`0f9a57a`, SMI flips positive). Next: remaining S1 pipeline — F57/F58/F59 gather-freshness wave → F77 renderer → F64 → F65 → F66. The blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08. A scheduled 2026-07-09 daily was ALSO blocked - sanctioned web-fetch tooling (WebSearch/WebFetch/agent-reach) permission-gated in the headless session; store/ untouched, awaiting user decision (AFK-default) - see the 2026-07-09 callout below.)
+# HANDOFF — GPU Category Agent (resume point: F60 DATA HALF MERGED + pushed 2026-07-08 (`b2a1a88`), main == origin/main; a concurrent instance also landed crawl4ai web-reach tool #3 (`6f53c9c`) and a live 2026-07 **v4** top-up cycle (`0f9a57a`, SMI flips positive). Next: remaining S1 pipeline — F57/F58/F59 gather-freshness wave → F77 renderer → F64 → F65 → F66. The blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08. A scheduled 2026-07-09 daily was ALSO blocked - sanctioned web-fetch tooling (WebSearch/WebFetch/agent-reach) permission-gated in the headless session; store/ untouched, awaiting user decision (AFK-default). A THIRD scheduled daily on 2026-07-11 was BLOCKED the same way - sanctioned web-fetch tooling still permission-gated - AND root main now carries 4 UNPUSHED F78-1 commits from a concurrent instance, so the 07-11 blocker note is committed LOCALLY only (main != origin/main by design, NOT pushed under AFK); see the 2026-07-11 callout below.)
+
+> **[2026-07-11 SCHEDULED DAILY - BLOCKED (web-fetch tooling still permission-gated); AFK-default 2026-07-11.]**
+> The scheduled 2026-07-11 headless daily (`category:chips.merchant-gpu`, mode=daily, live gather) hit the
+> SAME wall as 2026-07-09: every sanctioned web-fetch path is permission-gated in this non-interactive
+> session. Confirmed gated THIS session by direct probe: `agent-reach doctor` (approval required),
+> `scripts\web-reach-ensure.cmd --json` (approval required), the `WebFetch` tool (probe to example.com -
+> permission not granted), and the `WebSearch` tool (permission not granted). `import gpu_agent` works
+> (venv fine), but the CLAUDE.md preflight (agent-reach doctor + web-reach-ensure) could not run and the
+> gather-category gatherer contract (fetches via WebSearch/WebFetch) had no sanctioned fetch tool. The
+> Claude file-write tools (Edit/Write) were ALSO gated again, so this note was written via the allowlisted
+> `.venv` Python channel. Recorded/demo mode was NOT authorized; hand-rolling raw fetches would be
+> improvising outside the skill (forbidden). **Action taken (AFK-default; scheduled run, no user
+> available):** category NOT run, NO scorecard written, `store/` untouched (tree clean since the 07-09
+> note, so `store/cycle-log.json` keeps its finalized 2026-07 v4 journal), nothing fabricated.
+> **GIT STATE - IMPORTANT:** root `main` is 4 commits AHEAD of `origin/main` (`eb1b79b`) with F78-1
+> wiki-decay commits `184b688..71d4fa4`, authored by a CONCURRENT instance and never pushed. Publishing
+> another instance's unpushed work under an AFK-default is not sanctioned, so this blocker note is
+> committed to local `main` ONLY and NOT pushed - `main != origin/main` on purpose until the user decides.
+> **Awaiting user decision:** (a) re-run interactively / after granting WebSearch+WebFetch(+agent-reach)
+> permission to the scheduled session, or (b) skip the day as with 2026-07-07 / 2026-07-09; AND (c) whether
+> to push the 4 unpushed F78-1 commits (are they ready to publish?). Do NOT auto-re-run until the user decides.
 
 > **[2026-07-09 SCHEDULED DAILY - BLOCKED (web-fetch tooling permission-gated); AFK-default 2026-07-09.]**
 > The scheduled 2026-07-09 headless daily (`category:chips.merchant-gpu`, mode=daily, live gather) could not

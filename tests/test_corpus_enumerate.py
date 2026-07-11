@@ -1,13 +1,14 @@
 import pytest
 
 from gpu_agent.corpus import CorpusError, enumerate_store
+from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.schema.finding import Confidence, Evidence, Finding, Impact
 from gpu_agent.store import FindingStore
 from gpu_agent.wiki.store import PageNotFound, WikiStore
 
-# NOTE: this repo's test convention is LOCAL factories per file (no cross-test imports,
-# tests/ is not a package). The _store/_f/_seed block below is repeated verbatim in the
-# other F62 test files.
+# designWins tagged weekly -> half-life h_med_days (21). At as_of 2026-07 (period end
+# 2026-07-31) a weekly fact fades below the 0.1 floor once its observedAt age exceeds ~49 days.
+HZ = IndicatorHorizons({"designWins": {"cadence": "weekly", "horizon": "coincident"}})
 
 
 def _store(tmp_path):
@@ -15,7 +16,7 @@ def _store(tmp_path):
 
 
 def _f(fid, entity="NVDA", indicatorId="designWins", as_of="2026-07-02",
-       observedAt="2026-07-01"):
+       observedAt="2026-07-30"):
     return Finding(
         id=fid, statement=f"s-{fid}", kind="observed", trend="rising", why="w",
         impact=Impact(targets=["chips.merchant-gpu"], direction="positive", mechanism="m"),
@@ -38,61 +39,79 @@ def _seed(store, f, as_of, category="chips.merchant-gpu", pid=None):
 
 
 def test_missing_wiki_dir_is_honest_empty(tmp_path):
-    findings, out, skipped = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert findings == [] and out == 0 and skipped == []
+    included, faded, skipped, excluded = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert included == [] and faded == 0 and skipped == [] and excluded == []
 
 
-def test_in_window_findings_returned_sorted(tmp_path):
+def test_fresh_facts_surface_sorted(tmp_path):
     store = _store(tmp_path)
-    _seed(store, _f("b-2", as_of="2026-07-03"), "2026-07-03")
-    _seed(store, _f("a-1", as_of="2026-07-02"), "2026-07-02")
-    findings, out, skipped = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert [f.id for f in findings] == ["a-1", "b-2"]   # sorted by (asOf, id)
-    assert out == 0 and skipped == []
+    _seed(store, _f("b-2", as_of="2026-07-03", observedAt="2026-07-29"), "2026-07-03")
+    _seed(store, _f("a-1", as_of="2026-07-02", observedAt="2026-07-30"), "2026-07-02")
+    included, faded, skipped, excluded = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [f.id for f in included] == ["a-1", "b-2"]   # sorted by (asOf, id)
+    assert faded == 0 and skipped == [] and excluded == []
 
 
-def test_out_of_window_counted_not_listed(tmp_path):
+def test_old_content_fades_and_is_counted_not_listed(tmp_path):
+    # cycle stamp is recent (asOf 2026-07-02) but the evidence is dated 2026-01-15 (~197 days):
+    # under the OLD window it rode forward; under aging it fades below the floor and drops.
     store = _store(tmp_path)
-    _seed(store, _f("old-1", as_of="2026-04-01"), "2026-04-01")
-    _seed(store, _f("new-1", as_of="2026-07-02"), "2026-07-02")
-    findings, out, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert [f.id for f in findings] == ["new-1"]
-    assert out == 1
+    _seed(store, _f("stale-1", as_of="2026-07-02", observedAt="2026-01-15"), "2026-07-02")
+    _seed(store, _f("fresh-1", as_of="2026-07-02", observedAt="2026-07-30"), "2026-07-02")
+    included, faded, _, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [f.id for f in included] == ["fresh-1"]
+    assert faded == 1
+
+
+def test_pruned_page_excluded_whole_and_reported(tmp_path):
+    store = _store(tmp_path)
+    _seed(store, _f("on-pruned", observedAt="2026-07-30"), "2026-07-02", pid="entity:amd")
+    # scored, then lifecycle-floored to 0.0 -> the whole page is a lifecycle exclusion
+    store.record_state("entity:amd", as_of="2026-07-02", state="live", trajectory="steady", salience=0.6)
+    store.record_state("entity:amd", as_of="2026-07-03", state="live", trajectory="steady", salience=0.0)
+    included, faded, skipped, excluded = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert included == [] and faded == 0 and skipped == []
+    assert [(s.id, s.category) for s in excluded] == [("entity:amd", "chips.merchant-gpu")]
+
+
+def test_never_scored_page_surfaces_its_fresh_facts(tmp_path):
+    # the live-store case: salience 0.0 with no state-change is NOT pruned; intrinsic floors to 0.5.
+    store = _store(tmp_path)
+    _seed(store, _f("live-1", observedAt="2026-07-30"), "2026-07-02")
+    included, faded, _, excluded = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [f.id for f in included] == ["live-1"] and excluded == []
 
 
 def test_wrong_category_page_skipped_and_reported(tmp_path):
     store = _store(tmp_path)
     _seed(store, _f("mine-1"), "2026-07-02", category="chips.merchant-gpu")
-    _seed(store, _f("theirs-1", entity="OPENAI"), "2026-07-02",
-          category="models.frontier-closed")
-    findings, _, skipped = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert [f.id for f in findings] == ["mine-1"]
+    _seed(store, _f("theirs-1", entity="OPENAI"), "2026-07-02", category="models.frontier-closed")
+    included, _, skipped, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [f.id for f in included] == ["mine-1"]
     assert [(s.id, s.category) for s in skipped] == [("entity:openai", "models.frontier-closed")]
 
 
 def test_absent_category_page_skipped_and_reported(tmp_path):
     store = _store(tmp_path)
     _seed(store, _f("nocat-1"), "2026-07-02", category=None)
-    findings, _, skipped = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert findings == []
+    included, _, skipped, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert included == []
     assert [(s.id, s.category) for s in skipped] == [("entity:nvda", None)]
 
 
 def test_same_finding_on_two_pages_deduplicated(tmp_path):
     store = _store(tmp_path)
-    f = _f("shared-1")
+    f = _f("shared-1", observedAt="2026-07-30")
     _seed(store, f, "2026-07-02")
-    # observe the SAME finding from a second page without re-appending it
-    store.create_page("entity:amd", "entity", "AMD", category="chips.merchant-gpu",
-                      as_of="2026-07-02")
+    store.create_page("entity:amd", "entity", "AMD", category="chips.merchant-gpu", as_of="2026-07-02")
     store.append_observation("entity:amd", f.id, as_of="2026-07-02")
-    findings, _, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
-    assert [x.id for x in findings] == ["shared-1"]
+    included, _, _, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [x.id for x in included] == ["shared-1"]
 
 
 def test_dangling_observation_fails_loud(tmp_path):
     store = _store(tmp_path)
-    _seed(store, _f("ok-1"), "2026-07-02")
+    _seed(store, _f("ok-1", observedAt="2026-07-30"), "2026-07-02")
     (tmp_path / "findings" / "ok-1.json").unlink()   # corrupt the canonical store
     with pytest.raises(CorpusError, match="ok-1"):
-        enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", 45)
+        enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)

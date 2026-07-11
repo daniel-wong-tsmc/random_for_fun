@@ -112,25 +112,34 @@ class CorpusResult(BaseModel):
     report: CorpusReport
 
 
-def enumerate_store(store_root, category: str, as_of: str,
-                    window_days: int) -> tuple[list[Finding], int, list[SkippedPage]]:
-    """The windowed store corpus for `category`: every finding observed by a wiki page
-    whose header category matches, deduplicated across pages, window-filtered, sorted by
-    (asOf, id). Pages with a different or absent category are skipped AND reported (the
-    caller logs them — nothing silent). A dangling/unreadable observation finding fails
-    loud: the canonical store is trusted input, corruption is a stop-the-line event."""
+def enumerate_store(store_root, category: str, as_of: str, horizons, *,
+                    salience_floor: float = SALIENCE_FLOOR_DEFAULT,
+                    config=DEFAULT_LINT_CONFIG,
+                    ) -> tuple[list[Finding], int, list["SkippedPage"], list["SkippedPage"]]:
+    """The AGED store corpus for `category`: every finding observed by a category-matching wiki
+    page, deduplicated across pages, kept iff its decayed effective salience (aged_salience) is at
+    or above `salience_floor`, sorted by (asOf, id). Pruned pages are excluded whole (lifecycle
+    gate) BEFORE per-fact aging. Pages with a different or absent category are skipped AND reported.
+    A faded fact (below the floor) is COUNTED, not listed. A dangling/unreadable observation finding
+    fails loud: the canonical store is trusted input, corruption is a stop-the-line event.
+    Returns (included, faded_out, skipped_wrong_category, lifecycle_excluded)."""
     store_root = Path(store_root)
     wiki_dir = store_root / "wiki"
     if not wiki_dir.is_dir():
-        return [], 0, []   # honest empty: no wiki yet (first-ever cycle)
+        return [], 0, [], []   # honest empty: no wiki yet (first-ever cycle)
     store = WikiStore(wiki_dir, FindingStore(store_root / "findings"))
     included: list[Finding] = []
     seen_ids: set[str] = set()
-    out_of_window = 0
+    faded_out = 0
     skipped: list[SkippedPage] = []
+    lifecycle_excluded: list[SkippedPage] = []
     for entry in store.index():
         if entry.category != category:
             skipped.append(SkippedPage(id=entry.id, category=entry.category))
+            continue
+        page = store.get_page(entry.id)
+        if _is_pruned(store, entry.id, page):
+            lifecycle_excluded.append(SkippedPage(id=entry.id, category=entry.category))
             continue
         for obs in store.observations(entry.id):
             if obs.findingId in seen_ids:
@@ -142,12 +151,12 @@ def enumerate_store(store_root, category: str, as_of: str,
                 raise CorpusError(
                     f"store integrity: page {entry.id} observation references "
                     f"unreadable finding {obs.findingId}: {e}") from e
-            if in_window(f.asOf, as_of, window_days):
+            if aged_salience(f, page.salience, as_of, horizons, config) >= salience_floor:
                 included.append(f)
             else:
-                out_of_window += 1
+                faded_out += 1
     included.sort(key=lambda f: (f.asOf, f.id))
-    return included, out_of_window, skipped
+    return included, faded_out, skipped, lifecycle_excluded
 
 
 def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, *,

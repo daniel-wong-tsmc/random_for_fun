@@ -357,6 +357,9 @@
   v1.5 migration; (2) the `smiContribution: 0.0` residual is a SUPPLY gap — no leading *supply*
   indicator exists, so a demand reweight cannot move it; needs an Option-C indicator or the v1.5
   half. Do NOT tick F60 done on this merge.**
+  **UPDATE 2026-07-11: both residuals fold into F79** (SDEWS-style scoring v2.0 — the v1.5
+  side-semantics slot is superseded by v2.0, and leading supply arrives as backfilled series
+  S1/S2 per the extraction doc). F60 stays open until F79 lands them.
 - [ ] **F61 — Staleness & coverage banner; honest confidence label.** The brief renders
   "confidence: high (self-consistency over 3 samples)" — vote agreement, not evidence currency
   — atop evidence with a ~6-week median age, while the gather-log quietly records
@@ -761,3 +764,25 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   `scoring.py`/schema change ships as a versioned migration (Part 33); the corpus-window change is
   in `corpus.py` (not frozen core) but must be shadow-checked against stored scorecards.
   *(Feature — own spec/plan/SDD; brainstorming in progress 2026-07-08.)*
+  **AMENDED 2026-07-11 (user-approved, interactive):** stage 6's renderer gains an executive top
+  band (Demand/Supply/Gap word tiles + a GREEN/YELLOW/ORANGE/RED alert dot with rule-based v1
+  triggers) and a dashboard-parity task — spec
+  `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md` (amendment mechanics §5).
+
+## From the 2026-07-11 executive-format session (F79)
+
+- [ ] **F79 — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**
+  Re-architect the index layer per the SDEWS spec (`docs/2026-07-11-sdews-metric-extraction.md`
+  maps it): every scoring indicator becomes a monthly, vintage-stamped time series (2023→now
+  backfilled from dated archives — EDGAR, TWSE monthly revenue); values z-scored vs the series'
+  own rolling history; DMI/SMI = weighted z-sums; SDGI σ-band alerts with a ΔSDGI momentum
+  trigger and asymmetric demand-reversal sensitivity; event signals enter as decaying impulses.
+  News-flow gates/findings/thesis book stay as the event channel + qualitative overlay (standing
+  decision #3 unchanged — Claude stays the brain). Acceptance: a vintage-honest backtest against
+  the known 2023–2025 turns (recall, orange+ false-alarm rate, lead time); no weight tweaks off
+  single misses. **Frozen-core versioned migration (Part 33) — v2.0; absorbs F60's deferred
+  scoring half (the v1.5 slot is superseded); replay fidelity for all stored v1.x scorecards
+  required.** Sequencing (user-approved): starts only after F78 closes. Full record: spec
+  `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md` §6. **Decision provenance:
+  user chose the full rebuild against the assistant's incremental-two-layer recommendation
+  (interactive, 2026-07-11).** *(Feature — own brainstorm/spec/plan/SDD when it starts.)*

@@ -41,8 +41,9 @@ from gpu_agent.wiki.store import WikiStore
 # floor reused inside aged_salience below.
 SALIENCE_FLOOR_DEFAULT = DEFAULT_LINT_CONFIG.stale_threshold  # 0.1
 
-# TODO (Task 2): WINDOW_DAYS_DEFAULT is deprecated by the aging rule. Kept temporarily
-# for assemble/enumerate_store signature compatibility; will be removed in Task 2 refactor.
+# TODO (Task 4): retired constant — the aging rule replaced the window. Kept ONLY
+# because gpu_agent/cli.py still imports it for its --window-days/--corpus-window-days
+# argparse defaults; Task 4 removes those flags and this constant with them.
 WINDOW_DAYS_DEFAULT = 45
 
 
@@ -193,7 +194,7 @@ def assemble(store_root, category: str, as_of: str, fresh: list[Finding], regist
 
 def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntry], list[str]]:
     """Per (entity, indicatorId) over the AGED STORE part: count + latest vintage.
-    not_covered = every registered indicator id with zero windowed store findings
+    not_covered = every registered indicator id with zero surviving aged store findings
     (price included — the gather top-up aims at these). Sorted, deterministic."""
     by_key: dict[tuple[str, str], list[Finding]] = {}
     for f in store_findings:

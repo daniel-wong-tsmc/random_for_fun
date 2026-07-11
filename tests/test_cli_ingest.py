@@ -11,6 +11,10 @@ def test_ingest_writes_docs_and_log(tmp_path):
     blobs.write_text(json.dumps({
         "rounds": 2,
         "skipped": ["lead 'amd-rumor' dropped by maxDocuments cap"],
+        "pursuedDespiteAge": [
+            {"ref": "https://nvidia.example/h100-spec", "date": "2025-08-22",
+             "ageDays": 320, "reason": "still-current H100 spec page; no fresher restatement"},
+        ],
         "blobs": [_blob("https://www.sec.gov/nvda/10q"),
                   _blob("https://www.sec.gov/nvda/10q/#dup"),   # duplicate
                   _blob("https://some-blog.example/post"),
@@ -34,6 +38,10 @@ def test_ingest_writes_docs_and_log(tmp_path):
     assert log["duplicates"] == 1
     assert len(log["dropped"]) == 1 and log["dropped"][0]["index"] == 3
     assert log["skipped"] == ["lead 'amd-rumor' dropped by maxDocuments cap"]
+    assert log["pursuedDespiteAge"] == [
+        {"ref": "https://nvidia.example/h100-spec", "date": "2025-08-22",
+         "ageDays": 320, "reason": "still-current H100 spec page; no fresher restatement"},
+    ]
 
 def test_ingest_accepts_bare_array(tmp_path):
     blobs = tmp_path / "blobs.json"
@@ -44,6 +52,7 @@ def test_ingest_accepts_bare_array(tmp_path):
     assert rc == 0
     log = json.loads((out / "gather-log.json").read_text("utf-8"))
     assert log["rounds"] == 0 and log["documents"] == 1 and log["skipped"] == []
+    assert log["pursuedDespiteAge"] == []
 
 def test_extract_ignores_gather_log(tmp_path):
     """Regression: extract --docs on an ingest output folder must skip gather-log.json."""

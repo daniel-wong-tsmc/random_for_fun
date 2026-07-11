@@ -79,11 +79,12 @@ def _gate_assignment(a, registry, taxonomy):
 def _ingest(args) -> int:
     payload = json.loads(pathlib.Path(args.blobs).read_text("utf-8"))
     if isinstance(payload, list):
-        blobs, rounds, skipped = payload, 0, []
+        blobs, rounds, skipped, pursued_despite_age = payload, 0, [], []
     else:
         blobs = payload.get("blobs", [])
         rounds = payload.get("rounds", 0)
         skipped = payload.get("skipped", [])
+        pursued_despite_age = payload.get("pursuedDespiteAge", [])
     primary_sources = [s.strip() for s in args.primary_sources.split(",") if s.strip()]
     outcome = normalize_documents(blobs, primary_sources=primary_sources, as_of=args.as_of)
     docs = outcome.documents
@@ -104,6 +105,7 @@ def _ingest(args) -> int:
         "duplicates": outcome.duplicates,
         "dropped": [d.model_dump() for d in outcome.dropped],
         "skipped": skipped,
+        "pursuedDespiteAge": pursued_despite_age,
     }
     if getattr(args, "dedup_store", None):
         log["droppedKnown"] = len(dropped_known)

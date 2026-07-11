@@ -92,12 +92,11 @@ class SkippedPage(BaseModel):
 class CorpusReport(BaseModel):
     asOf: str
     category: str
-    windowDays: int
-    windowStart: str   # ISO day, exclusive lower bound
-    windowEnd: str     # ISO day, inclusive upper bound
+    salienceFloor: float
     storeIncluded: list[str] = Field(default_factory=list)      # finding ids, sorted with merged order
-    outOfWindow: int = 0
-    skippedPages: list[SkippedPage] = Field(default_factory=list)
+    fadedOut: int = 0                                           # aged below the floor, dropped
+    skippedPages: list[SkippedPage] = Field(default_factory=list)        # wrong/absent category
+    lifecycleExcluded: list[SkippedPage] = Field(default_factory=list)   # pruned pages
     freshNew: list[FindingClass] = Field(default_factory=list)
     freshUpdate: list[FindingClass] = Field(default_factory=list)
     freshDuplicate: list[FindingClass] = Field(default_factory=list)
@@ -161,34 +160,30 @@ def enumerate_store(store_root, category: str, as_of: str, horizons, *,
     return included, faded_out, skipped, lifecycle_excluded
 
 
-def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, *,
-             window_days: int = WINDOW_DAYS_DEFAULT) -> CorpusResult:
-    """The F62 merged corpus: windowed store findings + this cycle's fresh gated
-    findings, classified against the store by the existing L2 machinery (intra-batch
-    collapse + evidence-merge, then cross-store NEW/UPDATE keep vs DUPLICATE drop).
-    The store part is never collapsed: it holds only NEW/UPDATE vintages by
-    construction and multiple vintages of one series are deliberate history — scoring
-    takes latest-per-series, the judge sees the (dated) evolution. An id overlap means
-    the identical finding is already stored: the store copy is kept and the event
-    reported. `registry` feeds the coverage table (store part only).
-    """
+def assemble(store_root, category: str, as_of: str, fresh: list[Finding], registry, horizons, *,
+             salience_floor: float = SALIENCE_FLOOR_DEFAULT, config=DEFAULT_LINT_CONFIG) -> CorpusResult:
+    """The F62 merged corpus: the AGED store findings (F78 Stage 3) + this cycle's fresh gated
+    findings, classified against the store by the existing L2 machinery (intra-batch collapse +
+    evidence-merge, then cross-store NEW/UPDATE keep vs DUPLICATE drop). The store part is never
+    collapsed: it holds only NEW/UPDATE vintages by construction and multiple vintages of one
+    series are deliberate history — scoring takes latest-per-series, the judge sees the (dated)
+    evolution. An id overlap means the identical finding is already stored: the store copy is kept
+    and the event reported. `registry` feeds the coverage table (store part only); `horizons`
+    supplies each fact's cadence half-life for aging."""
     store_root = Path(store_root)
-    store_findings, out_of_window, skipped = enumerate_store(
-        store_root, category, as_of, window_days)
+    store_findings, faded_out, skipped, lifecycle_excluded = enumerate_store(
+        store_root, category, as_of, horizons, salience_floor=salience_floor, config=config)
     wiki = WikiStore(store_root / "wiki", FindingStore(store_root / "findings"))
     res = classify_findings(fresh, wiki, config=DEFAULT_DEDUP_CONFIG)
     store_ids = {f.id for f in store_findings}
     id_overlaps = sorted(f.id for f in res.outFindings if f.id in store_ids)
     fresh_keeps = [f for f in res.outFindings if f.id not in store_ids]
     merged = store_findings + fresh_keeps
-    end = period_end(as_of)
     cov_entries, not_covered = coverage(store_findings, registry)
     report = CorpusReport(
-        asOf=as_of, category=category, windowDays=window_days,
-        windowStart=(end - datetime.timedelta(days=window_days)).isoformat(),
-        windowEnd=end.isoformat(),
+        asOf=as_of, category=category, salienceFloor=salience_floor,
         storeIncluded=[f.id for f in store_findings],
-        outOfWindow=out_of_window, skippedPages=skipped,
+        fadedOut=faded_out, skippedPages=skipped, lifecycleExcluded=lifecycle_excluded,
         freshNew=res.new, freshUpdate=res.update, freshDuplicate=res.duplicate,
         idOverlaps=id_overlaps,
         coverage=cov_entries, notCovered=not_covered,
@@ -197,7 +192,7 @@ def assemble(store_root, category: str, as_of: str, fresh: list[Finding], regist
 
 
 def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntry], list[str]]:
-    """Per (entity, indicatorId) over the windowed STORE part: count + latest vintage.
+    """Per (entity, indicatorId) over the AGED STORE part: count + latest vintage.
     not_covered = every registered indicator id with zero windowed store findings
     (price included — the gather top-up aims at these). Sorted, deterministic."""
     by_key: dict[tuple[str, str], list[Finding]] = {}
@@ -216,9 +211,9 @@ def coverage(store_findings: list[Finding], registry) -> tuple[list[CoverageEntr
 
 def render_coverage_text(report: CorpusReport) -> str:
     """Deterministic coverage block for the gather-category dispatch (run-cycle step a0):
-    one header line naming the window, one line per covered series, one not-covered line."""
-    lines = [f"STORE COVERAGE (window {report.windowStart} < asOf <= "
-             f"{report.windowEnd}, {len(report.storeIncluded)} finding(s)):"]
+    one header line naming the aged salience floor, one line per covered series, one not-covered line."""
+    lines = [f"STORE COVERAGE (aged, salience floor {report.salienceFloor:g}, "
+             f"{len(report.storeIncluded)} finding(s)):"]
     if not report.coverage:
         lines.append("  (no store coverage — full gather)")
     for c in report.coverage:

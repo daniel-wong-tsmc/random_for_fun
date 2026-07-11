@@ -255,6 +255,17 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F78 stage-3 lane CLAIMED + DISPATCHED (2026-07-12, interactive session).** Worktree
+  `.worktrees/f78-stage3-corpus`, branch `f78-stage3-corpus-ages-via-wiki`, base `fdbc7fb`
+  (main with stages 1/4/5 merged). Plan
+  `docs/superpowers/plans/2026-07-08-f78-stage3-corpus-ages-via-wiki.md`, subagent-driven.
+  Touches `gpu_agent/corpus.py`, `gpu_agent/cli.py` (corpus wiring), corpus tests. Completion
+  sentinel: `.superpowers/handoffs/f78-stage3-DONE.md`. STOPS before merge.
+- **F78 stages 4+5 MERGED to main by the user 2026-07-12** (`b9a3251`, `fdbc7fb`; suite
+  1188/5; pushed). Stage-2 worktree (`f78-stage2`, another instance) looks complete
+  ("suite green" commit, clean tree) but carries NO DONE sentinel — treat as that
+  instance's open lane; do not touch.
+
 - **`dashboard-showcase` lane is ACTIVE (another instance) — 2026-07-06.** Worktree
   `.worktrees/dashboard`, branch `dashboard-showcase` @ `6fe1841`; spec
   `docs/superpowers/specs/2026-07-06-merchant-gpu-dashboard-design.md`. Its uncommitted edits are

@@ -1,4 +1,37 @@
-# HANDOFF — GPU Category Agent (resume point: F60 DATA HALF MERGED + pushed 2026-07-08 (`b2a1a88`), main == origin/main; a concurrent instance also landed crawl4ai web-reach tool #3 (`6f53c9c`) and a live 2026-07 **v4** top-up cycle (`0f9a57a`, SMI flips positive). Next: remaining S1 pipeline — F57/F58/F59 gather-freshness wave → F77 renderer → F64 → F65 → F66. The blocked 2026-07-07 daily will NOT be re-run, by user decision 2026-07-08. A scheduled 2026-07-09 daily was ALSO blocked - sanctioned web-fetch tooling (WebSearch/WebFetch/agent-reach) permission-gated in the headless session; store/ untouched, awaiting user decision (AFK-default). A THIRD scheduled daily on 2026-07-11 was BLOCKED the same way - sanctioned web-fetch tooling still permission-gated - AND root main now carries 4 UNPUSHED F78-1 commits from a concurrent instance, so the 07-11 blocker note is committed LOCALLY only (main != origin/main by design, NOT pushed under AFK); see the 2026-07-11 callout below.)
+# HANDOFF — GPU Category Agent (resume point: F78 STAGES 1–5 ALL MERGED 2026-07-12, `main == origin/main == fd0b08c`, suite **1200/5**, eval pin green. Next task: **F78 stage 6** — the change-first renderer + the 2026-07-11 exec top band amendment — its plan is fully written and its dependencies are now all on main. Then F79 (SDEWS index rebuild) after F78 closes.)
+
+- **Date: 2026-07-12 (LATEST) — the F78 pipeline landed.** All merges user-directed interactively
+  (ZERO AFK-defaults this session or the 2026-07-11 session). Authoritative state:
+  - **Stage 4** (7-day gather sweep + logged `pursuedDespiteAge[]`, reworks F58) merged `b9a3251`.
+  - **Stage 5** (price-feed reader, 4 provider adapters → $/GPU-hr display-only) merged `fdbc7fb`
+    (its flagged Oracle GB200/GB300 `_match_model` deviation accepted with the merge).
+  - **Stage 3** (corpus ages via the wiki — flat 45-day window GONE; aged salience over real
+    `observedAt` age + lifecycle gate + **any-page-keeps** dedup, user-adjudicated) merged
+    `6e24259`. Built this session subagent-driven (6 tasks, per-task reviews, final opus review:
+    Ready to merge). Sentinel `.superpowers/handoffs/f78-stage3-DONE.md`.
+  - **Stage 2** (calendar-day thesis pacing, 21-day dials, `lastPaceAsOf`) merged `fd0b08c`.
+    ADOPTED from a dormant 07-09 instance (user-directed), reconciled with main by re-running the
+    deterministic book rebuild over v5's history (streaks re-paced: nvda 8→2 — designed effect),
+    given its FIRST whole-branch review (opus: Ready to merge). Sentinel
+    `.superpowers/handoffs/f78-stage2-DONE.md` — **read its venv/editable-install import gotcha.**
+  - **2026-07-11 session:** exec-format spec committed (`3959643`,
+    `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md` — top band tiles + alert
+    ladder, decisions E1–E7) + stage-6 plan amended in place (`bfbaa51`, Tasks 5b/5c/8-amend/11);
+    SDEWS docx committed (`c29fc82`) + metric extraction doc; **F79** (full SDEWS-style scoring
+    v2.0 migration — USER CHOSE against assistant recommendation, starts only after F78 closes)
+    and **F80** (live-store `category: null` on entity:nvidia/entity:multi wiki pages → NVIDIA
+    contributes ZERO store findings to its own corpus, pre-existing since F62) logged in
+    `docs/fix-backlog.md`. A concurrent instance landed the live 2026-07 **v5** top-up (`60879fb`).
+- **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies 2026-07-09 +
+  2026-07-11 — re-run interactively or skip like 07-07 (the F78-1-unpushed part of the 07-11
+  callout was RESOLVED 2026-07-11: user said push); (2) F80 store fix mechanism (store edits are
+  sacred); (3) merged-worktree cleanup (see registry); (4) repo rename before TSMC-branded exposure.
+- **NEXT:** claim a stage-6 lane per its plan
+  (`docs/superpowers/plans/2026-07-08-f78-stage6-change-first-renderer.md`, base must import
+  `gpu_agent.asof` + `gpu_agent.pricefeed` — current main does). After F78: F79 (own
+  brainstorm/spec), F65, F66, F80.
+
+## HISTORICAL — blocked-daily callouts + 2026-07-08 state (superseded 2026-07-12 by the block above)
 
 > **[2026-07-11 SCHEDULED DAILY - BLOCKED (web-fetch tooling still permission-gated); AFK-default 2026-07-11.]**
 > The scheduled 2026-07-11 headless daily (`category:chips.merchant-gpu`, mode=daily, live gather) hit the
@@ -255,14 +288,11 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **F78 stage-2 lane DONE (2026-07-12) — READY TO MERGE, awaiting the user.** Adopted from the
-  dormant 07-09 instance (user-directed), reconciled with main (book re-migrated via the
-  deterministic rebuild over v5's history — streaks re-paced, e.g. nvda 8→2), first-ever
-  whole-branch review (opus): Ready to merge. Branch `f78-stage2` @ `8a6c33b`, suite 1200/5,
-  eval pin green. Sentinel `.superpowers/handoffs/f78-stage2-DONE.md` (incl. a venv/editable-
-  install import gotcha future sessions must read). Original stage-2 instance: the lane is
-  reconciled and sentineled — coordinate here before touching it.
-- **F78 stage-3 MERGED to main by the user 2026-07-12** (`6e24259`, suite 1187/5, pushed).
+- **ALL F78 stage lanes are CLOSED (2026-07-12): stages 2/3/4/5 merged to main by the user**
+  (`fd0b08c`/`6e24259`/`b9a3251`/`fdbc7fb`). No lane is currently claimed or in flight. The
+  stage-6 lane is UNCLAIMED — next instance claims it per instance-sync. Original stage-2
+  instance, if you return: your lane was adopted (user-directed), reconciled, reviewed, and
+  merged — see `.superpowers/handoffs/f78-stage2-DONE.md`; do not resume it.
 
 - **F78 stage-3 lane DONE (2026-07-12) — READY TO MERGE, awaiting the user.** Worktree
   `.worktrees/f78-stage3-corpus`, branch `f78-stage3-corpus-ages-via-wiki` @ `d0f35d3` (7 commits
@@ -340,6 +370,14 @@ ledgers). Never `git clean` these. Remove a worktree only when its "can go when"
 | `.worktrees/f62-flagship-store` | `f62-flagship-consumes-store` | raw eval runs (attempts 1-3) + SDD ledger | `work/eval-f62-2026-07-04/`; `.superpowers/sdd/` (8 task briefs + 9 review diffs) | F62 eval history no longer referenced |
 | `.worktrees/f63-corroboration` | `f63-corroboration-doctrine` | raw eval runs (2026-07-04/05) + SDD ledger | `work/eval-f63-2026-07-04/`, `work/eval-f63-2026-07-04-r2/`, `work/eval-f63-regate-2026-07-05/`; `.superpowers/sdd/` (progress.md + 7 task briefs/reports + 8 review diffs) | F63 re-gate history archived |
 
+| `.worktrees/f78-stage3-corpus` | `f78-stage3-corpus-ages-via-wiki` | SDD ledger + per-task briefs/reports/review packages | `.superpowers/sdd/` (ledger, 6 briefs/reports, 7 review diffs) | F78-3 build history no longer referenced |
+| `.worktrees/f78-stage2` | `f78-stage2` | adoption-reconciliation evidence | `.superpowers/sdd/` (whole-branch review package) | stage-2 review history archived |
+
+**Safe to retire now (merged 2026-07-12, NO gitignored data — user's call):** `.worktrees/{f78-stage4,
+f78-stage5}` + branches `f78-stage4`, `f78-stage5`. Also merged and removable once their retained
+data is archived: the two rows above. `.worktrees/f73-canary` (branch `fix/f73-canary`) is PARKED
+unmerged — needs redesign, not cleanup.
+
 **Removed 2026-07-08 (merged, no gitignored data worth keeping):** `.worktrees/{dashboard, coord-hygiene,
 eval-gate-power, contract-v1.4}` and their branches (`dashboard-showcase`, `fix/coord-hygiene`,
 `fix/eval-gate-power`, `fix/contract-v1.4`) — all merged (`75db88f`/`a0e3123`/`6d098a7`/`e16672a`).
@@ -369,6 +407,9 @@ F57/F58/F59 → F60 → F64 → F65 → F66. Eval-v2, if approved, slots in as i
 F63's re-gate. F56 remains a safe tiny side item.
 
 ## Newest state (newest first)
+  - **2026-07-11/12 sessions: F78 stages 1–5 all on main (`fd0b08c`, suite 1200/5); exec-format
+    spec + stage-6 plan amendment committed; F79 + F80 logged; SDEWS docx + extraction committed;
+    v5 top-up landed (concurrent instance).** Details in the current-state block at the top.
   - **SHOWCASE DASHBOARD shipped + merged + pushed (2026-07-06, `75db88f`; sentinel
     `.superpowers/handoffs/dashboard-showcase-DONE.md`).** New plain-English HTML dashboard from
     report.txt + scorecards: `gpu_agent/dashboard/` + `scripts/build_dashboard.py` → `docs/dashboard.html`

@@ -255,6 +255,15 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F78 stage-2 lane ADOPTED by this session (user-directed, 2026-07-12).** The lane
+  (`.worktrees/f78-stage2`, branch `f78-stage2`, 5 commits, dormant since 2026-07-09, no
+  sentinel) is complete per its plan but pre-dates the v5 cycle: its migrated
+  `store/theses/.../book.json` conflicts with main's v5 book. This session is reconciling by
+  merging main into the branch and RE-RUNNING the deterministic Task-5 rebuild (history.jsonl
+  is the source of truth; both sides compose), then final review + sentinel. If you are the
+  original stage-2 instance: coordinate here before touching the lane again.
+- **F78 stage-3 MERGED to main by the user 2026-07-12** (`6e24259`, suite 1187/5, pushed).
+
 - **F78 stage-3 lane DONE (2026-07-12) — READY TO MERGE, awaiting the user.** Worktree
   `.worktrees/f78-stage3-corpus`, branch `f78-stage3-corpus-ages-via-wiki` @ `d0f35d3` (7 commits
   on base `fdbc7fb`). Suite 1187/5, eval pin green, frozen-core diff empty; final opus

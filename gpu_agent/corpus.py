@@ -1,59 +1,79 @@
-"""gpu_agent/corpus.py — the flagship input corpus (F62).
+"""gpu_agent/corpus.py — the flagship input corpus (F62; F78 Stage 3: ages via the wiki).
 
 Read-only consumer of existing stores: the wiki (page index + observations) as the
-category-scoped index over the canonical FindingStore, and the L2 dedup classifier
-for fresh-vs-store classification. Assembles the windowed accumulated store findings
-plus this cycle's fresh gated findings into ONE merged corpus for the judge/thesis
-brains and the scorecard, and reports coverage so the gather can run as a top-up.
+category-scoped index over the canonical FindingStore, and the L2 dedup classifier for
+fresh-vs-store classification. Assembles the AGED accumulated store findings plus this
+cycle's fresh gated findings into ONE merged corpus for the judge/thesis brains and the
+scorecard, and reports coverage so the gather can run as a top-up.
 
-This module never writes anything: no store mutation, no file writes, no clock
-reads. Same inputs -> byte-identical CorpusResult, always. Window membership is
-label-based (asOf period ends), never wall-clock, so replays/backtests are
-deterministic and a past cycle never sees a future label.
+F78 Stage 3 (D4): the flat 45-day `asOf` window is gone. A store fact now survives on its
+decayed effective salience — the page's intrinsic salience (floored at the wiki's
+salience_floor, as _score_move already treats it) decayed over the fact's REAL age in
+calendar days (`as_of` period-end minus the fact's `observedAt`) via the fact's cadence
+half-life — against a salience floor, PLUS its page's lifecycle state (pruned pages
+excluded). Genuinely superseded old facts fade toward zero and drop out; a fresh
+observation dominates. It reuses the wiki's decay curve unchanged (half_life/decay/
+effective_salience, now in calendar days — F78 Stage 1); only the corpus's SELECTION rule
+changes.
+
+This module never writes anything: no store mutation, no file writes, no clock reads. All
+day-math derives from `asOf`/`observedAt` labels via gpu_agent.asof — never wall-clock — so
+replays/backtests are deterministic and a past cycle never sees a future label.
 """
 from __future__ import annotations
-import calendar
-import datetime
-import re
 from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from gpu_agent.asof import AsOfError, days_between  # F78-3: shared date logic (was corpus-local)
 from gpu_agent.gathering.dedup import DEFAULT_DEDUP_CONFIG, FindingClass, classify_findings
 from gpu_agent.schema.finding import Finding
 from gpu_agent.store import FindingNotFound, FindingStore
+from gpu_agent.wiki.lifecycle import DEFAULT_LIFECYCLE_CONFIG
+from gpu_agent.wiki.lint import DEFAULT_LINT_CONFIG, effective_salience, half_life
 from gpu_agent.wiki.store import WikiStore
 
-WINDOW_DAYS_DEFAULT = 45
+# F78 Stage 3: the decayed-effective-salience cutoff below which an aged store fact drops
+# from the baseline corpus. This is the wiki's OWN "this fact has faded" line
+# (LintConfig.stale_threshold, 0.1) — a decay-based cutoff, never a cycle-count window (D4).
+# NOTE: distinct from LintConfig.salience_floor (0.5), which is the intrinsic-salience WEIGHT
+# floor reused inside aged_salience below.
+SALIENCE_FLOOR_DEFAULT = DEFAULT_LINT_CONFIG.stale_threshold  # 0.1
 
-_DAY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-_MONTH_RE = re.compile(r"^\d{4}-\d{2}$")
+# TODO (Task 2): WINDOW_DAYS_DEFAULT is deprecated by the aging rule. Kept temporarily
+# for assemble/enumerate_store signature compatibility; will be removed in Task 2 refactor.
+WINDOW_DAYS_DEFAULT = 45
 
 
 class CorpusError(ValueError):
-    """Raised on invalid labels or canonical-store integrity violations (fail loud)."""
+    """Raised on canonical-store integrity violations (fail loud). Invalid asOf/observedAt
+    labels raise gpu_agent.asof.AsOfError (a sibling ValueError) from the shared date logic."""
 
 
-def period_end(label: str) -> datetime.date:
-    """A label's period end: a day-grain label is its own day; a month-grain label is
-    that month's last calendar day. Any other shape fails loud (F56-adjacent defense)."""
-    try:
-        if _DAY_RE.match(label):
-            return datetime.date.fromisoformat(label)
-        if _MONTH_RE.match(label):
-            y, m = int(label[:4]), int(label[5:7])
-            return datetime.date(y, m, calendar.monthrange(y, m)[1])
-    except ValueError as e:
-        raise CorpusError(f"invalid asOf label: {label!r} ({e})") from e
-    raise CorpusError(f"invalid asOf label: {label!r} (want YYYY-MM or YYYY-MM-DD)")
+def aged_salience(finding: Finding, page_salience: float, as_of: str, horizons,
+                  config=DEFAULT_LINT_CONFIG) -> float:
+    """A store fact's decayed effective salience at `as_of`: the page's intrinsic salience —
+    floored at the wiki's salience_floor so an unscored page still starts from a baseline
+    (matching _score_move's `max(salience_floor, page.salience)` treatment) — decayed over the
+    fact's REAL age in calendar days (`as_of` period-end minus the fact's `observedAt`, clamped
+    at 0) via the fact's cadence half-life. Uses the wiki's own decay/effective_salience curve
+    (now in calendar days — F78 Stage 1)."""
+    intrinsic = max(config.salience_floor, page_salience)
+    age_days = max(0, days_between(as_of, finding.observedAt))
+    hl, _ = half_life([finding], horizons, config)
+    return effective_salience(intrinsic, age_days, hl)
 
 
-def in_window(label: str, as_of: str, window_days: int) -> bool:
-    """Spec window rule: period_end(as_of) - window_days < period_end(label) <= period_end(as_of)."""
-    end = period_end(as_of)
-    start = end - datetime.timedelta(days=window_days)
-    return start < period_end(label) <= end
+def _is_pruned(store, page_id, page, lifecycle_config=DEFAULT_LIFECYCLE_CONFIG) -> bool:
+    """True iff the page has been lifecycle-pruned. The wiki represents a prune by flooring a
+    (previously scored) page's salience to prune_salience_floor via a state-change
+    (lifecycle.apply_lifecycle). A page whose salience is at/below that floor AND that carries a
+    state-change history was scored then pruned; a never-scored page (salience default 0.0, no
+    state-change) is NOT pruned. archived/retired are not wiki-page states in the current model,
+    so 'pruned' is the operative lifecycle exclusion."""
+    return (page.salience <= lifecycle_config.prune_salience_floor
+            and bool(store.state_history(page_id)))
 
 
 class CoverageEntry(BaseModel):

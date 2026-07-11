@@ -10,6 +10,27 @@
 
 **Spec:** `docs/superpowers/specs/2026-07-08-f78-daily-change-first-brief-design.md` §5.5 (change engine, D3), §5.6 (quick-glance tiers, D8), §5.8 (renderer, D7 — delivers F64 + F77), decisions D3/D7/D8 in §4, §6 (data flow). This is **F78 Stage 6 of 6** — built **LAST**.
 
+> **AMENDED 2026-07-11 (user-approved, interactive) — executive top band + alert color + dashboard
+> parity.** Amendment spec: `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md`
+> (decisions E1–E5, ladder §4, mechanics §5). What changed in this plan:
+> - **Task 1** — `StateVector` gains `statusRating` / `statusDirection` / `constraintLabel`
+>   (from `sc.categoryStatus`) so the band and the alert ladder can see the binding constraint.
+> - **Task 3** — `diff_states` emits a `status:constraint` item; `ChangeReport` carries
+>   `priors` (the per-horizon prior `StateVector`s) so the tile "(was X)" clauses can band the
+>   prior values.
+> - **NEW Task 5b** — `change.py` alert engine: rule ladder GREEN→YELLOW→ORANGE→RED,
+>   asymmetric demand-reversal escalation, 2-calm-run de-escalation walk.
+> - **NEW Task 5c** — `report.py::render_top_band` — the executive top band (title + alert dot +
+>   Demand/Supply/Gap band tiles + binding constraint + since-yesterday line).
+> - **Task 8** — page order becomes TOP BAND → WHAT CHANGED → QUICK GLANCE → ranked calls;
+>   `render_report` gains `alert=None`; `_ABOVE_FOLD_BUDGET` 80 → 88; the budget loop's
+>   ranked-calls index shifts `top[3]` → `top[4]`.
+> - **Task 9** — CLI builds the `AlertState` and passes `alert=`.
+> - **NEW Task 11** — dashboard parity: same tiles/alert dot/WHAT CHANGED on `docs/dashboard.html`.
+> The text render uses stacked tile LINES (no box-drawing — deterministic, padding-free); the
+> boxed-tile look ships on the dashboard, whose HTML tiles already exist. All amendment work is
+> renderer/code only — the F6 eval pin stays green.
+
 ## Dependencies (this stage is built last)
 
 This plan assumes the earlier stages have landed on the branch base. Confirm before starting:
@@ -140,6 +161,22 @@ def test_prices_passed_through():
     prices = [PriceCell(model="B200", usdPerGpuHour=3.99, asOfColumn="2026-07-08")]
     st = build_state(_sc(), prices=prices)
     assert st.prices[0].model == "B200" and st.prices[0].usdPerGpuHour == 3.99
+
+
+def test_category_status_projected_none_safe():
+    # AMENDED 2026-07-11 (exec top band): categoryStatus fields ride the state vector.
+    from gpu_agent.schema.scorecard import CategoryStatus
+    sc = _sc()
+    sc = sc.model_copy(update={"categoryStatus": CategoryStatus(
+        rating="Strong", direction="worsening", bottleneck="bottleneck",
+        reason="memory caps shipments")})
+    st = build_state(sc)
+    assert st.statusRating == "Strong" and st.statusDirection == "worsening"
+    # constraintLabel is optional on CategoryStatus — absent -> None, never a crash
+    assert st.constraintLabel is None or isinstance(st.constraintLabel, str)
+    # a scorecard with NO categoryStatus at all stays None-safe
+    bare = build_state(_sc())
+    assert bare.statusRating is None and bare.constraintLabel is None
 ```
 
 - [ ] **Step 2: Run it — verify it fails**
@@ -219,6 +256,10 @@ class StateVector(BaseModel):
     theses: dict[str, ThesisCell] = Field(default_factory=dict)
     metrics: dict[str, MetricCell] = Field(default_factory=dict)   # keyed by indicatorId
     prices: list[PriceCell] = Field(default_factory=list)
+    # AMENDED 2026-07-11 (exec top band + alert ladder): categoryStatus projection.
+    statusRating: Optional[str] = None       # categoryStatus.rating   (e.g. "Strong")
+    statusDirection: Optional[str] = None    # categoryStatus.direction (e.g. "worsening")
+    constraintLabel: Optional[str] = None    # categoryStatus.constraintLabel — the binding constraint
 
 
 def _latest_metric(sc: Scorecard, indicator_id: str):
@@ -265,11 +306,15 @@ def build_state(sc: Scorecard, book: Optional[ThesisBook] = None,
             observedAt=(max(ev_dates) if ev_dates else f.observedAt),
             tier=("money" if iid in MONEY_INDICATORS else "scarcity"))
 
+    cs = sc.categoryStatus   # AMENDED 2026-07-11: Optional on older scorecards — None-safe
     return StateVector(
         asOf=sc.asOf, dimensions=dims,
         demand=sc.demandSupply.dmiContribution, supply=sc.demandSupply.smiContribution,
         sdgi=compute_sdgi(sc), theses=theses, metrics=metrics,
-        prices=list(prices or []))
+        prices=list(prices or []),
+        statusRating=(cs.rating if cs is not None else None),
+        statusDirection=(cs.direction if cs is not None else None),
+        constraintLabel=(getattr(cs, "constraintLabel", None) if cs is not None else None))
 ```
 
 - [ ] **Step 4: Run it — verify it passes**
@@ -570,7 +615,37 @@ def test_build_change_report_no_run_at_horizon(tmp_path):
     rpt = build_change_report(tmp_path, today)
     last_month = next(h for h in rpt.horizons if h.horizon == "last month")
     assert last_month.priorAsOf is None and last_month.items == []
+
+
+def test_constraint_rotation_item_and_priors_carried():
+    # AMENDED 2026-07-11: status:constraint item + ChangeReport.priors for the top band.
+    from gpu_agent.schema.scorecard import CategoryStatus
+
+    def _sc_status(as_of, label):
+        sc = Scorecard(categoryId="c", asOf=as_of, findings=[],
+                       demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),
+                       narrative="n", confidence=_conf())
+        return sc.model_copy(update={"categoryStatus": CategoryStatus(
+            rating="Strong", direction="steady", bottleneck="b", reason="r",
+            constraintLabel=label)})
+
+    cur = build_state(_sc_status("2026-07-08", "HBM memory scarcity"))
+    prior = build_state(_sc_status("2026-07-01", "export enforcement"))
+    hd = diff_states("last week", 7, cur, prior, "2026-07-01", None)
+    item = next(i for i in hd.items if i.key == "status:constraint")
+    assert item.changed and item.today == "HBM memory scarcity" and item.prior == "export enforcement"
+    # same label -> unchanged
+    hd2 = diff_states("last week", 7, cur, cur, "2026-07-01", None)
+    item2 = next(i for i in hd2.items if i.key == "status:constraint")
+    assert item2.changed is False
 ```
+
+Note (AMENDED 2026-07-11): if `CategoryStatus` has no `constraintLabel` field in the schema
+(it is read with a `getattr` guard in `brief.render_state_of_market`), construct the test
+scorecards through whatever field the schema actually names — the state vector only ever reads
+`getattr(cs, "constraintLabel", None)`, so the test must feed the REAL field. Check
+`gpu_agent/schema/scorecard.py::CategoryStatus` first and adjust the two `_sc_status` payloads;
+do not add a schema field (schema/* is frozen core).
 
 - [ ] **Step 2: Run it — verify it fails**
 
@@ -606,6 +681,10 @@ class HorizonDiff(BaseModel):
 class ChangeReport(BaseModel):
     asOf: str
     horizons: list[HorizonDiff] = Field(default_factory=list)
+    # AMENDED 2026-07-11: per-horizon prior StateVector (keyed by horizon name, None when no
+    # run at/before that target) — the top band needs prior VALUES (bands.band_with_prior),
+    # not display tokens; build_change_report already constructs these, now it keeps them.
+    priors: dict[str, Optional[StateVector]] = Field(default_factory=dict)
 
 
 def _index_token(value: float) -> str:
@@ -689,6 +768,19 @@ def diff_states(name: str, days: int, current: StateVector,
                                today=f"${p.usdPerGpuHour:g}/GPU-hr",
                                prior=f"${pp.usdPerGpuHour:g}/GPU-hr", direction=direction))
 
+    # binding constraint (AMENDED 2026-07-11 — feeds the exec top band + the alert ladder's
+    # constraint-rotated trigger; None-safe: older scorecards may carry no categoryStatus)
+    if current.constraintLabel is not None:
+        if prior.constraintLabel is None:
+            items.append(ItemDelta(key="status:constraint", changed=True,
+                                   today=current.constraintLabel, direction="new"))
+        else:
+            items.append(ItemDelta(key="status:constraint",
+                                   changed=(current.constraintLabel != prior.constraintLabel),
+                                   today=current.constraintLabel, prior=prior.constraintLabel,
+                                   direction=("same" if current.constraintLabel == prior.constraintLabel
+                                              else "new")))
+
     # theses — movement from the current book's timestamps vs this horizon's prior asOf
     if book is not None and prior_asof is not None:
         _DIR = {1: "up", -1: "down", 0: "same"}
@@ -734,6 +826,7 @@ def build_change_report(store_dir, sc: Scorecard, book: Optional[ThesisBook] = N
     current = build_state(sc, book, prices_by_days.get(0))
     target0 = period_end(sc.asOf)
     horizons: list[HorizonDiff] = []
+    priors: dict[str, Optional[StateVector]] = {}   # AMENDED 2026-07-11: kept for the top band
     for name, days in LOOKBACKS:
         target = target0 - datetime.timedelta(days=days)
         prior_path = nearest_run_at_or_before(store_dir, sc.categoryId, target)
@@ -742,9 +835,10 @@ def build_change_report(store_dir, sc: Scorecard, book: Optional[ThesisBook] = N
             prior_sc = load_scorecard(prior_path)
             prior_asof = prior_sc.asOf
             prior_state = build_state(prior_sc, None, prices_by_days.get(days))
+        priors[name] = prior_state
         horizons.append(diff_states(name, days, current, prior_state, prior_asof, book))
     _annotate_unchanged_since(horizons)
-    return ChangeReport(asOf=sc.asOf, horizons=horizons)
+    return ChangeReport(asOf=sc.asOf, horizons=horizons, priors=priors)
 ```
 
 Note: `dim:` direction is coarse here ("up" when the token differs); the renderer (Task 5) refines the dimension arrow from the rating rank (`report.RATING_SCALE`) so the change lines show a true ↑/↓. The engine keeps the raw tokens; ranking lives in the renderer.
@@ -1044,6 +1138,499 @@ Expected: PASS. If the acronym-lint test fails on a unit token, fix the metric-t
 git add gpu_agent/reader.py gpu_agent/report.py tests/test_report_change_lines.py
 git commit -m "$(cat <<'EOF'
 feat(F78-6): change-first lead lines (three horizons) + reader DIM_LABEL; exec-plain, lint-clean
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+### Task 5b (AMENDED 2026-07-11): `change.py` — alert engine (rule ladder + de-escalation)
+
+The executive alert color: GREEN → YELLOW → ORANGE → RED, computed from stored state only
+(pure projection, $0, deterministic). Spec: `2026-07-11-executive-brief-format-design.md` §4.
+Every trigger window is **7 calendar days** (the 1-day horizon feeds the renderer's
+since-yesterday line, not the ladder). v2 (F79) will swap these rule triggers for σ-bands —
+keep the ladder/fold seams intact.
+
+**Assumption (state explicitly, mirrors Task 3's):** historical raw colors in the
+de-escalation walk read thesis movement from the CURRENT book's `lastChangedAsOf` (a thesis
+moved twice keeps only its latest timestamp). Approximation is acceptable — the walk only
+feeds de-escalation memory — and it is deterministic. The store may also contain month-grain
+(`YYYY-MM`) flagship scorecards; they participate by their `period_end` date (month-end),
+which is deterministic; F78 retires new month-grain runs going forward.
+
+**Files:**
+- Modify: `gpu_agent/change.py`
+- Create: `tests/test_change_alert.py`
+
+**Interfaces:**
+- Consumes: Task 1/2/3 (`StateVector` incl. `constraintLabel`, `nearest_run_at_or_before`,
+  `load_scorecard`, `period_end`, `days_between`); `gpu_agent.bands.{BANDS, band_word}`;
+  `ThesisBook.{standing, entries}` with entry fields `conviction`, `status`, `lastVerdict`,
+  `lastDirection`, `lastChangedAsOf`.
+- Produces: `AlertState` model; `alert_state(store_dir, sc, book=None) -> AlertState`;
+  internal `_raw_alert`, `_raw_alert_for`, `_fold_displayed`, `_thesis_moves_between`,
+  `_high_break_between`, `_ALERT_RANK`, `_BAND_RANK`.
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+# tests/test_change_alert.py
+from __future__ import annotations
+from gpu_agent.schema.scorecard import Scorecard, DemandSupply
+from gpu_agent.schema.finding import Confidence
+from gpu_agent.thesis import ThesisBook, ThesisEntry
+from gpu_agent.change import (StateVector, AlertState, _raw_alert, _fold_displayed,
+                              alert_state, build_state)
+
+
+def _conf():
+    return Confidence(level="medium", basis="b")
+
+
+def _st(demand=0.10, supply=0.10, sdgi=0.10, constraint=None, as_of="2026-07-08"):
+    return StateVector(asOf=as_of, demand=demand, supply=supply, sdgi=sdgi,
+                       constraintLabel=constraint)
+
+
+def _entry(eid="t1", conviction="high", status="registered", verdict="strengthened",
+           direction=1, changed="2026-07-05"):
+    return ThesisEntry(id=eid, title="T", statement="s", lens="demand", status=status,
+                       conviction=conviction, lastVerdict=verdict, lastDirection=direction,
+                       streak=2, mechanism="m", falsifiableTrigger="t", sensitivity="s",
+                       createdAsOf="2026-06", lastChangedAsOf=changed,
+                       lastJudgedAsOf=changed)
+
+
+def test_green_when_nothing_moved():
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", None)
+    assert color == "green" and trig == []
+
+
+def test_yellow_on_gap_band_change():
+    # firm (0.10) -> accelerating (0.35) crosses a band edge
+    color, trig = _raw_alert(_st(sdgi=0.35), _st(sdgi=0.10, as_of="2026-07-01"),
+                             "2026-07-01", None)
+    assert color == "yellow" and "gap-band-changed" in trig
+
+
+def test_yellow_on_constraint_rotation():
+    color, trig = _raw_alert(_st(constraint="memory scarcity"),
+                             _st(constraint="export enforcement", as_of="2026-07-01"),
+                             "2026-07-01", None)
+    assert color == "yellow" and "constraint-rotated" in trig
+
+
+def test_yellow_on_high_call_moved():
+    book = ThesisBook(categoryId="c", entries=[_entry(changed="2026-07-05")])
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", book)
+    assert color == "yellow" and "high-call-moved" in trig
+
+
+def test_two_yellow_rules_escalate_orange():
+    color, trig = _raw_alert(_st(sdgi=0.35, constraint="memory"),
+                             _st(sdgi=0.10, constraint="export", as_of="2026-07-01"),
+                             "2026-07-01", None)
+    assert color == "orange"
+    assert {"gap-band-changed", "constraint-rotated"} <= set(trig)
+
+
+def test_orange_on_high_break():
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(status="retired", verdict="broken", changed="2026-07-06")])
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", book)
+    assert color == "orange" and "high-call-broke" in trig
+
+
+def test_orange_on_asymmetric_demand_reversal():
+    # demand band worsens (firm 0.10 -> softening -0.10) AND sdgi slides toward glut
+    # WITHIN the same band (0.28 -> 0.10, both "firm") so no other rule fires.
+    color, trig = _raw_alert(_st(demand=-0.10, sdgi=0.10),
+                             _st(demand=0.10, sdgi=0.28, as_of="2026-07-01"),
+                             "2026-07-01", None)
+    assert color == "orange" and trig == ["demand-reversal"]
+
+
+def test_red_on_break_plus_gap_band_flip():
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(status="retired", verdict="broken", changed="2026-07-06")])
+    color, trig = _raw_alert(_st(sdgi=-0.35), _st(sdgi=0.10, as_of="2026-07-01"),
+                             "2026-07-01", book)
+    assert color == "red"
+
+
+def test_no_prior_run_is_green():
+    color, trig = _raw_alert(_st(), None, None, None)
+    assert color == "green"
+
+
+def test_fold_immediate_escalation_and_two_calm_step_down():
+    assert _fold_displayed(["green", "orange"]) == ["green", "orange"]      # escalate now
+    assert _fold_displayed(["orange", "green"]) == ["orange", "orange"]     # 1st calm holds
+    assert _fold_displayed(["orange", "green", "green"]) == ["orange", "orange", "green"]
+    assert _fold_displayed(["orange", "green", "yellow"]) == ["orange", "orange", "yellow"]
+    assert _fold_displayed(["yellow", "red"]) == ["yellow", "red"]
+
+
+def test_alert_state_walk_deterministic(tmp_path):
+    def _write(as_of, constraint):
+        cat = tmp_path / "chips.merchant-gpu"
+        cat.mkdir(parents=True, exist_ok=True)
+        sc = Scorecard(categoryId="chips.merchant-gpu", asOf=as_of, findings=[],
+                       demandSupply=DemandSupply(dmiContribution=0.1, smiContribution=0.1),
+                       narrative="n", confidence=_conf())
+        (cat / f"{as_of}-v1.json").write_text(sc.model_dump_json(), "utf-8")
+        return sc
+
+    _write("2026-07-01", None)
+    _write("2026-07-07", None)
+    today = _write("2026-07-08", None)
+    a = alert_state(tmp_path, today)
+    b = alert_state(tmp_path, today)
+    assert a == b
+    assert a.color == "green" and a.priorColor == "green" and a.rawColor == "green"
+```
+
+- [ ] **Step 2: Run it — verify it fails**
+
+Run: `.venv/Scripts/python -m pytest tests/test_change_alert.py -q`
+Expected: FAIL (`ImportError: cannot import name 'AlertState'`).
+
+- [ ] **Step 3: Add the alert engine to `gpu_agent/change.py`**
+
+Add `from gpu_agent import bands` to the imports, then append below `build_change_report`:
+
+```python
+# ---------------------------------------------------------------------------
+# AMENDED 2026-07-11 — executive alert ladder (spec 2026-07-11 §4). Rule-based v1;
+# F79 swaps the trigger definitions for sigma-bands, keeping AlertState/fold intact.
+
+_ALERT_RANK = {"green": 0, "yellow": 1, "orange": 2, "red": 3}
+_BAND_RANK = ["contracting"] + [w for _, w in reversed(bands.BANDS)]  # mirrors bands._WORD_RANK
+_YELLOW_RULES = ("gap-band-changed", "high-call-moved", "constraint-rotated", "calls-co-move")
+
+
+class AlertState(BaseModel):
+    color: str                        # displayed color after anti-flapping
+    priorColor: Optional[str] = None  # prior run's displayed color; None on the first run
+    rawColor: str = "green"           # today's raw ladder evaluation (pre-fold)
+    triggers: list[str] = Field(default_factory=list)   # today's fired rule ids
+
+
+def _band_rank(word: str) -> int:
+    return _BAND_RANK.index(word)
+
+
+def _thesis_moves_between(book: ThesisBook, after_asof: str, at_or_before_asof: str):
+    """Standing theses whose lastChangedAsOf lies in (after_asof, at_or_before_asof].
+    Current-book timestamps (see the Task 5b assumption note)."""
+    _DIR = {1: "up", -1: "down", 0: "same"}
+    out = []
+    for e in book.standing():
+        if (days_between(e.lastChangedAsOf, after_asof) > 0
+                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0):
+            out.append((e, _DIR.get(e.lastDirection, "same")))
+    return out
+
+
+def _high_break_between(book: ThesisBook, after_asof: str, at_or_before_asof: str) -> bool:
+    """A high-conviction call that broke/retired inside the window. Iterates ALL entries —
+    standing() excludes retired, which is exactly what a break produces."""
+    for e in book.entries:
+        if e.conviction != "high":
+            continue
+        if not (e.status == "retired" or e.lastVerdict == "broken"):
+            continue
+        if (days_between(e.lastChangedAsOf, after_asof) > 0
+                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0):
+            return True
+    return False
+
+
+def _raw_alert(cur: StateVector, prior7: Optional[StateVector], prior7_asof: Optional[str],
+               book: Optional[ThesisBook]) -> tuple[str, list[str]]:
+    """One run's raw ladder color. First match from the top wins; co-occurrence is counted at
+    the RULE level (two rules fed by one event still count as two — spec §4)."""
+    triggers: list[str] = []
+    if prior7 is not None:
+        if bands.band_word(cur.sdgi) != bands.band_word(prior7.sdgi):
+            triggers.append("gap-band-changed")
+        if (cur.constraintLabel and prior7.constraintLabel
+                and cur.constraintLabel != prior7.constraintLabel):
+            triggers.append("constraint-rotated")
+    if book is not None and prior7_asof is not None:
+        moves = _thesis_moves_between(book, prior7_asof, cur.asOf)
+        if any(e.conviction == "high" for e, _d in moves):
+            triggers.append("high-call-moved")
+        for d in ("up", "down"):
+            if sum(1 for _e, dd in moves if dd == d) >= 2:
+                triggers.append("calls-co-move")
+                break
+        if _high_break_between(book, prior7_asof, cur.asOf):
+            triggers.append("high-call-broke")
+    if prior7 is not None:
+        demand_worsened = _band_rank(bands.band_word(cur.demand)) < _band_rank(
+            bands.band_word(prior7.demand))
+        gap_toward_glut = round(cur.sdgi, _ROUND) < round(prior7.sdgi, _ROUND)
+        if demand_worsened and gap_toward_glut:
+            triggers.append("demand-reversal")   # asymmetric: this pair ALONE escalates
+
+    y_hits = [t for t in triggers if t in _YELLOW_RULES]
+    if "high-call-broke" in triggers and "gap-band-changed" in triggers:
+        return "red", triggers
+    if "high-call-broke" in triggers or "demand-reversal" in triggers or len(y_hits) >= 2:
+        return "orange", triggers
+    if y_hits:
+        return "yellow", triggers
+    return "green", triggers
+
+
+def _raw_alert_for(store_dir, sc_run: Scorecard, book: Optional[ThesisBook]) -> tuple[str, list[str]]:
+    cur = build_state(sc_run)
+    target = period_end(sc_run.asOf) - datetime.timedelta(days=7)
+    prior_path = nearest_run_at_or_before(store_dir, sc_run.categoryId, target)
+    prior7 = prior7_asof = None
+    if prior_path is not None:
+        prior_sc = load_scorecard(prior_path)
+        prior7, prior7_asof = build_state(prior_sc), prior_sc.asOf
+    return _raw_alert(cur, prior7, prior7_asof, book)
+
+
+def _fold_displayed(raws: list[str]) -> list[str]:
+    """Anti-flapping: escalation is immediate; a color steps DOWN only after 2 consecutive
+    runs whose raw evaluation sits below the held color (spec §4). displayed[i] is:
+    raw[i] when raw[i] >= displayed[i-1]; the held color when this is the FIRST calm run
+    (raw[i-1] had earned the held color); otherwise the higher of the last two raws."""
+    disp: list[str] = []
+    for i, raw in enumerate(raws):
+        if i == 0:
+            disp.append(raw)
+            continue
+        held = disp[i - 1]
+        if _ALERT_RANK[raw] >= _ALERT_RANK[held]:
+            disp.append(raw)
+        elif _ALERT_RANK[raws[i - 1]] >= _ALERT_RANK[held]:
+            disp.append(held)
+        else:
+            disp.append(max(raw, raws[i - 1], key=lambda c: _ALERT_RANK[c]))
+    return disp
+
+
+def alert_state(store_dir, sc: Scorecard, book: Optional[ThesisBook] = None) -> AlertState:
+    """Today's displayed alert. Recomputes every stored run's raw color chronologically and
+    folds the de-escalation memory — pure projection, no stored field, replayable."""
+    cat_dir = Path(store_dir) / sc.categoryId
+    runs: dict[str, tuple[int, Path]] = {}
+    if cat_dir.is_dir():
+        for p in sorted(cat_dir.iterdir()):
+            m = _VERSION_RE.match(p.name)
+            if not m:
+                continue
+            as_of, ver = m.group(1), int(m.group(2))
+            if as_of == sc.asOf:
+                continue          # today is evaluated from `sc`, not the store copy
+            if as_of not in runs or ver > runs[as_of][0]:
+                runs[as_of] = (ver, p)
+    ordered = sorted(runs, key=period_end)
+    raws = [_raw_alert_for(store_dir, load_scorecard(runs[a][1]), book)[0] for a in ordered]
+    raw_today, triggers = _raw_alert_for(store_dir, sc, book)
+    raws.append(raw_today)
+    disp = _fold_displayed(raws)
+    return AlertState(color=disp[-1], priorColor=(disp[-2] if len(disp) > 1 else None),
+                      rawColor=raw_today, triggers=triggers)
+```
+
+- [ ] **Step 4: Run it — verify it passes**
+
+Run: `.venv/Scripts/python -m pytest tests/test_change_alert.py -q`
+Expected: PASS (11 passed).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add gpu_agent/change.py tests/test_change_alert.py
+git commit -m "$(cat <<'EOF'
+feat(F78-6): executive alert ladder — rule-based color + asymmetric escalation + 2-calm-run de-escalation
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+### Task 5c (AMENDED 2026-07-11): `report.py` — the executive top band
+
+The page-topping band (spec §3): title + alert dot + Demand/Supply band tiles + gap phrase +
+binding constraint + since-yesterday one-liner. Words only — raw DMI/SMI/SDGI stay in the
+appendix. Stacked lines, no box-drawing (the boxed look is the dashboard's, Task 11).
+
+**Files:**
+- Modify: `gpu_agent/report.py`
+- Create: `tests/test_report_top_band.py`
+
+**Interfaces:**
+- Consumes: `change.{StateVector, AlertState, ChangeReport}` (incl. `ChangeReport.priors`);
+  `gpu_agent.bands.band_with_prior`; `report._sdgi_interpretation`; `reader.lint_acronyms`.
+- Produces: `report.render_top_band(sc, state, alert, change) -> str`; `_category_title`.
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+# tests/test_report_top_band.py
+from __future__ import annotations
+from gpu_agent.schema.scorecard import Scorecard, DemandSupply
+from gpu_agent.schema.finding import Confidence
+from gpu_agent.change import (StateVector, AlertState, ChangeReport, HorizonDiff, ItemDelta)
+from gpu_agent.report import render_top_band
+from gpu_agent import reader
+
+
+def _conf():
+    return Confidence(level="medium", basis="b")
+
+
+def _sc():
+    return Scorecard(categoryId="chips.merchant-gpu", asOf="2026-07-08", findings=[],
+                     demandSupply=DemandSupply(dmiContribution=0.1, smiContribution=-0.1),
+                     narrative="n", confidence=_conf())
+
+
+def _state(**kw):
+    base = dict(asOf="2026-07-08", demand=0.10, supply=-0.10, sdgi=0.20,
+                constraintLabel="memory scarcity")
+    base.update(kw)
+    return StateVector(**base)
+
+
+def _change(prior_state=None, items=None, prior_asof="2026-07-07"):
+    return ChangeReport(asOf="2026-07-08", horizons=[
+        HorizonDiff(horizon="yesterday", lookbackDays=1, priorAsOf=prior_asof,
+                    items=items or []),
+        HorizonDiff(horizon="last week", lookbackDays=7, priorAsOf="2026-07-01", items=[]),
+        HorizonDiff(horizon="last month", lookbackDays=30, priorAsOf="2026-06-08", items=[]),
+    ], priors={"yesterday": prior_state, "last week": None, "last month": None})
+
+
+def test_band_has_title_dot_tiles_constraint():
+    prior = _state(asOf="2026-07-07", demand=-0.10, supply=-0.10, sdgi=0.10)
+    out = render_top_band(_sc(), _state(),
+                          AlertState(color="yellow", priorColor="green", rawColor="yellow"),
+                          _change(prior_state=prior))
+    lines = out.splitlines()
+    assert "MERCHANT GPU" in lines[0] and "2026-07-08" in lines[0]
+    assert "YELLOW" in lines[0] and "(was GREEN)" in lines[0]
+    assert "Demand: FIRM" in out and "(was SOFTENING)" in out     # banded, moved
+    assert "Supply: SOFTENING" in out and "(was SOFTENING)" in out
+    assert "Gap:" in out
+    assert "Binding constraint: memory scarcity" in out
+
+
+def test_first_run_variants():
+    out = render_top_band(_sc(), _state(constraintLabel=None),
+                          AlertState(color="green", priorColor=None, rawColor="green"),
+                          _change(prior_state=None, prior_asof=None))
+    assert "(first tracked run)" in out
+    assert "(no prior)" in out                       # bands.band_with_prior fallback
+    assert "Binding constraint" not in out           # None -> line omitted
+    assert "nothing to compare yet" in out
+
+
+def test_since_yesterday_counts_calls():
+    items = [ItemDelta(key="thesis:t1", changed=True, today="high/strengthened",
+                       direction="up"),
+             ItemDelta(key="index:gap", changed=True, today="flat 0.2",
+                       prior="flat 0.1", direction="up")]
+    out = render_top_band(_sc(), _state(),
+                          AlertState(color="green", priorColor="green", rawColor="green"),
+                          _change(prior_state=_state(asOf="2026-07-07"), items=items))
+    assert "Since yesterday: 2 moved (1 standing call)" in out
+
+
+def test_top_band_passes_acronym_lint_and_is_deterministic():
+    prior = _state(asOf="2026-07-07")
+    args = (_sc(), _state(),
+            AlertState(color="orange", priorColor="yellow", rawColor="orange"),
+            _change(prior_state=prior))
+    a, b = render_top_band(*args), render_top_band(*args)
+    assert a == b
+    assert reader.lint_acronyms(a) == []
+```
+
+- [ ] **Step 2: Run it — verify it fails**
+
+Run: `.venv/Scripts/python -m pytest tests/test_report_top_band.py -q`
+Expected: FAIL (`ImportError: cannot import name 'render_top_band'`).
+
+- [ ] **Step 3: Implement `render_top_band` in `gpu_agent/report.py`**
+
+Ensure `from gpu_agent import bands` is imported (brief.py already imports it; report.py may
+not), then add near the other section renderers:
+
+```python
+_ALERT_DOT = "●"
+
+
+def _category_title(category_id: str) -> str:
+    """'chips.merchant-gpu' -> 'MERCHANT GPU' (leaf id, dashes to spaces, upper)."""
+    return category_id.rsplit(".", 1)[-1].replace("-", " ").upper()
+
+
+def render_top_band(sc, state, alert, change) -> str:
+    """EXEC TOP BAND (2026-07-11 amendment, spec §3): title + alert dot + banded tiles +
+    binding constraint + since-yesterday count. Words only (read direction, not level);
+    every line passes reader.lint_acronyms; deterministic."""
+    was = (f" (was {alert.priorColor.upper()})" if alert.priorColor
+           else " (first tracked run)")
+    lines = [f"{_category_title(sc.categoryId)} — DAILY — {sc.asOf}"
+             f"    {_ALERT_DOT} {alert.color.upper()}{was}"]
+
+    prior1 = (change.priors or {}).get("yesterday") if change is not None else None
+    p_dem = prior1.demand if prior1 is not None else None
+    p_sup = prior1.supply if prior1 is not None else None
+    lines.append(f"  Demand: {bands.band_with_prior(state.demand, p_dem)}      "
+                 f"Supply: {bands.band_with_prior(state.supply, p_sup)}")
+    lines.append(f"  Gap: {_sdgi_interpretation(state.sdgi)}")
+    if state.constraintLabel:
+        lines.append(f"  Binding constraint: {state.constraintLabel}")
+
+    if change is not None:
+        h1 = next((h for h in change.horizons if h.horizon == "yesterday"), None)
+        if h1 is None or h1.priorAsOf is None:
+            lines.append("  Since yesterday: first tracked run — nothing to compare yet")
+        else:
+            moved = [it for it in h1.items if it.changed]
+            if not moved:
+                since = next((it.unchangedSince for it in h1.items if it.unchangedSince),
+                             h1.priorAsOf)
+                lines.append(f"  Since yesterday: no change — unchanged since {since}")
+            else:
+                calls = sum(1 for it in moved if it.key.startswith("thesis:"))
+                call_part = (f" ({calls} standing call{'s' if calls != 1 else ''})"
+                             if calls else "")
+                lines.append(f"  Since yesterday: {len(moved)} moved{call_part} — detail below")
+    return "\n".join(lines)
+```
+
+If `test_top_band_passes_acronym_lint_and_is_deterministic` reports tokens like `DAILY`,
+`YELLOW`, or a band word: those are dictionary words, not acronyms — extend nothing; instead
+switch THAT token to title-case in the renderer (e.g. `Yellow`) until the lint is clean. Never
+add color words to `registry/acronyms.json` (that file is for real acronyms) and never weaken
+the test.
+
+- [ ] **Step 4: Run it — verify it passes**
+
+Run: `.venv/Scripts/python -m pytest tests/test_report_top_band.py -q`
+Expected: PASS (4 passed).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add gpu_agent/report.py tests/test_report_top_band.py
+git commit -m "$(cat <<'EOF'
+feat(F78-6): executive top band — alert dot + banded Demand/Supply/Gap tiles + constraint + since-yesterday
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 EOF
@@ -1373,7 +1960,7 @@ EOF
 
 ### Task 8: `report.py` — wire the change-first mode into `render_report` (+ length budget, lint, determinism)
 
-When a `ChangeReport` is supplied, `render_report` leads with `WHAT CHANGED` → `QUICK GLANCE` → ranked calls, applies a length budget above the appendix, and keeps everything else (and the whole appendix) as today. When `change is None`, output is byte-identical to today so every existing report/brief test stays green.
+When a `ChangeReport` is supplied, `render_report` leads with `TOP BAND` → `WHAT CHANGED` → `QUICK GLANCE` → ranked calls, applies a length budget above the appendix, and keeps everything else (and the whole appendix) as today. When `change is None`, output is byte-identical to today so every existing report/brief test stays green. **(AMENDED 2026-07-11: the exec top band from Task 5c leads the page when `state` and `alert` are both supplied; `render_report` gains a fourth keyword `alert=None`; the budget-loop's ranked-calls index shifts `top[3]` → `top[4]`; `_ABOVE_FOLD_BUDGET` rises 80 → 88 for the band's ~6 lines + separator.)**
 
 **Files:**
 - Modify: `gpu_agent/report.py` (`render_report` signature + body; add `_ABOVE_FOLD_BUDGET`)
@@ -1439,6 +2026,18 @@ def test_change_first_leads_with_what_changed_then_glance():
     assert out.index("WHAT CHANGED") < out.index("STATE OF THE MARKET")
 
 
+def test_top_band_leads_when_alert_supplied():
+    # AMENDED 2026-07-11: TOP BAND above WHAT CHANGED; absent without an AlertState.
+    from gpu_agent.change import AlertState
+    st = build_state(_sc())
+    out = render_report(_sc(), None, _reg(), render_ts="fixed", change=_change(), state=st,
+                        alert=AlertState(color="yellow", priorColor="green", rawColor="yellow"))
+    assert out.index("YELLOW") < out.index("WHAT CHANGED")
+    assert "(was GREEN)" in out
+    no_alert = render_report(_sc(), None, _reg(), render_ts="fixed", change=_change(), state=st)
+    assert "(was GREEN)" not in no_alert
+
+
 def test_above_fold_passes_acronym_lint():
     st = build_state(_sc())
     out = render_report(_sc(), None, _reg(), render_ts="fixed", change=_change(), state=st)
@@ -1471,7 +2070,8 @@ Expected: FAIL (`render_report() got an unexpected keyword argument 'change'`).
 Add the module constant near the other caps:
 
 ```python
-_ABOVE_FOLD_BUDGET = 80   # F77: hard line budget for everything above reader.APPENDIX_DIVIDER
+_ABOVE_FOLD_BUDGET = 88   # F77: hard line budget above reader.APPENDIX_DIVIDER (80 + the
+                          # 2026-07-11 exec top band: <=6 band lines + section separator)
 ```
 
 Extend the signature (keyword-only, all defaulting to today's behavior):
@@ -1491,6 +2091,7 @@ def render_report(
     gate_waivers=None,
     change=None,          # F78 Stage 6: a change.ChangeReport -> lead change-first
     state=None,           # F78 Stage 6: a change.StateVector for the quick-glance tiers
+    alert=None,           # AMENDED 2026-07-11: a change.AlertState -> exec top band leads
     top_k: int = 5,       # F78 Stage 6: ranked-calls detail cap (F77)
 ) -> str:
 ```
@@ -1504,10 +2105,13 @@ Replace the `top = [...]` / `if daily:` / `appendix = [...]` / `return` block wi
     track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
 
     if change is not None:
-        # F78 Stage 6 change-first lead (F64 + F77): WHAT CHANGED -> QUICK GLANCE -> ranked calls,
-        # then the rest of the above-the-fold sections, then the untouched appendix.
+        # F78 Stage 6 change-first lead (F64 + F77, AMENDED 2026-07-11): TOP BAND ->
+        # WHAT CHANGED -> QUICK GLANCE -> ranked calls, then the rest of the above-the-fold
+        # sections, then the untouched appendix.
         top = [
             render_header(sc, render_ts),
+            (render_top_band(sc, state, alert, change)
+             if (state is not None and alert is not None) else ""),
             render_change_lines(change, registry),
             render_quick_glance(state, change, registry) if state is not None else "",
             render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
@@ -1550,9 +2154,10 @@ Replace the `top = [...]` / `if daily:` / `appendix = [...]` / `return` block wi
     # (the one section that grows with book size) until it fits or top_k hits 1 — deterministic.
     if change is not None:
         k = top_k
+        # AMENDED 2026-07-11: ranked calls moved to top[4] (the top band is top[1]).
         while len(body.split(reader.APPENDIX_DIVIDER)[0].splitlines()) > _ABOVE_FOLD_BUDGET and k > 1:
             k -= 1
-            top[3] = render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
+            top[4] = render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
                                          registry=registry, top_k=k)
             body = "\n\n".join(s for s in top + appendix if s)
     return body
@@ -1642,6 +2247,9 @@ def test_cli_change_first_emits_what_changed(tmp_path):
     assert "WHAT CHANGED" in r.stdout
     assert "QUICK GLANCE" in r.stdout
     assert "Since yesterday" in r.stdout
+    # AMENDED 2026-07-11: the exec top band leads (nothing ladder-relevant moved -> GREEN)
+    assert "MERCHANT GPU — DAILY — 2026-07-08" in r.stdout
+    assert "● GREEN (was GREEN)" in r.stdout
 
 
 def test_cli_without_flag_is_legacy(tmp_path):
@@ -1671,6 +2279,7 @@ Expected: FAIL (`--change-first` is not a recognized argument → non-zero exit 
 ```python
     change = None
     state = None
+    alert = None
     if getattr(args, "change_first", False):
         from gpu_agent import change as change_mod
         prices_by_days = None
@@ -1683,6 +2292,8 @@ Expected: FAIL (`--change-first` is not a recognized argument → non-zero exit 
             pathlib.Path(args.store), sc, book=thesis_book, prices_by_days=prices_by_days)
         state = change_mod.build_state(
             sc, thesis_book, (prices_by_days or {}).get(0))
+        # AMENDED 2026-07-11: the exec top band's alert color (pure store projection).
+        alert = change_mod.alert_state(pathlib.Path(args.store), sc, book=thesis_book)
 ```
 
 Then pass them through:
@@ -1693,7 +2304,7 @@ Then pass them through:
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
                          daily=getattr(args, "daily", False), gate_waivers=gate_waivers,
-                         change=change, state=state)
+                         change=change, state=state, alert=alert)
 ```
 
 (Fix the accidental non-ASCII in the `except` comment above — write it as plain ASCII "partial".)
@@ -1787,6 +2398,249 @@ Expected: `byte-identical: True`.
 git add -A
 git commit -m "$(cat <<'EOF'
 test(F78-6): full-suite green + live change-first shadow-check; eval pin untouched
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+### Task 11 (AMENDED 2026-07-11): dashboard parity — same tiles, same alert, same story
+
+`docs/dashboard.html` must tell the SAME story as the text brief (spec E1): the headline gains
+the alert dot + "(was X)", the three tiles switch from raw index numbers to band words +
+"(was X)" (raw value demoted to the small delta sub-label — the "raw stays in small print"
+rule), and a "What changed" section renders above "Top signals" from the same `ChangeReport`.
+
+**Files:**
+- Modify: `gpu_agent/dashboard/build.py` (`build_model`)
+- Modify: `gpu_agent/dashboard/render.py` (`_sec_headline`, new `_sec_what_changed`, section order)
+- Create: `tests/dashboard/test_change_parity.py`
+
+**Interfaces:**
+- Consumes: `change.{build_change_report, build_state, alert_state, AlertState, ChangeReport}`;
+  `report.load_scorecard`; `thesis.ThesisStore` (the same loader `cli._report` uses:
+  `ThesisStore(Path(store) / "theses" / category_id)`, `.load()` when the book exists);
+  `bands.band_with_prior`; `report.render_change_lines` output conventions (labels via
+  `reader.DIM_LABEL`).
+- Produces: `build_model` output dict gains `alert` (`{color, prior}`) and `what_changed`
+  (list of per-horizon `{phrase, text}`); tiles gain `band` (the `bands.band_with_prior`
+  string). Renderer emits `<section id="what-changed">` above `<section id="top-signals">`.
+
+- [ ] **Step 1: Write the failing test**
+
+```python
+# tests/dashboard/test_change_parity.py
+from __future__ import annotations
+import json
+from pathlib import Path
+from gpu_agent.schema.scorecard import Scorecard, DemandSupply, DimensionRating
+from gpu_agent.schema.finding import Confidence
+from gpu_agent.dashboard.build import build_model
+from gpu_agent.dashboard.render import render_html
+
+
+def _conf():
+    return Confidence(level="medium", basis="b")
+
+
+def _dim(r, d="steady"):
+    return DimensionRating(rating=r, direction=d, confidence=_conf(), findingIds=[], rationale="x")
+
+
+def _write(store, as_of, dmi, smi, momentum="Strong"):
+    cat = store / "chips.merchant-gpu"
+    cat.mkdir(parents=True, exist_ok=True)
+    sc = Scorecard(categoryId="chips.merchant-gpu", asOf=as_of, findings=[],
+                   dimensionRatings={"momentum": _dim(momentum)},
+                   demandSupply=DemandSupply(dmiContribution=dmi, smiContribution=smi),
+                   narrative="n", confidence=_conf())
+    (cat / f"{as_of}-v1.json").write_text(sc.model_dump_json(), "utf-8")
+
+
+def test_model_carries_alert_bands_and_what_changed(tmp_path):
+    store = tmp_path / "store"
+    _write(store, "2026-07-07", 0.10, 0.10)
+    _write(store, "2026-07-08", 0.10, 0.10, momentum="Very strong")
+    m = build_model("chips.merchant-gpu", store, tmp_path, None, "fixed")
+    assert m["alert"]["color"] in ("green", "yellow", "orange", "red")
+    assert m["alert"]["prior"] in (None, "green", "yellow", "orange", "red")
+    # tiles carry the banded words, raw value stays only in the sub-label
+    assert any("FIRM" in t["band"] for t in m["tiles"])
+    assert all("band" in t for t in m["tiles"])
+    # three horizons, exec-plain phrases
+    phrases = [w["phrase"] for w in m["what_changed"]]
+    assert phrases == ["Since yesterday", "Since last week", "Since last month"]
+
+
+def test_html_renders_alert_and_what_changed_above_top_signals(tmp_path):
+    store = tmp_path / "store"
+    _write(store, "2026-07-07", 0.10, 0.10)
+    _write(store, "2026-07-08", 0.10, 0.10)
+    m = build_model("chips.merchant-gpu", store, tmp_path, None, "fixed")
+    html = render_html(m)
+    assert 'id="what-changed"' in html
+    assert html.index('id="what-changed"') < html.index('id="top-signals"')
+    assert m["alert"]["color"].upper() in html
+
+
+def test_single_run_store_is_first_run_safe(tmp_path):
+    store = tmp_path / "store"
+    _write(store, "2026-07-08", 0.10, 0.10)
+    m = build_model("chips.merchant-gpu", store, tmp_path, None, "fixed")
+    assert m["alert"]["prior"] is None
+    assert m["what_changed"][0]["text"].startswith("no run yet")
+```
+
+Note: if `render_html` is not the real render entry name, use the actual one exported by
+`gpu_agent/dashboard/render.py` (the module-level function `build.py::build_dashboard` calls
+to produce the HTML string) — adjust the import, nothing else. If `_sec_top_signals` emits a
+different section id than `top-signals`, assert on the REAL id — the ordering assertion is
+the point, not the exact string. If `load_plain_language(None)` raises (check its signature
+in `gpu_agent/dashboard/plain_language.py`), pass whatever empty/absent-path form the existing
+`tests/dashboard/test_build_e2e.py` fixture uses instead of `None` — mirror the e2e fixture,
+do not modify `plain_language.py`.
+
+- [ ] **Step 2: Run it — verify it fails**
+
+Run: `.venv/Scripts/python -m pytest tests/dashboard/test_change_parity.py -q`
+Expected: FAIL (`KeyError: 'alert'`).
+
+- [ ] **Step 3: Extend `build_model` in `gpu_agent/dashboard/build.py`**
+
+Add imports at the top:
+
+```python
+from pathlib import Path
+
+from gpu_agent import bands
+from gpu_agent import change as change_mod
+from gpu_agent.report import load_scorecard, _VERSION_RE
+from gpu_agent.thesis import ThesisStore
+```
+
+Inside `build_model`, after `ts = trend_series(recs)`, build the change/alert inputs from the
+REAL scorecard files (the dashboard's normalized dicts don't carry every field the engine
+needs):
+
+```python
+    # F78 Task 11 — same engine as the text brief (parity by construction, not re-derivation)
+    cat_dir = Path(store_dir) / category_id
+    latest_path = max((p for p in cat_dir.iterdir() if _VERSION_RE.match(p.name)),
+                      key=lambda p: (_VERSION_RE.match(p.name).group(1),
+                                     int(_VERSION_RE.match(p.name).group(2))))
+    sc = load_scorecard(latest_path)
+    book = None
+    tstore = ThesisStore(Path(store_dir) / "theses" / category_id)
+    if tstore.book_path.exists():
+        book = tstore.load()
+    change = change_mod.build_change_report(Path(store_dir), sc, book=book)
+    state = change_mod.build_state(sc, book)
+    alert = change_mod.alert_state(Path(store_dir), sc, book=book)
+```
+
+Replace the tiles loop with the banded version (raw value moves to the delta sub-label):
+
+```python
+    prior1 = (change.priors or {}).get("yesterday")
+    tiles = []
+    for label, key, cur_v, pri_v in (
+            ("Demand momentum", "dmi", state.demand,
+             prior1.demand if prior1 else None),
+            ("Supply momentum", "smi", state.supply,
+             prior1.supply if prior1 else None),
+            ("Demand-vs-supply gap", "sdgi", state.sdgi,
+             prior1.sdgi if prior1 else None)):
+        tiles.append({"label": label,
+                      "band": bands.band_with_prior(cur_v, pri_v),
+                      "value": f'{latest[key]:.2f}',
+                      "delta": _delta(latest[key], prev[key] if prev else None),
+                      "spark": ts[key]})
+```
+
+Build the what-changed rows by reusing the text renderer's line logic — same phrases, same
+labels (parity by construction):
+
+```python
+    from gpu_agent.report import render_change_lines
+    from gpu_agent.registry.indicators import IndicatorRegistry
+    _reg = IndicatorRegistry.load("registry/indicators.json")
+    change_lines = render_change_lines(change, _reg).splitlines()[1:]   # drop the header row
+    what_changed = []
+    for line in change_lines:
+        phrase, _, rest = line.strip().partition(":")
+        phrase = phrase.split(" (vs ")[0]
+        what_changed.append({"phrase": phrase, "text": rest.strip()})
+```
+
+And add to the returned model dict (next to the existing keys):
+
+```python
+        "alert": {"color": alert.color, "prior": alert.priorColor},
+        "what_changed": what_changed,
+```
+
+- [ ] **Step 4: Extend `gpu_agent/dashboard/render.py`**
+
+In `_sec_headline`, prepend the alert dot to the standing line and render the band on each
+tile (the raw value + delta stay as the small sub-label):
+
+```python
+def _sec_headline(m):
+    h = m["headline"]
+    a = m.get("alert") or {}
+    was = f' <span class="meta">(was {esc((a.get("prior") or "").upper())})</span>' if a.get("prior") else ""
+    dot = (f'<span class="alert alert-{esc(a.get("color", "green"))}">● '
+           f'{esc(a.get("color", "green").upper())}</span>{was} · ' if a else "")
+    tiles = "".join(
+        f'<div class="tile"><div class="meta">{esc(t["label"])}</div>'
+        f'<div class="v">{esc(t.get("band", t["value"]))} {svg_sparkline(t["spark"])}</div>'
+        f'<div class="d">{esc(t["value"])} · {esc(t["delta"])} vs previous run</div></div>'
+        for t in m["tiles"])
+    return (f'<section id="headline"><h2>Where the market stands</h2>'
+            f'<div class="card"><strong>{dot}{esc(h["rating"])} · {esc(_dir_word(h["direction"]))}</strong>'
+            f'<div class="meta">Main limiting factor: {esc(h["limiting_factor"])}</div>'
+            f'<p>{esc(h["state_of_market"])}{_pending_html(h["state_pending"])}</p></div>'
+            f'<div class="tiles">{tiles}</div></section>')
+```
+
+Add the new section renderer and CSS classes (inline style block: `.alert-green{color:#2e7d32}`
+`.alert-yellow{color:#f9a825}` `.alert-orange{color:#ef6c00}` `.alert-red{color:#c62828}` — both
+themes keep these hues; they meet contrast on light and dark backgrounds):
+
+```python
+def _sec_what_changed(m):
+    rows = "".join(
+        f'<div class="wc-row"><strong>{esc(w["phrase"])}</strong>: {esc(w["text"])}</div>'
+        for w in m.get("what_changed", []))
+    if not rows:
+        return ""
+    return (f'<section id="what-changed"><h2>What changed</h2>'
+            f'<div class="card">{rows}</div></section>')
+```
+
+And insert `_sec_what_changed` into the section tuple immediately BEFORE `_sec_top_signals`
+(the existing order call near the bottom of render.py):
+
+```python
+        _sec_headline, _sec_trend, _sec_what_changed, _sec_top_signals, _sec_calls,
+        _sec_demand_supply, _sec_dimensions, _sec_runs, _sec_guide))
+```
+
+- [ ] **Step 5: Run it — verify it passes, plus the existing dashboard suite**
+
+Run: `.venv/Scripts/python -m pytest tests/dashboard/ -q`
+Expected: PASS (the new 3 + all existing dashboard tests; `test_build_e2e.py` may need its
+fixture model extended with the two new keys if it asserts exact model keys — extend the
+FIXTURE, never delete assertions).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add gpu_agent/dashboard/build.py gpu_agent/dashboard/render.py tests/dashboard/test_change_parity.py
+git commit -m "$(cat <<'EOF'
+feat(F78-6): dashboard parity — alert dot + banded tiles + What changed section from the same engine
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 EOF

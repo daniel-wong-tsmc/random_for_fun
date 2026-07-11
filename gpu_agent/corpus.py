@@ -120,8 +120,12 @@ def enumerate_store(store_root, category: str, as_of: str, horizons, *,
     page, deduplicated across pages, kept iff its decayed effective salience (aged_salience) is at
     or above `salience_floor`, sorted by (asOf, id). Pruned pages are excluded whole (lifecycle
     gate) BEFORE per-fact aging. Pages with a different or absent category are skipped AND reported.
-    A faded fact (below the floor) is COUNTED, not listed. A dangling/unreadable observation finding
-    fails loud: the canonical store is trusted input, corruption is a stop-the-line event.
+    A shared finding (observed by multiple surviving pages) is evaluated ONCE against the MAX
+    page.salience across every category-matching, non-pruned page that observes it (any-page-keeps):
+    it survives if ANY such page holds it above the floor, not just whichever page sorts first.
+    A faded fact (below the floor under its best page) is COUNTED, not listed. A dangling/unreadable
+    observation finding fails loud: the canonical store is trusted input, corruption is a
+    stop-the-line event.
     Returns (included, faded_out, skipped_wrong_category, lifecycle_excluded)."""
     store_root = Path(store_root)
     wiki_dir = store_root / "wiki"
@@ -129,7 +133,7 @@ def enumerate_store(store_root, category: str, as_of: str, horizons, *,
         return [], 0, [], []   # honest empty: no wiki yet (first-ever cycle)
     store = WikiStore(wiki_dir, FindingStore(store_root / "findings"))
     included: list[Finding] = []
-    seen_ids: set[str] = set()
+    best: dict[str, float] = {}
     faded_out = 0
     skipped: list[SkippedPage] = []
     lifecycle_excluded: list[SkippedPage] = []
@@ -142,19 +146,17 @@ def enumerate_store(store_root, category: str, as_of: str, horizons, *,
             lifecycle_excluded.append(SkippedPage(id=entry.id, category=entry.category))
             continue
         for obs in store.observations(entry.id):
-            if obs.findingId in seen_ids:
-                continue
-            seen_ids.add(obs.findingId)
-            try:
-                f = store.findings.get(obs.findingId)
-            except (FindingNotFound, ValueError) as e:
-                raise CorpusError(
-                    f"store integrity: page {entry.id} observation references "
-                    f"unreadable finding {obs.findingId}: {e}") from e
-            if aged_salience(f, page.salience, as_of, horizons, config) >= salience_floor:
-                included.append(f)
-            else:
-                faded_out += 1
+            best[obs.findingId] = max(best.get(obs.findingId, 0.0), page.salience)
+    for fid in sorted(best):
+        try:
+            f = store.findings.get(fid)
+        except (FindingNotFound, ValueError) as e:
+            raise CorpusError(
+                f"store integrity: observation references unreadable finding {fid}: {e}") from e
+        if aged_salience(f, best[fid], as_of, horizons, config) >= salience_floor:
+            included.append(f)
+        else:
+            faded_out += 1
     included.sort(key=lambda f: (f.asOf, f.id))
     return included, faded_out, skipped, lifecycle_excluded
 

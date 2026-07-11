@@ -109,6 +109,22 @@ def test_same_finding_on_two_pages_deduplicated(tmp_path):
     assert [x.id for x in included] == ["shared-1"]
 
 
+def test_shared_finding_survives_via_most_salient_page(tmp_path):
+    # ~60d-old weekly fact: intrinsic 0.5 fades (0.5*0.5**(60/21) ~= 0.069 < 0.1) but a
+    # 0.95-salience page keeps it (0.95*0.5**(60/21) ~= 0.131 >= 0.1). The low page sorts
+    # FIRST alphabetically — first-page-wins would wrongly fade it (the reviewed defect).
+    store = _store(tmp_path)
+    f = _f("shared-1", observedAt="2026-06-01")
+    _seed(store, f, "2026-07-02", pid="entity:amd")          # sorts first
+    store.record_state("entity:amd", as_of="2026-07-02", state="live", trajectory="steady", salience=0.05)
+    store.create_page("entity:nvda", "entity", "NVDA", category="chips.merchant-gpu", as_of="2026-07-02")
+    store.append_observation("entity:nvda", f.id, as_of="2026-07-02")
+    store.record_state("entity:nvda", as_of="2026-07-02", state="live", trajectory="steady", salience=0.95)
+    included, faded, _, _ = enumerate_store(tmp_path, "chips.merchant-gpu", "2026-07", HZ)
+    assert [x.id for x in included] == ["shared-1"]
+    assert faded == 0
+
+
 def test_dangling_observation_fails_loud(tmp_path):
     store = _store(tmp_path)
     _seed(store, _f("ok-1", observedAt="2026-07-30"), "2026-07-02")

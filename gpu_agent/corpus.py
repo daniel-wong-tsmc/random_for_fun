@@ -26,7 +26,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from gpu_agent.asof import AsOfError, days_between  # F78-3: shared date logic (was corpus-local)
+from gpu_agent.asof import AsOfError, days_between, period_end  # F78-3: shared date logic (was corpus-local)
 from gpu_agent.gathering.dedup import DEFAULT_DEDUP_CONFIG, FindingClass, classify_findings
 from gpu_agent.schema.finding import Finding
 from gpu_agent.store import FindingNotFound, FindingStore
@@ -40,11 +40,6 @@ from gpu_agent.wiki.store import WikiStore
 # NOTE: distinct from LintConfig.salience_floor (0.5), which is the intrinsic-salience WEIGHT
 # floor reused inside aged_salience below.
 SALIENCE_FLOOR_DEFAULT = DEFAULT_LINT_CONFIG.stale_threshold  # 0.1
-
-# TODO (Task 4): retired constant — the aging rule replaced the window. Kept ONLY
-# because gpu_agent/cli.py still imports it for its --window-days/--corpus-window-days
-# argparse defaults; Task 4 removes those flags and this constant with them.
-WINDOW_DAYS_DEFAULT = 45
 
 
 class CorpusError(ValueError):
@@ -127,6 +122,7 @@ def enumerate_store(store_root, category: str, as_of: str, horizons, *,
     observation finding fails loud: the canonical store is trusted input, corruption is a
     stop-the-line event.
     Returns (included, faded_out, skipped_wrong_category, lifecycle_excluded)."""
+    period_end(as_of)   # fail loud on a malformed asOf label even when there's nothing to age yet
     store_root = Path(store_root)
     wiki_dir = store_root / "wiki"
     if not wiki_dir.is_dir():

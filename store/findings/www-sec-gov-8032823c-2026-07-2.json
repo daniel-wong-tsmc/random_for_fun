@@ -1,0 +1,46 @@
+{
+  "id": "www-sec-gov-8032823c-2026-07-2",
+  "statement": "NVIDIA reported total supply-related commitments of $119.0 billion and inventory of $25.8 billion, saying it has secured inventory and capacity to meet demand beyond the next several quarters.",
+  "kind": "measured",
+  "value": {
+    "number": 119.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Large and growing supply commitments show NVIDIA locking in wafer, packaging and component capacity to expand future output.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.foundry-packaging",
+      "chips.hbm-memory"
+    ],
+    "direction": "positive",
+    "mechanism": "Rising supply-related commitments expand secured capacity across the GPU supply chain to meet forward demand."
+  },
+  "evidence": [
+    {
+      "source": "NVIDIA CFO Commentary Q1 FY2027",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000051/q1fy27cfocommentary.htm",
+      "date": "2026-05-20",
+      "excerpt": "total supply-related commitments were $119.0 billion. We have strategically secured inventory and capacity to meet demand beyond the next several quarters.",
+      "tier": "primary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "high",
+    "basis": "Primary NVIDIA CFO commentary; commitments stated verbatim."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 3,
+  "entity": "nvidia",
+  "observedAt": "2026-05-20",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

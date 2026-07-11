@@ -1,0 +1,45 @@
+{
+  "id": "lambda-ai-1252bbe3-2026-07-1",
+  "statement": "Lambda on-demand single-GPU rental was $4.29/hr for H100 SXM as observed live on 2026-07-11.",
+  "kind": "measured",
+  "value": {
+    "number": 4.29,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "A live rental rate with no stated baseline or change is a static price level used only as a display overlay.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Cloud GPU rental price level for H100 on a neocloud provider; context for merchant-GPU cost of compute."
+  },
+  "evidence": [
+    {
+      "source": "Lambda GPU cloud pricing",
+      "url": "https://lambda.ai/pricing",
+      "date": "2026-07-11",
+      "excerpt": "H100 SXM $4.29/hr",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary live pricing page, single source; price is an overlay that does not score."
+  },
+  "dispersion": "conflicting same-key reports: value 6.99 -> 4.29 (tol 1%); sources: Lambda GPU cloud pricing",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "multi",
+  "observedAt": "2026-07-11",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

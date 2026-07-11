@@ -1,0 +1,43 @@
+{
+  "id": "www-tomshardware-com-7b18c015-2026-07-1",
+  "statement": "Intel detailed its Crescent Island data-center inference GPU at Computex 2026, using LPDDR5X (up to 480GB) instead of HBM to avoid advanced-packaging and HBM contention, with a second-half 2026 sampling target.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A memory choice that sidesteps HBM and CoWoS could add alternative merchant-GPU supply, but Intel is still pre-sampling with the less-adopted oneAPI stack, so near-term traction is minimal.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "chips.foundry-packaging"
+    ],
+    "direction": "positive",
+    "mechanism": "An LPDDR5X inference accelerator adds a non-HBM alternative supply path that does not draw on scarce HBM or advanced packaging."
+  },
+  "evidence": [
+    {
+      "source": "Tom's Hardware Intel Crescent Island Computex 2026",
+      "url": "https://www.tomshardware.com/pc-components/gpus/intel-details-long-awaited-crescent-island-ai-gpu-at-computex-boasts-up-to-480-gb-of-lpddr5x-to-combat-memory-shortages-company-shares-more-details-of-its-xe3p-inference-accelerator-at-computex",
+      "date": "2026-06-01",
+      "excerpt": "It forgoes GDDR or HBM memory for LPDDR5X",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary trade press, single source; product is pre-sampling with no shipping revenue."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 1,
+  "entity": "intel",
+  "observedAt": "2026-06-01",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "www-tomshardware-com-f77e9757-2026-07-3",
+  "statement": "Hyperscaler custom-silicon deployments are scaling, with Anthropic committing to up to one million Google TPUs and AWS having deployed more than one million Trainium processors.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Massive committed and deployed ASIC volumes show hyperscalers meeting more of their AI compute needs with custom silicon.",
+  "impact": {
+    "targets": [
+      "chips.hyperscaler-asic",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Large TPU and Trainium commitments expand ASIC demand and displace some merchant-GPU demand for inference and training."
+  },
+  "evidence": [
+    {
+      "source": "Tom's Hardware custom AI ASIC state of play",
+      "url": "https://www.tomshardware.com/tech-industry/semiconductors/custom-ai-asics-examined-from-broadcom-to-mtia",
+      "date": "2026-05-21",
+      "excerpt": "Anthropic committed to up to one million TPUs in the largest deal in Google Cloud history back in October",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary trade-press feature; single source."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 3,
+  "entity": "multi",
+  "observedAt": "2026-05-21",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

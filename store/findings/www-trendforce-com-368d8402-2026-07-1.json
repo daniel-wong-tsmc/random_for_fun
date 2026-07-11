@@ -1,0 +1,44 @@
+{
+  "id": "www-trendforce-com-368d8402-2026-07-1",
+  "statement": "The TSMC CoWoS supply-demand gap is expected to narrow from about 20% currently to about 10% by the end of 2026, with the severe 2.5D packaging shortage moderating by 2027.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "A narrowing packaging gap means the key AI supply bottleneck is easing, shortening effective lead times for GPUs and ASICs.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "chips.hyperscaler-asic"
+    ],
+    "direction": "positive",
+    "mechanism": "A smaller CoWoS supply-demand gap eases the binding packaging bottleneck, improving AI chip availability and lead times."
+  },
+  "evidence": [
+    {
+      "source": "TrendForce News CoWoS supply-demand gap",
+      "url": "https://www.trendforce.com/news/2026/06/15/news-tsmc-cowos-supply-demand-gap-reportedly-seen-narrowing-from-20-to-10-by-end-2026-as-capacity-expands/",
+      "date": "2026-06-15",
+      "excerpt": "the CoWoS supply-demand gap is expected to narrow significantly from around 20% currently to about 10% by the end of 2026",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary TrendForce free news desk citing multiple outlets within one document; not the paid tracker."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "leadTimes",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-06-15",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

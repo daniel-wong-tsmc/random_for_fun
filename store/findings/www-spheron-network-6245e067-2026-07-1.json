@@ -1,0 +1,45 @@
+{
+  "id": "www-spheron-network-6245e067-2026-07-1",
+  "statement": "NVIDIA B200 delivers about 2.25 dense FP16 TFLOPS per watt versus about 1.41 for H100, roughly a 1.6x generational efficiency gain.",
+  "kind": "measured",
+  "value": {
+    "number": 2.25,
+    "unit": "perf_per_W"
+  },
+  "trend": "rising",
+  "why": "Better performance per watt means more effective compute within the same power envelope, easing power-limited data-center capacity.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "energy.efficiency"
+    ],
+    "direction": "positive",
+    "mechanism": "Higher FLOPs per watt raises effective compute output per watt, relieving power constraints on GPU deployment."
+  },
+  "evidence": [
+    {
+      "source": "Spheron Network NVIDIA B200 guide",
+      "url": "https://www.spheron.network/blog/nvidia-b200-complete-guide/",
+      "date": "2026-05-14",
+      "excerpt": "B200 FP16 2,250/1,000 = 2.25 TFLOPS/W vs H100 989/700 = 1.41 TFLOPS/W (~1.6x)",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary trade blog, single source; perf-per-watt derived arithmetically from vendor spec figures."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "perfPerWatt",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-05-14",
+  "capturedAt": "2026-07-11T13:24:52Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

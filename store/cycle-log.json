@@ -2,17 +2,17 @@
  "scope": "category:chips.merchant-gpu",
  "asOf": "2026-07",
  "mode": "live",
- "capturedAt": "2026-07-08T10:53:12Z",
+ "capturedAt": "2026-07-11T13:24:52Z",
  "entries": [
   {
    "category_id": "chips.merchant-gpu",
    "assignment_path": "fixtures/asg.chips.merchant-gpu.json",
    "status": "done",
-   "scorecard": "store/chips.merchant-gpu/2026-07-v4.json",
-   "dmi": 0.5733,
-   "smi": 0.2867,
-   "sdgi": 0.2867,
-   "runDir": "work/chips.merchant-gpu-2026-07-run2 (isolated from the 07-05 v3 run dir to avoid clobbering its replay artifacts)",
+   "scorecard": "store/chips.merchant-gpu/2026-07-v5.json",
+   "dmi": 0.533,
+   "smi": 0.407,
+   "sdgi": 0.127,
+   "runDir": "work/merchant-gpu-2026-07-11",
    "gather": {
     "mode": "live",
     "topUp": true,
@@ -20,52 +20,51 @@
     "recencyDays": 45,
     "rounds": 1,
     "docsIngested": 10,
-    "primaryVsSecondary": "by ingest tiering; 4 primary-domain docs (NVDA IR, NVDA 10-Q, AMD IR x1) / 6 secondary",
+    "primaryVsSecondary": "5 primary / 5 secondary (ingest tiering vs manifest primaryDomains)",
     "subagents": 4,
     "slices": [
-     "NVDA momentum filings",
-     "AMD momentum filings",
-     "GPU efficiency specs (perfPerWatt/flopsPerDollar)",
-     "GPU supply bottleneck/leadTimes"
+     "NVIDIA filings + guidance (D2/grossMargin/vendorRevenueGuidance/rpoBacklog/exportControlExposure)",
+     "AMD + Intel data-center GPU (D2/grossMargin/S9/designWins)",
+     "GPU cloud pricing + efficiency (D6/perfPerWatt/flopsPerDollar)",
+     "market share + custom ASIC + lead times (market-share-pct/S9/S10/leadTimes)"
     ],
     "webReach": {
      "agent-reach": "ok",
      "last30days": "ok",
+     "crawl4ai": "ok",
      "web(jina)": "ok",
-     "rss": "ok",
-     "exa_search": "missing"
+     "rss": "ok"
     },
-    "blobs": "work/chips.merchant-gpu-2026-07-run2/blobs.json",
-    "gatherLog": "work/chips.merchant-gpu-2026-07-run2/gather-log.json",
-    "coverageGaps": "trendforce-gpu-tracker + semianalysis (paywalled, never fetched); leadTimes uncovered (no reputable in-window figure); apiArr not seeded (tangential to merchant-GPU hardware)",
+    "blobs": "work/merchant-gpu-2026-07-11/blobs.json",
+    "gatherLog": "work/merchant-gpu-2026-07-11/docs/gather-log.json",
+    "coverageGaps": "7 required source-level gaps (several are URL-pattern mismatches where the indicator IS covered via other docs, e.g. exportControlExposure via NVDA 10-Q; open-web-asic via Tom's Hardware); 2 paywalled never fetched (trendforce-gpu-tracker, semianalysis); gpuSpotPrice / marketplace resale genuinely not covered this cycle",
     "notableSkips": [
-     "sec.gov 10-Q HTML 403; RPO recovered via search (flagged); nvidianews mirror 403",
-     "amd.com/techpowerup blocked WebFetch; AMD MI355X spec recovered via curl",
-     "NO reputable in-window lead-time figure surfaced; only low-authority SEO blogs (not blobbed)",
-     "DIGITIMES bodies behind subscription (ledes only); reuters.com unreachable to crawler"
+     "1 blob dropped: Spheron MI300X-vs-H200 (2026-01-15) older than 45-day recency window (also kept gather at the 10-doc top-up cap)",
+     "sec.gov 403s WebFetch; NVDA filings recovered via crawl4ai headless; vast.ai live prices did not render (figures via July-2026 search reporting)"
     ]
    },
    "corpus": {
-    "storeInWindow": 19,
-    "freshNew": 3,
-    "freshUpdate": 6,
-    "duplicate": 10,
-    "merged": 27,
-    "coverageReport": "work/chips.merchant-gpu-2026-07-run2/corpus-report.json",
-    "pipelineReport": "work/chips.merchant-gpu-2026-07-run2/corpus-pipeline-report.json"
+    "storeInWindow": 21,
+    "freshNew": 5,
+    "freshUpdate": 8,
+    "duplicate": 9,
+    "merged": 33,
+    "coverageReport": "work/merchant-gpu-2026-07-11/corpus-report.json",
+    "pipelineReport": "work/merchant-gpu-2026-07-11/corpus-pipeline-report.json",
+    "coverageCoverage": "work/merchant-gpu-2026-07-11/corpus-coverage.json"
    },
    "answers": {
-    "extract": "work/chips.merchant-gpu-2026-07-run2/extract-answer.json",
-    "judge": "work/chips.merchant-gpu-2026-07-run2/judge-answer.json (samples at s1/s2/s3.json; lint-corrected at r1/r2/r3.json)",
-    "thesis": "work/chips.merchant-gpu-2026-07-run2/thesis-answer.json"
+    "extract": "work/merchant-gpu-2026-07-11/extract-answer.json",
+    "judge": "work/merchant-gpu-2026-07-11/judge-answer.json (3 independent samples at judge-sample-0/1/2.json)",
+    "thesis": "work/merchant-gpu-2026-07-11/thesis-answer.json"
    },
    "gates": {
-    "extract": "20 drafts -> 19 findings gated, 1 dropped (AMD MI355X spec: excerpt used an ellipsis, not a verbatim substring - gate working as designed)",
-    "voiceLint": "all 3 judge samples re-dispatched once (non-allowlisted acronyms ASE, MI325, MI308); all passed on re-dispatch; NO bypass",
+    "extract": "22 drafts -> 22 findings gated, 0 dropped",
+    "voiceLint": "acronym flags ASE (sample array[0] narrative) and OSAT (bottleneck rationale) re-dispatched as separate tool-less samples; all 3 samples passed on re-dispatch; NO bypass",
     "sufficiency": "passed (no sufficiency lines emitted)",
-    "thesis": "14/14 judged first pass, 0 gate rejections; amd-credible-second-source strengthened APPLIED (conviction medium->high); export-control-exposure + vendor-financed-demand-circularity strengthened; custom-asic-substitution + cuda-lock-in + rising-memory-costs weakened; custom-asic pending challenge lapsed (no same-direction confirmation); cuda-lock-in promoted to registered (2 asOfs, 6 publisher domains); 2 new provisional theses proposed"
+    "thesis": "16 standing theses judged, 0 gate rejections; 15 applied=True, 1 applied=False; custom-asic-substitution reversal deferred (secondary-only, 2 distinct publishers < 3); 1 new provisional thesis proposed"
    },
-   "wikiWriteBack": "8 deduped-fresh findings routed to 3 pages (entity:nvidia/amd/multi); wiki-lint 4 material pages, 0 dropped, 0 contradictions",
+   "wikiWriteBack": "12 deduped-fresh findings routed to 5 pages; wiki-lint clean (1 stale page entity:nvda = naming duplicate of entity:nvidia; 0 dropped, 0 contradictions)",
    "stageStatus": {
     "category": "done",
     "thesis": "done",
@@ -73,15 +72,14 @@
     "main": "deferred"
    },
    "thesis": {
-    "judgmentsApplied": 14,
-    "appliedReversal": "amd-credible-second-source strengthened applied (conviction medium->high)",
-    "notable": "export-control-exposure + vendor-financed-demand-circularity strengthened; custom-asic-substitution weakened (pending challenge lapsed); cuda-software-lock-in weakened but promoted to registered (6 publisher domains)",
+    "judgmentsApplied": 15,
+    "appliedReversal": "amd-credible-second-source strengthened applied (conviction high); export-control-exposure strengthened (high); customer-concentration-risk strengthened (high); vendor-financed-demand-circularity strengthened (high); supply-constraint-binding weakened (CoWoS gap narrowing)",
+    "notable": "custom-asic-substitution reversal DEFERRED (secondary-only, <3 distinct publishers); cuda-software-lock-in + rising-memory-costs weakened",
     "proposed": [
-     "multi-vendor-accelerator-supply-wave-in-second-half-2026",
-     "amd-growth-leans-on-a-few-mega-deals"
+     "memory-based-inference-chips-route-around-the-packaging-bottleneck"
     ]
    },
-   "report": "rendered board-ready (standard, not --daily): Strong / improving; binding constraint CoWoS/HBM advanced packaging; DMI 0.573 (Δ -0.127 vs prior 2026-07 vintage), SMI 0.287 (Δ +0.227), SDGI 0.287; 6/6 dimensions grounded; bottleneck dimension improved Weak->Mixed vs 2026-06 memory"
+   "report": "rendered board-ready (standard, not --daily): Strong / improving; binding constraint export controls foreclosing China demand; DMI 0.533 (Δ -0.040 vs prior 2026-07 v4), SMI 0.407 (Δ +0.120), SDGI 0.127 (Δ -0.160); 6/6 dimensions grounded, 0 under-supported; competitiveStructure + bottleneck improved, strategicRisk worsened"
   }
  ],
  "stages": [

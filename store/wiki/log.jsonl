@@ -76,3 +76,17 @@
 {"seq":75,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"investor-nvidia-com-c649ac13-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":76,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-nvidia-com-8c5514fc-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":77,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-fool-com-12d961c0-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":78,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-sec-gov-76c06b12-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":79,"asOf":"2026-07","kind":"create-page","pageId":"entity:broadcom","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":80,"asOf":"2026-07","kind":"append-observation","pageId":"entity:broadcom","findingId":"www-tomshardware-com-f77e9757-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":81,"asOf":"2026-07","kind":"create-page","pageId":"entity:intel","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":82,"asOf":"2026-07","kind":"append-observation","pageId":"entity:intel","findingId":"www-tomshardware-com-7b18c015-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":83,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"lambda-ai-1252bbe3-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":84,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-trendforce-com-368d8402-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":85,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-tomshardware-com-f77e9757-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":86,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-trendforce-com-368d8402-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":87,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-sec-gov-8032823c-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":88,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-sec-gov-125b52f2-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":89,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-sec-gov-125b52f2-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":90,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-tomshardware-com-f77e9757-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":91,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-spheron-network-6245e067-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}

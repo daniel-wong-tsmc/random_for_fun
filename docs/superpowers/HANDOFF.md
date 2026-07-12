@@ -315,6 +315,24 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **WAVE-2 LANES CLAIMED + DISPATCHED (2026-07-12, orchestrator session).** All design forks
+  answered INTERACTIVELY by the user this session (user-approved provenance in each spec);
+  lanes run under the question-stop rule (repo CLAUDE.md "Orchestrated lane agents").
+  - **F24 stage 1** `.worktrees/f24-entities`, branch `f24-entity-resolver` off main — entity
+    resolver, spec `docs/superpowers/specs/2026-07-12-f24-entity-resolver-stage1-design.md`.
+    Owns `gpu_agent/entities.py` (new), the finding-creation seam (extraction side),
+    `gpu_agent/wiki/ingest.py`; must NOT touch F25's five wiki files.
+  - **F72 follow-up** `.worktrees/f72-sufficiency`, branch `f72-sufficiency-collapse` off main —
+    contract v1.4.1 micro-migration (sufficiency counts collapsed publishers), spec
+    `docs/superpowers/specs/2026-07-12-f72-sufficiency-collapsed-publishers-design.md`.
+    Sanctioned frozen-core surface: sufficiency.py counting seam ONLY.
+  - **F87** `.worktrees/f87-stale-lock`, branch `f87-stale-lock-takeover` **off
+    `f25-wiki-store-scale` (stacked — merges only AFTER F25)** — stale-lock takeover, spec
+    `docs/superpowers/specs/2026-07-12-f87-stale-lock-takeover-design.md`. Owns
+    `gpu_agent/wiki/log.py` lock functions + tests.
+  - **F80** `.worktrees/f80-wiki-category`, branch `f80-wiki-category` — ORCHESTRATOR-owned
+    (not an agent lane): hand edit of the two `category: null` wiki pages + permanent
+    tripwire test; diff goes to the user for sign-off BEFORE commit (store edits are sacred).
 - **WAVE-1 FIX LANES ALL DONE + REVIEWED READY-TO-MERGE (2026-07-12, orchestrator session) —
   AWAITING USER MERGE.** Three background Opus lanes (user-directed "start the parallelization
   today"), each superpowers-workflow built, each given a fresh-context Opus whole-branch review

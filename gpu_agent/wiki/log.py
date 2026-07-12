@@ -1,5 +1,7 @@
 from __future__ import annotations
+import os
 import pathlib
+import time
 from typing import Literal, Optional
 from pydantic import BaseModel
 
@@ -39,31 +41,117 @@ class StateChange(BaseModel):
 
 
 class WikiLog:
-    """Append-only JSONL event log. The temporal source of truth; no wall-clock."""
+    """Append-only JSONL event log. The temporal source of truth; no wall-clock.
+
+    F25: reads are served from an in-instance cache that is synced incrementally from a byte
+    cursor - a `read()` only parses newly-appended bytes, never the whole file again. A per-page
+    index (`events_for_page`) lets callers avoid scanning the full log per page. The on-disk
+    format is unchanged; existing readers still work."""
 
     def __init__(self, path: pathlib.Path):
         self.path = pathlib.Path(path)
+        self._events: list[LogEvent] = []
+        self._by_page: dict[str, list[LogEvent]] = {}
+        self._offset = 0                 # byte offset of the last complete line consumed
+        self.parsed_lines = 0            # instrumentation: cumulative disk lines parsed
+        self._lock_path = str(self.path) + ".lock"
+        self._lock_timeout = 10.0        # seconds to wait for the append lock before failing loud
+
+    def _reset(self) -> None:
+        self._events = []
+        self._by_page = {}
+        self._offset = 0
+
+    def _sync(self) -> None:
+        """Pull any newly-appended complete lines from disk into the cache. O(new bytes); O(1)
+        when nothing changed (the common case). Only complete newline-terminated lines are
+        consumed, so a concurrent mid-write (a trailing partial line) is never mis-parsed."""
+        try:
+            size = self.path.stat().st_size
+        except FileNotFoundError:
+            if self._offset or self._events:
+                self._reset()
+            return
+        if size == self._offset:
+            return
+        if size < self._offset:          # truncated / rebuilt / tmp reuse -> re-read from 0
+            self._reset()
+        with self.path.open("rb") as fh:
+            fh.seek(self._offset)
+            chunk = fh.read()
+        nl = chunk.rfind(b"\n")
+        if nl == -1:
+            return                       # only a partial line so far
+        complete = chunk[: nl + 1]
+        for line in complete.decode("utf-8").split("\n"):
+            if not line.strip():
+                continue
+            ev = LogEvent.model_validate_json(line)
+            self._events.append(ev)
+            if ev.pageId:
+                self._by_page.setdefault(ev.pageId, []).append(ev)
+            self.parsed_lines += 1
+        self._offset += len(complete)
 
     def read(self) -> list[LogEvent]:
-        if not self.path.exists():
-            return []
-        out: list[LogEvent] = []
-        for line in self.path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line:
-                out.append(LogEvent.model_validate_json(line))
-        return out
+        self._sync()
+        return self._events
+
+    def events_for_page(self, page_id: str) -> list[LogEvent]:
+        """All events for a page, in file order - O(events for that page), no full-log scan."""
+        self._sync()
+        return self._by_page.get(page_id, [])
+
+    def count(self) -> int:
+        self._sync()
+        return len(self._events)
+
+    def _acquire_lock(self) -> int:
+        """Cross-process advisory lock via an O_EXCL lock file (Windows + POSIX, no deps).
+        Fails loud on timeout rather than silently corrupting the seq sequence."""
+        deadline = time.monotonic() + self._lock_timeout
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        while True:
+            try:
+                return os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                pass                      # another writer holds it
+            except PermissionError:
+                pass                      # Windows: lock file is delete-pending; treat as busy
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"wiki log lock busy: {self._lock_path}")
+            time.sleep(0.005)
+
+    def _release_lock(self, fd: int) -> None:
+        os.close(fd)                      # close BEFORE unlink (Windows cannot delete an open file)
+        try:
+            os.unlink(self._lock_path)
+        except FileNotFoundError:
+            pass
 
     def append(self, *, asOf, kind, pageId=None, findingId=None, state=None,
                trajectory=None, salience=None, detail="") -> LogEvent:
-        seq = len(self.read())  # deterministic, wall-clock-free
-        event = LogEvent(seq=seq, asOf=asOf, kind=kind, pageId=pageId,
-                         findingId=findingId, state=state, trajectory=trajectory,
-                         salience=salience, detail=detail)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as fh:
-            fh.write(event.model_dump_json() + "\n")
-        return event
+        # F25: mint seq under an exclusive lock. Two concurrent writers can no longer both read
+        # the same length and write the same seq (the TOCTOU race) - the lock serializes the
+        # read-count-then-append, and _sync() first absorbs any events another writer added.
+        fd = self._acquire_lock()
+        try:
+            self._sync()                              # deterministic, wall-clock-free
+            seq = len(self._events)
+            event = LogEvent(seq=seq, asOf=asOf, kind=kind, pageId=pageId,
+                             findingId=findingId, state=state, trajectory=trajectory,
+                             salience=salience, detail=detail)
+            data = (event.model_dump_json() + "\n").encode("utf-8")
+            with self.path.open("ab") as fh:
+                fh.write(data)
+                fh.flush()
+                self._offset = fh.tell()              # advance cursor past our own line
+            self._events.append(event)                # update cache in place (no reparse)
+            if event.pageId:
+                self._by_page.setdefault(event.pageId, []).append(event)
+            return event
+        finally:
+            self._release_lock(fd)
 
     def append_event(self, event: LogEvent) -> None:
         """Append a pre-built event (brain ingest/query/lint), re-stamping seq."""

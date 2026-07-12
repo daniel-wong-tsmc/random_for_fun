@@ -164,8 +164,13 @@ class WikiStore:
         self.log.append_event(event)
 
     def _events_for(self, page_id, kind) -> list[LogEvent]:
-        evs = [e for e in self.log.read() if e.pageId == page_id and e.kind == kind]
+        # F25: the per-page index avoids scanning the whole log per page.
+        evs = [e for e in self.log.events_for_page(page_id) if e.kind == kind]
         return sorted(evs, key=lambda e: (e.asOf, e.seq))
+
+    def _body(self, page_id: str) -> str:
+        """The page's markdown body (no observation resolution). Raises PageNotFound."""
+        return self._read(page_id)[1]
 
     def observations(self, page_id) -> list[Observation]:
         self._read(page_id)  # raises PageNotFound if absent

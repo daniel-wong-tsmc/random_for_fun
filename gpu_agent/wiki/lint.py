@@ -5,6 +5,7 @@ from gpu_agent.wiki.store import WikiStore
 from gpu_agent.registry.horizon import IndicatorHorizons
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
 from gpu_agent.wiki.ingest import parse_contradiction_detail
+from gpu_agent.wiki.textscan import MultiSubstringMatcher
 from gpu_agent.asof import days_between
 
 
@@ -134,9 +135,8 @@ def quiet_age(store, page_id, as_of) -> int:
 
     F32 preserved: only material events set the baseline; read-only 'lint'/'header-change'
     events cannot age a page, because they neither move the baseline nor the as_of label."""
-    materials = [e.asOf for e in store.log.read()
-                 if e.pageId == page_id
-                 and e.kind in ("append-observation", "state-change")
+    materials = [e.asOf for e in store.log.events_for_page(page_id)
+                 if e.kind in ("append-observation", "state-change")
                  and e.asOf <= as_of]
     baseline = max(materials) if materials else store.get_page(page_id).createdAsOf
     return max(0, days_between(as_of, baseline))
@@ -266,13 +266,22 @@ def health_report(store, *, as_of, contradictions, horizons, config=DEFAULT_LINT
         for ref in p.crossRefs:
             if ref in pages and pid not in pages[ref].crossRefs:
                 gaps.append(CrossRefGap(source=pid, target=ref, reason="asymmetric"))
+    # F25: one Aho-Corasick pass per body instead of an O(pages^2) per-pair substring scan, and
+    # a direct body read instead of store.window() (which re-resolved observations per page).
+    # Output order is byte-identical: source pages ascending, matched targets sorted ascending.
+    title_to_ids: dict[str, list[str]] = {}
+    for other_id, other in pages.items():
+        if other.title:
+            title_to_ids.setdefault(other.title, []).append(other_id)
+    for ids in title_to_ids.values():
+        ids.sort()
+    matcher = MultiSubstringMatcher(title_to_ids.keys())
     for pid, p in sorted(pages.items()):
-        body = store.window(pid, 0).body
-        for other_id, other in sorted(pages.items()):
-            if other_id == pid or not other.title:
-                continue
-            if other.title in body and other_id not in p.crossRefs:
-                gaps.append(CrossRefGap(source=pid, target=other_id, reason="mention-without-link"))
+        present = matcher.matches(store._body(pid))
+        targets = [oid for title in present for oid in title_to_ids[title]
+                   if oid != pid and oid not in p.crossRefs]
+        for other_id in sorted(targets):
+            gaps.append(CrossRefGap(source=pid, target=other_id, reason="mention-without-link"))
 
     contras = [ContradictionEntry(pageId=pid, note=note, asOf=as_of)
                for pid, note in sorted(contradictions.items())]

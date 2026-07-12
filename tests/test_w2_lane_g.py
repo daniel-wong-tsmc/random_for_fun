@@ -188,7 +188,7 @@ def test_route_findings_crash_recoverable_and_idempotent_on_retry(tmp_path):
         route_findings(ws, [f1, f2, f3_colliding], as_of="2026-06-28")
 
     # findings 1-2 are durably routed even though the batch blew up on finding 3
-    assert {o.findingId for o in ws.observations("entity:nvda")} == {"f-1"}
+    assert {o.findingId for o in ws.observations("entity:nvidia")} == {"f-1"}
     assert {o.findingId for o in ws.observations("entity:amd")} == {"f-2"}
     n_events_after_crash = len(ws.log.read())
 
@@ -196,8 +196,8 @@ def test_route_findings_crash_recoverable_and_idempotent_on_retry(tmp_path):
     # no exception, no duplicate observations for f-1/f-2, and f-3 now routes cleanly.
     f3_fixed = _finding("f-3", "NVDA", statement="original content")
     touched = route_findings(ws, [f1, f2, f3_fixed], as_of="2026-06-28")
-    assert touched == ["entity:amd", "entity:nvda"]
-    assert {o.findingId for o in ws.observations("entity:nvda")} == {"f-1", "f-3"}
+    assert touched == ["entity:amd", "entity:nvidia"]
+    assert {o.findingId for o in ws.observations("entity:nvidia")} == {"f-1", "f-3"}
     assert {o.findingId for o in ws.observations("entity:amd")} == {"f-2"}
     # exactly one new event landed (append-observation for f-3); f-1/f-2 were no-ops
     assert len(ws.log.read()) == n_events_after_crash + 1

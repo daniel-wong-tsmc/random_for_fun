@@ -32,8 +32,8 @@ def test_slug_empty_raises():
 def test_route_creates_entity_pages_and_observations(tmp_path):
     ws = _store(tmp_path)
     touched = route_findings(ws, [_f("f-1", "NVDA"), _f("f-2", "AMD")], as_of="2026-06-28")
-    assert touched == ["entity:amd", "entity:nvda"]
-    assert {o.findingId for o in ws.observations("entity:nvda")} == {"f-1"}
+    assert touched == ["entity:amd", "entity:nvidia"]   # F24: NVDA resolves; AMD unregistered
+    assert {o.findingId for o in ws.observations("entity:nvidia")} == {"f-1"}
     assert ws.get_page("entity:amd").title == "AMD"
 
 
@@ -54,7 +54,32 @@ def test_route_empty_entity_fails_loud(tmp_path):
 def test_route_applies_category(tmp_path):
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28", category="chips.merchant-gpu")
-    assert ws.get_page("entity:nvda").category == "chips.merchant-gpu"
+    assert ws.get_page("entity:nvidia").category == "chips.merchant-gpu"
+
+
+# --- F24 Seam B: entity pages keyed by the resolved canonical id (acceptance 3) ---
+
+def test_route_alias_lands_on_canonical_entity_page(tmp_path):
+    ws = _store(tmp_path)
+    touched = route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    assert touched == ["entity:nvidia"]
+    assert {o.findingId for o in ws.observations("entity:nvidia")} == {"f-1"}
+    assert ws.get_page("entity:nvidia").title == "NVIDIA"        # routed title = display name
+
+
+def test_route_alias_and_canonical_share_one_page(tmp_path):
+    ws = _store(tmp_path)
+    route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
+    touched = route_findings(ws, [_f("f-2", "nvidia")], as_of="2026-06-28")
+    assert touched == ["entity:nvidia"]                          # no nvda-vs-nvidia split minted
+    assert {o.findingId for o in ws.observations("entity:nvidia")} == {"f-1", "f-2"}
+
+
+def test_route_unregistered_entity_unchanged(tmp_path):
+    ws = _store(tmp_path)
+    touched = route_findings(ws, [_f("f-1", "Super Micro")], as_of="2026-06-28")
+    assert touched == ["entity:super-micro"]                     # plain slug, as today
+    assert ws.get_page("entity:super-micro").title == "Super Micro"
 
 
 def test_build_bundle_has_touched_pages_and_new_findings(tmp_path):
@@ -65,7 +90,7 @@ def test_build_bundle_has_touched_pages_and_new_findings(tmp_path):
     assert bundle["asOf"] == "2026-06-28"
     assert bundle["schema"] == IngestResult.model_json_schema()
     page = bundle["pages"][0]
-    assert page["pageId"] == "entity:nvda"
+    assert page["pageId"] == "entity:nvidia"
     assert page["newFindings"][0]["id"] == "f-1"
     assert page["newFindings"][0]["statement"] == "DC revenue up"
     assert "currentBody" in page and "currentState" in page

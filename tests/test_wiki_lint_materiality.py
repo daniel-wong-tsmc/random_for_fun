@@ -33,7 +33,7 @@ def test_score_new_thread_nonscoring(tmp_path):
     ws = _store(tmp_path)
     # gpuSpotPrice: scoring=False (price overlay), daily/coincident (no leading boost)
     route_findings(ws, [_f("f-1", "NVDA", "gpuSpotPrice")], as_of="2026-06")  # magnitude=2 (default)
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of=None, is_new=True,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.newThread is True
@@ -51,7 +51,7 @@ def test_score_scoring_indicator_and_leading_boost(tmp_path):
     ws = _store(tmp_path)
     # rpoBacklog: scoring=True (demand), quarterly/leading, magnitude 3, primary evidence
     route_findings(ws, [_f("f-1", "NVDA", "rpoBacklog", magnitude=3, tier="primary")], as_of="2026-06")
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=False,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of=None, is_new=False,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.indicatorMoves[0].scoring is True
@@ -64,7 +64,7 @@ def test_score_state_change_factor(tmp_path):
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA", "rpoBacklog")], as_of="2026-05")  # findings in a PRIOR cycle
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of="2026-05", is_new=False,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of="2026-05", is_new=False,
                      state_transition={"from": "steady", "to": "slipping"}, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.stateTransition == {"from": "steady", "to": "slipping"}
@@ -78,7 +78,7 @@ def test_score_contradiction_highest(tmp_path):
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA", "rpoBacklog")], as_of="2026-05")
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of="2026-05", is_new=False,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of="2026-05", is_new=False,
                      state_transition=None, contradiction_note="guidance cut",
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.contradiction is True and mv.factors.contradictionNote == "guidance cut"
@@ -90,8 +90,8 @@ def test_score_salience_weight_lifts_with_brain_salience(tmp_path):
     reg, hz = _reg_hz()
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA", "rpoBacklog", magnitude=3, tier="primary")], as_of="2026-06")
-    ws.record_state("entity:nvda", as_of="2026-06", state="hot", trajectory="up", salience=0.9)
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=False,
+    ws.record_state("entity:nvidia", as_of="2026-06", state="hot", trajectory="up", salience=0.9)
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of=None, is_new=False,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     # salience_weight = max(0.5, 0.9) = 0.9 ; base 0.9 ; primary 1.0 ; recency 1.0 ; leading 1.5
@@ -115,7 +115,7 @@ def test_score_moves_threshold_split_and_sorted(tmp_path):
                                     registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     mat_ids = [m.pageId for m in material]
     drop_ids = [m.pageId for m in dropped]
-    assert "entity:nvda" in mat_ids
+    assert "entity:nvidia" in mat_ids
     assert "entity:amd" in mat_ids     # F34: recalibrated - no longer structurally folded
     assert "entity:intc" in drop_ids   # low-magnitude price-only thread still folds
     assert material == sorted(material, key=lambda m: m.score, reverse=True)

@@ -75,6 +75,9 @@ class DroppedFinding(BaseModel):
 class ExtractionOutcome(BaseModel):
     findings: list[Finding] = []
     dropped: list[DroppedFinding] = []
+    # F24: distinct unregistered entity names seen this extraction (pass-through, flagged —
+    # never rejected, never a Finding field). Sorted for determinism.
+    unregisteredEntities: list[str] = []
 
 def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
                      captured_at: str, extraction_model: str,
@@ -89,13 +92,29 @@ def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
         from gpu_agent.registry.structure import Taxonomy
         from gpu_agent.config import TAXONOMY_PATH
         taxonomy = Taxonomy.load(TAXONOMY_PATH)
+    from gpu_agent.entities import default_resolver
+    resolver = default_resolver()
     valid_targets = frozenset(taxonomy.categories)
     folded_doc = " ".join(doc.content.split())
     result = client.complete_json(build_user_prompt(doc), SYSTEM, ExtractionResult, model)
     findings: list[Finding] = []
     dropped: list[DroppedFinding] = []
+    unregistered: set[str] = set()
     for i, draft in enumerate(result.drafts, start=1):
         fid = f"{doc.id}-{i}"
+        # F24 Seam A: registered aliases normalize to the canonical id immediately after
+        # brain-output validation, before gate/routing. Unregistered names pass through
+        # UNCHANGED, flagged (user-approved Q2 2026-07-12). An unsluggable name counts as
+        # unregistered — never a rejection here (the wiki route still fails loud, as today).
+        try:
+            canonical, registered = resolver.resolve(draft.entity)
+        except ValueError:
+            canonical, registered = draft.entity, False
+        if registered:
+            if draft.entity != canonical:
+                draft = draft.model_copy(update={"entity": canonical})
+        else:
+            unregistered.add(draft.entity)
         try:
             spec = registry.resolve(draft.indicatorId)
         except RegistryError:
@@ -124,4 +143,5 @@ def extract_findings(doc: RawDocument, client: LLMClient, *, as_of: str,
             dropped.append(DroppedFinding(id=fid, violations=violations))
         else:
             findings.append(f)
-    return ExtractionOutcome(findings=findings, dropped=dropped)
+    return ExtractionOutcome(findings=findings, dropped=dropped,
+                             unregisteredEntities=sorted(unregistered))

@@ -166,8 +166,8 @@ def _seed_store(root: pathlib.Path):
                 indicatorId="rpoBacklog", side="demand", polarityDemand=1, polaritySupply=0,
                 magnitude=3, entity="NVDA", observedAt="2026-07", capturedAt="2026-07-12")
     route_findings(ws, [f], as_of="2026-07")
-    ws.update_header("entity:nvda", as_of="2026-07", status="registered")
-    ws.record_state("entity:nvda", as_of="2026-07", state="hot", trajectory="rising", salience=0.9)
+    ws.update_header("entity:nvidia", as_of="2026-07", status="registered")
+    ws.record_state("entity:nvidia", as_of="2026-07", state="hot", trajectory="rising", salience=0.9)
 
 
 def test_cli_report_renders_storylines_from_store(tmp_path, capsys):
@@ -179,7 +179,7 @@ def test_cli_report_renders_storylines_from_store(tmp_path, capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert "STORYLINES (tracked over time)" in out
-    assert "• NVDA  hot → rising" in out                       # real storyline from the store
+    assert "• NVIDIA  hot → rising" in out                       # real storyline from the store
     assert "no prior cycle to compare" in out                 # --no-prior → WHAT MOVED note
 
 

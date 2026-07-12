@@ -34,8 +34,8 @@ def test_collect_ranks_moves_splits_storylines_and_never_writes(tmp_path):
     # cycle 1 (2026-05): NVDA — a scoring, leading, magnitude-3, primary finding; promote it to REGISTERED.
     route_findings(ws, [_f("f-nv1", "NVDA", "rpoBacklog", as_of="2026-05", magnitude=3, tier="primary")],
                    as_of="2026-05")
-    ws.update_header("entity:nvda", as_of="2026-05", status="registered")
-    ws.record_state("entity:nvda", as_of="2026-05", state="on-track", trajectory="accelerating", salience=0.9)
+    ws.update_header("entity:nvidia", as_of="2026-05", status="registered")
+    ws.record_state("entity:nvidia", as_of="2026-05", state="on-track", trajectory="accelerating", salience=0.9)
     # cycle 2 (2026-06): NVDA gets a new material finding; AMD is a NEW provisional overlay (low materiality).
     # F34: AMD's magnitude-1 D6 (price) finding still folds — (0.5 + 0.3*1) * 0.6 * 1.0 * 1.0 * 0.5
     # = 0.24 < 0.3 — a low-magnitude price-only thread stays quiet even though non-scoring
@@ -54,13 +54,13 @@ def test_collect_ranks_moves_splits_storylines_and_never_writes(tmp_path):
     top = mv.moved[0]
     assert top.findingIds == ["f-nv2"]           # NVDA's this-cycle finding is the citation
     assert top.tier == "primary"                 # derived from tierMult
-    assert top.provisional is False               # entity:nvda was promoted to registered
+    assert top.provisional is False               # entity:nvidia was promoted to registered
     assert mv.foldedCount >= 1                    # AMD overlay dropped below threshold
 
-    # STORYLINES: entity:nvda registered (canonical), entity:amd provisional (confidence-capped).
+    # STORYLINES: entity:nvidia registered (canonical), entity:amd provisional (confidence-capped).
     reg_titles = [s.title for s in mv.storylines if not s.provisional]
     prov_titles = [s.title for s in mv.storylines if s.provisional]
-    assert "NVDA" in reg_titles and "AMD" in prov_titles
+    assert "NVIDIA" in reg_titles and "AMD" in prov_titles  # F24: routed title = display name
 
 
 def test_collect_no_prior_still_lists_storylines(tmp_path):
@@ -68,11 +68,11 @@ def test_collect_no_prior_still_lists_storylines(tmp_path):
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-nv", "NVDA", "rpoBacklog", as_of="2026-06", magnitude=3, tier="primary")],
                    as_of="2026-06")
-    ws.record_state("entity:nvda", as_of="2026-06", state="hot", trajectory="rising", salience=0.8)
+    ws.record_state("entity:nvidia", as_of="2026-06", state="hot", trajectory="rising", salience=0.8)
     mv = collect_movement(ws, as_of="2026-06", prev_as_of=None, registry=reg, horizons=hz)
     assert mv.prevAsOf is None
     assert mv.moved == [] and mv.foldedCount == 0     # no diff without a prior cycle
-    assert any(s.title == "NVDA" for s in mv.storylines)   # storylines still render
+    assert any(s.title == "NVIDIA" for s in mv.storylines)  # storylines still render (F24 title)
 
 
 def test_collect_empty_store_is_empty(tmp_path):

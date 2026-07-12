@@ -1,6 +1,7 @@
 from __future__ import annotations
 import re
 from pydantic import BaseModel, ConfigDict, Field
+from gpu_agent.entities import default_resolver
 from gpu_agent.schema.finding import Finding
 from gpu_agent.wiki.store import WikiStore, PageNotFound
 from gpu_agent.wiki.salience import computed_salience
@@ -154,7 +155,11 @@ def _validate_enrichment_gate(store: WikiStore, pe: PageEnrichment) -> list[str]
 def _entity_page_id(finding: Finding) -> str:
     if not finding.entity or not finding.entity.strip():
         raise ValueError(f"finding {finding.id} has empty entity; cannot route")
-    return f"entity:{slug(finding.entity)}"
+    # F24 Seam B: page slug derives from the RESOLVED canonical id, so no new alias-split
+    # pages (nvda vs nvidia) are ever minted. Unregistered names keep today's plain slug
+    # (resolve() falls back to it). Existing split pages are untouched (stage 2).
+    canonical, _registered = default_resolver().resolve(finding.entity)
+    return f"entity:{canonical}"
 
 
 def route_findings(store: WikiStore, findings: list[Finding], *, as_of: str,
@@ -169,7 +174,10 @@ def route_findings(store: WikiStore, findings: list[Finding], *, as_of: str,
         try:
             store.get_page(pid)
         except PageNotFound:
-            store.create_page(pid, "entity", f.entity, category=category, as_of=as_of)
+            # F24: routed titles use the canonical display name (NVIDIA, not NVDA);
+            # unregistered names keep the finding's entity string unchanged.
+            store.create_page(pid, "entity", default_resolver().display_name(f.entity),
+                              category=category, as_of=as_of)
         already = {o.findingId for o in store.observations(pid)}
         if f.id not in already:
             store.append_observation(pid, f.id, as_of=as_of)

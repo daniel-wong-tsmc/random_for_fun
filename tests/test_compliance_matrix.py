@@ -86,6 +86,7 @@ def test_rows_have_six_cells():
 
 
 def test_clause_ids_wellformed_unique_and_match_part():
+    charter_parts = set(_charter_parts())   # derived live, so a future Part 40 just works
     seen = set()
     for cells in _matrix_rows():
         cid, part = cells[0], cells[1]
@@ -95,7 +96,7 @@ def test_clause_ids_wellformed_unique_and_match_part():
         seen.add(cid)
         assert part.isdigit(), f"Part not an int: {part!r} ({cid})"
         assert int(m.group(1)) == int(part), f"Clause ID {cid} disagrees with Part {part}"
-        assert 1 <= int(part) <= 39, f"Part out of range: {part} ({cid})"
+        assert int(part) in charter_parts, f"Part {part} is not a charter Part ({cid})"
 
 
 def test_status_vocabulary_controlled():
@@ -134,6 +135,16 @@ def test_referenced_test_functions_exist():
                 body = (ROOT / path_part).read_text(encoding="utf-8")
                 assert re.search(rf"def {re.escape(sym)}\b", body), (
                     f"{cells[0]}: {sym} not defined in {path_part}")
+
+
+def test_enforced_rows_name_a_pinning_test():
+    # An ENFORCED claim without a test is exactly the rot this matrix exists to
+    # catch: the row must cite at least one tests/ path (file or file::function).
+    for cells in _matrix_rows():
+        if cells[3] != "ENFORCED":
+            continue
+        pins = [t for t in _PATH_RE.findall(cells[5]) if t.startswith("tests/")]
+        assert pins, f"{cells[0]}: ENFORCED but Pinning-test cell names no tests/ path: {cells[5]!r}"
 
 
 def test_summary_counts_match_rows():

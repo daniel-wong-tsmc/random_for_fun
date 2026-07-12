@@ -170,3 +170,18 @@ All are AFK-precedent; none block the build:
   collapsed (e.g. drop `PARTIAL` into ENFORCED/NOT-ENFORCED) for a starker map.
 - **A3 — summary-count integrity check.** Adds a maintenance cost (every row status change must update
   the summary). Kept because silent count-rot is precisely what F23 fights; the user may prefer to drop it.
+
+## 8. Deviations (recorded post-implementation)
+
+- **Flat table instead of `### Part N` sub-headings (§5.3).** The spec proposed grouping the matrix by
+  Part with sub-headings. The shipped lint locates the matrix as **exactly one** contiguous table under a
+  single header row (the strictness that makes parsing unambiguous); sub-headings would split it into
+  multiple tables with repeated headers, which the lint rejects by design. The flat single table was
+  kept and the deviation recorded rather than weakening the parser. Clause IDs carry the Part number, so
+  grouping is recoverable by sorting.
+- **Post-review hardening (2026-07-12 branch review).** An ENFORCED row must now name at least one
+  `tests/` path (lint rule); the Part range is derived live from the charter instead of hard-coded 1..39;
+  ENFORCED rows pin `file::test_name` wherever a specific function is the pin. Review relabels applied:
+  P16.version → NOT-ENFORCED (no live taxonomy version field), P18.modularity → PARTIAL (universal seam
+  property is architecture review); added P19.budget (DEFERRED) and P17.cover (ENFORCED, CategoryStatus
+  schema).

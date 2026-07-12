@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "note": "F79 series-layer indicator metadata. NON-prompt-affecting: read by the series engine/backtest/shadow only, never by the extract prompt or the F6 pin (which reads registry/indicators.json). The six entries are PROMOTED into registry/indicators.json at the G3 stage (which moves prompt bytes and triggers the ONE bundled re-gate). Weights seeded per plan DP-2 from the 2026-07-11 SDEWS extraction doc; final values are user-confirmed at G1.",
+  "seriesIndicators": {
+    "pkgCapacityOrderSpread": { "sdews": "S1", "side": "supply", "weight": 0.20, "decayLambda": 0.4, "polarityDemand": 0, "polaritySupply": -1, "lifecycle": "active", "leadMonths": "6-12", "unit": "ramp_minus_order_rate_pct" },
+    "hbmSupplyCapex": { "sdews": "S2", "side": "supply", "weight": 0.16, "decayLambda": 0.4, "polarityDemand": 0, "polaritySupply": -1, "lifecycle": "active", "leadMonths": "6-12", "unit": "pct_yoy" },
+    "hyperscalerCapexRevision": { "sdews": "D1", "side": "demand", "weight": 0.20, "decayLambda": 0.4, "polarityDemand": 1, "polaritySupply": 0, "lifecycle": "active", "leadMonths": "6-12", "unit": "revision_direction" },
+    "odmMonthlyAiRevenue": { "sdews": "D9", "side": "demand", "weight": 0.18, "decayLambda": 0.3, "polarityDemand": 1, "polaritySupply": 0, "lifecycle": "active", "leadMonths": "3-6", "unit": "pct_yoy" },
+    "tokenEconomics": { "sdews": "D4", "side": "demand", "weight": 0.10, "decayLambda": 0.4, "polarityDemand": 1, "polaritySupply": 0, "lifecycle": "active", "leadMonths": "3-6", "estimateGrade": true, "unit": "price_vs_volume_rate" },
+    "marginalBuyerFinancing": { "sdews": "X5", "side": "demand", "weight": 0.08, "decayLambda": 0.4, "polarityDemand": 1, "polaritySupply": 0, "lifecycle": "active", "leadMonths": "6-12", "estimateGrade": true, "unit": "credit_condition_index" }
+  }
+}

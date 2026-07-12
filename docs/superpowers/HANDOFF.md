@@ -1,6 +1,41 @@
-# HANDOFF — GPU Category Agent (resume point: F78 STAGES 1–5 ALL MERGED 2026-07-12, `main == origin/main == fd0b08c`, suite **1200/5**, eval pin green. Next task: **F78 stage 6** — the change-first renderer + the 2026-07-11 exec top band amendment — its plan is fully written and its dependencies are now all on main. Then F79 (SDEWS index rebuild) after F78 closes.)
+# HANDOFF — GPU Category Agent (resume point: SIX FIX MERGES LANDED 2026-07-13 — F25, F87, F23, F72 v1.4.1, F24 stage 1, F80 — `main == origin/main == ab48786`, suite **1265/5**, eval pin green. F78 STAGE 6 is DONE on its branch @ `4b6df95`, reviewed, AWAITING THE USER'S MERGE (the other instance's lane — expect a real rebase onto the post-merge main; see the conflict note). Then F56 rebase+merge, then the F79 interactive brainstorm.)
 
-- **Date: 2026-07-12 (LATEST) — the F78 pipeline landed.** All merges user-directed interactively
+- **Date: 2026-07-13 (LATEST) — the wave-1/wave-2 merge train landed.** User-authorized
+  interactively ("merge them all", 2026-07-13); full suite run green between EVERY merge;
+  pushed after each. In order: **F25** `bf8ad6c` (wiki store scale: ~54×/40× + lock) →
+  **F87** `7d65c64` (stale-lock takeover, stacked) → **F23** `dc0f218` (compliance matrix,
+  123 rows + rot lint) → **F72 v1.4.1** `1a5ee33` (sufficiency counts collapsed publishers;
+  frozen-core micro-migration; zero shadow flips) → **F24 stage 1** `6d40f82` (entity
+  resolver at the new-finding seams; 10 test files migrated) → **F80** `ab48786` (two wiki
+  pages tagged + null-category tripwire; sacred-store hand edit, diff shown, user sign-off
+  within "merge them all"). Suite 1200/5 → **1265/5**. Every lane was built by a dispatched
+  Opus agent under the question-stop rule (ONE stop raised — F24 — answered interactively)
+  and passed a fresh-context Opus whole-branch review before merge (verdicts in the
+  sentinels; F87's round 1 caught a real two-reclaimers race, fixed + mutation-verified).
+- **F78 STAGE 6 (the other instance's lane) is DONE @ `4b6df95` — awaiting the USER's merge
+  decision** (its coordination note `a21442a` landed mid-train; sentinel
+  `.superpowers/handoffs/f78-stage6-DONE.md`). **Conflict heads-up for that merge:** its base
+  is `b7e66aa` (pre-train), and F24's merge migrated `tests/test_brief_movement.py` +
+  `tests/test_brief_report.py` (NVDA→NVIDIA titles) — stage 6 rewrites the renderer and its
+  tests, so expect a genuine rebase/reconcile, not a clean fast-forward. After stage 6:
+  **F56** (built + reviewed READY @ `2516064`) rebases and merges.
+- **OPEN GATES (user decisions still pending, updated 2026-07-13):** (1) whether the three
+  skipped scheduled days (07-09/07-11/07-12) are re-run — 07-07 precedent is skip; the
+  permission flip is DONE (F83) and the 2026-07-13 08:57 run is its first live test;
+  (2) merged-worktree cleanup — now includes the wave-1/2 worktrees+branches (f25-wiki-scale,
+  f87-stale-lock, f23-compliance, f72-sufficiency, f24-entities, f80-wiki-category — all
+  merged, no gitignored data worth keeping; see registry); (3) repo rename before TSMC-branded
+  exposure; (4) F23's A4 label call (P19.budget DEFERRED vs NOT-ENFORCED — reviewer leans
+  DEFERRED, in the F23 sentinel).
+- **NEXT:** (1) user merges F78 stage 6 (closes F78, ticks F64/F77) → (2) F56 rebase+merge →
+  (3) **F79 SDEWS scoring v2.0 — INTERACTIVE brainstorm with the user BEFORE any lane
+  dispatch** (standing rule) → F65, F66, F24 stage 2 (historical page consolidation) → the
+  **F81–F86 gap wave** (F87 already done, pulled forward), beside what remains of the
+  standing track (F23 ✅, F25 ✅, F24 partial).
+
+## HISTORICAL — 2026-07-12 F78-stages-1–5 state (superseded 2026-07-13 by the block above)
+
+- **Date: 2026-07-12 — the F78 pipeline landed.** All merges user-directed interactively
   (ZERO AFK-defaults this session or the 2026-07-11 session). Authoritative state:
   - **Stage 4** (7-day gather sweep + logged `pursuedDespiteAge[]`, reworks F58) merged `b9a3251`.
   - **Stage 5** (price-feed reader, 4 provider adapters → $/GPU-hr display-only) merged `fdbc7fb`

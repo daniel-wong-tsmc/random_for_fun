@@ -117,12 +117,31 @@
 
 ## Should-have
 
-- [ ] **F23 — Charter compliance matrix.** Clause → enforcement point → test; stops "binding"
+- [x] **F23 — Charter compliance matrix. DONE — merged `dc0f218` (2026-07-13, user "merge them
+  all").** `docs/compliance-matrix.md` (123 rows over all 39 Parts: 57 ENFORCED / 25 PARTIAL /
+  10 SESSION-PROSE / 27 DEFERRED / 4 NOT-ENFORCED, 65 test-function pins) +
+  `tests/test_compliance_matrix.py` rot lint. Review round 1 caught 1 Critical (P16.version
+  cited a nonexistent taxonomy version field) + 3 Important — all fixed, re-verified. Open
+  decision A4 recorded in the sentinel (P19.budget DEFERRED vs NOT-ENFORCED; reviewer leans
+  DEFERRED). Clause → enforcement point → test; stops "binding"
   drifting into aspiration (would have caught F2/F3/F5). *(Feature track)*
 - [ ] **F24 — Entity canonicalization + per-category namespacing.** `NVDA` vs `nvidia` fragments
   pages; `entity:amd` is global across future categories. Part 18/21 registry with aliases +
   category scoping before fan-out. *(Feature track)*
-- [ ] **F25 — Wiki store performance + concurrency.** O(N) full-log re-reads per operation,
+  **STATUS 2026-07-13: STAGE 1 MERGED `6d40f82`** (spec
+  `docs/superpowers/specs/2026-07-12-f24-entity-resolver-stage1-design.md`, all forks
+  user-approved interactively): `gpu_agent/entities.py` resolver over taxonomy seedEntities;
+  canonical ids at the new-finding seams (extractor + wiki ingest); unregistered names pass
+  byte-unchanged, flagged stderr + cycle log; 10 test files migrated (review: all FAITHFUL).
+  **STAYS OPEN for stage 2:** historical split-page/store consolidation (nvda.md vs nvidia.md
+  — a sacred-store repair with its own sign-off) + registering more entities in seedEntities
+  (only nvidia/tsmc registered today) + full multi-category counting at desk #2.
+- [x] **F25 — Wiki store performance + concurrency. DONE — merged `bf8ad6c` (2026-07-13, user
+  "merge them all").** Incremental byte-cursor log cache (every read revalidates via stat;
+  truncation detected), Aho-Corasick health scan, lockfile-guarded seq mint (Windows-safe
+  O_EXCL). Measured on a 300-page store: index 5.42s→0.10s (~54×), per-page reads ~40×, build
+  ~6×, health ~3.6×. Review: Ready to merge, 0 Critical; its one forward-looking flag became
+  F87 (now also merged). O(N) full-log re-reads per operation,
   O(pages²) health scans, `seq = len(read())` TOCTOU race — fatal at 34 concurrent categories.
   *(Feature track)*
 - [x] **F26 — De-GPU the template.** "GPU market analyst" persona hardcoded for every category;
@@ -245,7 +264,9 @@
   tests/test_seed_thesis_lint.py locks every seed trigger + depth field. Live store book
   untouched: history.jsonl's seeded event embeds the entries.)*
 - [ ] **F56 — Validate `--as-of` shape at the seams** (born from the F52/F53/F54 final review,
-  2026-07-03). `--as-of` is required everywhere but any non-empty string is accepted, and F52 now
+  2026-07-03). **STATUS 2026-07-13: BUILT + REVIEWED READY (branch `f56-asof-validation` @
+  `2516064`, review verdict in `.superpowers/handoffs/f56-asof-DONE.md`) — parked; merges
+  AFTER F78 stage 6 lands (shared cli.py surface), rebase first, then tick this box.** `--as-of` is required everywhere but any non-empty string is accepted, and F52 now
   embeds it in doc ids → snapshot + FindingStore filenames; a fat-fingered `2026/07/03` would mint
   a path-unsafe id. Pre-existing convention (asOf already flowed unvalidated into the dedup index
   and wiki stamps; the skills always pass ISO dates), so defense-in-depth only: validate
@@ -596,8 +617,11 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 
 - [x] **F72 — Cross-domain wire syndication defeats the F31 corroboration key. DONE — shipped in
   the contract v1.4 migration, merged `e16672a` (P3, 2026-07-08): `registry/syndicators.json` + L1
-  near-dup collapse. FOLLOW-UP: `sufficiency.py::_sufficient` still counts raw `publisher_key`, not
-  the collapsed set (flagged for a user decision).** (must-have
+  near-dup collapse. FOLLOW-UP RESOLVED 2026-07-13: contract v1.4.1 merged `1a5ee33` —
+  `sufficiency.py::_sufficient` now counts the SAME collapsed set as gate F2e (9-line seam via
+  the shared helper; read-only shadow-check over all stored cycles: ZERO past verdicts flip,
+  independently reproduced by the reviewer; migration note
+  `docs/migrations/2026-07-contract-v1.4.1.md`).** (must-have
   caliber: lets one press release move judgments, silently). `publisher_key`
   (`gpu_agent/publisher.py:17`) is the evidence URL's netloc, nothing else; the F63 spec
   collapses only *same-domain* syndication ("N outlets hosted at one domain collapses to one
@@ -771,8 +795,12 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 
 ## From the 2026-07-12 F78-stage-3 lane (F80 + one doc fix)
 
-- [ ] **F80 — Live-store data gap: `category: null` wiki pages silently excluded from every
-  corpus.** The F78-stage-3 shadow-check (2026-07-12, independently verified) found
+- [x] **F80 — DONE — merged `ab48786` (2026-07-13; mechanism user-approved 2026-07-12: hand
+  edit + tripwire; diff shown to the user, sign-off given with "merge them all"). Both pages
+  tagged `chips.merchant-gpu`; permanent tripwire `tests/test_wiki_page_category.py`
+  (red-green verified) fails the suite on any future null-category wiki page. NVIDIA now
+  contributes store findings to its own corpus.** Original entry: Live-store data gap:
+  `category: null` wiki pages silently excluded from every corpus. The F78-stage-3 shadow-check (2026-07-12, independently verified) found
   `store/wiki/entity/nvidia.md` and `store/wiki/entity/multi.md` carry `category: null`, so
   `enumerate_store`'s category filter (unchanged since F62's first commit) skips them whole —
   NVIDIA, the anchor entity of chips.merchant-gpu, contributes ZERO store findings to its own
@@ -892,8 +920,13 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   gatherer prose tightens; any F2e counting-semantics change rides a Part 33 migration as F72
   did.
 
-- [ ] **F87 — Stale-lock takeover for the wiki log lock (before unattended runs are
-  load-bearing).** Born from the F25 final review (2026-07-12, reviewer-recommended follow-up;
+- [x] **F87 — DONE — merged `7d65c64` (2026-07-13, user "merge them all"; pulled forward from
+  the post-backlog wave by user decision 2026-07-12 since unattended dailies went live that
+  day). Lock body carries {pid, hostname, timestamp}; takeover ONLY when the holder is provably
+  dead on this host and the lock is stale; review round 1 caught a real two-reclaimers race —
+  fixed (re-read-before-unlink + OSError routing), mutation-test-verified in round 2.**
+  Original entry: Stale-lock takeover for the wiki log lock (before unattended runs are
+  load-bearing). Born from the F25 final review (2026-07-12, reviewer-recommended follow-up;
   review verdict in `.superpowers/handoffs/f25-wiki-scale-DONE.md`). F25's lockfile-guarded seq
   mint chose fail-loud on a leftover `store/wiki/log.jsonl.lock` (hard crash → every later run
   raises TimeoutError until a human deletes the lock) — right default for attended runs, but it

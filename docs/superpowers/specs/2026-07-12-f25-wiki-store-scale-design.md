@@ -177,17 +177,17 @@ command, many ops within).
 
 ## 9. Before / after measurements
 
-_Synthetic store: ~300 pages, ~1500 observations (5 obs/page), on the shared root venv, Windows._
-_Filled in during implementation from `gpu_agent/wiki/bench.py` (before = baseline commit, after =
-final)._
+_Synthetic store: 300 pages, 1800 log events (1 create + 5 obs per page), on the shared root venv,
+Windows. Measured via `gpu_agent/wiki/bench.py`. Before = pre-optimization (Task 1 commit); After =
+final. Times are seconds._
 
-| Operation (P≈300, E≈1500) | Before | After |
+| Operation (P=300, log=1800 events) | Before | After |
 |---|---|---|
-| build store (N appends) | _TBD_ | _TBD_ |
-| `index()` ×1 | _TBD_ | _TBD_ |
-| `observations()` ×P | _TBD_ | _TBD_ |
-| `health_report()` ×1 | _TBD_ | _TBD_ |
-| log lines parsed during `health_report()` | _TBD_ (≈ P×E) | _TBD_ (≈ E) |
+| build store (1800 appends) | **77.8** | _TBD_ |
+| `index()` ×1 | **5.42** | _TBD_ |
+| `observations()` ×300 pages | **5.31** | _TBD_ |
+| `health_report()` ×1 | **55.8** | _TBD_ |
+| log lines parsed during a cold `health_report()` | _TBD_ (≈ P×log) | _TBD_ (≤ log, one pass) |
 
 ## 10. Decision provenance
 

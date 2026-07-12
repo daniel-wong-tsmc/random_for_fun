@@ -315,6 +315,20 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **THREE PARALLEL FIX LANES CLAIMED + DISPATCHED (2026-07-12, orchestrator session, user-directed
+  "start the parallelization today"):** background Opus agents, one per worktree, each running the
+  superpowers workflow (brainstorm → spec → plan → TDD), STOPS before merge, sentinel on finish.
+  File-disjoint from the stage-6 lane except one flagged overlap (below). Only the user merges.
+  - **F25** `.worktrees/f25-wiki-scale`, branch `f25-wiki-store-scale` — wiki store performance +
+    concurrency (owns `gpu_agent/wiki/`, `tests/test_wiki*`). Sentinel:
+    `.superpowers/handoffs/f25-wiki-scale-DONE.md`.
+  - **F56** `.worktrees/f56-asof`, branch `f56-asof-validation` — `--as-of` shape validation +
+    two cosmetic minors (minimal `cli.py` seam edits + a validator helper). **Flagged overlap:**
+    stage-6 also wires CLI — F56 merges AFTER stage 6, rebased. Sentinel:
+    `.superpowers/handoffs/f56-asof-DONE.md`.
+  - **F23** `.worktrees/f23-compliance`, branch `f23-compliance-matrix` — charter compliance
+    matrix (owns new `docs/compliance-matrix.md` + `tests/test_compliance_matrix.py`; touches no
+    product code). Sentinel: `.superpowers/handoffs/f23-compliance-DONE.md`.
 - **F78 stage-6 lane CLAIMED + IN FLIGHT (2026-07-12).** Worktree `.worktrees/f78-stage6`,
   branch `f78-stage6` off `b7e66aa` (dependency gate verified: `gpu_agent.asof` +
   `gpu_agent.pricefeed` import). Plan

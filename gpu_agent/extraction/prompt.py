@@ -68,7 +68,7 @@ def build_system(persona: str = DEFAULT_PERSONA,
                    "ids: " + "; ".join(lines) + "."
                    "\nA draft whose indicatorId is not in this list (or the price list below "
                    "for price rows) will be rejected.")
-    if price_indicators is not None:
+    if price_indicators:
         lines = []
         for spec in price_indicators:
             line = f"{spec['id']} — {spec['label']}, unit {spec['unit']}"

@@ -61,6 +61,11 @@ def _as_of(s: str) -> str:
         raise argparse.ArgumentTypeError(f"--as-of {s!r} must be YYYY-MM or YYYY-MM-DD")
     return s
 
+def _as_of_opt(s: str) -> str:
+    # eval's --as-of is optional (default "" = not supplied); validate the shape only
+    # when a value is actually given, so the "" sentinel still parses.
+    return s if s == "" else _as_of(s)
+
 def _load_docs(docs_dir: str) -> list[RawDocument]:
     return [RawDocument.model_validate(json.loads(p.read_text("utf-8")))
             for p in sorted(pathlib.Path(docs_dir).glob("*.json"))
@@ -1114,7 +1119,7 @@ def main(argv=None) -> int:
     co = sub.add_parser("corpus")
     co.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
     co.add_argument("--category", required=True, help="category id (scopes wiki pages)")
-    co.add_argument("--as-of", required=True, help="run vintage (YYYY-MM or YYYY-MM-DD)")
+    co.add_argument("--as-of", required=True, type=_as_of, help="run vintage (YYYY-MM or YYYY-MM-DD)")
     co.add_argument("--salience-floor", type=float, default=SALIENCE_FLOOR_DEFAULT,
                     help=f"aged-corpus decay cutoff (default {SALIENCE_FLOOR_DEFAULT})")
     co.add_argument("--fresh", default=None,
@@ -1159,7 +1164,8 @@ def main(argv=None) -> int:
                                        "record-grade", "verdict", "rebaseline"])
     ev.add_argument("--cases", default="fixtures/evals/cases")
     ev.add_argument("--out", default="", help="run dir (required for emit-*/record-*)")
-    ev.add_argument("--as-of", default="", help="required for record-grade (report provenance)")
+    ev.add_argument("--as-of", default="", type=_as_of_opt,
+                    help="required for record-grade (report provenance)")
     ev.add_argument("--baseline", default="fixtures/evals/baseline.json")
     ev.add_argument("--runs", nargs="+", default=None,
                     help="run dirs: 1-2 for verdict, exactly 3 for rebaseline")

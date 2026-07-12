@@ -14,7 +14,7 @@ import json
 
 from gpu_agent.config import min_distinct_publishers
 from gpu_agent.gate import _rating_consistent_with_anchor
-from gpu_agent.publisher import publisher_key
+from gpu_agent.publisher import collapsed_publisher_set
 
 # F71 (contract v1.4): the trust-footer stamp an anchor-forced move rides on. Kept as a
 # named constant so the exemption path and any renderer name the exact same string.
@@ -24,10 +24,13 @@ ANCHOR_BOUNDED_STAMP = "anchor-bounded on thin evidence"
 def _sufficient(finding_ids, findings_by_id, n) -> tuple[bool, int]:
     """(passes, distinct-publisher count). Primary anywhere passes outright. Unresolvable
     ids contribute nothing — citation validity against the briefing is the aggregator's
-    job, not this gate's."""
+    job, not this gate's. Contract v1.4.1: distinctness is counted over the SAME collapsed
+    publisher identities the F2e gate uses (publisher.collapsed_publisher_set) so a wire
+    story syndicated / reprinted across several netlocs counts as ONE publisher here too —
+    no duplicated collapse logic, the shared helper is the single source of distinctness."""
     evs = [e for fid in finding_ids if fid in findings_by_id
            for e in findings_by_id[fid].evidence]
-    publishers = {publisher_key(e) for e in evs}
+    publishers = collapsed_publisher_set(evs)
     if any(e.tier == "primary" for e in evs):
         return True, len(publishers)
     return len(publishers) >= n, len(publishers)

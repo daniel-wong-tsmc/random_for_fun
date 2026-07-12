@@ -6,7 +6,7 @@ import json
 import pathlib
 import statistics
 from pydantic import BaseModel, ConfigDict, ValidationError
-from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput, EvalCase
+from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput, ImplicationInput, EvalCase
 from gpu_agent.evals.emit import emit_brain_bundle
 from gpu_agent.evals.rubric import (
     GradeResult, RUBRICS, case_score, gate_grade, max_score, render_rubric)
@@ -14,6 +14,8 @@ from gpu_agent.extraction.extractor import extract_findings
 from gpu_agent.judgment.judge import JudgmentError, judge_findings
 from gpu_agent.llm.recorded import RecordedClient
 from gpu_agent.thesis import ThesisAnswer, gate_answer
+from gpu_agent.implication import ImplicationAnswer, gate_implication
+from gpu_agent.schema.scorecard import DIMENSIONS
 
 EVAL_MODEL_STAMP = "eval-recorded"
 
@@ -63,6 +65,16 @@ def gate_brain_answer(seam: str, seam_input, answer_text: str, registry, taxonom
             return BrainGate(ok=False, violations=[f"thesis parse error: {e}"])
         findings_by_id = {f.id: f for f in seam_input.findings}
         violations = gate_answer(answer, seam_input.book, findings_by_id, registry)
+        return BrainGate(ok=not violations, violations=list(violations))
+    if seam == "implication":
+        assert isinstance(seam_input, ImplicationInput)
+        try:
+            answer = ImplicationAnswer.model_validate_json(answer_text)
+        except ValidationError as e:
+            return BrainGate(ok=False, violations=[f"implication parse error: {e}"])
+        violations = gate_implication(
+            answer, findings_by_id={f.id: f for f in seam_input.scorecard.findings},
+            thesis_ids={e.id for e in seam_input.book.standing()}, dimensions=set(DIMENSIONS))
         return BrainGate(ok=not violations, violations=list(violations))
     raise ValueError(f"unknown seam '{seam}'")
 

@@ -73,6 +73,24 @@ RUBRICS: dict[str, list[Criterion]] = {
            "Direction right but the size of the move is under-argued.",
            "The move (or hold) is exactly what the cited evidence supports, no more."),
     ],
+    "implication": [
+        _c("customer-relevance", "Each line speaks to a real TSMC decision variable",
+           "Lines are generic market commentary that names no decision the reader owns.",
+           "Relevant overall but at least one line is only loosely tied to a decision variable.",
+           "Every line maps to a specific decision variable the reader actually acts on."),
+        _c("exposure-not-recommendation", "States exposure / what to watch, never an action",
+           "Tells TSMC what to do (should/must/buy/hedge/…) — a recommendation, not an implication.",
+           "Mostly exposure framing but one line drifts toward prescribing an action.",
+           "Every line is a clean watch-item or exposure statement; no action is prescribed."),
+        _c("citation-discipline", "Every claim traces to a cited dimension / thesis / finding",
+           "Claims rest on facts outside the scorecard/book, or cite nothing that resolves.",
+           "Grounded overall but one claim outruns or misuses its citation.",
+           "Every claim traces to a cited dimension, thesis, or finding used correctly."),
+        _c("decision-usefulness", "A TSMC exec could act on their own from the line",
+           "Too vague or too obvious to inform any decision.",
+           "Useful but under-specifies the exposure or the trigger to watch.",
+           "Sharp enough that the reader knows exactly what exposure to weigh and what to watch."),
+    ],
 }
 
 

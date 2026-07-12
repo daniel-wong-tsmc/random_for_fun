@@ -1,5 +1,7 @@
 from __future__ import annotations
+import os
 import pathlib
+import time
 from typing import Literal, Optional
 from pydantic import BaseModel
 
@@ -52,6 +54,8 @@ class WikiLog:
         self._by_page: dict[str, list[LogEvent]] = {}
         self._offset = 0                 # byte offset of the last complete line consumed
         self.parsed_lines = 0            # instrumentation: cumulative disk lines parsed
+        self._lock_path = str(self.path) + ".lock"
+        self._lock_timeout = 10.0        # seconds to wait for the append lock before failing loud
 
     def _reset(self) -> None:
         self._events = []
@@ -102,16 +106,52 @@ class WikiLog:
         self._sync()
         return len(self._events)
 
+    def _acquire_lock(self) -> int:
+        """Cross-process advisory lock via an O_EXCL lock file (Windows + POSIX, no deps).
+        Fails loud on timeout rather than silently corrupting the seq sequence."""
+        deadline = time.monotonic() + self._lock_timeout
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        while True:
+            try:
+                return os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                pass                      # another writer holds it
+            except PermissionError:
+                pass                      # Windows: lock file is delete-pending; treat as busy
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"wiki log lock busy: {self._lock_path}")
+            time.sleep(0.005)
+
+    def _release_lock(self, fd: int) -> None:
+        os.close(fd)                      # close BEFORE unlink (Windows cannot delete an open file)
+        try:
+            os.unlink(self._lock_path)
+        except FileNotFoundError:
+            pass
+
     def append(self, *, asOf, kind, pageId=None, findingId=None, state=None,
                trajectory=None, salience=None, detail="") -> LogEvent:
-        seq = len(self.read())  # deterministic, wall-clock-free
-        event = LogEvent(seq=seq, asOf=asOf, kind=kind, pageId=pageId,
-                         findingId=findingId, state=state, trajectory=trajectory,
-                         salience=salience, detail=detail)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as fh:
-            fh.write(event.model_dump_json() + "\n")
-        return event
+        # F25: mint seq under an exclusive lock. Two concurrent writers can no longer both read
+        # the same length and write the same seq (the TOCTOU race) - the lock serializes the
+        # read-count-then-append, and _sync() first absorbs any events another writer added.
+        fd = self._acquire_lock()
+        try:
+            self._sync()                              # deterministic, wall-clock-free
+            seq = len(self._events)
+            event = LogEvent(seq=seq, asOf=asOf, kind=kind, pageId=pageId,
+                             findingId=findingId, state=state, trajectory=trajectory,
+                             salience=salience, detail=detail)
+            data = (event.model_dump_json() + "\n").encode("utf-8")
+            with self.path.open("ab") as fh:
+                fh.write(data)
+                fh.flush()
+                self._offset = fh.tell()              # advance cursor past our own line
+            self._events.append(event)                # update cache in place (no reparse)
+            if event.pageId:
+                self._by_page.setdefault(event.pageId, []).append(event)
+            return event
+        finally:
+            self._release_lock(fd)
 
     def append_event(self, event: LogEvent) -> None:
         """Append a pre-built event (brain ingest/query/lint), re-stamping seq."""

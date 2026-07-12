@@ -188,11 +188,73 @@ class WikiLog:
             except PermissionError:
                 pass                      # Windows: lock file is delete-pending; treat as busy
             if time.monotonic() >= deadline:
+                fd = self._try_takeover()
+                if fd is not None:
+                    return fd
                 raise TimeoutError(
                     f"wiki log lock busy: {self._lock_path} "
                     f"- delete this file if no writer is running"
                 )
             time.sleep(0.005)
+
+    def _read_lock_identity(self) -> Optional[tuple[int, str, float]]:
+        """Parse the lock body into (pid, hostname, timestamp), or None if it is
+        missing, empty, not a JSON object, or lacks the three correctly-typed fields.
+        Legacy F25 locks were empty, and a holder that crashed mid-write leaves a torn
+        body; both land here -> None -> the caller refuses takeover and fails loud."""
+        try:
+            raw = pathlib.Path(self._lock_path).read_bytes()
+        except FileNotFoundError:
+            return None
+        try:
+            obj = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            return None
+        if not isinstance(obj, dict):
+            return None
+        pid = obj.get("pid")
+        hostname = obj.get("hostname")
+        timestamp = obj.get("timestamp")
+        if not isinstance(pid, int) or isinstance(pid, bool):
+            return None
+        if not isinstance(hostname, str):
+            return None
+        if not isinstance(timestamp, (int, float)) or isinstance(timestamp, bool):
+            return None
+        return pid, hostname, float(timestamp)
+
+    def _try_takeover(self) -> Optional[int]:
+        """On acquire timeout, reclaim the lock ONLY if its holder is provably dead on
+        THIS machine and the lock is older than the stale threshold. Any uncertainty
+        (unparseable/legacy body, foreign host, young lock, live-or-unprovable pid)
+        returns None so the caller fails loud. Reclaim = unlink + one immediate O_EXCL
+        retry, with a LOUD stderr line naming the dead pid and the lock age."""
+        ident = self._read_lock_identity()
+        if ident is None:
+            return None                              # legacy / unparseable / torn body
+        pid, hostname, timestamp = ident
+        if hostname != socket.gethostname():
+            return None                              # foreign host
+        age = time.time() - timestamp
+        if age <= self._stale_after:
+            return None                              # too young
+        if not _pid_is_dead(pid):
+            return None                              # live, or cannot prove dead
+        print(
+            f"WIKI-LOCK-TAKEOVER {self._lock_path}: reclaiming lock held by dead "
+            f"pid {pid}, age {age:.0f}s",
+            file=sys.stderr,
+        )
+        try:
+            os.unlink(self._lock_path)
+        except FileNotFoundError:
+            pass
+        try:
+            fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except (FileExistsError, PermissionError):
+            return None                              # lost the one immediate retry race
+        os.write(fd, self._lock_identity())
+        return fd
 
     def _release_lock(self, fd: int) -> None:
         os.close(fd)                      # close BEFORE unlink (Windows cannot delete an open file)

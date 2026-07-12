@@ -991,6 +991,100 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   `render_report`/`render_daily` returns it, so a genuinely novel off-allowlist token BLOCKS the
   render instead of shipping silently until a shadow-check happens to catch it.
 
+## From the 2026-07-13 documentation gap review (F88–F94) — what the docs still don't cover
+
+> Source: a "what is missing from our documentation to achieve the goal?" review (2026-07-13),
+> run against the roadmap, the 39-part charter, this backlog (including the F81–F86 wave), the
+> compliance matrix, and HANDOFF; minted as F-items the same day (user-directed, interactive).
+> The mechanics beneath each item are the assistant's lean, to confirm at that item's own
+> brainstorm. The STANDING ORCHESTRATION RULES from the F81–F86 preamble apply unchanged
+> (design-weight items get an interactive brainstorm with the user before any lane dispatch;
+> question-stop binds every dispatched lane). **Sequencing (user-directed 2026-07-13): F88 is
+> pulled forward and starts NOW — its interactive brainstorm runs this session; the rest slot
+> beside the F81–F86 wave under the same start-after-current-pipeline rule.** Numbering note:
+> the two unnumbered F78-stage-6 follow-ups (section above) keep their user-assigned-number
+> reservation; this wave took the next free numbers at mint time (F88–F94).
+
+- [ ] **F88 — Unattended-orchestrator threat model (the injection boundary, one level up — and
+  the exposure went live 2026-07-13).** The F16/Part-8 boundary protects the *brains*: tool-less
+  dispatches, fetched text fenced as data-not-instructions. Nothing protects the *orchestrating
+  session* — and since 2026-07-13 that session runs headless on a schedule with
+  `--dangerously-skip-permissions` (F83 flip): full tools (file writes, git push, arbitrary
+  commands, further fetches), reading open-web content daily, nobody watching. No doc asks what
+  happens when a fetched page carries instruction-shaped text aimed at THAT session. Part 26/31
+  stay Phase 7; this is the thin now-slice: **(a)** a written threat model for the scheduled
+  session — assets (store integrity, git push rights, the machine itself), entry points (gather
+  content, tool output, third-party CLI output), blast radius, and the containment cheap enough
+  to take now; **(b)** doctrine + verification: fetched content enters the orchestrating session
+  only through sanctioned shapes (blob files read by dispatched brains; structured summaries) —
+  audit the current gather path against this and pin it with F83's replay-based conformance
+  test; **(c)** least-privilege pass on the scheduled job — enumerate which tools the cycle
+  actually needs; the ALL-tools grant was expedient, not designed (amends F83, does not reopen
+  it); **(d)** third-party web-reach supply chain: version-pin agent-reach / crawl4ai /
+  last30days in `registry/web-reach-tools.json`, record installed versions in the cycle log,
+  upgrades become logged decisions, never silent drift (extends Part 37's health preamble).
+  Interacts: F83 (same session), F85 (content-level manipulation; F88 is session-level), F90
+  (same machine). Design-weight → interactive brainstorm. *(User-directed start 2026-07-13.)*
+
+- [ ] **F89 — Cost metering: the Phase-4 pilot's measuring instrument does not exist.** Part 27
+  and Phase 4's gate demand "measured $/cycle from real runs, not estimates" — but the whole
+  system runs on a Claude Code subscription: no per-run bill, no token meter, and no doc says
+  HOW tokens/wall-clock per cycle get counted. Second, unasked feasibility question: subscription
+  usage ceilings — 34 desks × daily may be infeasible on limits alone even when dollars are
+  fine. Lean: **(a)** start cheap accrual NOW — per-cycle wall-clock + dispatch counts (brains,
+  graders, gatherers, re-dispatches) logged in the cycle log at the next cycle-touching change;
+  **(b)** token accounting via whatever the harness exposes (transcript/artifact sizes as a
+  stated proxy if no true meter); **(c)** a usage-ceiling probe recorded before Phase 4's
+  go/no-go math; **(d)** the go/no-go template names its denominator and its instrument.
+  Sequencing: the instrument must exist before Phase 4 opens; (a) is opportunistic any time.
+
+- [ ] **F90 — Operator-machine continuity: the machine-local layer has no rebuild story.** The
+  repo survives the laptop; the operational layer does not, and no doc inventories it: the Task
+  Scheduler registration + `~/.claude/jobs/gpu-daily-cycle.ps1` (explicitly NOT in the repo),
+  the `~/.claude/skills` launcher/coordination skills (run-gpu-market, resume-desk, eval-driver,
+  instance-sync, concurrent-edit-guard, desk-handoff), `.claude/settings.local.json` hooks, the
+  root `.venv`, web-reach tool installs (agent-reach; crawl4ai + Playwright browsers), and the
+  one-time bypass-permissions acceptance state. The F81–F86 preamble records the HUMAN bus
+  factor; the MACHINE bus factor is unrecorded. Lean: one committed runbook
+  (`docs/operator-machine.md`) — every machine-local artifact, its rebuild command, a
+  quarterly-verify note — plus the job script's CONTENT mirrored into the repo as reference
+  (the live copy stays machine-local per F83). Doc + inventory work; no code.
+
+- [ ] **F91 — Public-repo exposure decision (broader than the rename).** The repo is public
+  (recorded in the 2026-07-06 dashboard spec §privacy); the store commits findings quoting
+  fetched articles (no written posture on republishing quoted text — Part 22 governs fetching,
+  not re-publishing); the desk's daily market calls are world-readable; TSMC-branded analysis
+  sits under a tsmc-named GitHub account. Open question 3 / F48 cover only the NAME. Needs a
+  user decision pair: **(a)** visibility — private now vs stay public (lean: flip private now;
+  zero cost, reversible, and it collapses most of (b)'s urgency); **(b)** a written
+  quoted-content posture for whatever stays visible. One decision + a short doc; no code.
+
+- [ ] **F92 — Store retention & archival policy (append-only forever meets git forever).**
+  Doctrine keeps the store append-only, sacred, and git-committed — correct for trust, unbounded
+  by construction: 34 desks × daily × years compounds both working-tree size and git history
+  (clone time, tooling latency). Wiki lifecycle prunes PAGES; scorecards, findings, cycle-log,
+  and git history have no policy. Lean: a recorded decision now, implementation deferred behind
+  a threshold — pick the escape hatch in advance (cold-archive branch / per-year store
+  partitions / git-lfs for blobs), add a store-size line to the cycle log (Part 29-style
+  monitor), act only when the recorded threshold trips. Decision-sized today; migration-sized
+  if ignored until Phase 6.
+
+- [ ] **F93 — Eval-gate economics: the gate itself needs a budget.** The golden set grows per
+  archetype and per tier (Part 24), eval-v2 made every gate run 3 replicates, and a
+  template-level prompt change at 34 desks re-gates EVERYTHING; nothing bounds the gate's own
+  cost or wall-clock, and nothing shards it. Lean: per-archetype sharding — a prompt change
+  re-gates only archetypes whose emitted bytes changed (the F6 pin already computes exactly
+  this); a recorded per-gate-run ceiling; F86's qualification protocol reuses the same shards.
+  Harness work; no prompt bytes; F6 pin untouched (green stays green).
+
+- [ ] **F94 — Fleet-scale git concurrency (locks protect files, not pushes).** F25/F74/F87
+  serialize same-machine writers on the wiki store; Phase 4's parallel category fan-out has N
+  concurrent runs committing and pushing ONE repo — push races, interleaved cycle-log commits,
+  and non-fast-forward rejects hitting unattended sessions with no human to reconcile. Lean:
+  single-writer-per-repo for store commits — category runs return artifacts; only the
+  orchestrating driver commits and pushes, serially. Decide it in the Phase-4 execution-seam
+  spec; recorded now so the Workflow-driver design inherits it instead of discovering it.
+
 ## From the 2026-07-11 executive-format session (F79)
 
 - [ ] **F79 — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**

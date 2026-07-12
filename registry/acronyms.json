@@ -100,9 +100,11 @@
   "GDP",
   "MI",
   "CEO",
+  "GLANCE",
   "GREEN",
   "YELLOW",
   "ORANGE",
+  "QUICK",
   "RED",
   "MERCHANT",
   "DAILY"

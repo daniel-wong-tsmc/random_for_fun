@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
-from gpu_agent.asof import period_end
+from gpu_agent.asof import period_end, days_between
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import bands
@@ -776,6 +776,84 @@ def render_citation_map(sc: Scorecard) -> str:
 
 
 _ALERT_DOT = "●"
+
+
+_UNIT_DISPLAY = {"pct": "%", "USD_B": " billion USD", "USD_per_gpu_hr": "/GPU-hr",
+                 "USD_per_gpu": " USD", "USD_per_card": " USD"}
+
+
+def _metric_display(cell) -> str:
+    """Exec-plain value token for a metric cell — raw units (USD_B, pct) relabeled so nothing
+    off the acronym allowlist reaches above the fold; qualitative metrics show their statement."""
+    if cell.value is None:
+        return cell.statement
+    unit = _UNIT_DISPLAY.get(cell.unit, "")
+    prefix = "$" if cell.unit and cell.unit.startswith("USD_per") else ""
+    return f"{prefix}{cell.value:g}{unit}"
+
+
+def _age_tag(as_of: str, observed) -> str:
+    """'N days old' from the run date to a fact's newest evidence date (asof day-math, never
+    the clock). Empty when the date is missing or in the future (no negative ages)."""
+    if not observed:
+        return ""
+    try:
+        n = days_between(as_of, observed)
+    except Exception:   # noqa: BLE001 — a malformed date must not crash the brief
+        return ""
+    return f"{n} days old" if n > 0 else ""
+
+
+def _glance_arrow(change, key) -> str:
+    """Nearest-horizon arrow for a glance row (yesterday first); '→' when it didn't move."""
+    if change is None:
+        return _CHANGE_ARROW["same"]
+    for h in sorted(change.horizons, key=lambda h: h.lookbackDays):
+        for it in h.items:
+            if it.key == key:
+                return _CHANGE_ARROW.get(it.direction, "→")
+    return _CHANGE_ARROW["same"]
+
+
+def render_quick_glance(state, change=None, registry=None) -> str:
+    """QUICK GLANCE (D8) — three tiers, each row its move arrow + (money) an age tag. Tier 1
+    verdict: the six ratings + demand/supply momentum. Tier 2 scarcity: rental price (feed) +
+    lead times + packaging/HBM. Tier 3 money: revenue guidance + backlog + gross margin,
+    age-tagged (they move on earnings). Above the fold — passes reader.lint_acronyms. Share
+    price is excluded (spec §5.6)."""
+    lines = ["QUICK GLANCE"]
+
+    lines.append("  Tier 1 — Verdict")
+    d_arrow = _glance_arrow(change, "index:demand")
+    s_arrow = _glance_arrow(change, "index:supply")
+    lines.append(f"    Demand momentum {_momentum_word(state.demand)} {d_arrow}"
+                 f"    Supply momentum {_momentum_word(state.supply)} {s_arrow}")
+    for dim, cell in state.dimensions.items():
+        arrow = _glance_arrow(change, f"dim:{dim}")
+        label = reader.DIM_LABEL.get(dim, dim)
+        lines.append(f"    {label:<24} {cell.rating} {arrow}")
+
+    lines.append("  Tier 2 — Scarcity")
+    for p in state.prices:
+        arrow = _glance_arrow(change, f"price:{p.model}")
+        lines.append(f"    {p.model + ' rental':<24} ${p.usdPerGpuHour:g}/GPU-hr {arrow}")
+    for iid, cell in state.metrics.items():
+        if cell.tier != "scarcity":
+            continue
+        arrow = _glance_arrow(change, f"metric:{iid}")
+        lines.append(f"    {reader.indicator_label(iid, registry):<24} {_metric_display(cell)} {arrow}")
+
+    lines.append("  Tier 3 — Money")
+    for iid, cell in state.metrics.items():
+        if cell.tier != "money":
+            continue
+        arrow = _glance_arrow(change, f"metric:{iid}")
+        age = _age_tag(state.asOf, cell.observedAt)
+        age_str = f"  ({age})" if age else ""
+        lines.append(f"    {reader.indicator_label(iid, registry):<24} "
+                     f"{_metric_display(cell)} {arrow}{age_str}")
+
+    return "\n".join(lines)
 
 
 def _category_title(category_id: str) -> str:

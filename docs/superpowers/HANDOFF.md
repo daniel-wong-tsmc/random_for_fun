@@ -359,8 +359,31 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **WAVE-3 LANES CLAIMED + DISPATCHED (2026-07-13, orchestrator session).** All design forks
+  answered INTERACTIVELY by the user (user-approved provenance in each spec, incl. the F79
+  full-six series choice against the assistant's lean); question-stop rule in force; F79
+  carries FOUR user-signed stage gates (G1 backfill review, G2 backtest verdict, G3 bundled
+  eval re-gate, G4 cutover) — it will stop at each. **Eval-re-gate serialization: F65's
+  re-gate runs BEFORE F79's G3** (orchestrator-enforced).
+  - **F79** `.worktrees/f79-scoring-v2`, branch `f79-scoring-v2` — scoring v2.0 migration,
+    spec `docs/superpowers/specs/2026-07-13-f79-scoring-v2-design.md`. OWNS: scoring.py
+    (migration), new series/backtest modules, registry/indicators.json, change.py alert
+    defs, store/series/ (new), eval baseline at G3.
+  - **F65** `.worktrees/f65-tsmc`, branch `f65-tsmc-implication` — implication brain +
+    brief section, spec `...f65-tsmc-implication-design.md`. OWNS: registry/implications.json,
+    gpu_agent/implication.py, report.py section, run-cycle prose step. cli.py append-only
+    (F79 also appends verbs — trivial rebase).
+  - **F83-pin** `.worktrees/f83-conformance`, branch `f83-conformance-pin` — run-cycle
+    conformance suite, spec `...f83-conformance-pin-design.md`. Tests/fixtures only; a
+    failing conformance assertion vs current behavior = FINDING, not a product-code fix.
+  - **F24-s2** `.worktrees/f24-stage2`, branch `f24-stage2-entities` — spec
+    `...f24-stage2-design.md`. OWNS docs/taxonomy.json seedEntities (~18 registrations,
+    lands FIRST — F79 consumes the ids) + the nvda→nvidia consolidation script whose live
+    run is USER-SIGNED before any store commit.
+- **WAVE-2 LANES: ALL MERGED 2026-07-13** (the "merge them all" train + F56 after stage 6 —
+  see the top block). Historical record below.
 - **WAVE-2 LANES ALL DONE + REVIEWED READY-TO-MERGE (2026-07-12, orchestrator session) —
-  AWAITING USER MERGE** (F80 awaiting a diff sign-off, see below). All design forks were
+  AWAITING USER MERGE — SUPERSEDED, all merged 2026-07-13** (F80 awaiting a diff sign-off, see below). All design forks were
   answered INTERACTIVELY by the user (user-approved provenance in each spec); lanes ran under
   the question-stop rule — F24 raised ONE question-stop (parked clean, resumed with the user's
   three answers), F72/F87 raised none. Review verdicts + open notes appended to each sentinel.

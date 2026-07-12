@@ -68,6 +68,27 @@ def test_since_yesterday_counts_calls():
     assert "Since yesterday: 2 moved (1 standing call)" in out
 
 
+def test_unchanged_since_uses_most_recent_date_and_is_order_independent():
+    # Two unchanged items with different stability windows: the band must claim the
+    # MOST RECENT unchangedSince (a changed-then-reverted key resets its date; claiming
+    # the older date overstates stability) — the same rule render_change_lines pins —
+    # and the claim must not depend on item order.
+    items = [ItemDelta(key="dim:momentum", changed=False, today="Strong/improving",
+                       prior="Strong/improving", direction="same",
+                       unchangedSince="2026-06-08"),
+             ItemDelta(key="index:gap", changed=False, today="flat 0.2",
+                       prior="flat 0.2", direction="same",
+                       unchangedSince="2026-07-01")]
+    alert = AlertState(color="green", priorColor="green", rawColor="green")
+    out = render_top_band(_sc(), _state(), alert,
+                          _change(prior_state=_state(asOf="2026-07-07"), items=items))
+    assert "unchanged since 2026-07-01" in out
+    out_rev = render_top_band(_sc(), _state(), alert,
+                              _change(prior_state=_state(asOf="2026-07-07"),
+                                      items=list(reversed(items))))
+    assert out == out_rev
+
+
 def test_top_band_passes_acronym_lint_and_is_deterministic():
     prior = _state(asOf="2026-07-07")
     args = (_sc(), _state(),

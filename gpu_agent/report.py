@@ -808,8 +808,11 @@ def render_top_band(sc, state, alert, change) -> str:
         else:
             moved = [it for it in h1.items if it.changed]
             if not moved:
-                since = next((it.unchangedSince for it in h1.items if it.unchangedSince),
-                             h1.priorAsOf)
+                # Most RECENT unchangedSince across items (same rule as render_change_lines:
+                # a changed-then-reverted key resets its date; claiming an older one would
+                # overstate stability). Chronological max via period_end — order-independent.
+                vals = [it.unchangedSince for it in h1.items if it.unchangedSince]
+                since = max(vals, key=period_end) if vals else h1.priorAsOf
                 lines.append(f"  Since yesterday: no change — unchanged since {since}")
             else:
                 calls = sum(1 for it in moved if it.key.startswith("thesis:"))

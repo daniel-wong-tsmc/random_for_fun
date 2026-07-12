@@ -1114,7 +1114,7 @@ def main(argv=None) -> int:
     co = sub.add_parser("corpus")
     co.add_argument("--store", default="store", help="store root (holds wiki/ and findings/)")
     co.add_argument("--category", required=True, help="category id (scopes wiki pages)")
-    co.add_argument("--as-of", required=True, help="run vintage (YYYY-MM or YYYY-MM-DD)")
+    co.add_argument("--as-of", required=True, type=_as_of, help="run vintage (YYYY-MM or YYYY-MM-DD)")
     co.add_argument("--salience-floor", type=float, default=SALIENCE_FLOOR_DEFAULT,
                     help=f"aged-corpus decay cutoff (default {SALIENCE_FLOOR_DEFAULT})")
     co.add_argument("--fresh", default=None,

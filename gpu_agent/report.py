@@ -775,6 +775,50 @@ def render_citation_map(sc: Scorecard) -> str:
     return "\n".join(lines)
 
 
+_ALERT_DOT = "●"
+
+
+def _category_title(category_id: str) -> str:
+    """'chips.merchant-gpu' -> 'MERCHANT GPU' (leaf id, dashes to spaces, upper)."""
+    return category_id.rsplit(".", 1)[-1].replace("-", " ").upper()
+
+
+def render_top_band(sc, state, alert, change) -> str:
+    """EXEC TOP BAND (2026-07-11 amendment, spec §3): title + alert dot + banded tiles +
+    binding constraint + since-yesterday count. Words only (read direction, not level);
+    every line passes reader.lint_acronyms; deterministic."""
+    was = (f" (was {alert.priorColor.upper()})" if alert.priorColor
+           else " (first tracked run)")
+    lines = [f"{_category_title(sc.categoryId)} — DAILY — {sc.asOf}"
+             f"    {_ALERT_DOT} {alert.color.upper()}{was}"]
+
+    prior1 = (change.priors or {}).get("yesterday") if change is not None else None
+    p_dem = prior1.demand if prior1 is not None else None
+    p_sup = prior1.supply if prior1 is not None else None
+    lines.append(f"  Demand: {bands.band_with_prior(state.demand, p_dem)}      "
+                 f"Supply: {bands.band_with_prior(state.supply, p_sup)}")
+    lines.append(f"  Gap: {_sdgi_interpretation(state.sdgi)}")
+    if state.constraintLabel:
+        lines.append(f"  Binding constraint: {state.constraintLabel}")
+
+    if change is not None:
+        h1 = next((h for h in change.horizons if h.horizon == "yesterday"), None)
+        if h1 is None or h1.priorAsOf is None:
+            lines.append("  Since yesterday: first tracked run — nothing to compare yet")
+        else:
+            moved = [it for it in h1.items if it.changed]
+            if not moved:
+                since = next((it.unchangedSince for it in h1.items if it.unchangedSince),
+                             h1.priorAsOf)
+                lines.append(f"  Since yesterday: no change — unchanged since {since}")
+            else:
+                calls = sum(1 for it in moved if it.key.startswith("thesis:"))
+                call_part = (f" ({calls} standing call{'s' if calls != 1 else ''})"
+                             if calls else "")
+                lines.append(f"  Since yesterday: {len(moved)} moved{call_part} — detail below")
+    return "\n".join(lines)
+
+
 def render_report(
     sc: Scorecard,
     prior: Optional[Scorecard],

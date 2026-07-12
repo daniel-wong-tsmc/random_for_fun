@@ -99,6 +99,12 @@
   "GAAP",
   "GDP",
   "MI",
-  "CEO"
+  "CEO",
+  "GREEN",
+  "YELLOW",
+  "ORANGE",
+  "RED",
+  "MERCHANT",
+  "DAILY"
  ]
 }

@@ -18,6 +18,7 @@ from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import bands
 from gpu_agent import reader
 from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
+from gpu_agent.thesis import CONVICTION_RANK
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -984,3 +985,44 @@ def render_report(
         render_citation_map(sc),            # spec §1 row 9: full finding id -> source/date/tier map
     ]
     return "\n\n".join(s for s in top + appendix if s)
+
+
+def _moved_thesis_ids(change) -> set[str]:
+    if change is None:
+        return set()
+    out = set()
+    for h in change.horizons:
+        for it in h.items:
+            if it.key.startswith("thesis:") and it.changed:
+                out.add(it.key.split(":", 1)[1])
+    return out
+
+
+def render_ranked_calls(book, sc, change=None, last_findings=None, registry=None, top_k=5) -> str:
+    """THE CALLS ranked by (moved-this-cycle, conviction) desc — the F77 importance order and
+    volume cap. Top-K get the full three-line block (headline / statement+source-count / breaks-if,
+    reusing brief's helpers); the remainder compress to one headline line each with an explicit
+    fold count. book=None -> the same honest empty-state brief.render_the_calls emits, so the
+    change-first and legacy paths degrade identically."""
+    if book is None:
+        return "THE CALLS\n  (no thesis book yet - runs after the first thesis cycle)"
+
+    moved = _moved_thesis_ids(change)
+    findings_by_id = {f.id: f for f in sc.findings}
+    standing = sorted(
+        book.standing(),
+        key=lambda e: (e.id not in moved, -CONVICTION_RANK[e.conviction], e.id),
+    )
+
+    lines = ["THE CALLS  (most-moved / highest-conviction first)"]
+    detailed, tail = standing[:top_k], standing[top_k:]
+    for entry in detailed:
+        finding_ids = (last_findings or {}).get(entry.id)
+        lines.append(brief._calls_headline_line(entry))
+        lines.append(brief._calls_evidence_line(entry, finding_ids, findings_by_id))
+        lines.append(f"      breaks if: {reader.label_ids_in_text(entry.falsifiableTrigger, registry)}")
+    for entry in tail:
+        lines.append(brief._calls_headline_line(entry))
+    if tail:
+        lines.append(f"  (+{len(tail)} more calls folded to one line each — full detail in THE CALLS appendix)")
+    return "\n".join(lines)

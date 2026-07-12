@@ -110,6 +110,11 @@ Gate the answer into findings (this runs the deterministic gate):
 (F62: the corpus merge runs in both places; identical inputs keep the emitted prompt's anchors and
 the gate's identical).
 
+Record any `UNREGISTERED-ENTITY <n>: <names>` stderr line (F24): those names are not in
+`docs/taxonomy.json` seedEntities — the findings still pass (flagged, never rejected), but the
+count + names must land in this category's cycle-log entry at finalize (Step 6). No line = record
+`{count: 0, names: []}`.
+
 **(b2) Corpus assembly (F62; deterministic, no LLM).** Merge the windowed store corpus with this
 cycle's fresh gated findings:
 ```
@@ -248,6 +253,8 @@ enriching, per ready category: its scorecard path + DMI/SMI,
 the saved answer artifacts (`extract-answer.json`, `judge-answer.json`, `thesis-answer.json`),
 the corpus artifacts (`corpus-coverage.json`, `corpus-findings.json`, `deduped-fresh.json`,
 `corpus-report.json`) and the corpus counts (store in-window / fresh new / update / duplicate),
+the F24 unregistered-entities record (`unregisteredEntities: {count, names}` from Step 3(b)'s
+`UNREGISTERED-ENTITY` stderr line; `{count: 0, names: []}` when none printed),
 and the tier-stage statuses
 (`category: done` | `failed` | `skipped`, `thesis: done` | `failed` | `skipped`, `layer: deferred`,
 `main: deferred`). A category that was `ready` in the plan but skipped mid-run (e.g. zero docs

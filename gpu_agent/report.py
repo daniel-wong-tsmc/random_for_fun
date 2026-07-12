@@ -390,6 +390,8 @@ def _change_item_label(item, registry) -> str:
         return reader.indicator_label(rest, registry)
     if kind == "price":
         return f"{rest} rental"
+    if kind == "status":
+        return {"constraint": "Binding constraint"}.get(rest, rest)
     if kind == "thesis":
         return "a standing call"     # the ranked-calls section names it; the lead just counts
     return rest

@@ -25,7 +25,7 @@ def test_horizon_lines_lead_and_name_moves():
     lines = out.splitlines()
     assert lines[0] == "WHAT CHANGED"
     assert "Since yesterday" in out and "(vs 2026-07-07)" in out
-    assert "Demand momentum" in out            # DIM_LABEL, not the raw id
+    assert "Momentum rating" in out            # DIM_LABEL, not the raw id
     assert "GPU rental price" not in out       # price line uses the model token, not a registry label
     # unchanged horizon states the anchor date
     assert "unchanged since 2026-06-08" in out
@@ -47,6 +47,21 @@ def test_unchanged_since_uses_most_recent_date_across_items():
     out = render_change_lines(cr, _reg())
     assert "unchanged since 2026-07-01" in out
     assert "unchanged since 2026-06-08" not in out
+
+
+def test_status_constraint_item_renders_binding_constraint_label():
+    # status:constraint items used to fall through _change_item_label's default branch
+    # and render the bare sub-key "constraint" instead of an exec-plain label.
+    cr = ChangeReport(asOf="2026-07-08", horizons=[
+        HorizonDiff(horizon="yesterday", lookbackDays=1, priorAsOf="2026-07-07", items=[
+            ItemDelta(key="status:constraint", changed=True, today="HBM memory scarcity",
+                      prior="export enforcement", direction="new")]),
+        HorizonDiff(horizon="last week", lookbackDays=7, priorAsOf="2026-07-01", items=[]),
+        HorizonDiff(horizon="last month", lookbackDays=30, priorAsOf="2026-06-08", items=[]),
+    ])
+    out = render_change_lines(cr, _reg())
+    assert "Binding constraint" in out
+    assert "constraint" not in out.replace("Binding constraint", "")
 
 
 def test_change_lines_pass_acronym_lint():

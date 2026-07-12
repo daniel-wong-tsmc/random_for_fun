@@ -34,6 +34,11 @@ User picks, interactive 2026-07-13 (none are AFK-defaults):
 - **D3 — Disarm the readers:** no agent that reads web content holds Bash; CLI fetches move
   behind a deterministic runner.
 - **D4 — Design approved as presented** (7 sections), build authorized, SDD execution.
+- **D5 — Sequencing vs the F83 conformance pin (user-decided 2026-07-13, interactive,
+  against the assistant's recommendation):** the F83 pin lane (concurrent orchestrator
+  session) lands FIRST. F88's build starts only after that merge, builds over the pinned
+  prose, and **re-records the pin** as part of T6. Consequence accepted: the injection
+  holes stay open until then; the F88 spec + plan are parked ready.
 
 Assistant leans (marked, to challenge in review): receipt schema fields; runner/assembler as
 `gpu-agent` CLI subcommands; assembler skip-and-log on malformed blob files; rounds cap = 3;
@@ -143,6 +148,8 @@ visibility.
 6. T1 doc committed; compliance rows updated.
 7. Live shakedown: the next daily (attended or scheduled) completes a gather through
    runner + assembler with the cap/skip log showing any degradation loudly.
+8. The F83 orchestration-conformance pin re-recorded over the changed prose (the pin exists
+   by build time — sequencing D5) and green at merge.
 
 ## 10. Risks
 

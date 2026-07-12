@@ -359,6 +359,22 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F88 lane PARKED READY (2026-07-13, F88 session) — starts only AFTER the F83-pin lane
+  MERGES (user-decided, interactive, spec D5 — against assistant lean; not AFK).** Spec
+  `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`
+  (+ D5 amendment `3c27774`), plan
+  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). Will claim
+  `.worktrees/f88-hardening`, branch `f88-orchestrator-hardening`, post-merge. OWNS from
+  then: NEW `gpu_agent/gathering/{webreach,assemble}.py` + `registry/paywalled-domains.json`;
+  `cli.py` append-only verbs (`webreach-fetch`, `gather-assemble`);
+  `gpu_agent/web_reach_ensure.py`; `registry/web-reach-tools.json` (`pin` + `fetchVerbs`);
+  `gather-category` + `run-cycle` SKILL prose INCLUDING the F83 fingerprint/constant
+  re-record. **F65 also touches run-cycle prose — F88 goes LAST of the prose-touchers and
+  rebases over whatever merged.** Context: F88–F94 minted in the 2026-07-13 gap-review
+  backlog wave (`0f1b076`). **Flag for the user (recorded, not adjudicated):** v6 cycle's
+  DMI 1.127 / SDGI 0.707 is a large jump vs v5 (SDGI 0.127) with two first-seen publishers
+  in the corpus (`siliconanalysts.com`, `compute.exchange`) — exactly F85's not-yet-built
+  tripwire territory; user eyeball of the v6 brief recommended.
 - **WAVE-3 LANES CLAIMED + DISPATCHED (2026-07-13, orchestrator session).** All design forks
   answered INTERACTIVELY by the user (user-approved provenance in each spec, incl. the F79
   full-six series choice against the assistant's lean); question-stop rule in force; F79

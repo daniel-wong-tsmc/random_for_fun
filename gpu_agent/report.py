@@ -41,6 +41,8 @@ SDGI_INTERP_RULES = [
 ]
 _VERSION_RE = re.compile(r"^(\d{4}-\d{2}(?:-\d{2})?)-v(\d+)\.json$")
 _CHANGE_LINE_CAP = 4   # F77: bound per-horizon lead width; overflow folds to "+N more moved"
+_ABOVE_FOLD_BUDGET = 88   # F77: hard line budget above reader.APPENDIX_DIVIDER (80 + the
+                          # 2026-07-11 exec top band: <=6 band lines + section separator)
 
 
 # ── I/O helpers ──────────────────────────────────────────────────────────────
@@ -913,6 +915,10 @@ def render_report(
     thesis_last_findings=None,
     daily: bool = False,
     gate_waivers=None,
+    change=None,          # F78 Stage 6: a change.ChangeReport -> lead change-first
+    state=None,           # F78 Stage 6: a change.StateVector for the quick-glance tiers
+    alert=None,           # AMENDED 2026-07-11: a change.AlertState -> exec top band leads
+    top_k: int = 5,       # F78 Stage 6: ranked-calls detail cap (F77)
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -936,7 +942,21 @@ def render_report(
     ``daily`` (F67 §4): the daily cadence shares this exact renderer/order — "one
     renderer, so monthly and daily cannot drift apart" — but swaps STATE OF THE MARKET
     and WHAT MOVED so the daily leads with the diff (its natural content); everything
-    else, including the appendix, is untouched.
+    else, including the appendix, is untouched. This swap only applies on the legacy
+    (``change is None``) path — the change-first path already leads with the diff.
+
+    F78 Stage 6 change-first mode (AMENDED 2026-07-11): when ``change`` is supplied,
+    the page leads differently — TOP BAND (only when both ``state`` and ``alert`` are
+    supplied) -> WHAT CHANGED -> QUICK GLANCE (only when ``state`` is supplied) ->
+    ranked THE CALLS (folded to ``top_k`` detailed entries, F77) -> STATE OF THE MARKET
+    -> WHY -> DEMAND|SUPPLY board -> STORYLINES -> TRUST & COVERAGE -> the same
+    untouched appendix, plus (change-first only) a full, un-folded THE CALLS section
+    leading the appendix so the ranked-calls fold line's "full detail in THE CALLS
+    appendix" promise is true. An above-the-fold ``_ABOVE_FOLD_BUDGET`` line cap keeps
+    the change-first lead short: if it overshoots, ranked calls re-renders at a
+    shrinking ``top_k`` (deterministic, never below 1) until it fits. Every existing
+    caller passes ``change=None`` and gets byte-identical output to before this mode
+    existed.
 
     Args:
         sc: the current scorecard to render.
@@ -952,28 +972,64 @@ def render_report(
             (read from theses/<categoryId>/history.jsonl by the caller — the book itself
             does not store them); feeds THE CALLS' cited-evidence line and, per spec §4,
             every WHY driver/Contested line's trailing findingIds citation.
-        daily: when True, lead with WHAT MOVED instead of STATE OF THE MARKET (F67 §4).
+        daily: when True, lead with WHAT MOVED instead of STATE OF THE MARKET (F67 §4),
+            legacy path only.
+        change: optional change.ChangeReport; when supplied, switches to the change-first
+            page order described above (F78 Stage 6).
+        state: optional change.StateVector; feeds QUICK GLANCE and (with ``alert``) TOP
+            BAND on the change-first path.
+        alert: optional change.AlertState; together with ``state``, leads the
+            change-first page with the exec TOP BAND (AMENDED 2026-07-11).
+        top_k: ranked-calls detail cap on the change-first path (F77); default 5.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
 
     track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
 
-    top = [
-        render_header(sc, render_ts),
-        brief.render_state_of_market(sc, prior, track),       # words-first BLUF
-        brief.render_what_moved(movement),
-        brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
-        brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
-        brief.render_demand_supply_board(sc, horizons, registry=registry),
-        brief.render_storylines(movement),
-        render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
-    ]
-    if daily:   # F67 §4: the daily's headline is the diff
-        top[1], top[2] = top[2], top[1]
+    if change is not None:
+        # F78 Stage 6 change-first lead (F64 + F77, AMENDED 2026-07-11): TOP BAND ->
+        # WHAT CHANGED -> QUICK GLANCE -> ranked calls, then the rest of the above-the-fold
+        # sections, then the untouched appendix.
+        top = [
+            render_header(sc, render_ts),
+            (render_top_band(sc, state, alert, change)
+             if (state is not None and alert is not None) else ""),
+            render_change_lines(change, registry),
+            render_quick_glance(state, change, registry) if state is not None else "",
+            render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
+                                registry=registry, top_k=top_k),
+            brief.render_state_of_market(sc, prior, track),
+            brief.render_why(thesis_book, thesis_last_findings),
+            brief.render_demand_supply_board(sc, horizons, registry=registry),
+            brief.render_storylines(movement),
+            render_trust_footer(sc, gate_waivers=gate_waivers),
+        ]
+    else:
+        top = [
+            render_header(sc, render_ts),
+            brief.render_state_of_market(sc, prior, track),       # words-first BLUF
+            brief.render_what_moved(movement),
+            brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
+            brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
+            brief.render_demand_supply_board(sc, horizons, registry=registry),
+            brief.render_storylines(movement),
+            render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
+        ]
+        if daily:   # F67 §4: the daily's headline is the diff
+            top[1], top[2] = top[2], top[1]
 
     appendix = [
         reader.APPENDIX_DIVIDER,
+    ]
+    if change is not None:
+        # USER-APPROVED ADDITION (2026-07-12, interactive): the ranked-calls fold line
+        # above the fold promises "full detail in THE CALLS appendix" — make that promise
+        # true by leading the appendix with the un-capped, un-folded book. Legacy
+        # (change is None) path is untouched — it must stay byte-identical to today.
+        appendix.append(brief.render_the_calls(thesis_book, sc, thesis_last_findings,
+                                                registry=registry))
+    appendix.extend([
         render_overall_status(sc),
         render_dimensions(sc, prior),
         render_raw_indices(sc, prior),      # off-allowlist DMI/SMI/SDGI, demoted below the fold
@@ -983,8 +1039,20 @@ def render_report(
         render_sources(sc),
         render_coverage_gaps(sc),
         render_citation_map(sc),            # spec §1 row 9: full finding id -> source/date/tier map
-    ]
-    return "\n\n".join(s for s in top + appendix if s)
+    ])
+    body = "\n\n".join(s for s in top + appendix if s)
+
+    # F77 length budget: if the above-the-fold half overshoots, tighten the ranked-calls cap
+    # (the one section that grows with book size) until it fits or top_k hits 1 — deterministic.
+    if change is not None:
+        k = top_k
+        # AMENDED 2026-07-11: ranked calls sits at top[4] (the top band is top[1]).
+        while len(body.split(reader.APPENDIX_DIVIDER)[0].splitlines()) > _ABOVE_FOLD_BUDGET and k > 1:
+            k -= 1
+            top[4] = render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
+                                         registry=registry, top_k=k)
+            body = "\n\n".join(s for s in top + appendix if s)
+    return body
 
 
 def _moved_thesis_ids(change) -> set[str]:

@@ -181,13 +181,23 @@ _Synthetic store: 300 pages, 1800 log events (1 create + 5 obs per page), on the
 Windows. Measured via `gpu_agent/wiki/bench.py`. Before = pre-optimization (Task 1 commit); After =
 final. Times are seconds._
 
-| Operation (P=300, log=1800 events) | Before | After |
-|---|---|---|
-| build store (1800 appends) | **77.8** | _TBD_ |
-| `index()` ×1 | **5.42** | _TBD_ |
-| `observations()` ×300 pages | **5.31** | _TBD_ |
-| `health_report()` ×1 | **55.8** | _TBD_ |
-| log lines parsed during a cold `health_report()` | _TBD_ (≈ P×log) | _TBD_ (≤ log, one pass) |
+| Operation (P=300, log=1800 events) | Before | After | Speed-up |
+|---|---|---|---|
+| build store (1800 appends) | **77.8 s** | **12.8 s** | ~6× |
+| `index()` ×1 | **5.42 s** | **0.10 s** | ~54× |
+| `observations()` ×300 pages | **5.31 s** | **0.13 s** | ~40× |
+| `health_report()` ×1 | **55.8 s** | **15.4 s** | ~3.6× |
+| log lines parsed during a cold `health_report()` | ≈ P×log per scan × several scans (~2M) | **1800 (one pass)** | — |
+
+**Reading the numbers.** The F25-owned defects are eliminated: `build` (was O(N²) from
+`seq = len(read())`), `index`, and `observations` all collapse to near-linear, and a cold
+`health_report` now parses the log **exactly once** (1800 of 1800 lines) instead of re-parsing the
+whole file for every page in every sub-scan (~2M line-parses before). The residual ~15 s in
+`health_report` is **not** a wiki-store defect — it is finding-resolution I/O in the stale loop
+(`store.findings.get()` per observation, ~1500 file reads against the **frozen** `JsonStore`
+FindingStore) plus 300 page-file reads. Both are linear and outside F25's scope (the O(N) log
+re-reads, O(pages²) log-driven health, and the seq race). The log-driven quadratic and the
+O(pages²) substring scan are gone.
 
 ## 10. Decision provenance
 

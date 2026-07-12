@@ -1,9 +1,64 @@
 from __future__ import annotations
+import json
 import os
 import pathlib
+import socket
+import sys
 import time
 from typing import Literal, Optional
 from pydantic import BaseModel
+
+
+def _pid_is_dead(pid: int) -> bool:
+    """True ONLY if `pid` is provably not running on this machine. Every uncertain
+    case (process exists, access denied, unknown error, cannot query) returns False =
+    "treat as alive", so a lock is never stolen from a possibly-live writer. Windows
+    uses kernel32 OpenProcess + GetExitCodeProcess via ctypes (stdlib, no dependency);
+    POSIX uses os.kill(pid, 0)."""
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        return _pid_is_dead_windows(pid)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return True                      # no such process -> provably dead
+    except PermissionError:
+        return False                     # exists, not ours -> alive
+    except OSError:
+        return False                     # cannot tell -> treat as alive
+    return False                         # signal delivered -> alive
+
+
+def _pid_is_dead_windows(pid: int) -> bool:
+    import ctypes
+    from ctypes import wintypes
+
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    STILL_ACTIVE = 259
+    ERROR_INVALID_PARAMETER = 87
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.GetExitCodeProcess.restype = wintypes.BOOL
+    kernel32.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+    kernel32.CloseHandle.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+
+    handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        err = ctypes.get_last_error()
+        # 87 == no process with that id exists -> provably dead. Any other error
+        # (e.g. 5 ACCESS_DENIED) means the process exists or we cannot tell -> alive.
+        return err == ERROR_INVALID_PARAMETER
+    try:
+        code = wintypes.DWORD()
+        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+            return False                 # could not read exit code -> treat as alive
+        return code.value != STILL_ACTIVE
+    finally:
+        kernel32.CloseHandle(handle)
 
 
 class LogEvent(BaseModel):

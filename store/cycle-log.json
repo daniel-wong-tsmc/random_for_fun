@@ -2,69 +2,78 @@
  "scope": "category:chips.merchant-gpu",
  "asOf": "2026-07",
  "mode": "live",
- "capturedAt": "2026-07-11T13:24:52Z",
+ "capturedAt": "2026-07-13T02:15:00Z",
+ "note": "Second live 2026-07 cycle (v6) run same analysis month as the committed v5; monthly cadence normally uses a distinct asOf, so WHAT-MOVED vs prior shows no material moves (prior scorecard is same month) and two same-asOf price findings collided on write-back (see wikiWriteBack).",
  "entries": [
   {
    "category_id": "chips.merchant-gpu",
    "assignment_path": "fixtures/asg.chips.merchant-gpu.json",
    "status": "done",
-   "scorecard": "store/chips.merchant-gpu/2026-07-v5.json",
-   "dmi": 0.533,
-   "smi": 0.407,
-   "sdgi": 0.127,
-   "runDir": "work/merchant-gpu-2026-07-11",
+   "scorecard": "store/chips.merchant-gpu/2026-07-v6.json",
+   "dmi": 1.127,
+   "smi": 0.420,
+   "sdgi": 0.707,
+   "runDir": "work/mgpu-2026-07-13",
    "gather": {
     "mode": "live",
     "topUp": true,
     "cap": 10,
-    "recencyDays": 45,
+    "recencyDays": 7,
     "rounds": 1,
     "docsIngested": 10,
-    "primaryVsSecondary": "5 primary / 5 secondary (ingest tiering vs manifest primaryDomains)",
+    "primaryVsSecondary": "0 primary / 10 secondary (top-up targeted open-web pricing/efficiency/share/news; no filing URLs matched manifest primaryDomains this gather)",
     "subagents": 4,
     "slices": [
-     "NVIDIA filings + guidance (D2/grossMargin/vendorRevenueGuidance/rpoBacklog/exportControlExposure)",
-     "AMD + Intel data-center GPU (D2/grossMargin/S9/designWins)",
-     "GPU cloud pricing + efficiency (D6/perfPerWatt/flopsPerDollar)",
-     "market share + custom ASIC + lead times (market-share-pct/S9/S10/leadTimes)"
+     "GPU cloud rental + secondary-market spot pricing (D6/gpuSpotPrice) — Lambda, RunPod, Thunder Compute, Compute Exchange",
+     "Datacenter GPU efficiency (perfPerWatt/flopsPerDollar) — Silicon Analysts, GPUAdvisor",
+     "Lead times + market share + HBM supply (leadTimes/market-share-pct/S10) — TweakTown x2",
+     "Vendor news + export controls (exportControlExposure/D2) — Reuters China H200, Forbes selloff"
     ],
     "webReach": {
      "agent-reach": "ok",
      "last30days": "ok",
      "crawl4ai": "ok",
      "web(jina)": "ok",
-     "rss": "ok"
+     "rss": "ok",
+     "bilibili": "ok",
+     "v2ex": "ok",
+     "github": "warn (gh CLI not installed — not needed for this gather)",
+     "youtube/reddit/xiaohongshu/twitter": "off (not needed for this gather)"
     },
-    "blobs": "work/merchant-gpu-2026-07-11/blobs.json",
-    "gatherLog": "work/merchant-gpu-2026-07-11/docs/gather-log.json",
-    "coverageGaps": "7 required source-level gaps (several are URL-pattern mismatches where the indicator IS covered via other docs, e.g. exportControlExposure via NVDA 10-Q; open-web-asic via Tom's Hardware); 2 paywalled never fetched (trendforce-gpu-tracker, semianalysis); gpuSpotPrice / marketplace resale genuinely not covered this cycle",
+    "blobs": "work/mgpu-2026-07-13/blobs.json",
+    "gatherLog": "work/mgpu-2026-07-13/docs/gather-log.json",
+    "coverageGaps": "18 required + 2 preferred source/indicator gaps from compute_coverage_gaps — expected for a top-up: covered series (D2, grossMargin, S9, customerConcentration, vendorRevenueGuidance, exportControlExposure) come from the store corpus, not this gather; several source gaps are URL-pattern mismatches where the indicator IS covered (e.g. market-share-pct via TweakTown). 2 paywalled never fetched (trendforce-gpu-tracker, semianalysis).",
+    "pursuedDespiteAge": "6 kept older than the 7-day sweep, each logged in blobs.json (Thunder Compute + Compute Exchange 12d; Silicon Analysts 91d; GPUAdvisor 120d; TweakTown Q1-share 32d; TweakTown 16-Hi HBM 197d)",
     "notableSkips": [
-     "1 blob dropped: Spheron MI300X-vs-H200 (2026-01-15) older than 45-day recency window (also kept gather at the 10-doc top-up cap)",
-     "sec.gov 403s WebFetch; NVDA filings recovered via crawl4ai headless; vast.ai live prices did not render (figures via July-2026 search reporting)"
+     "4 cap-trims (top-up cap 10): KitGuru Q4-2025 AIB share, DIGITIMES HBM4 headline, NVIDIA Newsroom index, glennklockwood B200 spec page",
+     "2 provenance drops: Intel Gaudi 3 datasheet blob + AMD MLPerf-6.0 aggregate blob (content was search-summary paraphrase / multi-page mashup, not verbatim from one fetched page) — carried as leads",
+     "Live vast.ai pricing JS-rendered and eBay item pages timed out (carried as leads); DigiTimes CoWoS-2027 (2026-07-10) IP-blocked"
     ]
    },
    "corpus": {
-    "storeInWindow": 21,
-    "freshNew": 5,
-    "freshUpdate": 8,
-    "duplicate": 9,
-    "merged": 33,
-    "coverageReport": "work/merchant-gpu-2026-07-11/corpus-report.json",
-    "pipelineReport": "work/merchant-gpu-2026-07-11/corpus-pipeline-report.json",
-    "coverageCoverage": "work/merchant-gpu-2026-07-11/corpus-coverage.json"
+    "storeInWindow": 59,
+    "storeFaded": 21,
+    "freshNew": 9,
+    "freshUpdate": 4,
+    "duplicate": 14,
+    "merged": 72,
+    "coverageCoverage": "work/mgpu-2026-07-13/corpus-coverage.json",
+    "coverageReport": "work/mgpu-2026-07-13/corpus-report.json",
+    "pipelineReport": "work/mgpu-2026-07-13/corpus-pipeline-report.json"
    },
    "answers": {
-    "extract": "work/merchant-gpu-2026-07-11/extract-answer.json",
-    "judge": "work/merchant-gpu-2026-07-11/judge-answer.json (3 independent samples at judge-sample-0/1/2.json)",
-    "thesis": "work/merchant-gpu-2026-07-11/thesis-answer.json"
+    "extract": "work/mgpu-2026-07-13/extract-answer.json (10 doc-objects, assembled from ext_a/ext_b/ext_c/ext_d/ext_e/ext_rp.json)",
+    "judge": "work/mgpu-2026-07-13/judge-answer.json (3 independent tool-less samples at s1.json / s2.json / s3.json)",
+    "thesis": "work/mgpu-2026-07-13/thesis-answer.json"
    },
    "gates": {
-    "extract": "22 drafts -> 22 findings gated, 0 dropped",
-    "voiceLint": "acronym flags ASE (sample array[0] narrative) and OSAT (bottleneck rationale) re-dispatched as separate tool-less samples; all 3 samples passed on re-dispatch; NO bypass",
+    "extract": "27 drafts -> 27 findings gated, 0 dropped. First gate pass dropped 5 for 'excerpt not found' — cause was em-dash mojibake introduced by cp1252 default encoding when assembling extract-answer.json; fixed by re-assembling with explicit UTF-8, then 27/27 clean. 6 object-typed dispersion values coerced to strings to satisfy schema.",
+    "unregisteredEntity": "1: 'market' (F24 flag surfaced, not dropped)",
+    "voiceLint": "First pipeline pass flagged company acronyms not on registry/acronyms.json allowlist: 'ASE' (all 3 samples, bottleneck.rationale) and 'SK' (sample 3 narrative). Re-dispatched 3 separate tool-less samples to rephrase only the flagged strings (ASE->outside assemblers / Hanmi and other packaging firms; SK hynix->Hynix); all ratings unchanged; re-run clean. NO bypass.",
     "sufficiency": "passed (no sufficiency lines emitted)",
-    "thesis": "16 standing theses judged, 0 gate rejections; 15 applied=True, 1 applied=False; custom-asic-substitution reversal deferred (secondary-only, 2 distinct publishers < 3); 1 new provisional thesis proposed"
+    "thesis": "17 standing theses judged, 0 gate rejections; 16 applied=True, 1 applied=False. pricing-power-persistence weakened APPLIED (corroborated secondary reversal, 3 distinct publishers; pending filing checkpoint). rising-memory-costs strengthened DEFERRED (secondary-only reversal, 2 distinct publishers < 3). custom-asic-substitution pending challenge resolved -> strengthened applied. 2 new provisional theses proposed (broadening-ai-demand-tightens-tsmc-capacity-and-pricing; hyperscaler-ai-spending-may-outrun-near-term-returns). Fixed one transcription typo in a proposal finding id before gating."
    },
-   "wikiWriteBack": "12 deduped-fresh findings routed to 5 pages; wiki-lint clean (1 stale page entity:nvda = naming duplicate of entity:nvidia; 0 dropped, 0 contradictions)",
+   "wikiWriteBack": "11 of 13 deduped-fresh findings routed to 2 pages; wiki-lint clean (0 contradictions). SKIPPED 2 findings that collided with committed same-asOf (v-prior) store files (differing content): lambda-ai-1252bbe3-2026-07-1 (H100 SXM $3.99-4.29 vs prior $6.69) and www-runpod-io-bdb62dfd-2026-07-1 (B300 $7.39 vs prior $5.89) — never overwrote committed findings; the v6 scorecard already used the fresh prices via the corpus merge.",
    "stageStatus": {
     "category": "done",
     "thesis": "done",
@@ -72,14 +81,16 @@
     "main": "deferred"
    },
    "thesis": {
-    "judgmentsApplied": 15,
-    "appliedReversal": "amd-credible-second-source strengthened applied (conviction high); export-control-exposure strengthened (high); customer-concentration-risk strengthened (high); vendor-financed-demand-circularity strengthened (high); supply-constraint-binding weakened (CoWoS gap narrowing)",
-    "notable": "custom-asic-substitution reversal DEFERRED (secondary-only, <3 distinct publishers); cuda-software-lock-in + rising-memory-costs weakened",
+    "judgmentsApplied": 16,
+    "judgmentsDeferred": 1,
+    "appliedReversal": "supply-constraint-binding ADJUSTED (HBM, not packaging, now the binding supply — CoWoS gap narrowing 20%->10%); pricing-power-persistence WEAKENED applied (3-publisher corroborated, H100 rentals cut up to 45%); custom-asic-substitution STRENGTHENED applied (pending challenge resolved); conditional-china-re-opening ADJUSTED (case-by-case H200 path + China buyer signals); networking-attach / prepaid-HBM / amd-growth-leans / customer-concentration / vendor-financed-circularity strengthened",
+    "deferred": "rising-memory-costs-inflate-ai-server-economics strengthened DEFERRED (secondary-only, 2 distinct publishers < 3) — still CHALLENGED-pending",
     "proposed": [
-     "memory-based-inference-chips-route-around-the-packaging-bottleneck"
+     "broadening-ai-demand-tightens-tsmc-capacity-and-pricing",
+     "hyperscaler-ai-spending-may-outrun-near-term-returns"
     ]
    },
-   "report": "rendered board-ready (standard, not --daily): Strong / improving; binding constraint export controls foreclosing China demand; DMI 0.533 (Δ -0.040 vs prior 2026-07 v4), SMI 0.407 (Δ +0.120), SDGI 0.127 (Δ -0.160); 6/6 dimensions grounded, 0 under-supported; competitiveStructure + bottleneck improved, strategicRisk worsened"
+   "report": "rendered board-ready (standard, not --daily): Strong / improving; binding constraint HBM3E/HBM4 memory supply (shifted from advanced packaging as CoWoS eases); DMI 1.127 (Δ +0.593), SMI 0.420 (Δ +0.013), SDGI 0.707 (Δ +0.580) vs prior 2026-07 v5; 6/6 dimensions grounded, 0 under-supported; momentum Very strong, unitEconomics Strong, competitiveStructure/moat/bottleneck/strategicRisk Mixed; WHAT-MOVED empty (same-asOf prior). Price track: D6 lambda $3.99 (Δ -0.30), runpod $7.39, PMI -1.00."
   }
  ],
  "stages": [

@@ -1,0 +1,44 @@
+{
+  "id": "compute-exchange-50e44183-2026-07-1",
+  "statement": "H100 80GB new secondary-market resale price ranges $25,000-$40,000 (PCIe through SXM5, with SXM at a premium).",
+  "kind": "measured",
+  "value": {
+    "number": 32500.0,
+    "unit": "USD_per_gpu"
+  },
+  "trend": "unknown",
+  "why": "Secondary-market aggregator lists new-unit H100 80GB resale prices as a static market level, not a change.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Secondary resale price level for H100 sets a market reference for merchant GPU valuations."
+  },
+  "evidence": [
+    {
+      "source": "Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+      "url": "https://compute.exchange/blogs/h100-gpu-price-2026",
+      "date": "2026-07-01",
+      "excerpt": "New $25,000-$40,000 (PCIe through SXM5; SXM commands the premium)",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "secondary-market resale aggregator blog"
+  },
+  "dispersion": "conflicting same-key reports: value 21500.0 -> 32500.0 (tol 1%); sources: Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+  "asOf": "2026-07",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

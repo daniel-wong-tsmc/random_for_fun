@@ -1,0 +1,50 @@
+{
+  "id": "www-tweaktown-com-a0083106-2026-07-1",
+  "statement": "SK hynix, Samsung, and Micron have begun full-scale development of 16-Hi HBM4 memory for NVIDIA, targeting delivery by Q4 2026 — a forward supply-chain ramp for NVIDIA's next-gen accelerators.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "NVIDIA's request for 16-Hi HBM4 by Q4 2026 plus three suppliers' full-scale development work indicate HBM capacity being built to meet next-gen GPU demand.",
+  "impact": {
+    "targets": [
+      "chips.hbm-memory",
+      "chips.merchant-gpu",
+      "chips.foundry-packaging"
+    ],
+    "direction": "positive",
+    "mechanism": "Multi-vendor 16-Hi HBM4 development expands high-bandwidth memory supply for NVIDIA's next-generation GPUs."
+  },
+  "evidence": [
+    {
+      "source": "TweakTown — SK hynix/Samsung/Micron fight for NVIDIA 16-Hi HBM4 orders",
+      "url": "https://www.tweaktown.com/news/109495/sk-hynix-samsung-and-micron-fighting-for-nvidia-supply-contracts-for-new-16-hi-hbm4-orders/index.html",
+      "date": "2025-12-28",
+      "excerpt": "NVIDIA requested that domestic and foreign memory manufacturers deliver 16-Hi HBM memory chips by Q4 2026.",
+      "tier": "secondary"
+    },
+    {
+      "source": "TweakTown — SK hynix/Samsung/Micron fight for NVIDIA 16-Hi HBM4 orders",
+      "url": "https://www.tweaktown.com/news/109495/sk-hynix-samsung-and-micron-fighting-for-nvidia-supply-contracts-for-new-16-hi-hbm4-orders/index.html",
+      "date": "2025-12-28",
+      "excerpt": "SK hynix and Samsung Electronics in South Korea, as well as US-based Micron, have all begun full-scale development work for the mass production supply of 16-Hi HBM memory chips to NVIDIA.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "single trade-press source, development-stage (no production volumes)"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 1,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2025-12-28",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

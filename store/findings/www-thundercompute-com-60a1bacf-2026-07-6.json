@@ -1,0 +1,48 @@
+{
+  "id": "www-thundercompute-com-60a1bacf-2026-07-6",
+  "statement": "Major cloud providers cut H100, H200, and A100 instance costs by up to 45%, with H100 rentals falling from historical peaks near $8/hr to a much broader, lower market range.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Referenced industry reports show sharp downward pressure on H100, H200, and A100 rental prices.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Falling GPU rental prices signal softening rental demand and oversupply, pressuring merchant-GPU pricing power."
+  },
+  "evidence": [
+    {
+      "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+      "date": "2026-07-01",
+      "excerpt": "cut costs for H100, H200, and A100 instances by up to 45%",
+      "tier": "secondary"
+    },
+    {
+      "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+      "date": "2026-07-01",
+      "excerpt": "H100 rental prices have seen some of the most dramatic shifts, leaving behind historical peaks near $8/hr to a much broader market range today.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "referenced industry reports, secondary"
+  },
+  "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

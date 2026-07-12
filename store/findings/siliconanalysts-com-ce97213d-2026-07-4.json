@@ -1,0 +1,45 @@
+{
+  "id": "siliconanalysts-com-ce97213d-2026-07-4",
+  "statement": "April 2026 cloud rental rates per GPU-hour span roughly $3.99-$8.64 for B200, $4.40 for MI350X (DigitalOcean), and $1.50-$6.98 for MI300X, with H100 referenced at $1.99-$12.29 — a static snapshot of market pricing rather than a stated move.",
+  "kind": "measured",
+  "value": {
+    "number": 4.4,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Cloud GPU-hour rates set the marginal cost of renting AI compute and frame the effective price of NVIDIA versus AMD capacity.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "Rental rates bracket the going market price for AI GPU capacity across vendors."
+  },
+  "evidence": [
+    {
+      "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+      "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+      "date": "2026-04-13",
+      "excerpt": "Cloud pricing (per GPU-hr) — B200: $3.99-$8.64; MI350X: $4.40 (DigitalOcean); MI300X: $1.50-$6.98; H100 reference: $1.99-$12.29.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary source aggregating multiple cloud providers' list rates."
+  },
+  "dispersion": "Wide per-vendor ranges: B200 $3.99-$8.64, MI300X $1.50-$6.98, H100 $1.99-$12.29; MI350X anchored at a single $4.40 quote.",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "market",
+  "observedAt": "2026-04-13",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

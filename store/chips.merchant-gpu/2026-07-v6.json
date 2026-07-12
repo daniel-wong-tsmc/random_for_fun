@@ -1,0 +1,3454 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07",
+  "findings": [
+    {
+      "id": "finance-yahoo-com-ea29a8bf-2026-07-1",
+      "statement": "Micron says HBM shipment growth is capped by supply, not end demand, and does not yet see when industry supply will catch up; customer demand for 2027-2028 remains far above its ability to supply across HBM3E and HBM4, directly gating NVIDIA and AMD datacenter-GPU availability.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "HBM is a required component for datacenter GPUs, so a persistent HBM supply shortfall lengthens effective lead times and caps merchant-GPU shipments.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "HBM sold-out conditions support memory pricing power while constraining the volume of NVIDIA/AMD GPUs that can be built and shipped."
+      },
+      "evidence": [
+        {
+          "source": "Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/micron-q3-earnings-call-highlights-095600051.html",
+          "date": "2026-06-24",
+          "excerpt": "Shipment growth is being capped by supply, not end demand, and Micron does not yet see when industry supply will catch up",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary publisher (Yahoo Finance) reporting management commentary; not a primary filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "leadTimes",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": -1,
+      "magnitude": 3,
+      "entity": "multi",
+      "observedAt": "2026-06-24",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-yahoo-com-ea29a8bf-2026-07-2",
+      "statement": "Micron has signed 16 non-cancelable five-year take-or-pay agreements backed by more than $22 billion in cash and related financial commitments, including nearly $18 billion in cash deposits.",
+      "kind": "measured",
+      "value": {
+        "number": 22.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Large prepaid, non-cancelable multi-year commitments evidence durable, locked-in HBM demand feeding the GPU supply chain.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Take-or-pay deposits secure HBM capacity and de-risk investment, underpinning sustained accelerator platform supply."
+      },
+      "evidence": [
+        {
+          "source": "Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/micron-q3-earnings-call-highlights-095600051.html",
+          "date": "2026-06-24",
+          "excerpt": "already signed 16 agreements, backed by more than $22 billion in cash and related financial commitments, including nearly $18 billion in cash deposits",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary publisher (Yahoo Finance); figures attributed to management, not read from a primary filing."
+      },
+      "dispersion": "conflicting same-key reports: value 100.0 -> 22.0 (tol 1%); sources: Micron Q3 FY2026 slides via Investing.com, Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+      "asOf": "2026-07",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "multi",
+      "observedAt": "2026-06-24",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "intuitionlabs-ai-b83e7366-2026-07-1",
+      "statement": "NVIDIA's data center GPU lineup scales sharply from H100 (FP16 1,979 TFLOPS, 80 GB HBM3e, 700 W) to Blackwell B200/B300 (up to 20,000 FP4 TFLOPS, 192-288 GB HBM3e, 1,000-1,400 W); the source states no explicit perf-per-watt ratio.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Each NVIDIA generation packs far more peak throughput and HBM capacity per accelerator, raising effective compute per GPU even though the document computes no perf-per-watt figure.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory"
+        ],
+        "direction": "positive",
+        "mechanism": "Generational scaling of peak throughput and HBM capacity per accelerator expands compute delivered per GPU and lifts HBM content per unit."
+      },
+      "evidence": [
+        {
+          "source": "IntuitionLabs - NVIDIA Data Center GPU Specs comparison",
+          "url": "https://intuitionlabs.ai/articles/nvidia-data-center-gpu-specs",
+          "date": "2026-07-04",
+          "excerpt": "Document does not provide explicit perf-per-watt calculations.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "secondary spec-comparison table; no perf-per-watt ratio stated and cross-precision figures are not directly comparable"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-04",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "investor-nvidia-com-c649ac13-2026-07-3",
+      "statement": "NVIDIA Q1 FY2027 non-GAAP gross margin was 75.0% (GAAP 74.9%), with Q2 guidance holding at 75.0% non-GAAP.",
+      "kind": "measured",
+      "value": {
+        "number": 75.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "Sustained ~75% gross margin indicates strong pricing power and demand-driven mix for AI accelerators.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "High and stable gross margin reflects supply-constrained pricing power amid strong GPU demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Investor Relations press release",
+          "url": "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-First-Quarter-Fiscal-2027/default.aspx",
+          "date": "2026-05-20",
+          "excerpt": "GAAP and non-GAAP gross margins were 74.9% and 75.0%, respectively.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary official NVIDIA IR earnings release."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-08T10:53:12Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "ir-amd-com-c9dc9d6e-2026-07-1",
+      "statement": "AMD's China export controls restrict Instinct MI308 and require licenses for MI325; AMD incurred approximately $440 million of net inventory and related charges in 2025, and any MI325 shipped to China must first undergo US inspection and faces a 25% tariff.",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "Export licensing requirements and tariffs reduce the China datacenter-GPU revenue AMD can serve and impose direct inventory and charge costs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "License requirements, US-inspection tariffs and Entity List controls shrink AMD's addressable China accelerator demand and add cost."
+      },
+      "evidence": [
+        {
+          "source": "AMD SEC Form 10-Q",
+          "url": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000076/0000002488-26-000076.pdf",
+          "date": "2026-05-06",
+          "excerpt": "we incurred approximately $440 million of net inventory and related charges in 2025",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC Form 10-Q filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05-06",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "ir-amd-com-c9dc9d6e-2026-07-2",
+      "statement": "AMD depends on a small number of customers for a substantial portion of its business and expects continued customer concentration in revenue and receivables.",
+      "kind": "observed",
+      "value": null,
+      "trend": "flat",
+      "why": "Heavy revenue dependence on a few customers raises demand-cliff and negotiating-leverage risk.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Concentration means a pullback by a single large customer would materially reduce accelerator and CPU demand captured."
+      },
+      "evidence": [
+        {
+          "source": "AMD SEC Form 10-Q",
+          "url": "https://ir.amd.com/financial-information/sec-filings/content/0000002488-26-000076/0000002488-26-000076.pdf",
+          "date": "2026-05-06",
+          "excerpt": "We depend on a small number of customers for a substantial portion of our business and we expect that a small number of customers will continue to account for a significant part of our revenue and receivables in the future",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC Form 10-Q filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05-06",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "ir-amd-com-f416295d-2026-07-2",
+      "statement": "AMD reported Q1 2026 GAAP gross margin of 53% (non-GAAP 55%), with Q2 non-GAAP gross margin guided to approximately 56%.",
+      "kind": "measured",
+      "value": {
+        "number": 53.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Expanding gross margin indicates pricing power and favorable mix in accelerators and CPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher margins reflect strong demand and constrained supply enabling premium pricing."
+      },
+      "evidence": [
+        {
+          "source": "AMD Q1 2026 financial results",
+          "url": "https://ir.amd.com/news-events/press-releases/detail/1284/amd-reports-first-quarter-2026-financial-results",
+          "date": "2026-05-05",
+          "excerpt": "gross margin was 53%",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary AMD investor-relations earnings release."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05-05",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+      "statement": "NVIDIA Q1 FY2027 Data Center revenue was a record $75.2 billion, up 92% year over year and up 21% quarter over quarter.",
+      "kind": "measured",
+      "value": {
+        "number": 75.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Data Center GPU demand accelerated sharply on agentic AI and inference workloads.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud",
+          "models.reasoning-agentic"
+        ],
+        "direction": "positive",
+        "mechanism": "Record DC revenue and 92% YoY growth signal surging demand for NVIDIA accelerators."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "Record Data Center revenue of $75.2 billion, up 92% from a year ago and up 21% from the previous quarter.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary NVIDIA press release / Form 8-K reported figure"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+      "statement": "NVIDIA guided Q2 FY2027 revenue to $91.0 billion, plus or minus 2%.",
+      "kind": "measured",
+      "value": {
+        "number": 91.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Guidance above the prior record quarter implies continued sequential, DC-led revenue growth.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Above-record guidance signals sustained accelerator demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "Revenue is expected to be $91.0 billion, plus or minus 2%.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary NVIDIA guidance"
+      },
+      "dispersion": "stated +/-2% band ($89.2B-$92.8B)",
+      "asOf": "2026-07",
+      "indicatorId": "vendorRevenueGuidance",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-3",
+      "statement": "NVIDIA Q1 FY2027 non-GAAP gross margin was 75.0% (GAAP 74.9%), with Q2 guided to the same level.",
+      "kind": "measured",
+      "value": {
+        "number": 75.0,
+        "unit": "pct"
+      },
+      "trend": "flat",
+      "why": "A sustained ~75% gross margin reflects strong pricing power amid supply-constrained accelerator demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Stable premium margins indicate demand outstripping supply and pricing power for NVIDIA GPUs."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "GAAP and non-GAAP gross margins were 74.9% and 75.0%, respectively.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary reported figure"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7b7a02ff-2026-07-4",
+      "statement": "NVIDIA states Grace Blackwell with NVLink delivers an order-of-magnitude lower cost per token for inference, with Vera Rubin to extend the lead.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Order-of-magnitude lower inference cost per token lowers the effective cost of serving AI, expanding economically viable demand.",
+      "impact": {
+        "targets": [
+          "models.reasoning-agentic",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud",
+          "applications.agent-platforms"
+        ],
+        "direction": "positive",
+        "mechanism": "Lower cost per token improves inference economics and stimulates agentic AI compute demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+          "date": "2026-05-20",
+          "excerpt": "Grace Blackwell with NVLink is the king of inference today - delivering an order-of-magnitude lower cost per token - and Vera Rubin will extend that leadership even further.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "primary filing but qualitative CEO/marketing claim with no explicit figure"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "flopsPerDollar",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "s201-q4cdn-com-f9f138ac-2026-07-2",
+      "statement": "NVIDIA recorded no Data Center Hopper shipments to China in Q1 fiscal 2027 versus $4.6 billion a year earlier; H200 licenses granted from February 2026 have generated no revenue yet and carry a 25% US-import tariff.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Export controls eliminated NVIDIA's China datacenter GPU revenue and constrain the limited licensed reopening with tariffs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Loss of China datacenter GPU shipments removes a large slice of addressable demand NVIDIA can serve."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA SEC Form 10-Q",
+          "url": "https://s201.q4cdn.com/141608511/files/doc_financials/2027/q1/927dc2d6-a76c-4006-9f34-8769b2c665fb.pdf",
+          "date": "2026-05-27",
+          "excerpt": "no shipments of Data Center Hopper products to China occurred during the quarter, compared with $4.6 billion in Q1 FY2026",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary SEC Form 10-Q filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-27",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-amd-com-49475e6c-2026-07-2",
+      "statement": "AMD's Instinct line holds roughly 5-7% of the AI accelerator market in 2026, versus NVIDIA at approximately 80%.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "AMD is establishing a minority but growing position in AI accelerators against NVIDIA's dominant share.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "AMD capturing 5-7% share reflects incremental demand diversion from NVIDIA to AMD accelerators."
+      },
+      "evidence": [
+        {
+          "source": "AMD Blogs - Instinct MI350 Series / Advancing AI (design wins)",
+          "url": "https://www.amd.com/en/blogs/2025/amd-instinct-mi350-series-and-beyond-accelerating-the-future-of-ai-and-hpc.html",
+          "date": "2026-01-15",
+          "excerpt": "NVIDIA holds approximately 80% of the AI accelerator market in 2026, with AMD's Instinct GPU line capturing roughly 5-7% market share.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary analyst figure quoted in AMD blog"
+      },
+      "dispersion": "stated range 5-7%",
+      "asOf": "2026-07",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-01-15",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-bis-gov-dbeede91-2026-07-1",
+      "statement": "Effective January 15, 2026, BIS moved from a presumption of denial to case-by-case review of China export licenses for the NVIDIA H200, AMD MI325X and similar chips (below TPP 21,000 and 6,500 GB/s DRAM bandwidth), subject to security conditions, a roughly 25% tariff and a cap limiting China exports to under 50% of same-model US sales.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Loosening license policy reopens a licensed path for H200 and MI325X-class GPUs into China, partially expanding addressable demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Case-by-case licensing reopens some China GPU demand, but tariffs, security conditions and volume caps limit the upside."
+      },
+      "evidence": [
+        {
+          "source": "U.S. Dept of Commerce, BIS press release",
+          "url": "https://www.bis.gov/press-release/department-commerce-revises-license-review-policy-semiconductors-exported-china",
+          "date": "2026-01-15",
+          "excerpt": "BIS will now review export license applications for the Nvidia H200, AMD MI325X, and similar chips on a case-by-case basis provided certain security requirements are met",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary U.S. government (BIS) regulatory press release / Federal Register notice."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "multi",
+      "observedAt": "2026-01-15",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-cnbc-com-d1364ee3-2026-07-1",
+      "statement": "NVIDIA is offering fast-growing startups compute access in exchange for a share of future revenue, with two initial partners (Sharon AI, Firmus) providing access to more than 200,000 GPUs; NVIDIA raised $25 billion in bonds on June 15, 2026 to fund the program at scale.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Vendor-financed compute-for-revenue-share pulls forward GPU demand from liquidity-constrained AI firms while deepening NVIDIA's structural dependence on funded customers.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Revenue-share financing underwrites neocloud GPU deployments, sustaining demand but concentrating counterparty and circular-financing risk."
+      },
+      "evidence": [
+        {
+          "source": "CNBC",
+          "url": "https://www.cnbc.com/2026/07/02/nvidia-plans-to-offer-start-up-customers-access-to-revenue-sharing-deals.html",
+          "date": "2026-07-02",
+          "excerpt": "Chipmaker Nvidia says it will offer fast-growing start-ups the chance to swap access to compute power for a slice of future profits.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary publisher (CNBC); underlying NVIDIA blog not independently corroborated across three separate publishers."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: CNBC, NVIDIA SEC Form 10-Q",
+      "asOf": "2026-07",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-240df012-2026-07-1",
+      "statement": "ASE is boosting advanced-packaging capacity and Hanmi Semiconductor is expanding from HBM tools into advanced chip packaging, adding CoWoS packaging capacity.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "OSAT and equipment capacity build-out for CoWoS advanced packaging eases a key AI-GPU supply bottleneck.",
+      "impact": {
+        "targets": [
+          "chips.foundry-packaging",
+          "chips.hbm-memory"
+        ],
+        "direction": "positive",
+        "mechanism": "Added advanced-packaging capacity from ASE and new equipment entrants relieves the CoWoS bottleneck, increasing whole-chain GPU supply."
+      },
+      "evidence": [
+        {
+          "source": "DIGITIMES",
+          "url": "https://www.digitimes.com/news/a20260708PD211/ase-hanmi-cowos-packaging-equipment-demand.html",
+          "date": "2026-07-08",
+          "excerpt": "South Korean equipment maker Hanmi Semiconductor is moving beyond high-bandwidth memory (HBM) tools into advanced chip packaging, a shift that could affect the global semiconductor supply chain. As ASE boosts capacity to meet TSMC-linked demand, Hanmi is...",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (DIGITIMES), free lede only; no capacity or wafer figures disclosed."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend falling -> rising); sources: DIGITIMES",
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-07-08",
+      "capturedAt": "2026-07-08T10:53:12Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-federalregister-gov-4122c4b6-2026-07-1",
+      "statement": "Effective January 15, 2026, BIS shifted its license policy for H200-class chips (TPP <21,000 and DRAM bandwidth <6,500 GB/s, e.g., NVIDIA H200, AMD MI325X) to China and Macau from presumption of denial to case-by-case review.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Loosening export licensing reopens a partial China/Macau demand channel for H200-class accelerators that were largely barred.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Shifting from denial to case-by-case review restores a licensing path for NVIDIA H200 and AMD MI325X exports to China/Macau, adding potential demand."
+      },
+      "evidence": [
+        {
+          "source": "Federal Register - Bureau of Industry and Security final rule (Doc. 2026-00789)",
+          "url": "https://www.federalregister.gov/documents/2026/01/15/2026-00789/revision-to-license-review-policy-for-advanced-computing-commodities",
+          "date": "2026-01-15",
+          "excerpt": "BIS is revising its license review policy for exports of certain semiconductors to China and Macau - changing it from a presumption of denial to a case-by-case review.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary Federal Register final rule"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "multi",
+      "observedAt": "2026-01-15",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-fool-com-12d961c0-2026-07-1",
+      "statement": "NVIDIA increased total supply, inclusive of inventory purchase commitments and prepaids, to $145 billion in Q1 FY2027.",
+      "kind": "measured",
+      "value": {
+        "number": 145.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "A large increase in total supply commitments shows NVIDIA scaling its supply chain to meet demand it describes as parabolic.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "chips.foundry-packaging"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising inventory purchase commitments and prepaids expand forward GPU supply capacity across the chain."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+          "url": "https://www.fool.com/earnings/call-transcripts/2026/05/20/nvidia-nvda-q1-2027-earnings-transcript/",
+          "date": "2026-05-20",
+          "excerpt": "In Q1, we increased total supply inclusive of inventory purchase commitments on prepaids to $145 billion.",
+          "tier": "secondary"
+        },
+        {
+          "source": "NVIDIA Form 10-Q (SEC EDGAR)",
+          "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000052/nvda-20260426.htm",
+          "date": "2026-05-20",
+          "excerpt": "total supply inclusive of inventory purchase commitments and prepaids was increased to $145 billion in Q1.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary transcript of official IR earnings call (single publisher); figure corroborated in NVIDIA 10-Q materials."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-08T10:53:12Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-fool-com-12d961c0-2026-07-2",
+      "statement": "NVIDIA cited visibility to nearly $20 billion in total CPU revenue this year, with purchase orders in hand from almost all major customers ahead of the Vera Rubin ramp in Q3.",
+      "kind": "measured",
+      "value": {
+        "number": 20.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Committed purchase orders and multi-billion-dollar forward revenue visibility indicate a strong booked demand backlog.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Booked POs and forward revenue visibility for the Vera Rubin platform reflect committed demand backlog."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+          "url": "https://www.fool.com/earnings/call-transcripts/2026/05/20/nvidia-nvda-q1-2027-earnings-transcript/",
+          "date": "2026-05-20",
+          "excerpt": "We have visibility to nearly $20 billion in total CPU revenue this year",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary transcript of official IR earnings call; single publisher, forward-looking management commentary."
+      },
+      "dispersion": "conflicting same-key reports: value 2.6 -> 20.0 (tol 1%); sources: NVIDIA Form 10-Q (SEC EDGAR), NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+      "asOf": "2026-07",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-08T10:53:12Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-investing-com-09606ac9-2026-07-1",
+      "statement": "Micron says DRAM and NAND supply-demand conditions will remain tight beyond calendar 2027 driven by AI demand and structural supply constraints, with HBM3E/HBM4 effectively sold out through 2027 and order books extending into 2028.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Sold-out HBM and tight memory supply cap the volume of datacenter GPUs that can be built, since HBM is a gating component.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Tight, sold-out HBM supports memory pricing while constraining merchant-GPU output and lengthening effective availability."
+      },
+      "evidence": [
+        {
+          "source": "Micron Q3 FY2026 slides via Investing.com",
+          "url": "https://www.investing.com/news/company-news/micron-q3-2026-slides-record-margins-100b-customer-agreements-93CH-4759276",
+          "date": "2026-06-24",
+          "excerpt": "Supply-demand conditions for both DRAM and NAND are expected to remain tight beyond calendar 2027, driven by AI-driven demand across all segments and structural supply constraints.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary publisher (Investing.com) reporting company slides; not a primary filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": -1,
+      "magnitude": 3,
+      "entity": "multi",
+      "observedAt": "2026-06-24",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-runpod-io-59ae0a2f-2026-07-1",
+      "statement": "A RunPod spec guide cites the NVIDIA B200 (SXM) at 20 petaFLOPS FP4 per GPU with a stated 700W TDP, but independent sources cite 1000W SXM TDP and up to 18 PFLOPS sparse FP4, so a reliable performance-per-watt figure cannot be computed.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Blackwell B200 raises per-GPU FP4 throughput over prior Hopper parts, implying better performance-per-watt, but the unresolved TDP conflict prevents a trustworthy number.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "energy.efficiency"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher per-GPU throughput at comparable power improves compute efficiency and eases power-constrained datacenter deployment."
+      },
+      "evidence": [
+        {
+          "source": "RunPod NVIDIA B200 spec guide",
+          "url": "https://www.runpod.io/articles/guides/nvidia-b200",
+          "date": "2026-07-05",
+          "excerpt": "FP4 Throughput '20 petaFLOPS per GPU'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "Secondary source with an explicit TDP data conflict (700W vs widely-cited 1000W SXM) that prevents a reliable perf/W calculation."
+      },
+      "dispersion": "TDP cited 700W vs independent 1000W; FP4 20 PFLOPS vs up to 18 PFLOPS sparse",
+      "asOf": "2026-07",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-05",
+      "capturedAt": "2026-07-05T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-125b52f2-2026-07-1",
+      "statement": "NVIDIA disclosed heavy customer concentration in Q1 FY2027, with three direct customers representing 21%, 17%, and 16% of total revenue.",
+      "kind": "observed",
+      "value": null,
+      "trend": "unknown",
+      "why": "More than half of revenue coming from three buyers is a structural concentration risk to demand durability.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "negative",
+        "mechanism": "Revenue concentrated in a few hyperscale buyers exposes demand to any single customer pulling back."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Form 10-Q Q1 FY2027",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000052/nvda-20260426.htm",
+          "date": "2026-05-21",
+          "excerpt": "For the first quarter of fiscal year 2027, three direct customers represented 21%, 17%, and 16% of total revenue",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary NVIDIA 10-Q filing; concentration disclosed verbatim."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-21",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-125b52f2-2026-07-2",
+      "statement": "NVIDIA China (including Hong Kong) revenue fell to $4,550 million in Q1 FY2027 from $9,659 million a year earlier, and it is effectively foreclosed from China data-center compute.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Export controls roughly halved China revenue and shut NVIDIA out of China data-center compute, a material structural exposure.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Export controls and licensing frictions foreclose the China data-center market, cutting addressable GPU demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Form 10-Q Q1 FY2027",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000052/nvda-20260426.htm",
+          "date": "2026-05-21",
+          "excerpt": "we were effectively foreclosed from competing in China's data center computing/compute market",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary NVIDIA 10-Q filing; disclosures verbatim."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: NVIDIA CFO Commentary Q1 FY2027, NVIDIA Form 10-Q Q1 FY2027",
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-21",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-76c06b12-2026-07-1",
+      "statement": "AMD signed a definitive agreement with Rackspace for a phased 30 MW deployment of AMD Instinct GPUs (MI355X, MI350P) and EPYC CPUs across Rackspace data centers from late 2026 through 2028.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A fresh definitive design win for Instinct GPUs at an enterprise AI cloud provider adds durable demand, though no dollar value is disclosed and deployments remain conditional.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.datacenter-colo",
+          "applications.enterprise-copilots"
+        ],
+        "direction": "positive",
+        "mechanism": "Design win commits Rackspace capacity to AMD Instinct GPUs and EPYC CPUs for regulated enterprise AI workloads."
+      },
+      "evidence": [
+        {
+          "source": "AMD-Rackspace definitive agreement (Rackspace 8-K EX-99.1)",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001810019/000181001926000059/a20260616-pressrelease.htm",
+          "date": "2026-06-16",
+          "excerpt": "This collaboration incorporates both AMD Instinct GPUs (including MI355X, MI350P, and future successor solutions) and AMD EPYC CPUs",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Primary SEC filing, but no dollar value disclosed and deployments/financing are subject to further agreement with no-assurance caveats."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-06-16",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-8032823c-2026-07-2",
+      "statement": "NVIDIA reported total supply-related commitments of $119.0 billion and inventory of $25.8 billion, saying it has secured inventory and capacity to meet demand beyond the next several quarters.",
+      "kind": "measured",
+      "value": {
+        "number": 119.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Large and growing supply commitments show NVIDIA locking in wafer, packaging and component capacity to expand future output.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.foundry-packaging",
+          "chips.hbm-memory"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising supply-related commitments expand secured capacity across the GPU supply chain to meet forward demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA CFO Commentary Q1 FY2027",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000051/q1fy27cfocommentary.htm",
+          "date": "2026-05-20",
+          "excerpt": "total supply-related commitments were $119.0 billion. We have strategically secured inventory and capacity to meet demand beyond the next several quarters.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "Primary NVIDIA CFO commentary; commitments stated verbatim."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-20",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-sec-gov-bdd91a43-2026-07-1",
+      "statement": "In FY2026 one direct NVIDIA customer represented 22% of total revenue and another 14%, up from 12%/11%/11% in FY2025, with the four largest direct customers now more than half of revenue.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Rising customer concentration increases NVIDIA's demand dependence on a few hyperscalers, raising volatility risk if any pulls back.",
+      "impact": {
+        "targets": [
+          "infrastructure.hyperscale-cloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Growing revenue concentration among a few large customers concentrates demand risk for NVIDIA accelerators."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Form 10-K FY ended January 25, 2026 (SEC, filed 2026-02-25) - customer concentration",
+          "url": "https://www.sec.gov/Archives/edgar/data/0001045810/000104581026000021/nvda-20260125.htm",
+          "date": "2026-02-25",
+          "excerpt": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+          "tier": "primary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "high",
+        "basis": "primary Form 10-K disclosure"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-02-25",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-spheron-network-6245e067-2026-07-1",
+      "statement": "NVIDIA B200 delivers about 2.25 dense FP16 TFLOPS per watt versus about 1.41 for H100, roughly a 1.6x generational efficiency gain.",
+      "kind": "measured",
+      "value": {
+        "number": 2.25,
+        "unit": "perf_per_W"
+      },
+      "trend": "rising",
+      "why": "Better performance per watt means more effective compute within the same power envelope, easing power-limited data-center capacity.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "energy.efficiency"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher FLOPs per watt raises effective compute output per watt, relieving power constraints on GPU deployment."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Network NVIDIA B200 guide",
+          "url": "https://www.spheron.network/blog/nvidia-b200-complete-guide/",
+          "date": "2026-05-14",
+          "excerpt": "B200 FP16 2,250/1,000 = 2.25 TFLOPS/W vs H100 989/700 = 1.41 TFLOPS/W (~1.6x)",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary trade blog, single source; perf-per-watt derived arithmetically from vendor spec figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-05-14",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-spheron-network-e5a0032c-2026-07-1",
+      "statement": "NVIDIA Vera Rubin NVL72 enters production ramp in Q3 2026 (neocloud availability Q4 2026 to Q1 2027), with B300 SXM6 already in spot capacity and R100 pre-orders live.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A rapid NVIDIA product cadence signals expanding forthcoming accelerator supply.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud",
+          "infrastructure.networking-fabric"
+        ],
+        "direction": "positive",
+        "mechanism": "New-generation ramp and pre-orders add forthcoming compute supply to the market."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+          "url": "https://www.spheron.network/blog/gpu-cloud-news-2026/",
+          "date": "2026-06-10",
+          "excerpt": "NVIDIA confirmed that Vera Rubin NVL72 enters production ramp in Q3 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary GPU-cloud news blog"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "releaseCadence",
+      "side": "demand",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-10",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-spheron-network-e5a0032c-2026-07-2",
+      "statement": "AMD MI450 is sampling in Q1 2026 with production shipments expected H2 2026, MI400 (CDNA 5) was detailed at CES 2026, and MI350X is generally available on neocloud providers running ROCm 7.0.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "AMD's accelerating Instinct roadmap expands competitive accelerator supply.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "positive",
+        "mechanism": "MI350X general availability and the MI450 ramp add alternative accelerator supply."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+          "url": "https://www.spheron.network/blog/gpu-cloud-news-2026/",
+          "date": "2026-06-10",
+          "excerpt": "MI450 sampling is already underway in Q1 2026, with production shipments expected H2 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary GPU-cloud news blog"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "releaseCadence",
+      "side": "demand",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-06-10",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-spheron-network-f3e3c0bd-2026-07-1",
+      "statement": "Hyperscaler custom AI silicon (Google TPU Ironwood, AWS Trainium 3, Microsoft Maia 200, Meta MTIA 300/400) is expanding but remains captive to its creators and unavailable for external rental.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Growing captive hyperscaler ASIC deployment displaces some internal merchant-GPU demand, though captivity limits it as open-market supply.",
+      "impact": {
+        "targets": [
+          "chips.hyperscaler-asic",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "negative",
+        "mechanism": "Hyperscalers shifting internal workloads to captive ASICs reduces their incremental merchant-GPU demand."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Blog - Hyperscaler Custom AI Chips 2026 (competitive structure / S9)",
+          "url": "https://www.spheron.network/blog/hyperscaler-custom-ai-chips-2026-trainium-tpu-maia-mtia-vs-nvidia-gpu/",
+          "date": "2026-06-22",
+          "excerpt": "All four chips are captive to their creators and unavailable for external rental.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary blog with cross-references"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "multi",
+      "observedAt": "2026-06-22",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-spheron-network-f3e3c0bd-2026-07-2",
+      "statement": "GPU-based systems still account for roughly 60% of AWS's AI server build-out in 2026, even as custom ASICs grow.",
+      "kind": "measured",
+      "value": {
+        "number": 60.0,
+        "unit": "pct"
+      },
+      "trend": "unknown",
+      "why": "Merchant GPUs remain the majority of hyperscaler AI build-out, sustaining strong baseline demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "A ~60% GPU share of AWS AI build-out shows merchant GPUs still carry the majority of new AI capacity."
+      },
+      "evidence": [
+        {
+          "source": "Spheron Blog - Hyperscaler Custom AI Chips 2026 (competitive structure / S9)",
+          "url": "https://www.spheron.network/blog/hyperscaler-custom-ai-chips-2026-trainium-tpu-maia-mtia-vs-nvidia-gpu/",
+          "date": "2026-06-22",
+          "excerpt": "GPU-based systems still account for ~60% of AWS's AI server build-out in 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary blog cross-referencing Tom's Hardware"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "multi",
+      "observedAt": "2026-06-22",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-stocktitan-net-fe36e810-2026-07-1",
+      "statement": "AMD Q1 2026 Data Center segment revenue was $5.8 billion, up 57% year over year and about 7% sequentially, driven by EPYC and the Instinct GPU ramp.",
+      "kind": "measured",
+      "value": {
+        "number": 5.8,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Strong Data Center growth reflects rising demand for AMD EPYC CPUs and Instinct accelerators, though Instinct is not separately broken out.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "57% YoY Data Center growth and the Instinct ramp indicate accelerating AMD accelerator demand."
+      },
+      "evidence": [
+        {
+          "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+          "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+          "date": "2026-05-05",
+          "excerpt": "Data Center segment revenue was $5.8 billion, up 57% year-over-year, driven by strong demand for AMD EPYC processors and the continued ramp of AMD Instinct GPU shipments",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary (StockTitan) summary of AMD 8-K; Instinct not separately broken out"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "amd",
+      "observedAt": "2026-05-05",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-stocktitan-net-fe36e810-2026-07-2",
+      "statement": "AMD Q1 2026 non-GAAP gross margin was 55% (GAAP 53%), with Q2 guided to approximately 56%.",
+      "kind": "measured",
+      "value": {
+        "number": 55.0,
+        "unit": "pct"
+      },
+      "trend": "rising",
+      "why": "Improving gross margin signals a favorable mix shift toward higher-value Data Center and AI products.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising margins reflect stronger demand and mix for AMD data center/AI silicon."
+      },
+      "evidence": [
+        {
+          "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+          "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+          "date": "2026-05-05",
+          "excerpt": "Non-GAAP gross margin was 55%.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary summary of AMD 8-K"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "grossMargin",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "amd",
+      "observedAt": "2026-05-05",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-stocktitan-net-fe36e810-2026-07-3",
+      "statement": "AMD guided Q2 2026 revenue to approximately $11.2 billion, plus or minus $300 million, with non-GAAP gross margin around 56%.",
+      "kind": "measured",
+      "value": {
+        "number": 11.2,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "Sequential revenue guidance above Q1 reflects continued Data Center-led demand growth.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher guided revenue signals sustained demand for AMD data center and AI products."
+      },
+      "evidence": [
+        {
+          "source": "AMD Q1 2026 financial results press release (Form 8-K)",
+          "url": "https://www.stocktitan.net/sec-filings/AMD/8-k-advanced-micro-devices-inc-reports-material-event-e791e2c5f009.html",
+          "date": "2026-05-05",
+          "excerpt": "For the second quarter of 2026, AMD expects revenue to be approximately $11.2 billion, plus or minus $300 million.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary summary of AMD 8-K"
+      },
+      "dispersion": "stated +/-$300M band",
+      "asOf": "2026-07",
+      "indicatorId": "vendorRevenueGuidance",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "amd",
+      "observedAt": "2026-05-05",
+      "capturedAt": "2026-07-04T12:34:43Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tomshardware-com-7b18c015-2026-07-1",
+      "statement": "Intel detailed its Crescent Island data-center inference GPU at Computex 2026, using LPDDR5X (up to 480GB) instead of HBM to avoid advanced-packaging and HBM contention, with a second-half 2026 sampling target.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A memory choice that sidesteps HBM and CoWoS could add alternative merchant-GPU supply, but Intel is still pre-sampling with the less-adopted oneAPI stack, so near-term traction is minimal.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "chips.foundry-packaging"
+        ],
+        "direction": "positive",
+        "mechanism": "An LPDDR5X inference accelerator adds a non-HBM alternative supply path that does not draw on scarce HBM or advanced packaging."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware Intel Crescent Island Computex 2026",
+          "url": "https://www.tomshardware.com/pc-components/gpus/intel-details-long-awaited-crescent-island-ai-gpu-at-computex-boasts-up-to-480-gb-of-lpddr5x-to-combat-memory-shortages-company-shares-more-details-of-its-xe3p-inference-accelerator-at-computex",
+          "date": "2026-06-01",
+          "excerpt": "It forgoes GDDR or HBM memory for LPDDR5X",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary trade press, single source; product is pre-sampling with no shipping revenue."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 1,
+      "entity": "intel",
+      "observedAt": "2026-06-01",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tomshardware-com-f77e9757-2026-07-1",
+      "statement": "NVIDIA still holds about 70% of the AI chip market, but that share is projected to erode as custom ASIC shipments (projected 27.8% of the market in 2026) grow 44.6% year over year versus 16.1% for merchant GPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 70.0,
+        "unit": "pct_segment_rev"
+      },
+      "trend": "falling",
+      "why": "Hyperscaler custom silicon is growing far faster than merchant GPUs and is projected to take share from NVIDIA.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic"
+        ],
+        "direction": "mixed",
+        "mechanism": "Faster ASIC growth erodes merchant-GPU market share while lifting hyperscaler ASIC share."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware custom AI ASIC state of play",
+          "url": "https://www.tomshardware.com/tech-industry/semiconductors/custom-ai-asics-examined-from-broadcom-to-mtia",
+          "date": "2026-05-21",
+          "excerpt": "Nvidia still holds approximately 70% of the AI chip market share, but that share is projected to erode",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary trade-press feature; share figures attributed to TrendForce within one document."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-05-21",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tomshardware-com-f77e9757-2026-07-2",
+      "statement": "Broadcom carries a $73 billion AI backlog and targets $100 billion in annual AI chip revenue by 2027, underscoring hyperscaler ASIC demand.",
+      "kind": "measured",
+      "value": {
+        "number": 73.0,
+        "unit": "USD_B"
+      },
+      "trend": "rising",
+      "why": "A large and growing custom-silicon backlog signals strong committed demand for hyperscaler ASICs that competes with merchant GPUs.",
+      "impact": {
+        "targets": [
+          "chips.hyperscaler-asic",
+          "chips.networking-silicon",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Broadcom ASIC backlog reflects hyperscaler demand shifting some AI compute from merchant GPUs to custom silicon."
+      },
+      "evidence": [
+        {
+          "source": "Tom's Hardware custom AI ASIC state of play",
+          "url": "https://www.tomshardware.com/tech-industry/semiconductors/custom-ai-asics-examined-from-broadcom-to-mtia",
+          "date": "2026-05-21",
+          "excerpt": "Broadcom alone carries a $73 billion AI backlog and is targeting $100 billion in annual AI chip revenue by 2027.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary trade-press feature; single source."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "broadcom",
+      "observedAt": "2026-05-21",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-trendforce-com-368d8402-2026-07-1",
+      "statement": "The TSMC CoWoS supply-demand gap is expected to narrow from about 20% currently to about 10% by the end of 2026, with the severe 2.5D packaging shortage moderating by 2027.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "A narrowing packaging gap means the key AI supply bottleneck is easing, shortening effective lead times for GPUs and ASICs.",
+      "impact": {
+        "targets": [
+          "chips.foundry-packaging",
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "chips.hyperscaler-asic"
+        ],
+        "direction": "positive",
+        "mechanism": "A smaller CoWoS supply-demand gap eases the binding packaging bottleneck, improving AI chip availability and lead times."
+      },
+      "evidence": [
+        {
+          "source": "TrendForce News CoWoS supply-demand gap",
+          "url": "https://www.trendforce.com/news/2026/06/15/news-tsmc-cowos-supply-demand-gap-reportedly-seen-narrowing-from-20-to-10-by-end-2026-as-capacity-expands/",
+          "date": "2026-06-15",
+          "excerpt": "the CoWoS supply-demand gap is expected to narrow significantly from around 20% currently to about 10% by the end of 2026",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary TrendForce free news desk citing multiple outlets within one document; not the paid tracker."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "leadTimes",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "multi",
+      "observedAt": "2026-06-15",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-trendforce-com-368d8402-2026-07-2",
+      "statement": "TSMC monthly CoWoS capacity could reach 120,000 to 140,000 wafers in 2026, and with OSAT partners total industry capacity could approach 200,000 wafers per month, expanding AI packaging supply.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Rapid packaging capacity expansion adds AI chip supply headroom, the main lever loosening the current bottleneck.",
+      "impact": {
+        "targets": [
+          "chips.foundry-packaging",
+          "chips.hbm-memory",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising CoWoS and OSAT packaging capacity expands the supply of assembled AI accelerators."
+      },
+      "evidence": [
+        {
+          "source": "TrendForce News CoWoS supply-demand gap",
+          "url": "https://www.trendforce.com/news/2026/06/15/news-tsmc-cowos-supply-demand-gap-reportedly-seen-narrowing-from-20-to-10-by-end-2026-as-capacity-expands/",
+          "date": "2026-06-15",
+          "excerpt": "TSMC's monthly CoWoS capacity could reach a record 120,000 to 140,000 wafers in 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary TrendForce free news desk; capacity figures from cited institutional estimates."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 3 -> 2; sources: Tom's Hardware custom AI ASIC state of play, TrendForce News CoWoS supply-demand gap",
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "multi",
+      "observedAt": "2026-06-15",
+      "capturedAt": "2026-07-11T13:24:52Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "blogs-nvidia-com-817f7ea6-1",
+      "statement": "NVIDIA is launching a new revenue-sharing and credit-support business model that lets AI clouds procure NVIDIA infrastructure, expanding compute access to startups, model builders, enterprises, research organizations and regional AI players.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Financing has been a bottleneck for capital-intensive AI infrastructure; NVIDIA's revenue-share and credit-support model unlocks financing and expands its addressable demand while adding a share of cloud revenue on top of standard product revenue.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "infrastructure.hyperscale-cloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Revenue-sharing and credit support unlock financing for AI-cloud buildouts, pulling through more NVIDIA GPU sales and adding a recurring cloud-revenue share."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Blog / Newsroom",
+          "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+          "date": "2026-07-01",
+          "excerpt": "NVIDIA is introducing a new business model that opens up compute access to the fast-growing AI ecosystem of startups, model builders, enterprises, research organizations and regional AI players",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single vendor blog (secondary), qualitative announcement without figures."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: NVIDIA Blog / Newsroom",
+      "asOf": "2026-07-02",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-2de12e3b-1",
+      "statement": "Anthropic's Claude models are now generally available in Microsoft Foundry, running in production on NVIDIA GB300 (Blackwell Ultra) GPUs in Microsoft Azure.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A frontier lab's flagship models reaching general availability on current-generation Blackwell Ultra inside a major hyperscaler is a concrete production-demand data point for merchant datacenter GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud",
+          "models.frontier-closed",
+          "models.reasoning-agentic"
+        ],
+        "direction": "positive",
+        "mechanism": "Production GA deployment of Claude on GB300 pulls through Blackwell Ultra GPU demand via Azure."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom",
+          "url": "https://nvidianews.nvidia.com/news/claude-anthropic-nvidia-gb300-azure",
+          "date": "2026-06-29",
+          "excerpt": "Anthropic's Claude models in Microsoft Foundry — hosted on Microsoft Azure and running on NVIDIA GB300 Blackwell Ultra GPUs — are now generally available",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor newsroom (secondary) announcement."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-8764779e-1",
+      "statement": "NVIDIA became the revenue leader in the global data center Ethernet switch market for the first time in Q1 2026, an adjacent share gain tied to Spectrum-X/Quantum networking bundled with Blackwell/GB300 deployments.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Networking leadership shows NVIDIA's GPU platform pulling through bundled Spectrum-X/Quantum networking, extending its datacenter footprint and share beyond compute.",
+      "impact": {
+        "targets": [
+          "chips.networking-silicon",
+          "infrastructure.networking-fabric",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "GB300/Blackwell deployments bundle NVIDIA networking, driving data center Ethernet switch revenue share and reinforcing platform lock-in."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260701PD224/nvidia-data-center-ethernet-idc.html",
+          "date": "2026-07-01",
+          "excerpt": "Nvidia's networking business has surged to the top, with the company becoming the revenue leader in the global data center Ethernet switch market for the first time in the first quarter of 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; full article paywalled, no share percentage given."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Digitimes, NVIDIA Newsroom",
+      "asOf": "2026-07-02",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-f88ca4e6-1",
+      "statement": "Server supply-chain players report an AI infrastructure order boom spilling into 2H26, with demand sentiment turning increasingly upbeat.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A broad order boom into 2H26 signals sustained datacenter accelerator demand and rising backlog across the supply chain.",
+      "impact": {
+        "targets": [
+          "infrastructure.datacenter-colo",
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising AI infrastructure orders lift server shipments and accelerator backlog into the second half of 2026."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+          "date": "2026-06-30",
+          "excerpt": "The AI infrastructure order boom is spilling into the second half of 2026, and server supply-chain players are turning increasingly upbeat about demand as Nvidia Vera Rubin, AMD Helios, AWS Trainium 3, and Google TPU all move into mass production.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; detailed figures paywalled."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-f88ca4e6-2",
+      "statement": "Next-generation accelerators — NVIDIA Vera Rubin, AMD Helios (MI400-series), AWS Trainium 3 and Google TPU — are all moving into mass production simultaneously, expanding datacenter accelerator supply into 2H26.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Simultaneous mass-production ramps across GPUs and custom ASICs expand alternative accelerator supply and intensify competition beyond NVIDIA merchant GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "chips.ai-silicon-startups",
+          "chips.foundry-packaging"
+        ],
+        "direction": "positive",
+        "mechanism": "Concurrent mass production of GPUs and custom ASICs increases available accelerator supply and competitive alternatives into the second half of 2026."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+          "date": "2026-06-30",
+          "excerpt": "stronger 2H26 server shipments as driven by simultaneous mass-production ramps across Nvidia's next-gen Vera Rubin GPU platform, AMD's Helios rack (MI400-series), AWS Trainium 3, and Google TPU custom silicon",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; capacity detail paywalled."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-investing-com-f24cdca0-1",
+      "statement": "Cantor Fitzgerald raised its AMD price target to $700 from $500 (maintaining Overweight), citing AMD as offering the greatest compute momentum among semiconductor companies, driven by its data-center Instinct GPU trajectory.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "An analyst upgrade framed around AMD's Instinct data-center GPU momentum signals a strengthening competitive accelerator alternative to NVIDIA.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising AMD Instinct momentum expands competitive accelerator supply and choice, pressuring NVIDIA's accelerator share."
+      },
+      "evidence": [
+        {
+          "source": "Investing.com",
+          "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+          "date": "2026-06-29",
+          "excerpt": "Cantor Fitzgerald raised its price target on Advanced Micro Devices stock to $700 from $500 while maintaining an Overweight rating.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Analyst action reported via aggregator (secondary); qualitative, no market-share figure."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "AMD",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-investing-com-f24cdca0-2",
+      "statement": "AMD's MI450/Helios customer engagement may be strengthening, per same-week secondary coverage that is explicitly not independently confirmed.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "rising",
+      "why": "If MI450/Helios engagement is firming, AMD would be converting its Instinct roadmap into named platform adoption, a leading demand indicator for its accelerators.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Named MI450/Helios customer wins would validate AMD accelerator demand and erode NVIDIA's share."
+      },
+      "evidence": [
+        {
+          "source": "Investing.com",
+          "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+          "date": "2026-06-29",
+          "excerpt": "separate analyst references to strengthening MI450/Helios customer engagement -- flagged here as secondary, not confirmed verbatim",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "The engagement is reported only via secondary aggregation and explicitly not confirmed; treated as a hypothesis pending primary confirmation such as named customer announcements or filings.",
+      "confidence": {
+        "level": "low",
+        "basis": "Unconfirmed secondary aggregation; explicitly flagged as not verified."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "AMD",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "blogs-nvidia-com-817f7ea6-3",
+      "statement": "Firmus is building a 360 MW DSX AI factory campus in Batam, Indonesia, with up to 170,000 NVIDIA GPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 170000.0,
+        "unit": "GPUs"
+      },
+      "trend": "rising",
+      "why": "A 360 MW, 170,000-GPU AI factory is a large committed deployment of NVIDIA GPUs, signaling strong infrastructure demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "infrastructure.neocloud"
+        ],
+        "direction": "positive",
+        "mechanism": "A multi-hundred-MW campus with 170,000 NVIDIA GPUs expands merchant-GPU and HBM demand and cloud AI capacity."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA official newsroom press release",
+          "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+          "date": "2026-07-01",
+          "excerpt": "Firmus is constructing a DSX AI factory campus in Batam, Indonesia, expected to reach 360 megawatts with up to 170,000 NVIDIA GPUs.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary NVIDIA newsroom source; deployment figure stated as 'up to'."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: NVIDIA Blog, NVIDIA official newsroom press release",
+      "asOf": "2026-07-03",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-03T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "blogs-nvidia-com-c8158075-1",
+      "statement": "NVIDIA plans to produce up to $500 billion of AI infrastructure in the U.S. with partners including TSMC, Foxconn, Wistron, Corning, Lumentum, Coherent and Amkor.",
+      "kind": "measured",
+      "value": {
+        "number": 500.0,
+        "unit": "USD billion"
+      },
+      "trend": "rising",
+      "why": "A $500B U.S. manufacturing buildout with TSMC (Blackwell in Phoenix) and packaging/optics partners expands domestic NVIDIA GPU supply capacity and supply-chain resilience.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.foundry-packaging",
+          "chips.hbm-memory"
+        ],
+        "direction": "positive",
+        "mechanism": "Domestic fabrication and system assembly (TSMC Phoenix Blackwell, Foxconn/Wistron systems) increases NVIDIA GPU production capacity."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA official newsroom press release",
+          "url": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+          "date": "2026-07-01",
+          "excerpt": "NVIDIA plans to produce up to $500 billion of AI infrastructure in the U.S. with partners including TSMC, Foxconn, Wistron, Corning, Lumentum, Coherent and Amkor.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary NVIDIA newsroom press release; forward-looking plan, not a filing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-03",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-03T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "blogs-nvidia-com-c8158075-2",
+      "statement": "NVIDIA states its AI demand will contribute $485 billion to U.S. GDP in 2026 and support over 100,000 jobs.",
+      "kind": "measured",
+      "value": {
+        "number": 485.0,
+        "unit": "USD billion"
+      },
+      "trend": "rising",
+      "why": "A stated $485B GDP contribution from NVIDIA-driven AI demand in 2026 signals the scale and momentum of AI infrastructure demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Large economy-wide AI demand attributed to NVIDIA chips reflects strong merchant-GPU and cloud AI infrastructure pull."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA official newsroom press release",
+          "url": "https://blogs.nvidia.com/blog/nvidia-and-partners-build-in-america-for-america/",
+          "date": "2026-07-01",
+          "excerpt": "In 2026 alone, NVIDIA-driven AI demand will contribute $485 billion to the U.S.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary NVIDIA newsroom press release; company-stated projection, not audited."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 2 -> 3; sources: DigiTimes, NVIDIA official newsroom press release",
+      "asOf": "2026-07-03",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 3,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-03T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "techcrunch-com-6b79ddb7-1",
+      "statement": "Anthropic is in early-stage talks with Samsung to manufacture a custom AI chip on Samsung's 2nm process, part of a broader diversification away from merchant GPUs.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "unknown",
+      "why": "Early-stage exploration of an Anthropic custom chip on Samsung 2nm could, if realized, shift some compute off merchant GPUs and add Samsung foundry demand, though the chip's purpose and power are undecided.",
+      "impact": {
+        "targets": [
+          "chips.hyperscaler-asic",
+          "chips.merchant-gpu",
+          "chips.foundry-packaging"
+        ],
+        "direction": "mixed",
+        "mechanism": "A successful Anthropic custom chip on Samsung 2nm would move some inference/training compute from merchant GPUs to custom ASIC and add advanced-node foundry demand at Samsung."
+      },
+      "evidence": [
+        {
+          "source": "TechCrunch",
+          "url": "https://techcrunch.com/2026/07/02/anthropic-is-discussing-a-new-custom-chip-with-samsung/",
+          "date": "2026-07-02",
+          "excerpt": "Anthropic was in contact with Samsung to explore a collaboration around the pending chip.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "Talks are described as early-stage and Anthropic has not decided the chip's purpose, form factor, or performance, so the near-term effect on merchant-GPU demand is uncertain; the article notes a diversified stack including Nvidia remains pivotal, capping downside, while sustained custom-silicon efforts point to gradual, longer-term erosion of merchant-GPU share.",
+      "confidence": {
+        "level": "low",
+        "basis": "Early-stage talks reported by a single secondary press source with the chip's use undecided."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> unknown); sources: TechCrunch",
+      "asOf": "2026-07-03",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "multi",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-03T12:00:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-yahoo-com-f1703d5e-2026-07-05-1",
+      "statement": "Taiwan's Keelung prosecutors expanded a criminal probe into the smuggling of Nvidia AI chips into China via Super Micro servers, raiding Super Micro's Taiwan office and affiliates, signalling intensifying enforcement around Nvidia hardware diversion.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Escalating enforcement against diversion of Nvidia AI chips into China raises export-control and China-revenue risk for Nvidia and could presage tighter Taiwanese controls on AI-chip exports.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "A widening smuggling probe tightens the gray-market channel that moves Nvidia chips into China and raises the odds of criminalized export controls, constraining Nvidia's China-related sales exposure."
+      },
+      "evidence": [
+        {
+          "source": "Yahoo Finance (Bloomberg syndication)",
+          "url": "https://finance.yahoo.com/technology/ai/articles/super-micro-office-raided-taiwan-175946955.html",
+          "date": "2026-06-30",
+          "excerpt": "Taiwan's Keelung District Prosecutors Office raided Super Micro Computer Inc.'s Taiwan offices on Monday (June 29) as part of an expanded investigation into alleged smuggling of Nvidia AI chips into China using the company's servers.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (Bloomberg story syndicated via Yahoo Finance); qualitative enforcement event with no Nvidia financial figures."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Super Micro Computer, Inc. (SEC Form 8-K), Yahoo Finance (Bloomberg syndication)",
+      "asOf": "2026-07-05",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "startupfortune-com-6857e872-2026-07-05-1",
+      "statement": "Nvidia has scaled a CFO-approved vendor-financing programme that helps smaller cloud providers buy its GPUs, guarantees to rent back idle capacity and takes revenue share, backing roughly 210,000 high-end GPUs across Firmus and Sharon AI.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Vendor financing and utilization guarantees backstop near-term demand for Nvidia GPUs among neoclouds, but shift operating and utilization risk back onto Nvidia and raise questions about the durability of that demand.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "By financing GPU purchases and guaranteeing utilization for smaller clouds, Nvidia pulls forward and props up demand for its own GPUs while absorbing downside/utilization risk, and inserts itself alongside hyperscaler customers it also competes with."
+      },
+      "evidence": [
+        {
+          "source": "Startup Fortune",
+          "url": "https://startupfortune.com/nvidia-has-quietly-become-the-bank-behind-the-ai-boom/",
+          "date": "2026-07-05",
+          "excerpt": "It is helping them finance the purchase of its GPUs, agreeing to rent back unused capacity if those machines sit idle, and taking a share of the revenue generated by the infrastructure.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Startup Fortune",
+          "url": "https://startupfortune.com/nvidia-has-quietly-become-the-bank-behind-the-ai-boom/",
+          "date": "2026-07-05",
+          "excerpt": "Together, that's around 210,000 high-end GPUs operating under financing arrangements Nvidia helped put together.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary analysis piece keyed to a report from The Information (not independently fetched); commercial details of the financing are not public."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-05",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-05",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "tech-yahoo-com-71aaa132-2026-07-05-1",
+      "statement": "Meituan's 1.6-trillion-parameter LongCat-2.0 was trained on roughly 50,000 Chinese domestic accelerators without Nvidia chips, demonstrating emerging non-Nvidia frontier-training capability despite acknowledged memory and software-ecosystem constraints.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A frontier-scale model trained entirely on domestic Chinese silicon signals a maturing alternative to Nvidia GPUs that could erode Nvidia's addressable China demand over time, though memory-per-device and software-ecosystem gaps still limit near-term substitution.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "models.frontier-closed"
+        ],
+        "direction": "mixed",
+        "mechanism": "Demonstrated frontier training on ~50,000 domestic accelerators validates non-Nvidia compute supply and pressures Nvidia's China moat, but stated memory and software-maturity constraints cap how quickly it substitutes for Nvidia."
+      },
+      "evidence": [
+        {
+          "source": "Yahoo Tech (BeInCrypto syndication)",
+          "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+          "date": "2026-06-30",
+          "excerpt": "Meituan's LongCat-2.0 becomes the biggest AI model trained without Nvidia chips",
+          "tier": "secondary"
+        },
+        {
+          "source": "Yahoo Tech (BeInCrypto syndication)",
+          "url": "https://tech.yahoo.com/ai/articles/china-longcat-2-0-becomes-134258951.html",
+          "date": "2026-06-30",
+          "excerpt": "Domestic accelerators carry less memory per device than NVIDIA's banned H800 chip",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary source (BeInCrypto syndicated via Yahoo Tech); vendor-reported benchmarks and hardware counts not independently verified."
+      },
+      "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Yahoo Tech (BeInCrypto syndication), ZLUDA project blog (vosen.github.io)",
+      "asOf": "2026-07-05",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-e48a6e49-2026-07-05-1",
+      "statement": "DigiTimes reports AI demand in 2026 is broadening beyond GPUs into ASICs, networking, PMICs and peripheral ICs, tightening TSMC capacity across 8-inch and 12-inch nodes plus CoWoS packaging and HBM, giving foundries pricing power.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Broad foundry/packaging/HBM capacity tightness and rising foundry pricing power constrain and raise the cost of the wafers, CoWoS packaging and HBM that Nvidia GPUs depend on, pressuring Nvidia's supply availability and input costs.",
+      "impact": {
+        "targets": [
+          "chips.foundry-packaging",
+          "chips.hbm-memory",
+          "chips.merchant-gpu",
+          "chips.networking-silicon"
+        ],
+        "direction": "mixed",
+        "mechanism": "AI demand spreading across mature and advanced nodes plus CoWoS and HBM tightens upstream capacity and hands foundries pricing power, constraining supply and raising input costs for Nvidia GPUs while benefiting foundry/packaging and HBM suppliers."
+      },
+      "evidence": [
+        {
+          "source": "DigiTimes",
+          "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+          "date": "2026-06-30",
+          "excerpt": "AI demand in 2026 is no longer confined to GPUs, but is broadening into ASICs, networking, PMICs, and a wide range of peripheral ICs, tightening capacity across both 8-inch mature processes and 12-inch advanced nodes.",
+          "tier": "secondary"
+        },
+        {
+          "source": "DigiTimes",
+          "url": "https://www.digitimes.com/news/a20260630PD222/tsmc-demand-2026-capacity-packaging.html",
+          "date": "2026-06-30",
+          "excerpt": "AI hands foundries pricing power: TSMC leads, but the boom spreads industry-wide",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "Subscriber-only DigiTimes article with only the headline and opening paragraph visible; qualitative channel-check signal with no figures."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: DigiTimes, Tom's Hardware",
+      "asOf": "2026-07-05",
+      "indicatorId": "leadTimes",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-05T13:20:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-biggo-com-c310c4ca-2026-07-06-1",
+      "statement": "Nvidia AI-server rack component costs are inflating rapidly — running about 2% to 3% per week, sitting 10% to 15% above baseline, and swinging as much as 40% in a single week — driven by memory and NVMe scarcity.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Rising, volatile component costs on Nvidia rack builds signal a tight supply chain that feeds into merchant-GPU lead-time and pricing expectations.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "infrastructure.ai-storage"
+        ],
+        "direction": "negative",
+        "mechanism": "Memory and NVMe scarcity raises Nvidia rack build costs week over week, tightening effective supply and pressuring pricing."
+      },
+      "evidence": [
+        {
+          "source": "BigGo Finance",
+          "url": "https://finance.biggo.com/news/0be5f491-d712-4383-8c78-b1c1594c9f4a",
+          "date": "2026-07-04",
+          "excerpt": "as much as 40% in a single week",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary outlet citing The Information; qualitative cost-volatility ranges, no contract-price figures."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: AppleInsider, BigGo Finance",
+      "asOf": "2026-07-06",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": -1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-04",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "longcat-chat-e59c7f82-2026-07-06-1",
+      "statement": "Meituan's LongCat-2.0, a 1.6-trillion-parameter MoE model, was pretrained entirely on over 50,000 domestic (non-Nvidia) AI ASIC superpods across more than 35 trillion tokens, demonstrating frontier-scale training on alternative hardware.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A successful frontier-scale training run on domestic ASICs shows a viable non-Nvidia alternative, threatening Nvidia's demand especially in China even as Nvidia's software-ecosystem maturity remains an advantage.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "models.open-weight"
+        ],
+        "direction": "mixed",
+        "mechanism": "Domestic AI ASIC superpods substitute for Nvidia GPUs in large-scale training, expanding alternative compute supply and eroding Nvidia's addressable demand."
+      },
+      "evidence": [
+        {
+          "source": "Meituan LongCat",
+          "url": "https://longcat.chat/blog/longcat-2.0/",
+          "date": "2026-06-30",
+          "excerpt": "LongCat-2.0 is pre-trained on over 50K AI ASICs",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor's own blog (self-reported); model not yet publicly released for independent verification."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Meituan LongCat, The Decoder",
+      "asOf": "2026-07-06",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": -1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+      "statement": "Taiwanese authorities escalated the Nvidia-GPU smuggling probe, raiding Supermicro's Taiwan office and affiliated sites and detaining employees, tied to US charges alleging some $2.5 billion of servers were shipped to China without an export license.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Intensifying cross-border enforcement against illicit diversion of Nvidia GPUs to China signals tightening export-control pressure on the gray-market China demand channel.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.datacenter-colo"
+        ],
+        "direction": "negative",
+        "mechanism": "Enforcement raids and detentions curtail smuggling routes that supplied restricted Nvidia GPUs to China, constraining that demand channel and raising compliance risk."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/supermicros-taiwan-office-raided-in-ongoing-nvidia-smuggling-probe-more-employees-detained-by-prosecutors-report/",
+          "date": "2026-07-01",
+          "excerpt": "some $2.5 billion in servers were shipped to China, despite Supermicro lacking a Commerce Department license",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet reporting an ongoing investigation still developing."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-06",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+      "statement": "Nvidia is expanding a vendor-financing/backstop program — backstopping GPU purchases in exchange for revenue sharing and agreeing to rent back unused GPUs at fixed rates — with early adopters Firmus (170,000 GPUs) and Sharon AI (40,000 GB300), about 210,000 GPUs combined, following CoreWeave ($6.3B) and Lambda ($1.5B) support deals.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "By backstopping GPU purchases and guaranteeing rent-back, Nvidia underwrites committed demand for its GPUs, supporting near-term volumes.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Vendor financing converts customer GPU purchases into committed backlog for Nvidia, boosting demand but tying Nvidia revenue to the health of financed neoclouds."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+          "date": "2026-07-02",
+          "excerpt": "Firmus with 170,000 GPUs deploying in Batam, Indonesia, and Sharon AI with 40,000 GB300 GPUs — 210,000 GPUs combined",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single secondary outlet; GPU counts given but no dollar figures for the new Firmus/Sharon commitments."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Data Center Dynamics, SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+      "asOf": "2026-07-06",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+      "statement": "Nvidia's backstop and revenue-sharing arrangements may increasingly concentrate its demand in vendor-financed neoclouds, raising circular-financing risk.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "rising",
+      "why": "If a growing share of Nvidia GPU demand depends on Nvidia's own credit support and rent-back guarantees, reported demand may overstate organic end-market pull.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "negative",
+        "mechanism": "Concentration of demand among Nvidia-financed customers creates dependence and circularity that could unwind if those customers falter."
+      },
+      "evidence": [
+        {
+          "source": "Data Center Dynamics",
+          "url": "https://www.datacenterdynamics.com/en/news/nvidia-acts-as-backstop-for-customer-gpus-in-return-for-cut-of-cloud-revenue/",
+          "date": "2026-07-02",
+          "excerpt": "both standard product revenue and a share of the cloud revenue on the supported capacity",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "The article describes Nvidia backstopping purchases and renting back unused GPUs, implying part of the demand is self-underwritten; this is an inference about concentration/circularity risk, not a measured fact.",
+      "confidence": {
+        "level": "medium",
+        "basis": "Inference from a single secondary report; no figures on what share of demand is vendor-financed."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Data Center Dynamics, SharonAI Holdings (SEC Form 8-K exhibit 99.1)",
+      "asOf": "2026-07-06",
+      "indicatorId": "customerConcentration",
+      "side": "structural",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-06T01:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-forbes-com-9a1166d5-2026-07-1",
+      "statement": "In early July 2026 market sentiment turned to doubt about the return on AI-infrastructure spending, with analysts warning that hyperscalers' 67% jump in AI capex to $650 billion 'may be unsustainable' — a demand-side risk for merchant AI GPUs even though no vendor shipment figures are given.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Hyperscaler capex is the primary demand engine for data-center GPUs; if that spending is judged unsustainable and its ROI is doubted, the GPU demand outlook weakens.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hbm-memory",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "negative",
+        "mechanism": "Investor doubt about AI-infrastructure ROI plus a possibly unsustainable 67% capex surge threatens the spending flow that drives merchant-GPU and HBM demand."
+      },
+      "evidence": [
+        {
+          "source": "Forbes (Peter Cohan) — Inside the July 2026 semiconductor selloff",
+          "url": "https://www.forbes.com/sites/petercohan/2026/07/08/intel-stock-down-21-inside-the-july-2026-semiconductor-selloff/",
+          "date": "2026-07-08",
+          "excerpt": "doubt about the return on AI infrastructure spending, dot-com-level valuations and a more hawkish Fed",
+          "tier": "secondary"
+        },
+        {
+          "source": "Forbes (Peter Cohan) — Inside the July 2026 semiconductor selloff",
+          "url": "https://www.forbes.com/sites/petercohan/2026/07/08/intel-stock-down-21-inside-the-july-2026-semiconductor-selloff/",
+          "date": "2026-07-08",
+          "excerpt": "hyperscalers' 67% jump in AI capital expenditures to $650 billion may be unsustainable.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "Stock-market sentiment and analyst commentary, not shipment or order data; secondary source."
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-07-08",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-2026-07-4",
+      "statement": "April 2026 cloud rental rates per GPU-hour span roughly $3.99-$8.64 for B200, $4.40 for MI350X (DigitalOcean), and $1.50-$6.98 for MI300X, with H100 referenced at $1.99-$12.29 — a static snapshot of market pricing rather than a stated move.",
+      "kind": "measured",
+      "value": {
+        "number": 4.4,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Cloud GPU-hour rates set the marginal cost of renting AI compute and frame the effective price of NVIDIA versus AMD capacity.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental rates bracket the going market price for AI GPU capacity across vendors."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-04-13",
+          "excerpt": "Cloud pricing (per GPU-hr) — B200: $3.99-$8.64; MI350X: $4.40 (DigitalOcean); MI300X: $1.50-$6.98; H100 reference: $1.99-$12.29.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary source aggregating multiple cloud providers' list rates."
+      },
+      "dispersion": "Wide per-vendor ranges: B200 $3.99-$8.64, MI300X $1.50-$6.98, H100 $1.99-$12.29; MI350X anchored at a single $4.40 quote.",
+      "asOf": "2026-07",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "market",
+      "observedAt": "2026-04-13",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-thundercompute-com-60a1bacf-2026-07-6",
+      "statement": "Major cloud providers cut H100, H200, and A100 instance costs by up to 45%, with H100 rentals falling from historical peaks near $8/hr to a much broader, lower market range.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Referenced industry reports show sharp downward pressure on H100, H200, and A100 rental prices.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Falling GPU rental prices signal softening rental demand and oversupply, pressuring merchant-GPU pricing power."
+      },
+      "evidence": [
+        {
+          "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+          "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+          "date": "2026-07-01",
+          "excerpt": "cut costs for H100, H200, and A100 instances by up to 45%",
+          "tier": "secondary"
+        },
+        {
+          "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+          "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+          "date": "2026-07-01",
+          "excerpt": "H100 rental prices have seen some of the most dramatic shifts, leaving behind historical peaks near $8/hr to a much broader market range today.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "referenced industry reports, secondary"
+      },
+      "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "asOf": "2026-07",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": -1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-thundercompute-com-60a1bacf-2026-07-1",
+      "statement": "Thunder Compute lists H100 80GB rentals at $2.19/hr, within a broad market range of $2.01-$11.06/hr across providers.",
+      "kind": "measured",
+      "value": {
+        "number": 2.19,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Reference rental price level for H100 GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.neocloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "H100 hourly rental level anchors merchant-GPU and neocloud rental economics."
+      },
+      "evidence": [
+        {
+          "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+          "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+          "date": "2026-07-01",
+          "excerpt": "Thunder Compute H100 rate $2.19/hr",
+          "tier": "secondary"
+        },
+        {
+          "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+          "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+          "date": "2026-07-01",
+          "excerpt": "H100 80GB pricing now runs from $2.01/hr to $11.06/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "single vendor rate card, secondary source"
+      },
+      "dispersion": "conflicting same-key reports: value 1.09 -> 2.19 (tol 1%); sources: Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "asOf": "2026-07",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "market",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-2026-07-2",
+      "statement": "AMD's MI300X offers the most raw FP8 compute per hardware dollar — about 2,615 TFLOPS for $10,000-$15,000, roughly 2.1e11 FLOPS per dollar — versus NVIDIA's B200 at 4,500 TFLOPS for $30,000-$40,000, an on-paper cost-per-FLOP edge of roughly 1.6x for AMD.",
+      "kind": "measured",
+      "value": {
+        "number": 209000000000.0,
+        "unit": "flops_per_USD"
+      },
+      "trend": "unknown",
+      "why": "TFLOPS per purchase dollar is the raw acquisition-cost efficiency underpinning AMD's 30-50% cheaper hardware pitch.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "On paper AMD undercuts NVIDIA on dollars-per-FLOP, pressuring merchant-GPU pricing, but the source notes software and utilization overhead erase much of it for training."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-04-13",
+          "excerpt": "Hardware purchase price — B200: $30,000-$40,000; MI350X: ~$20,000-$30,000; MI300X: $10,000-$15,000.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-04-13",
+          "excerpt": "TCO: AMD systems '30-50% cheaper' in hardware, though 'software utilization and engineering overhead erase much of it for training.'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary source; ratio derived from stated TFLOPS and broad price ranges."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend unknown -> unknown); sources: GPUAdvisor — NVIDIA B300 Ultra vs AMD MI355X (March 2026), Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+      "asOf": "2026-07",
+      "indicatorId": "flopsPerDollar",
+      "side": "structural",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-04-13",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tweaktown-com-d2d515d6-2026-07-1",
+      "statement": "NVIDIA held roughly 90% of the discrete desktop add-in-board (AIB) GPU market in Q1 2026 per Jon Peddie Research; this is desktop AIB share, a PROXY, and is NOT datacenter GPU share.",
+      "kind": "measured",
+      "value": {
+        "number": 90.0,
+        "unit": "pct_segment_rev"
+      },
+      "trend": "flat",
+      "why": "The 90% figure is measured discrete add-in-board (AIB) desktop GPU share, down about 1 point quarter-over-quarter, so it is essentially steady; it is a proxy for NVIDIA's merchant discrete-GPU dominance and must NOT be read as datacenter GPU share.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "A sustained ~90% desktop AIB share signals NVIDIA's continued grip on the merchant discrete-GPU segment, reinforcing pricing power and channel demand pull for its GPUs."
+      },
+      "evidence": [
+        {
+          "source": "TweakTown — Desktop GPU shipments Q1 2026 (Jon Peddie Research)",
+          "url": "https://www.tweaktown.com/news/112161/desktop-gpu-shipments-hold-steady-in-q1-2026-with-nvidia-maintaining-90-percent-market-share/index.html",
+          "date": "2026-06-11",
+          "excerpt": "NVIDIA 'holding strong at 90%' with 'a 1% drop from the previous quarter'",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary-tier trade-press report citing Jon Peddie Research shipment data; a measured share figure but only a desktop-AIB proxy, so capped at medium."
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend unknown -> flat); sources: Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026), TweakTown — Desktop GPU shipments Q1 2026 (Jon Peddie Research)",
+      "asOf": "2026-07",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06-11",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "siliconanalysts-com-ce97213d-2026-07-1",
+      "statement": "NVIDIA's B200 delivers about 4.5 FP8 dense TFLOPS per watt (4,500 TFLOPS at a 1,000W TDP); AMD's MI350X posts comparable raw FP8 throughput (~4,600 TFLOPS) but across a wider 750-1,400W power envelope, and the older MI300X sits at ~3.5 TFLOPS/W.",
+      "kind": "measured",
+      "value": {
+        "number": 4.5,
+        "unit": "perf_per_W"
+      },
+      "trend": "unknown",
+      "why": "FP8 dense TFLOPS divided by rated TDP is the headline efficiency spec operators use to size clusters against a fixed power budget.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "energy.efficiency"
+        ],
+        "direction": "positive",
+        "mechanism": "Higher delivered FLOPS per watt lets operators pack more usable compute into fixed datacenter power, easing effective compute supply per megawatt."
+      },
+      "evidence": [
+        {
+          "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-04-13",
+          "excerpt": "FP8 Dense TFLOPS — B200: 4,500; MI350X/355X: ~4,600; MI300X: 2,615.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+          "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+          "date": "2026-04-13",
+          "excerpt": "TDP — B200: 1,000W; MI350X: 750-1,400W; MI300X: 750W.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Secondary analyst spec compilation; perf/W is a direct ratio of two stated specs."
+      },
+      "dispersion": "conflicting same-key reports: value 2.25 -> 4.5 (tol 1%); sources: GPUAdvisor — NVIDIA B300 Ultra vs AMD MI355X (March 2026), Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+      "asOf": "2026-07",
+      "indicatorId": "perfPerWatt",
+      "side": "structural",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-04-13",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-1252bbe3-2026-07-1",
+      "statement": "Lambda lists NVIDIA H100 SXM on-demand at $3.99-$4.29 per GPU-hour.",
+      "kind": "measured",
+      "value": {
+        "number": 3.99,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "This is the current displayed hourly rental cost for an H100 on Lambda's cloud, anchoring what NVIDIA compute costs to rent.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Displayed on-demand H100 rental rates set the price level for renting NVIDIA compute on a neocloud; as a static level with no stated change it carries no directional demand or supply signal."
+      },
+      "evidence": [
+        {
+          "source": "Lambda GPU Cloud pricing page",
+          "url": "https://lambda.ai/pricing",
+          "date": "2026-07-13",
+          "excerpt": "H100 SXM $3.99-$4.29/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Directly displayed live vendor pricing; secondary source caps confidence at medium."
+      },
+      "dispersion": "conflicting same-key reports: value 6.69 -> 3.99 (tol 1%); sources: Lambda GPU Cloud pricing page",
+      "asOf": "2026-07",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "nvidia",
+      "observedAt": "2026-07-13",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-runpod-io-bdb62dfd-2026-07-1",
+      "statement": "RunPod on-demand Pods rental price for NVIDIA B300 (>80GB VRAM) is $7.39 per GPU-hour, as displayed on 2026-07-13.",
+      "kind": "measured",
+      "value": {
+        "number": 7.39,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Headline current-gen flagship Blackwell SKU; its on-demand rental level anchors the reference cost for renting top-tier NVIDIA GPUs on neocloud infrastructure.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "On-demand GPU rental price levels set the cost of neocloud capacity and reflect merchant GPU supply/demand economics."
+      },
+      "evidence": [
+        {
+          "source": "RunPod pricing page",
+          "url": "https://www.runpod.io/pricing",
+          "date": "2026-07-13",
+          "excerpt": "B300 $7.39/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Live displayed vendor pricing on a secondary source (RunPod pricing page)."
+      },
+      "dispersion": "conflicting same-key reports: value 2.99 -> 7.39 (tol 1%); sources: RunPod pricing page",
+      "asOf": "2026-07",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-13",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-tweaktown-com-a0083106-2026-07-1",
+      "statement": "SK hynix, Samsung, and Micron have begun full-scale development of 16-Hi HBM4 memory for NVIDIA, targeting delivery by Q4 2026 — a forward supply-chain ramp for NVIDIA's next-gen accelerators.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "NVIDIA's request for 16-Hi HBM4 by Q4 2026 plus three suppliers' full-scale development work indicate HBM capacity being built to meet next-gen GPU demand.",
+      "impact": {
+        "targets": [
+          "chips.hbm-memory",
+          "chips.merchant-gpu",
+          "chips.foundry-packaging"
+        ],
+        "direction": "positive",
+        "mechanism": "Multi-vendor 16-Hi HBM4 development expands high-bandwidth memory supply for NVIDIA's next-generation GPUs."
+      },
+      "evidence": [
+        {
+          "source": "TweakTown — SK hynix/Samsung/Micron fight for NVIDIA 16-Hi HBM4 orders",
+          "url": "https://www.tweaktown.com/news/109495/sk-hynix-samsung-and-micron-fighting-for-nvidia-supply-contracts-for-new-16-hi-hbm4-orders/index.html",
+          "date": "2025-12-28",
+          "excerpt": "NVIDIA requested that domestic and foreign memory manufacturers deliver 16-Hi HBM memory chips by Q4 2026.",
+          "tier": "secondary"
+        },
+        {
+          "source": "TweakTown — SK hynix/Samsung/Micron fight for NVIDIA 16-Hi HBM4 orders",
+          "url": "https://www.tweaktown.com/news/109495/sk-hynix-samsung-and-micron-fighting-for-nvidia-supply-contracts-for-new-16-hi-hbm4-orders/index.html",
+          "date": "2025-12-28",
+          "excerpt": "SK hynix and Samsung Electronics in South Korea, as well as US-based Micron, have all begun full-scale development work for the mass production supply of 16-Hi HBM memory chips to NVIDIA.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "single trade-press source, development-stage (no production volumes)"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "S10",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2025-12-28",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "finance-yahoo-com-acf60faa-2026-07-1",
+      "statement": "China signaled Alibaba, ByteDance and DeepSeek may soon receive permission to buy some H200 chips, a provisional loosening of market access.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Chinese officials indicated potential approval for top AI firms to buy H200s (fewer than 200,000 total, less than half of what was requested), which would expand NVIDIA's addressable China demand; however the plan is not finalized and is heavily conditioned (Huawei Ascend prioritized for inference, H200 training on public data only).",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Approval for Chinese AI firms to purchase H200s reopens a restricted market and expands NVIDIA merchant GPU demand, subject to provisional conditions."
+      },
+      "evidence": [
+        {
+          "source": "Reuters (via Yahoo Finance) — China to let top AI firms buy limited H200 chips",
+          "url": "https://finance.yahoo.com/technology/ai/articles/china-plans-let-top-ai-150506111.html",
+          "date": "2026-07-08",
+          "excerpt": "Chinese officials have told Alibaba, ByteDance and DeepSeek in recent weeks that they may soon receive permission to buy some H200 chips.",
+          "tier": "secondary"
+        },
+        {
+          "source": "Reuters (via Yahoo Finance) — China to let top AI firms buy limited H200 chips",
+          "url": "https://finance.yahoo.com/technology/ai/articles/china-plans-let-top-ai-150506111.html",
+          "date": "2026-07-08",
+          "excerpt": "could amount to fewer than 200,000 in total,",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "provisional, not-yet-finalized policy reported second-hand via a secondary outlet"
+      },
+      "dispersion": null,
+      "asOf": "2026-07",
+      "indicatorId": "exportControlExposure",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-08",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "compute-exchange-50e44183-2026-07-4",
+      "statement": "Blackwell availability is expected to exert 10-20% downward pressure on H100 secondary pricing.",
+      "kind": "observed",
+      "value": null,
+      "trend": "falling",
+      "why": "Incoming newer-generation Blackwell supply is expected to reduce demand for and resale value of H100 in the secondary market.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "negative",
+        "mechanism": "Rising Blackwell availability erodes H100 secondary resale prices."
+      },
+      "evidence": [
+        {
+          "source": "Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+          "url": "https://compute.exchange/blogs/h100-gpu-price-2026",
+          "date": "2026-07-01",
+          "excerpt": "Blackwell availability is expected to exert 10-20% downward pressure on H100 secondary pricing.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "low",
+        "basis": "forward-looking expectation stated in secondary-market blog"
+      },
+      "dispersion": "conflicting same-key reports: statement/trend changed (trend flat -> falling); sources: Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+      "asOf": "2026-07",
+      "indicatorId": "gpuSpotPrice",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "compute-exchange-50e44183-2026-07-1",
+      "statement": "H100 80GB new secondary-market resale price ranges $25,000-$40,000 (PCIe through SXM5, with SXM at a premium).",
+      "kind": "measured",
+      "value": {
+        "number": 32500.0,
+        "unit": "USD_per_gpu"
+      },
+      "trend": "unknown",
+      "why": "Secondary-market aggregator lists new-unit H100 80GB resale prices as a static market level, not a change.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Secondary resale price level for H100 sets a market reference for merchant GPU valuations."
+      },
+      "evidence": [
+        {
+          "source": "Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+          "url": "https://compute.exchange/blogs/h100-gpu-price-2026",
+          "date": "2026-07-01",
+          "excerpt": "New $25,000-$40,000 (PCIe through SXM5; SXM commands the premium)",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "secondary-market resale aggregator blog"
+      },
+      "dispersion": "conflicting same-key reports: value 21500.0 -> 32500.0 (tol 1%); sources: Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+      "asOf": "2026-07",
+      "indicatorId": "gpuSpotPrice",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "nvidia",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-13T02:15:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    }
+  ],
+  "dimensionRatings": {
+    "bottleneck": {
+      "rating": "Mixed",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "www-trendforce-com-368d8402-2026-07-1",
+        "www-trendforce-com-368d8402-2026-07-2",
+        "www-digitimes-com-240df012-2026-07-1",
+        "www-investing-com-09606ac9-2026-07-1",
+        "finance-yahoo-com-ea29a8bf-2026-07-1",
+        "finance-biggo-com-c310c4ca-2026-07-06-1"
+      ],
+      "rationale": "TSMC's packaging shortfall is set to narrow from about 20% to 10% by the end of 2026 as outside assemblers add capacity, easing the constraint that gated shipments a year ago. Memory is now the tight link, with high-bandwidth chips sold out through 2027 and rack-component prices climbing 2-3% a week.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "competitiveStructure": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "www-sec-gov-76c06b12-2026-07-1",
+        "www-investing-com-f24cdca0-1",
+        "www-spheron-network-f3e3c0bd-2026-07-1",
+        "www-spheron-network-e5a0032c-2026-07-2",
+        "www-digitimes-com-f88ca4e6-2",
+        "longcat-chat-e59c7f82-2026-07-06-1"
+      ],
+      "rationale": "AMD landed a phased Rackspace deployment and drew a raised price target on its Instinct path, while hyperscaler in-house chips and a Chinese frontier model trained on 50,000 domestic accelerators show buyers building around the incumbent. Rivalry is broadening faster than a year ago.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "moat": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "www-tomshardware-com-f77e9757-2026-07-1",
+        "www-amd-com-49475e6c-2026-07-2",
+        "www-digitimes-com-8764779e-1",
+        "www-spheron-network-f3e3c0bd-2026-07-2"
+      ],
+      "rationale": "NVIDIA still commands roughly 70-80% of AI accelerators and now leads data-center Ethernet switching by bundling Spectrum-X with Blackwell, which widens its full-stack hold. That grip is thinning at the edge as custom chips, projected at 27.8% of the market and growing 44.6% a year, take share.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "momentum": {
+      "rating": "Very strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+        "www-stocktitan-net-fe36e810-2026-07-1",
+        "www-stocktitan-net-fe36e810-2026-07-3",
+        "www-tomshardware-com-f77e9757-2026-07-2",
+        "www-digitimes-com-f88ca4e6-1",
+        "www-forbes-com-9a1166d5-2026-07-1"
+      ],
+      "rationale": "NVIDIA posted record data-center revenue of $75.2 billion, up 92% from a year earlier, and guided the next quarter to $91 billion, while AMD's data-center sales rose 57% and Broadcom's order book reached $73 billion. Demand is accelerating across the whole chain, and the only cloud on the horizon is early doubt about whether hyperscaler capital spending can keep climbing.",
+      "voteSpread": "3/3 Very strong"
+    },
+    "strategicRisk": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "www-sec-gov-125b52f2-2026-07-2",
+        "www-sec-gov-125b52f2-2026-07-1",
+        "www-sec-gov-bdd91a43-2026-07-1",
+        "s201-q4cdn-com-f9f138ac-2026-07-2",
+        "www-datacenterdynamics-com-0c76f530-2026-07-06-1",
+        "www-datacenterdynamics-com-45864e2a-2026-07-06-2"
+      ],
+      "rationale": "China now buys almost no data-center compute from NVIDIA, its top four customers exceed half of revenue, and Taiwan is prosecuting a $2.5 billion chip-smuggling case, all pointing to concentrated and politically exposed demand. Vendor financing that funds smaller clouds to buy GPUs adds a circular-money worry on top.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "unitEconomics": {
+      "rating": "Strong",
+      "direction": "steady",
+      "confidence": {
+        "level": "high",
+        "basis": "majority of 3/3 samples"
+      },
+      "findingIds": [
+        "investor-nvidia-com-c649ac13-2026-07-3",
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-3",
+        "ir-amd-com-f416295d-2026-07-2",
+        "www-stocktitan-net-fe36e810-2026-07-2"
+      ],
+      "rationale": "NVIDIA holds a 75% gross margin with the same guided for next quarter, and AMD's margin climbs from 55% toward 56%. Pricing and cost discipline stay intact at the high end even as competition builds.",
+      "voteSpread": "3/3 Strong"
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 1.1266666666666667,
+    "smiContribution": 0.42,
+    "anchors": {
+      "bottleneck": 0.2121212121212121,
+      "momentum": 0.717948717948718,
+      "unitEconomics": 0.3333333333333333,
+      "strategicRisk": -0.2564102564102564,
+      "moat": 0.11111111111111109,
+      "competitiveStructure": 0.1111111111111111
+    },
+    "sdgi": 0.7066666666666668,
+    "sdgiDirection": "demand-led"
+  },
+  "narrative": "Demand and vendor economics are running very strong — NVIDIA guiding to $91 billion a quarter at 75% margins — so the market's ceiling is set by physical supply, and that ceiling is lifting as TSMC packaging capacity catches up. The next rating move turns on two questions: whether high-bandwidth memory, now sold out through 2027, becomes the new hard limit, and whether the demand funded by NVIDIA's own vendor financing is as durable as the order books imply — here we sit more cautious than the consensus that treats the backlog as fully organic. The first place this picture would crack is memory: if high-bandwidth chip lead times stretch or rack-component prices keep climbing week over week, shipment growth stalls even with packaging freed up.",
+  "confidence": {
+    "level": "high",
+    "basis": "self-consistency over 3 samples"
+  },
+  "sources": [
+    "AMD Blogs - Instinct MI350 Series / Advancing AI (design wins)",
+    "AMD Q1 2026 financial results",
+    "AMD Q1 2026 financial results press release (Form 8-K)",
+    "AMD SEC Form 10-Q",
+    "AMD-Rackspace definitive agreement (Rackspace 8-K EX-99.1)",
+    "BigGo Finance",
+    "CNBC",
+    "Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+    "DIGITIMES",
+    "Data Center Dynamics",
+    "DigiTimes",
+    "Digitimes",
+    "Federal Register - Bureau of Industry and Security final rule (Doc. 2026-00789)",
+    "Forbes (Peter Cohan) — Inside the July 2026 semiconductor selloff",
+    "IntuitionLabs - NVIDIA Data Center GPU Specs comparison",
+    "Investing.com",
+    "Lambda GPU Cloud pricing page",
+    "Meituan LongCat",
+    "Micron Q3 FY2026 slides via Investing.com",
+    "Micron fiscal Q3 2026 earnings call via Yahoo Finance",
+    "NVIDIA Blog / Newsroom",
+    "NVIDIA CFO Commentary Q1 FY2027",
+    "NVIDIA Form 10-K FY ended January 25, 2026 (SEC, filed 2026-02-25) - customer concentration",
+    "NVIDIA Form 10-Q (SEC EDGAR)",
+    "NVIDIA Form 10-Q Q1 FY2027",
+    "NVIDIA Investor Relations press release",
+    "NVIDIA Newsroom",
+    "NVIDIA Q1 FY2027 earnings call transcript (via The Motley Fool)",
+    "NVIDIA Q1 FY2027 financial results press release (Form 8-K / NVIDIA IR)",
+    "NVIDIA SEC Form 10-Q",
+    "NVIDIA official newsroom press release",
+    "Reuters (via Yahoo Finance) — China to let top AI firms buy limited H200 chips",
+    "RunPod NVIDIA B200 spec guide",
+    "RunPod pricing page",
+    "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+    "Spheron Blog - GPU Cloud News 2026 (release cadence + lead times)",
+    "Spheron Blog - Hyperscaler Custom AI Chips 2026 (competitive structure / S9)",
+    "Spheron Network NVIDIA B200 guide",
+    "Startup Fortune",
+    "TechCrunch",
+    "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+    "Tom's Hardware Intel Crescent Island Computex 2026",
+    "Tom's Hardware custom AI ASIC state of play",
+    "TrendForce News CoWoS supply-demand gap",
+    "TweakTown — Desktop GPU shipments Q1 2026 (Jon Peddie Research)",
+    "TweakTown — SK hynix/Samsung/Micron fight for NVIDIA 16-Hi HBM4 orders",
+    "U.S. Dept of Commerce, BIS press release",
+    "Yahoo Finance (Bloomberg syndication)",
+    "Yahoo Tech (BeInCrypto syndication)"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.1"
+  },
+  "dimensionStatus": {
+    "momentum": {
+      "evidenceStatus": "grounded",
+      "findingCount": 7,
+      "confidenceCap": null,
+      "note": ""
+    },
+    "unitEconomics": {
+      "evidenceStatus": "grounded",
+      "findingCount": 4,
+      "confidenceCap": null,
+      "note": ""
+    },
+    "competitiveStructure": {
+      "evidenceStatus": "grounded",
+      "findingCount": 6,
+      "confidenceCap": null,
+      "note": ""
+    },
+    "moat": {
+      "evidenceStatus": "grounded",
+      "findingCount": 4,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "bottleneck": {
+      "evidenceStatus": "grounded",
+      "findingCount": 6,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "strategicRisk": {
+      "evidenceStatus": "grounded",
+      "findingCount": 6,
+      "confidenceCap": null,
+      "note": ""
+    }
+  },
+  "categoryStatus": {
+    "rating": "Strong",
+    "direction": "improving",
+    "bottleneck": "bottleneck",
+    "reason": "Demand and margins run very strong, so the single binding constraint stays physical supply; with TSMC packaging capacity catching up, high-bandwidth memory sold out through 2027 is now the hard limit on how much GPU can ship.",
+    "constraintLabel": "HBM3E/HBM4 memory supply"
+  },
+  "indices": {
+    "momentum": {
+      "dmiContribution": 0.3933333333333333,
+      "smiContribution": 0.42,
+      "anchors": {},
+      "sdgi": -0.026666666666666672,
+      "sdgiDirection": "supply-led"
+    },
+    "outlook": {
+      "dmiContribution": 0.7333333333333334,
+      "smiContribution": 0.0,
+      "anchors": {},
+      "sdgi": 0.7333333333333334,
+      "sdgiDirection": "demand-led"
+    },
+    "divergence": {
+      "state": "diverging-strengthening",
+      "sdgiGap": 0.76,
+      "outlookFindingCount": 8,
+      "momentumFindingCount": 34,
+      "note": ""
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "www-tweaktown-com-d2d515d6-2026-07-1",
+  "statement": "NVIDIA held roughly 90% of the discrete desktop add-in-board (AIB) GPU market in Q1 2026 per Jon Peddie Research; this is desktop AIB share, a PROXY, and is NOT datacenter GPU share.",
+  "kind": "measured",
+  "value": {
+    "number": 90.0,
+    "unit": "pct_segment_rev"
+  },
+  "trend": "flat",
+  "why": "The 90% figure is measured discrete add-in-board (AIB) desktop GPU share, down about 1 point quarter-over-quarter, so it is essentially steady; it is a proxy for NVIDIA's merchant discrete-GPU dominance and must NOT be read as datacenter GPU share.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "A sustained ~90% desktop AIB share signals NVIDIA's continued grip on the merchant discrete-GPU segment, reinforcing pricing power and channel demand pull for its GPUs."
+  },
+  "evidence": [
+    {
+      "source": "TweakTown — Desktop GPU shipments Q1 2026 (Jon Peddie Research)",
+      "url": "https://www.tweaktown.com/news/112161/desktop-gpu-shipments-hold-steady-in-q1-2026-with-nvidia-maintaining-90-percent-market-share/index.html",
+      "date": "2026-06-11",
+      "excerpt": "NVIDIA 'holding strong at 90%' with 'a 1% drop from the previous quarter'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary-tier trade-press report citing Jon Peddie Research shipment data; a measured share figure but only a desktop-AIB proxy, so capped at medium."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend unknown -> flat); sources: Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026), TweakTown — Desktop GPU shipments Q1 2026 (Jon Peddie Research)",
+  "asOf": "2026-07",
+  "indicatorId": "market-share-pct",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-06-11",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

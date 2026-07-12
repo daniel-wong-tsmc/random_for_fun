@@ -1,0 +1,41 @@
+{
+  "id": "compute-exchange-50e44183-2026-07-4",
+  "statement": "Blackwell availability is expected to exert 10-20% downward pressure on H100 secondary pricing.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Incoming newer-generation Blackwell supply is expected to reduce demand for and resale value of H100 in the secondary market.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "negative",
+    "mechanism": "Rising Blackwell availability erodes H100 secondary resale prices."
+  },
+  "evidence": [
+    {
+      "source": "Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+      "url": "https://compute.exchange/blogs/h100-gpu-price-2026",
+      "date": "2026-07-01",
+      "excerpt": "Blackwell availability is expected to exert 10-20% downward pressure on H100 secondary pricing.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "forward-looking expectation stated in secondary-market blog"
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend flat -> falling); sources: Compute Exchange — NVIDIA H100 GPU Price in 2026 (secondary market)",
+  "asOf": "2026-07",
+  "indicatorId": "gpuSpotPrice",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

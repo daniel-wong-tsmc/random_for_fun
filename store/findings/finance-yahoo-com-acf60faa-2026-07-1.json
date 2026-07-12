@@ -1,0 +1,48 @@
+{
+  "id": "finance-yahoo-com-acf60faa-2026-07-1",
+  "statement": "China signaled Alibaba, ByteDance and DeepSeek may soon receive permission to buy some H200 chips, a provisional loosening of market access.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Chinese officials indicated potential approval for top AI firms to buy H200s (fewer than 200,000 total, less than half of what was requested), which would expand NVIDIA's addressable China demand; however the plan is not finalized and is heavily conditioned (Huawei Ascend prioritized for inference, H200 training on public data only).",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "Approval for Chinese AI firms to purchase H200s reopens a restricted market and expands NVIDIA merchant GPU demand, subject to provisional conditions."
+  },
+  "evidence": [
+    {
+      "source": "Reuters (via Yahoo Finance) — China to let top AI firms buy limited H200 chips",
+      "url": "https://finance.yahoo.com/technology/ai/articles/china-plans-let-top-ai-150506111.html",
+      "date": "2026-07-08",
+      "excerpt": "Chinese officials have told Alibaba, ByteDance and DeepSeek in recent weeks that they may soon receive permission to buy some H200 chips.",
+      "tier": "secondary"
+    },
+    {
+      "source": "Reuters (via Yahoo Finance) — China to let top AI firms buy limited H200 chips",
+      "url": "https://finance.yahoo.com/technology/ai/articles/china-plans-let-top-ai-150506111.html",
+      "date": "2026-07-08",
+      "excerpt": "could amount to fewer than 200,000 in total,",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "provisional, not-yet-finalized policy reported second-hand via a secondary outlet"
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "exportControlExposure",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "nvidia",
+  "observedAt": "2026-07-08",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

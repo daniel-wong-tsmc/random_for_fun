@@ -90,3 +90,14 @@
 {"seq":89,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-sec-gov-125b52f2-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":90,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-tomshardware-com-f77e9757-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":91,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-spheron-network-6245e067-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":92,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"www-forbes-com-9a1166d5-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":93,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"siliconanalysts-com-ce97213d-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":94,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"www-thundercompute-com-60a1bacf-2026-07-6","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":95,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"www-thundercompute-com-60a1bacf-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":96,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"siliconanalysts-com-ce97213d-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":97,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"www-tweaktown-com-d2d515d6-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":98,"asOf":"2026-07","kind":"append-observation","pageId":"entity:market","findingId":"siliconanalysts-com-ce97213d-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":99,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"www-tweaktown-com-a0083106-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":100,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"finance-yahoo-com-acf60faa-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":101,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"compute-exchange-50e44183-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":102,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"compute-exchange-50e44183-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}

@@ -1,0 +1,52 @@
+{
+  "id": "siliconanalysts-com-ce97213d-2026-07-1",
+  "statement": "NVIDIA's B200 delivers about 4.5 FP8 dense TFLOPS per watt (4,500 TFLOPS at a 1,000W TDP); AMD's MI350X posts comparable raw FP8 throughput (~4,600 TFLOPS) but across a wider 750-1,400W power envelope, and the older MI300X sits at ~3.5 TFLOPS/W.",
+  "kind": "measured",
+  "value": {
+    "number": 4.5,
+    "unit": "perf_per_W"
+  },
+  "trend": "unknown",
+  "why": "FP8 dense TFLOPS divided by rated TDP is the headline efficiency spec operators use to size clusters against a fixed power budget.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "energy.efficiency"
+    ],
+    "direction": "positive",
+    "mechanism": "Higher delivered FLOPS per watt lets operators pack more usable compute into fixed datacenter power, easing effective compute supply per megawatt."
+  },
+  "evidence": [
+    {
+      "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+      "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+      "date": "2026-04-13",
+      "excerpt": "FP8 Dense TFLOPS — B200: 4,500; MI350X/355X: ~4,600; MI300X: 2,615.",
+      "tier": "secondary"
+    },
+    {
+      "source": "Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+      "url": "https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026",
+      "date": "2026-04-13",
+      "excerpt": "TDP — B200: 1,000W; MI350X: 750-1,400W; MI300X: 750W.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary analyst spec compilation; perf/W is a direct ratio of two stated specs."
+  },
+  "dispersion": "conflicting same-key reports: value 2.25 -> 4.5 (tol 1%); sources: GPUAdvisor — NVIDIA B300 Ultra vs AMD MI355X (March 2026), Silicon Analysts — NVIDIA vs AMD AI GPU Specifications & Pricing (April 2026)",
+  "asOf": "2026-07",
+  "indicatorId": "perfPerWatt",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-04-13",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

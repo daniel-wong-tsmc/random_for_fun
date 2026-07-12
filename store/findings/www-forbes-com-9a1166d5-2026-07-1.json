@@ -1,0 +1,50 @@
+{
+  "id": "www-forbes-com-9a1166d5-2026-07-1",
+  "statement": "In early July 2026 market sentiment turned to doubt about the return on AI-infrastructure spending, with analysts warning that hyperscalers' 67% jump in AI capex to $650 billion 'may be unsustainable' — a demand-side risk for merchant AI GPUs even though no vendor shipment figures are given.",
+  "kind": "observed",
+  "value": null,
+  "trend": "falling",
+  "why": "Hyperscaler capex is the primary demand engine for data-center GPUs; if that spending is judged unsustainable and its ROI is doubted, the GPU demand outlook weakens.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hbm-memory",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "negative",
+    "mechanism": "Investor doubt about AI-infrastructure ROI plus a possibly unsustainable 67% capex surge threatens the spending flow that drives merchant-GPU and HBM demand."
+  },
+  "evidence": [
+    {
+      "source": "Forbes (Peter Cohan) — Inside the July 2026 semiconductor selloff",
+      "url": "https://www.forbes.com/sites/petercohan/2026/07/08/intel-stock-down-21-inside-the-july-2026-semiconductor-selloff/",
+      "date": "2026-07-08",
+      "excerpt": "doubt about the return on AI infrastructure spending, dot-com-level valuations and a more hawkish Fed",
+      "tier": "secondary"
+    },
+    {
+      "source": "Forbes (Peter Cohan) — Inside the July 2026 semiconductor selloff",
+      "url": "https://www.forbes.com/sites/petercohan/2026/07/08/intel-stock-down-21-inside-the-july-2026-semiconductor-selloff/",
+      "date": "2026-07-08",
+      "excerpt": "hyperscalers' 67% jump in AI capital expenditures to $650 billion may be unsustainable.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "low",
+    "basis": "Stock-market sentiment and analyst commentary, not shipment or order data; secondary source."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": -1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "market",
+  "observedAt": "2026-07-08",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

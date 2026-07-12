@@ -1,0 +1,52 @@
+{
+  "id": "www-thundercompute-com-60a1bacf-2026-07-1",
+  "statement": "Thunder Compute lists H100 80GB rentals at $2.19/hr, within a broad market range of $2.01-$11.06/hr across providers.",
+  "kind": "measured",
+  "value": {
+    "number": 2.19,
+    "unit": "USD_per_gpu_hr"
+  },
+  "trend": "unknown",
+  "why": "Reference rental price level for H100 GPUs.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "infrastructure.neocloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "H100 hourly rental level anchors merchant-GPU and neocloud rental economics."
+  },
+  "evidence": [
+    {
+      "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+      "date": "2026-07-01",
+      "excerpt": "Thunder Compute H100 rate $2.19/hr",
+      "tier": "secondary"
+    },
+    {
+      "source": "Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+      "url": "https://www.thundercompute.com/blog/ai-gpu-rental-market-trends",
+      "date": "2026-07-01",
+      "excerpt": "H100 80GB pricing now runs from $2.01/hr to $11.06/hr",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "single vendor rate card, secondary source"
+  },
+  "dispersion": "conflicting same-key reports: value 1.09 -> 2.19 (tol 1%); sources: Thunder Compute — AI GPU Rental Market Trends (July 2026)",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "market",
+  "observedAt": "2026-07-01",
+  "capturedAt": "2026-07-13T02:15:00Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

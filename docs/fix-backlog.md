@@ -882,6 +882,19 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   gatherer prose tightens; any F2e counting-semantics change rides a Part 33 migration as F72
   did.
 
+- [ ] **F87 — Stale-lock takeover for the wiki log lock (before unattended runs are
+  load-bearing).** Born from the F25 final review (2026-07-12, reviewer-recommended follow-up;
+  review verdict in `.superpowers/handoffs/f25-wiki-scale-DONE.md`). F25's lockfile-guarded seq
+  mint chose fail-loud on a leftover `store/wiki/log.jsonl.lock` (hard crash → every later run
+  raises TimeoutError until a human deletes the lock) — right default for attended runs, but it
+  collides with F83's unattended scheduled dailies: a crashed 3am run bricks every following
+  morning. Fix, per the review: record PID + timestamp inside the lock file; on lock timeout,
+  take over ONLY if the lock is stale AND its PID is provably dead, else keep failing loud.
+  Include the two review minors while there: the timeout message should name the remedy
+  ("delete this file if no writer is running"), and note the pre-existing torn-write edge in
+  the spec's risk section. Small, wiki-lane only. **Sequencing: before unattended scheduled
+  runs become load-bearing** — effectively alongside F83's conformance-pin half.
+
 - [ ] **F86 — Model-swap recalibration plan (the analysts get replaced on Anthropic's schedule,
   not ours).** User asked for this 2026-07-12; assistant's lean, to confirm at brainstorm. The
   eval baseline, voice, and gate behavior are all tuned to one model version, backed by a single

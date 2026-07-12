@@ -315,20 +315,26 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **THREE PARALLEL FIX LANES CLAIMED + DISPATCHED (2026-07-12, orchestrator session, user-directed
-  "start the parallelization today"):** background Opus agents, one per worktree, each running the
-  superpowers workflow (brainstorm → spec → plan → TDD), STOPS before merge, sentinel on finish.
-  File-disjoint from the stage-6 lane except one flagged overlap (below). Only the user merges.
-  - **F25** `.worktrees/f25-wiki-scale`, branch `f25-wiki-store-scale` — wiki store performance +
-    concurrency (owns `gpu_agent/wiki/`, `tests/test_wiki*`). Sentinel:
-    `.superpowers/handoffs/f25-wiki-scale-DONE.md`.
-  - **F56** `.worktrees/f56-asof`, branch `f56-asof-validation` — `--as-of` shape validation +
-    two cosmetic minors (minimal `cli.py` seam edits + a validator helper). **Flagged overlap:**
-    stage-6 also wires CLI — F56 merges AFTER stage 6, rebased. Sentinel:
-    `.superpowers/handoffs/f56-asof-DONE.md`.
-  - **F23** `.worktrees/f23-compliance`, branch `f23-compliance-matrix` — charter compliance
-    matrix (owns new `docs/compliance-matrix.md` + `tests/test_compliance_matrix.py`; touches no
-    product code). Sentinel: `.superpowers/handoffs/f23-compliance-DONE.md`.
+- **WAVE-1 FIX LANES ALL DONE + REVIEWED READY-TO-MERGE (2026-07-12, orchestrator session) —
+  AWAITING USER MERGE.** Three background Opus lanes (user-directed "start the parallelization
+  today"), each superpowers-workflow built, each given a fresh-context Opus whole-branch review
+  (verdicts + open decisions appended to each sentinel). Only the user merges. Suggested merge
+  order: F25 and F23 any time (file-disjoint from everything); F56 AFTER F78 stage 6, rebased.
+  - **F25 READY** `.worktrees/f25-wiki-scale`, branch `f25-wiki-store-scale` @ `7f4e762`
+    (8 commits, suite 1215/5). Wiki store: incremental log cache, Aho-Corasick health scan,
+    lockfile seq mint (~54×/40×/3.6× measured). Review: Ready to merge, 0 Critical; ONE
+    forward-looking flag logged as **F87** (stale-lock takeover before unattended runs).
+    Sentinel: `.superpowers/handoffs/f25-wiki-scale-DONE.md`.
+  - **F56 READY (after stage 6)** `.worktrees/f56-asof`, branch `f56-asof-validation` @
+    `2516064` (5 commits, suite 1210/5). All 10 `--as-of` CLI seams validated; review: Ready to
+    merge, 0 Critical/Important, both AFK picks endorsed. **Merge AFTER F78 stage 6, rebase
+    first** (shared cli.py, tiny). Sentinel: `.superpowers/handoffs/f56-asof-DONE.md`.
+  - **F23 READY** `.worktrees/f23-compliance`, branch `f23-compliance-matrix` @ `a801277`
+    (4 commits, suite 1210/5). Compliance matrix: 123 rows, 57/25/10/27/4/0, 65 test-function
+    pins + rot lint. Review round 1 caught 1 Critical + 3 Important (all fixed, verified);
+    round 2: Ready to merge. OPEN DECISION A4 in the sentinel (P19.budget DEFERRED vs
+    NOT-ENFORCED — reviewer leans DEFERRED). Sentinel:
+    `.superpowers/handoffs/f23-compliance-DONE.md`.
 - **F78 stage-6 lane CLAIMED + IN FLIGHT (2026-07-12).** Worktree `.worktrees/f78-stage6`,
   branch `f78-stage6` off `b7e66aa` (dependency gate verified: `gpu_agent.asof` +
   `gpu_agent.pricefeed` import). Plan

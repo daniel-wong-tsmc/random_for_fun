@@ -158,3 +158,187 @@ def nearest_run_at_or_before(store_dir, category_id: str, target: datetime.date,
         return None
     cands.sort(key=lambda t: (t[0], t[2]))   # period-end asc, then version asc
     return cands[-1][3]
+
+
+from gpu_agent.report import _momentum_word   # local, one-way; report never imports change
+
+_ROUND = 3   # match report's %.3f index display so float noise never reads as a "change"
+
+
+class ItemDelta(BaseModel):
+    key: str                          # "dim:<d>", "index:demand|supply|gap", "thesis:<id>", "metric:<iid>", "price:<model>"
+    changed: bool
+    today: Optional[str] = None       # display token (renderer applies reader labels)
+    prior: Optional[str] = None
+    direction: str = "same"           # "up" | "down" | "same" | "new"
+    unchangedSince: Optional[str] = None
+
+
+class HorizonDiff(BaseModel):
+    horizon: str                      # "yesterday" | "last week" | "last month"
+    lookbackDays: int
+    priorAsOf: Optional[str] = None   # nearest run's asOf; None when no run at/before the target
+    items: list[ItemDelta] = Field(default_factory=list)
+
+
+class ChangeReport(BaseModel):
+    asOf: str
+    horizons: list[HorizonDiff] = Field(default_factory=list)
+    # AMENDED 2026-07-11: per-horizon prior StateVector (keyed by horizon name, None when no
+    # run at/before that target) — the top band needs prior VALUES (bands.band_with_prior),
+    # not display tokens; build_change_report already constructs these, now it keeps them.
+    priors: dict[str, Optional[StateVector]] = Field(default_factory=dict)
+
+
+def _index_token(value: float) -> str:
+    return f"{_momentum_word(value)} {value:.3f}"
+
+
+def _dir_of(today: float, prior: float) -> str:
+    d = round(today, _ROUND) - round(prior, _ROUND)
+    return "up" if d > 0 else "down" if d < 0 else "same"
+
+
+def _metric_token(cell: "MetricCell") -> str:
+    if cell.value is not None:
+        return f"{cell.value:g}{(' ' + cell.unit) if cell.unit else ''}"
+    return cell.statement
+
+
+def _price_changed(a: float, b: float) -> tuple[bool, str]:
+    tol = _PRICE_REL_TOL * max(abs(b), 1e-9)
+    d = a - b
+    if abs(d) <= tol:
+        return False, "same"
+    return True, ("up" if d > 0 else "down")
+
+
+def diff_states(name: str, days: int, current: StateVector,
+                prior: Optional[StateVector], prior_asof: Optional[str],
+                book: Optional[ThesisBook]) -> HorizonDiff:
+    """One horizon's point-in-time diff. Dimensions/indices/metrics/prices are two-snapshot
+    diffs (current vs prior); theses read movement from the current book's lastChangedAsOf vs
+    prior_asof (stored scorecards don't embed past book state — see the Task 3 assumption).
+    prior=None (no run at/before this horizon) -> empty items list."""
+    items: list[ItemDelta] = []
+    if prior is None:
+        return HorizonDiff(horizon=name, lookbackDays=days, priorAsOf=None, items=items)
+
+    # dimensions
+    for d, cell in current.dimensions.items():
+        tok = f"{cell.rating}/{cell.direction}"
+        pcell = prior.dimensions.get(d)
+        if pcell is None:
+            items.append(ItemDelta(key=f"dim:{d}", changed=True, today=tok, direction="new"))
+        else:
+            ptok = f"{pcell.rating}/{pcell.direction}"
+            items.append(ItemDelta(key=f"dim:{d}", changed=(tok != ptok), today=tok, prior=ptok,
+                                   direction=("same" if tok == ptok else "up")))  # dim direction refined in the renderer
+
+    # indices: demand, supply, gap
+    for key, cur_v, pri_v in (("index:demand", current.demand, prior.demand),
+                              ("index:supply", current.supply, prior.supply),
+                              ("index:gap", current.sdgi, prior.sdgi)):
+        direction = _dir_of(cur_v, pri_v)
+        items.append(ItemDelta(key=key, changed=(direction != "same"),
+                               today=_index_token(cur_v), prior=_index_token(pri_v),
+                               direction=direction))
+
+    # headline metrics
+    for iid, cell in current.metrics.items():
+        tok = _metric_token(cell)
+        pcell = prior.metrics.get(iid)
+        if pcell is None:
+            items.append(ItemDelta(key=f"metric:{iid}", changed=True, today=tok, direction="new"))
+            continue
+        ptok = _metric_token(pcell)
+        direction = "same"
+        if cell.value is not None and pcell.value is not None:
+            direction = _dir_of(cell.value, pcell.value)
+        items.append(ItemDelta(key=f"metric:{iid}", changed=(tok != ptok), today=tok, prior=ptok,
+                               direction=direction))
+
+    # prices
+    pprice = {p.model: p for p in prior.prices}
+    for p in current.prices:
+        pp = pprice.get(p.model)
+        if pp is None:
+            items.append(ItemDelta(key=f"price:{p.model}", changed=True,
+                                   today=f"${p.usdPerGpuHour:g}/GPU-hr", direction="new"))
+            continue
+        changed, direction = _price_changed(p.usdPerGpuHour, pp.usdPerGpuHour)
+        items.append(ItemDelta(key=f"price:{p.model}", changed=changed,
+                               today=f"${p.usdPerGpuHour:g}/GPU-hr",
+                               prior=f"${pp.usdPerGpuHour:g}/GPU-hr", direction=direction))
+
+    # binding constraint (AMENDED 2026-07-11 — feeds the exec top band + the alert ladder's
+    # constraint-rotated trigger; None-safe: older scorecards may carry no categoryStatus)
+    if current.constraintLabel is not None:
+        if prior.constraintLabel is None:
+            items.append(ItemDelta(key="status:constraint", changed=True,
+                                   today=current.constraintLabel, direction="new"))
+        else:
+            items.append(ItemDelta(key="status:constraint",
+                                   changed=(current.constraintLabel != prior.constraintLabel),
+                                   today=current.constraintLabel, prior=prior.constraintLabel,
+                                   direction=("same" if current.constraintLabel == prior.constraintLabel
+                                              else "new")))
+
+    # theses — movement from the current book's timestamps vs this horizon's prior asOf
+    if book is not None and prior_asof is not None:
+        _DIR = {1: "up", -1: "down", 0: "same"}
+        for e in book.standing():
+            moved = days_between(e.lastChangedAsOf, prior_asof) > 0
+            items.append(ItemDelta(key=f"thesis:{e.id}", changed=moved,
+                                   today=f"{e.conviction}/{e.lastVerdict}",
+                                   direction=(_DIR.get(e.lastDirection, "same") if moved else "same")))
+
+    return HorizonDiff(horizon=name, lookbackDays=days, priorAsOf=prior_asof, items=items)
+
+
+def _annotate_unchanged_since(horizons: list[HorizonDiff]) -> None:
+    """For every item key, set unchangedSince to the asOf of the FARTHEST-back sampled run
+    that is unchanged contiguously from today outward (1d, then 7d, then 30d). A change at a
+    nearer horizon stops the walk, so a value that reverted can never claim 'since <30d>'.
+    Only horizons that actually have a prior run participate."""
+    ordered = sorted(horizons, key=lambda h: h.lookbackDays)   # 1, 7, 30
+    by_key: dict[str, list[tuple[HorizonDiff, ItemDelta]]] = {}
+    for h in ordered:
+        for it in h.items:
+            by_key.setdefault(it.key, []).append((h, it))
+    for key, pairs in by_key.items():
+        since: Optional[str] = None
+        for h, it in pairs:            # already 1 -> 7 -> 30
+            if it.changed:
+                break
+            since = h.priorAsOf        # unchanged this far back
+        if since is not None:
+            for _h, it in pairs:
+                if not it.changed:
+                    it.unchangedSince = since
+
+
+def build_change_report(store_dir, sc: Scorecard, book: Optional[ThesisBook] = None,
+                        prices_by_days: Optional[dict[int, list[PriceCell]]] = None) -> ChangeReport:
+    """Assemble the three-horizon change report. prices_by_days maps a lookback in days
+    (0 = today, then each LOOKBACK) to that column's PriceCell list — the caller reads them
+    from the Stage-5 feed (Task 4); omit for a price-free report. Pure projection over stored
+    scorecards; the target dates are calendar-day offsets of period_end(sc.asOf), so skipped
+    days resolve to the nearest run at/before (D3)."""
+    prices_by_days = prices_by_days or {}
+    current = build_state(sc, book, prices_by_days.get(0))
+    target0 = period_end(sc.asOf)
+    horizons: list[HorizonDiff] = []
+    priors: dict[str, Optional[StateVector]] = {}   # AMENDED 2026-07-11: kept for the top band
+    for name, days in LOOKBACKS:
+        target = target0 - datetime.timedelta(days=days)
+        prior_path = nearest_run_at_or_before(store_dir, sc.categoryId, target)
+        prior_state = prior_asof = None
+        if prior_path is not None:
+            prior_sc = load_scorecard(prior_path)
+            prior_asof = prior_sc.asOf
+            prior_state = build_state(prior_sc, None, prices_by_days.get(days))
+        priors[name] = prior_state
+        horizons.append(diff_states(name, days, current, prior_state, prior_asof, book))
+    _annotate_unchanged_since(horizons)
+    return ChangeReport(asOf=sc.asOf, horizons=horizons, priors=priors)

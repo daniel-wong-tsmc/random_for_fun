@@ -785,6 +785,40 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   still documents the removed `--window-days`/`--corpus-window-days`; replace with
   `--salience-floor`/`--corpus-salience-floor` once stage 3 merges.
 
+## From the 2026-07-13 F78-stage-6 final-review follow-ups
+
+> Source: the F78-stage-6 whole-branch final review's fix wave. Re-running the shadow-check the
+> way the CLI actually runs it (thesis book loaded, not `book=None`) exposed that Task 10's
+> original 53/88 and 57/88 line counts undercounted the real path; both items below were logged
+> instead of fixed, per the instruction not to chase the budget or patch the lint mechanism inside
+> this wave. Both are unnumbered — next free F-number to be assigned by the user.
+
+- [ ] **(unnumbered — next free F-number to be assigned by the user) — Change-first above-fold
+  budget overshoots on live data.** The CLI-real shadow-check (thesis book loaded from
+  `store/theses/chips.merchant-gpu/book.json` — the actual daily-run path) measures **101 lines**
+  above `reader.APPENDIX_DIVIDER` against the 88-line budget (`report.py::_ABOVE_FOLD_BUDGET`);
+  Task 10's original `book=None` measurement (53/57 lines) never exercised the loaded-book render
+  and so never caught this. The auto-tightening loop already in `render_report` (`while
+  len(body.split(reader.APPENDIX_DIVIDER)[0].splitlines()) > _ABOVE_FOLD_BUDGET and k > 1: k -= 1`)
+  only has one lever — compressing `THE CALLS` (`top[4]`) down to `top_k == 1` — and still
+  overshoots once it hits that floor with a book this size (33 standing calls). Fix direction:
+  extend the fold mechanism to a second section once ranked calls bottom out (candidates: `WHAT
+  CHANGED`'s `_CHANGE_LINE_CAP`, or `QUICK GLANCE` Tier 2/3 rows), or deliberately re-scope the
+  88-line budget now that the 2026-07-11 exec top band and the change-first lead both live above
+  the fold together. USER-ACCEPTED for now (2026-07-13): ship over budget rather than chase it —
+  101 still beats the legacy (pre-F78) monthly renderer's 112 above-fold lines. Renderer-only;
+  no schema/scoring change; F79-adjacent only in that both touch report volume.
+- [ ] **(unnumbered — next free F-number to be assigned by the user) — Render-time acronym-lint
+  enforcement gap on the assembled brief.** `reader.lint_acronyms` is enforced per-section at
+  write time (the F67 output contract), but nothing re-lints the fully assembled above-fold text
+  after live thesis-book titles and finding statements are substituted in — true in both legacy
+  and change-first render modes. The current stopgap is allowlisting real tokens as they surface
+  in `registry/acronyms.json` (this wave added `CUDA`, `LPDDR`, `LPDDR5X`, `MI325`; Task 10's
+  `DRAM`/`B300` additions and F68(f)'s `MI`/`GB300` note are the same pattern recurring). Fix
+  direction: add one lint pass over the fully assembled above-fold string right before
+  `render_report`/`render_daily` returns it, so a genuinely novel off-allowlist token BLOCKS the
+  render instead of shipping silently until a shadow-check happens to catch it.
+
 ## From the 2026-07-11 executive-format session (F79)
 
 - [ ] **F79 — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**

@@ -342,3 +342,42 @@ def build_change_report(store_dir, sc: Scorecard, book: Optional[ThesisBook] = N
         horizons.append(diff_states(name, days, current, prior_state, prior_asof, book))
     _annotate_unchanged_since(horizons)
     return ChangeReport(asOf=sc.asOf, horizons=horizons, priors=priors)
+
+
+# --- Stage-5 price-feed adapter (the assumption seam) ---------------------------------
+#
+# DEVIATION (plan-sanctioned seam): Stage 5 shipped headline_prices(as_of, data_dir)
+# -> dict[model, usd] + PricePoint.usd_per_gpu_hour/gpu_class instead of the assumed
+# read_prices/PricePoint.usdPerGpuHour/.column/.custom; adapter consumes headline_prices
+# (custom silicon excluded upstream); asOfColumn carries the requested label (no single
+# column exists after median-of-medians). See tests/test_change_pricefeed.py.
+
+def price_cells_from_feed(as_of: str, *, read=None, scrape_dir=None) -> list[PriceCell]:
+    """Read the Stage-5 headline price feed for `as_of` and map it to PriceCell, sorted by
+    model for determinism. `read` defaults to gpu_agent.pricefeed.headline_prices, which
+    already excludes custom silicon (it filters gpu_class == "gpu") and already collapses
+    each headline model to one representative $/GPU-hr (median of per-provider medians) —
+    this adapter does not re-implement that logic, only maps its dict result. `scrape_dir`
+    keeps the plan's public kwarg name but maps to the feed's `data_dir=` kwarg. asOfColumn
+    carries the REQUESTED label: after cross-provider aggregation there is no single
+    underlying scrape column, so the requested label is the honest, deterministic
+    provenance."""
+    if read is None:
+        from gpu_agent.pricefeed import headline_prices as read   # local import: sole pricefeed seam
+    kw = {"data_dir": scrape_dir} if scrape_dir is not None else {}
+    prices = read(as_of, **kw)
+    return [PriceCell(model=m, usdPerGpuHour=v, asOfColumn=as_of, custom=False)
+            for m, v in sorted(prices.items())]
+
+
+def prices_by_lookback(as_of: str, *, read=None, scrape_dir=None) -> dict[int, list[PriceCell]]:
+    """PriceCell lists keyed by lookback-in-days (0 = today, then each LOOKBACK), each read
+    from the feed's nearest-at/before selection for that date — the dict build_change_report's
+    `prices_by_days` expects. Deterministic: labels derive from period_end(as_of), never the
+    clock."""
+    end = period_end(as_of)
+    out = {0: price_cells_from_feed(as_of, read=read, scrape_dir=scrape_dir)}
+    for _name, days in LOOKBACKS:
+        label = (end - datetime.timedelta(days=days)).isoformat()
+        out[days] = price_cells_from_feed(label, read=read, scrape_dir=scrape_dir)
+    return out

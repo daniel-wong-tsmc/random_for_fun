@@ -93,3 +93,85 @@ def test_loader_tolerates_taxonomy_without_seed_entities(tmp_path):
     p.write_text(json.dumps({"layers": []}), "utf-8")
     r = EntityResolver.load(p)
     assert r.resolve("NVDA") == ("nvda", False)          # empty resolver = today's behavior
+
+
+# --- F24 stage 2 (spec 2026-07-13): the v2.0-era registrations the six F79 series cite ---
+# Every ticker and common press form of each registered entity resolves to its canonical id
+# against the REAL repo taxonomy (default_resolver). Aliases cover tickers (NVDA-style) and
+# common press handles ("Google", "AWS", "Foxconn"-style) per the spec.
+
+_STAGE2_ALIASES = [
+    # merchant vendors (own chips.merchant-gpu)
+    ("AMD", "amd"), ("amd", "amd"), ("Advanced Micro Devices", "amd"),
+    ("Intel", "intel"), ("INTC", "intel"), ("Intel Corporation", "intel"),
+    ("Broadcom", "broadcom"), ("AVGO", "broadcom"), ("Broadcom Inc", "broadcom"),
+    # hyperscaler buyers (appearsIn merchant-gpu; own hyperscale-cloud)
+    ("Microsoft", "microsoft"), ("MSFT", "microsoft"), ("Microsoft Corporation", "microsoft"),
+    ("Microsoft Azure", "microsoft"), ("Azure", "microsoft"),
+    ("Alphabet", "alphabet"), ("GOOGL", "alphabet"), ("GOOG", "alphabet"),
+    ("Google", "alphabet"), ("Google Cloud", "alphabet"),
+    ("Amazon", "amazon"), ("AMZN", "amazon"), ("AWS", "amazon"),
+    ("Amazon Web Services", "amazon"), ("Amazon.com", "amazon"),
+    ("Meta", "meta"), ("META", "meta"), ("Meta Platforms", "meta"), ("Facebook", "meta"),
+    ("Oracle", "oracle"), ("ORCL", "oracle"), ("Oracle Corporation", "oracle"),
+    ("Oracle Cloud", "oracle"), ("OCI", "oracle"),
+    # memory (appearsIn merchant-gpu; own hbm-memory)
+    ("SK Hynix", "sk-hynix"), ("SK hynix", "sk-hynix"), ("Hynix", "sk-hynix"),
+    ("Samsung", "samsung"), ("Samsung Electronics", "samsung"),
+    ("Micron", "micron"), ("MU", "micron"), ("Micron Technology", "micron"),
+    # neoclouds (appearsIn merchant-gpu; own neocloud)
+    ("CoreWeave", "coreweave"), ("CRWV", "coreweave"),
+    ("Lambda Labs", "lambda-labs"), ("Lambda", "lambda-labs"), ("Lambda Cloud", "lambda-labs"),
+]
+
+
+@pytest.mark.parametrize("alias,canonical", _STAGE2_ALIASES)
+def test_stage2_alias_resolves_to_canonical(alias, canonical):
+    assert default_resolver().resolve(alias) == (canonical, True), alias
+
+
+# primaryCategory per the spec's lane-discipline table.
+_STAGE2_PRIMARY = {
+    "amd": "chips.merchant-gpu", "intel": "chips.merchant-gpu", "broadcom": "chips.merchant-gpu",
+    "microsoft": "infrastructure.hyperscale-cloud", "alphabet": "infrastructure.hyperscale-cloud",
+    "amazon": "infrastructure.hyperscale-cloud", "meta": "infrastructure.hyperscale-cloud",
+    "oracle": "infrastructure.hyperscale-cloud",
+    "sk-hynix": "chips.hbm-memory", "samsung": "chips.hbm-memory", "micron": "chips.hbm-memory",
+    "coreweave": "infrastructure.neocloud", "lambda-labs": "infrastructure.neocloud",
+}
+
+
+@pytest.mark.parametrize("cid,primary", sorted(_STAGE2_PRIMARY.items()))
+def test_stage2_primary_category(cid, primary):
+    assert default_resolver().primary_category(cid) == primary, cid
+
+
+def test_stage2_only_merchant_vendors_own_merchant_gpu():
+    """Lane discipline (charter Part 21 'counted once'): chips.merchant-gpu is the
+    primaryCategory of ONLY the merchant vendors; every hyperscaler / memory / neocloud
+    buyer merely appearsIn it, so cross-category rollups count each entity once."""
+    r = default_resolver()
+    owners = {cid for cid, primary in _STAGE2_PRIMARY.items()
+              if primary == "chips.merchant-gpu"}
+    assert owners == {"amd", "intel", "broadcom"}
+    for cid, primary in _STAGE2_PRIMARY.items():
+        if cid in owners:
+            continue
+        assert primary != "chips.merchant-gpu", cid
+        assert "chips.merchant-gpu" in r.appears_in(cid), cid
+
+
+def test_stage2_display_names_are_taxonomy_truth():
+    r = default_resolver()
+    assert r.display_name("AVGO") == "Broadcom"
+    assert r.display_name("Google") == "Alphabet"
+    assert r.display_name("AWS") == "Amazon"
+    assert r.display_name("Foxconn") == "Foxconn"           # ODM: not yet registered (spec fork)
+
+
+def test_stage2_registrations_load_without_alias_collision():
+    """The whole registered set loads (default_resolver would raise on any alias claimed by
+    two ids), and the two pre-existing seeds are untouched."""
+    r = default_resolver()
+    assert r.resolve("NVDA") == ("nvidia", True)
+    assert r.resolve("Taiwan Semiconductor") == ("tsmc", True)

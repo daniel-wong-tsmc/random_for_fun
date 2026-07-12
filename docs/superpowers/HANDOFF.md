@@ -315,24 +315,27 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **WAVE-2 LANES CLAIMED + DISPATCHED (2026-07-12, orchestrator session).** All design forks
-  answered INTERACTIVELY by the user this session (user-approved provenance in each spec);
-  lanes run under the question-stop rule (repo CLAUDE.md "Orchestrated lane agents").
-  - **F24 stage 1** `.worktrees/f24-entities`, branch `f24-entity-resolver` off main — entity
-    resolver, spec `docs/superpowers/specs/2026-07-12-f24-entity-resolver-stage1-design.md`.
-    Owns `gpu_agent/entities.py` (new), the finding-creation seam (extraction side),
-    `gpu_agent/wiki/ingest.py`; must NOT touch F25's five wiki files.
-  - **F72 follow-up** `.worktrees/f72-sufficiency`, branch `f72-sufficiency-collapse` off main —
-    contract v1.4.1 micro-migration (sufficiency counts collapsed publishers), spec
-    `docs/superpowers/specs/2026-07-12-f72-sufficiency-collapsed-publishers-design.md`.
-    Sanctioned frozen-core surface: sufficiency.py counting seam ONLY.
-  - **F87** `.worktrees/f87-stale-lock`, branch `f87-stale-lock-takeover` **off
-    `f25-wiki-store-scale` (stacked — merges only AFTER F25)** — stale-lock takeover, spec
-    `docs/superpowers/specs/2026-07-12-f87-stale-lock-takeover-design.md`. Owns
-    `gpu_agent/wiki/log.py` lock functions + tests.
-  - **F80** `.worktrees/f80-wiki-category`, branch `f80-wiki-category` — ORCHESTRATOR-owned
-    (not an agent lane): hand edit of the two `category: null` wiki pages + permanent
-    tripwire test; diff goes to the user for sign-off BEFORE commit (store edits are sacred).
+- **WAVE-2 LANES ALL DONE + REVIEWED READY-TO-MERGE (2026-07-12, orchestrator session) —
+  AWAITING USER MERGE** (F80 awaiting a diff sign-off, see below). All design forks were
+  answered INTERACTIVELY by the user (user-approved provenance in each spec); lanes ran under
+  the question-stop rule — F24 raised ONE question-stop (parked clean, resumed with the user's
+  three answers), F72/F87 raised none. Review verdicts + open notes appended to each sentinel.
+  - **F24 stage 1 READY** `.worktrees/f24-entities`, branch `f24-entity-resolver` @ `51ad3ff`
+    (6 commits, suite 1221/5). Entity resolver: NVDA/nvidia one identity at the new-finding
+    seams; unregistered names byte-unchanged + flagged (stderr + cycle-log); 10 test files
+    migrated — review audited all 10 FAITHFUL, 0 Critical/Important. Merge order vs F25:
+    don't-care (zero overlap). Stage 2 (historical page consolidation) intentionally open.
+  - **F72 v1.4.1 READY (frozen-core — user-merge-only)** `.worktrees/f72-sufficiency`, branch
+    `f72-sufficiency-collapse` @ `7a2b9a5` (2 commits, suite 1205/5). Sufficiency counts
+    collapsed publishers via the SAME helper as F2e (9-line seam); shadow-check: ZERO past
+    verdict flips (reviewer reproduced independently). Review: Ready to merge, 0 Crit/Imp.
+  - **F87 READY (merges only AFTER F25 — stacked)** `.worktrees/f87-stale-lock`, branch
+    `f87-stale-lock-takeover` @ `7859193` (7 commits, suite 1228/5). Stale-lock takeover;
+    review round 1 caught a real two-reclaimers race (fixed, mutation-test-verified);
+    round 2: Ready to merge.
+  - **F80 PREPARED, AWAITING USER DIFF SIGN-OFF** `.worktrees/f80-wiki-category` — the
+    two-line `category: null` → `"chips.merchant-gpu"` edit + red-green-verified tripwire
+    test sit UNCOMMITTED in the worktree until the user signs off (store edits are sacred).
 - **WAVE-1 FIX LANES ALL DONE + REVIEWED READY-TO-MERGE (2026-07-12, orchestrator session) —
   AWAITING USER MERGE.** Three background Opus lanes (user-directed "start the parallelization
   today"), each superpowers-workflow built, each given a fresh-context Opus whole-branch review

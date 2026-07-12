@@ -158,7 +158,7 @@ def test_materiality_new_nonscoring_mag2_is_material(tmp_path):
     reg, hz = _reg_hz()
     ws = _wiki_store(tmp_path)
     route_findings(ws, [_lint_finding("f-1", "NVDA", "gpuSpotPrice", magnitude=2)], as_of="2026-06")
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of=None, is_new=True,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.indicatorMoves[0].scoring is False   # still recorded as non-scoring for display
@@ -177,7 +177,7 @@ def test_materiality_new_price_only_mag1_stays_folded(tmp_path):
     reg, hz = _reg_hz()
     ws = _wiki_store(tmp_path)
     route_findings(ws, [_lint_finding("f-1", "NVDA", "D6", magnitude=1)], as_of="2026-06")
-    mv = _score_move(ws, "entity:nvda", as_of="2026-06", prev_as_of=None, is_new=True,
+    mv = _score_move(ws, "entity:nvidia", as_of="2026-06", prev_as_of=None, is_new=True,
                      state_transition=None, contradiction_note=None,
                      registry=reg, horizons=hz, config=DEFAULT_LINT_CONFIG)
     assert mv.factors.indicatorMoves[0].scoring is False

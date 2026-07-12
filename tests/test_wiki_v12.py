@@ -27,7 +27,7 @@ def _f(fid, entity, *, indicatorId="D2", asOf="2026-06", evidence=None, value=No
 
 
 def _enrich(**kw):
-    base = dict(pageId="entity:nvda", bodyMarkdown="## NVDA\nDC up [f-1].\n",
+    base = dict(pageId="entity:nvidia", bodyMarkdown="## NVDA\nDC up [f-1].\n",
                 state="accelerating", trajectory="steady -> accelerating")
     base.update(kw)
     return IngestResult(pages=[PageEnrichment(**base)])
@@ -86,7 +86,7 @@ def test_apply_enrichment_writes_computed_salience(tmp_path):
     route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
     apply_enrichment(ws, _enrich(), as_of="2026-06-28")
     # matches rule 1's arithmetic: single fresh secondary observation, no contradiction -> 0.40
-    assert ws.get_page("entity:nvda").salience == pytest.approx(0.40)
+    assert ws.get_page("entity:nvidia").salience == pytest.approx(0.40)
 
 
 def test_ingest_system_does_not_mention_salience():
@@ -100,13 +100,13 @@ def test_ingest_system_does_not_mention_salience():
 def test_gate_rejects_unknown_citation_and_writes_nothing(tmp_path):
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA")], as_of="2026-06-28")
-    body_before = ws.window("entity:nvda", 0).body
+    body_before = ws.window("entity:nvidia", 0).body
     log_len_before = len(ws.log.read())
     result = _enrich(bodyMarkdown="## NVDA\nSee [no-such-finding].\n")
     with pytest.raises(EnrichmentGateError) as ei:
         apply_enrichment(ws, result, as_of="2026-06-28")
-    assert any("entity:nvda" in v and "no-such-finding" in v for v in ei.value.violations)
-    assert ws.window("entity:nvda", 0).body == body_before
+    assert any("entity:nvidia" in v and "no-such-finding" in v for v in ei.value.violations)
+    assert ws.window("entity:nvidia", 0).body == body_before
     assert len(ws.log.read()) == log_len_before
 
 
@@ -126,7 +126,7 @@ def test_gate_allows_number_cited_via_evidence_excerpt(tmp_path):
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
     result = _enrich(bodyMarkdown="## NVDA\nRevenue $75,200,000,000 rising [f-1].\n")
     apply_enrichment(ws, result, as_of="2026-06-28")
-    assert "75,200,000,000" in ws.window("entity:nvda", 0).body
+    assert "75,200,000,000" in ws.window("entity:nvidia", 0).body
 
 
 def test_gate_ignores_list_markers_and_matches_year_in_evidence_date(tmp_path):
@@ -136,7 +136,7 @@ def test_gate_ignores_list_markers_and_matches_year_in_evidence_date(tmp_path):
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
     body = "## NVDA\n1. Guidance reaffirmed for 2026 [f-1].\n"
     apply_enrichment(ws, _enrich(bodyMarkdown=body), as_of="2026-06-28")
-    assert "reaffirmed" in ws.window("entity:nvda", 0).body
+    assert "reaffirmed" in ws.window("entity:nvidia", 0).body
 
 
 def test_gate_rejects_fabricated_number_that_is_substring_of_a_date(tmp_path):
@@ -160,7 +160,7 @@ def test_gate_allows_large_value_number_by_token_equality(tmp_path):
                    as_of="2026-06-28")
     result = _enrich(bodyMarkdown="## NVDA\nRevenue hit 75200000000 [f-1].\n")
     apply_enrichment(ws, result, as_of="2026-06-28")
-    assert "75200000000" in ws.window("entity:nvda", 0).body
+    assert "75200000000" in ws.window("entity:nvidia", 0).body
 
 
 def test_gate_allows_honest_date_component_token(tmp_path):
@@ -171,7 +171,7 @@ def test_gate_allows_honest_date_component_token(tmp_path):
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
     apply_enrichment(ws, _enrich(bodyMarkdown="## NVDA\nOutlook firm into 2026 [f-1].\n"),
                      as_of="2026-06-28")
-    assert "2026" in ws.window("entity:nvda", 0).body
+    assert "2026" in ws.window("entity:nvidia", 0).body
 
 
 # ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ def test_lint_aggregates_contradictions_from_both_same_asof_ingest_events(tmp_pa
     hz = IndicatorHorizons.load("registry/indicators.json")
     ws = _store(tmp_path)
     route_findings(ws, [_f("f-1", "NVDA"), _f("f-2", "AMD")], as_of="2026-06-28")
-    apply_enrichment(ws, _enrich(pageId="entity:nvda",
+    apply_enrichment(ws, _enrich(pageId="entity:nvidia",
                                  bodyMarkdown="## NVDA\nDC up [f-1].\n",
                                  contradictsThesis=True, contradictionNote="guidance cut"),
                      as_of="2026-06-28")
@@ -231,7 +231,7 @@ def test_lint_aggregates_contradictions_from_both_same_asof_ingest_events(tmp_pa
                      as_of="2026-06-28")
     report = lint(ws, as_of="2026-06-28", registry=reg, horizons=hz)
     contra_ids = {c.pageId for c in report.health.contradictions}
-    assert contra_ids == {"entity:nvda", "entity:amd"}
+    assert contra_ids == {"entity:nvidia", "entity:amd"}
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ def test_corroboration_same_publisher_domain_counts_once(tmp_path):
           Evidence(source="NVIDIA press release", url="https://nvidianews.nvidia.com/b",
                    date="2026-06", excerpt="e", tier="secondary")]
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
-    assert corroboration(ws, "entity:nvda") == 1
+    assert corroboration(ws, "entity:nvidia") == 1
 
 
 def test_corroboration_www_prefix_stripped_and_distinct_domains_counted(tmp_path):
@@ -276,12 +276,12 @@ def test_corroboration_www_prefix_stripped_and_distinct_domains_counted(tmp_path
                     date="2026-06", excerpt="body-b", tier="secondary")]
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev1)], as_of="2026-06-28")
     route_findings(ws, [_f("f-2", "NVDA", evidence=ev2)], as_of="2026-06-28")
-    assert corroboration(ws, "entity:nvda") == 1  # www.example.com == example.com
+    assert corroboration(ws, "entity:nvidia") == 1  # www.example.com == example.com
 
     ev3 = [Evidence(source="s3", url="https://other.org/c",
                     date="2026-06", excerpt="body-c", tier="secondary")]
     route_findings(ws, [_f("f-3", "NVDA", evidence=ev3)], as_of="2026-06-28")
-    assert corroboration(ws, "entity:nvda") == 2  # example.com, other.org
+    assert corroboration(ws, "entity:nvidia") == 2  # example.com, other.org
 
 
 def test_corroboration_empty_netloc_falls_back_to_source(tmp_path):
@@ -289,7 +289,7 @@ def test_corroboration_empty_netloc_falls_back_to_source(tmp_path):
     ev = [Evidence(source="Analyst Call", url="not-a-url",
                    date="2026-06", excerpt="e", tier="secondary")]
     route_findings(ws, [_f("f-1", "NVDA", evidence=ev)], as_of="2026-06-28")
-    assert corroboration(ws, "entity:nvda") == 1
+    assert corroboration(ws, "entity:nvidia") == 1
 
 
 # ---------------------------------------------------------------------------

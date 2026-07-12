@@ -25,7 +25,7 @@ def _seeded(tmp_path):
 
 
 def _enrich(**kw):
-    base = dict(pageId="entity:nvda", bodyMarkdown="## NVDA\nDC up [f-1].\n",
+    base = dict(pageId="entity:nvidia", bodyMarkdown="## NVDA\nDC up [f-1].\n",
                 state="accelerating", trajectory="steady -> accelerating")
     base.update(kw)
     return IngestResult(pages=[PageEnrichment(**base)])
@@ -34,11 +34,11 @@ def _enrich(**kw):
 def test_apply_sets_body_state_and_logs_ingest(tmp_path):
     ws = _seeded(tmp_path)
     apply_enrichment(ws, _enrich(crossRefs=["entity:amd"]), as_of="2026-06-28")
-    page = ws.get_page("entity:nvda")
+    page = ws.get_page("entity:nvidia")
     # computed_salience (F15): 0.15 + 0.10*min(1,5) + 0.15*fresh(1) + 0.10*primary(0) + 0.20*contra(0) = 0.40
     assert page.state == "accelerating" and page.salience == pytest.approx(0.40)
     assert page.crossRefs == ["entity:amd"]
-    assert ws.window("entity:nvda", 0).body == "## NVDA\nDC up [f-1].\n"
+    assert ws.window("entity:nvidia", 0).body == "## NVDA\nDC up [f-1].\n"
     assert [e.kind for e in ws.log.read() if e.kind == "ingest"] == ["ingest"]
 
 

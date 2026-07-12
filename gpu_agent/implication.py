@@ -12,6 +12,7 @@ Implications are WATCH-ITEMS / EXPOSURE statements, NEVER recommendations or act
 from __future__ import annotations
 import json
 import pathlib
+import re
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -156,3 +157,62 @@ def build_implication_user_prompt(variables: list[DecisionVariable], sc: Scoreca
     parts.append("<findings>\n" + "\n".join(_finding_lines(sc.findings)) + "\n</findings>\n")
     parts.append("<book>\n" + "\n".join(_book_lines(book)) + "\n</book>\n")
     return "\n".join(parts)
+
+
+# --- gate (deterministic, pure, no I/O) ----------------------------------------
+
+from gpu_agent import reader
+
+MAX_IMPLICATION_LINES = 8
+
+# The no-recommendation rule (charter Part 21): implications are watch-items / exposure
+# statements, never actions directed at the reader. Whole-word, case-insensitive. Tunable —
+# a new false positive/negative is a data edit here, not a design change.
+RECOMMENDATION_TERMS = (
+    "should", "must", "ought", "need to", "needs to",
+    "recommend", "recommends", "recommended", "recommendation",
+    "advise", "advises", "advised", "suggest", "suggests", "suggested",
+    "consider", "considers", "buy", "sell", "hedge", "divest",
+)
+
+
+def _recommendation_hits(text: str) -> list[str]:
+    lowered = (text or "").lower()
+    return [t for t in RECOMMENDATION_TERMS if re.search(rf"\b{re.escape(t)}\b", lowered)]
+
+
+def gate_implication(answer: ImplicationAnswer, *, findings_by_id: dict,
+                     thesis_ids: set, dimensions: set = frozenset(DIMENSIONS),
+                     max_lines: int = MAX_IMPLICATION_LINES) -> list[str]:
+    """Pure, no I/O. [] means the answer is clean; every violation is one string. Rules:
+      - length cap (<= max_lines);
+      - each line's watchItem is non-empty, cites >=1 id across dimensions/thesisIds/
+        findingIds, and every cited id resolves (dimension in `dimensions`, thesis in
+        `thesis_ids`, finding in `findings_by_id`);
+      - watchItem is exec-voice (reader.lint_prose, <=2 sentences: no indicator/finding ids,
+        no banned words, no off-allowlist acronyms);
+      - watchItem carries no recommendation/action verb (charter Part 21).
+    """
+    errors: list[str] = []
+    if len(answer.lines) > max_lines:
+        errors.append(f"too many implication lines ({len(answer.lines)} > {max_lines})")
+    for i, line in enumerate(answer.lines):
+        label = f"line {i + 1}"
+        if not line.watchItem.strip():
+            errors.append(f"{label}: empty watchItem")
+        if not (line.dimensions or line.thesisIds or line.findingIds):
+            errors.append(f"{label}: cites nothing")
+        for d in line.dimensions:
+            if d not in dimensions:
+                errors.append(f"{label}: cites unknown dimension {d}")
+        for t in line.thesisIds:
+            if t not in thesis_ids:
+                errors.append(f"{label}: cites unknown thesis {t}")
+        for fid in line.findingIds:
+            if fid not in findings_by_id:
+                errors.append(f"{label}: cites unknown finding {fid}")
+        errors.extend(reader.lint_prose(line.watchItem, label, max_sentences=2))
+        hits = _recommendation_hits(line.watchItem)
+        if hits:
+            errors.append(f"{label}: reads as a recommendation ({', '.join(sorted(hits))})")
+    return errors

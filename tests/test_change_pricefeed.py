@@ -11,6 +11,8 @@ These tests exercise the adapted `price_cells_from_feed` / `prices_by_lookback` 
 that real shape — see gpu_agent/change.py for the mapping.
 """
 from __future__ import annotations
+import pytest
+
 from gpu_agent import pricefeed
 from gpu_agent.change import PriceCell, price_cells_from_feed, prices_by_lookback
 
@@ -72,10 +74,12 @@ def test_prices_by_lookback_passes_scrape_dir_through():
 
 def test_real_feed_default_read_is_headline_prices_and_excludes_custom_silicon():
     """Contract test against the REAL Stage-5 feed (default `read`, no stub). Read-only,
-    deterministic (fixed as_of, never wall-clock), skip-free: whether or not the gitignored
-    gpu_agent/scrape_data CSVs are present on disk, every cell this adapter can ever produce
-    must be a headline GPU model, never custom silicon (Trainium)."""
+    deterministic (fixed as_of, never wall-clock). gpu_agent/scrape_data/ is gitignored, so
+    a fresh checkout has no CSVs and the feed returns {} — that would make the assertions
+    below vacuous, so skip honestly instead; the live check runs where the data exists."""
     cells = price_cells_from_feed("2026-07-08")
+    if not cells:
+        pytest.skip("no scrape data on this machine — live contract check runs where the feed data exists")
     for c in cells:
         assert c.model in pricefeed.HEADLINE_MODELS
         assert "Trainium" not in c.model

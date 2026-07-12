@@ -263,10 +263,12 @@
   — semantics preserved, observables named ("2 consecutive quarters");
   tests/test_seed_thesis_lint.py locks every seed trigger + depth field. Live store book
   untouched: history.jsonl's seeded event embeds the entries.)*
-- [ ] **F56 — Validate `--as-of` shape at the seams** (born from the F52/F53/F54 final review,
-  2026-07-03). **STATUS 2026-07-13: BUILT + REVIEWED READY (branch `f56-asof-validation` @
-  `2516064`, review verdict in `.superpowers/handoffs/f56-asof-DONE.md`) — parked; merges
-  AFTER F78 stage 6 lands (shared cli.py surface), rebase first, then tick this box.** `--as-of` is required everywhere but any non-empty string is accepted, and F52 now
+- [x] **F56 — Validate `--as-of` shape at the seams** (born from the F52/F53/F54 final review,
+  2026-07-03). **DONE — merged `0c49d6a` (2026-07-13, user-directed) after a clean rebase onto
+  the post-stage-6 main (the feared cli.py conflict never materialized). All 10 CLI `--as-of`
+  seams validated loud; both cosmetic minors fixed; review verdict (Ready to merge, 0
+  Critical/Important, both AFK picks endorsed) in `.superpowers/handoffs/f56-asof-DONE.md`.
+  Suite 1336/5 → 1346/5.** `--as-of` is required everywhere but any non-empty string is accepted, and F52 now
   embeds it in doc ids → snapshot + FindingStore filenames; a fat-fingered `2026/07/03` would mint
   a path-unsafe id. Pre-existing convention (asOf already flowed unvalidated into the dedup index
   and wiki stamps; the skills always pass ISO dates), so defense-in-depth only: validate
@@ -423,7 +425,7 @@
   / a dimension rating this cycle?" — so corroborated news can move ratings and insufficient
   news cannot. Loosening without the tightening half reintroduces the whipsaw the anti-whipsaw
   machinery exists to prevent.
-- [ ] **F64 — Trigger-first daily brief — FOLDED INTO F78.** (F78's change-first opening leads with
+- [x] **F64 — Trigger-first daily brief — FOLDED INTO F78 — DONE, F78 stage 6 merged `77708f3` 2026-07-13.** (F78's change-first opening leads with
   which theses moved and why — F64's core; its optional Brier-scoring add-on folds into F78 or defers.
   Do not build separately; tick when F78 ships.) The thesis book's falsifiable triggers are the one
   asset an exec cannot get from a news terminal, but the daily output leads with findings and
@@ -725,7 +727,7 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   otherwise; **(c)** a retained-worktrees registry (one doc section: each retained worktree,
   why, what's inside, when it can go) replacing the scattered warnings. Docs/process only; no
   code, no eval impact.
-- [ ] **F77 - Brief hierarchy: order by importance, consolidate sections, cap volume — FOLDED INTO F78** (born
+- [x] **F77 - Brief hierarchy: order by importance, consolidate sections, cap volume — FOLDED INTO F78 — DONE, F78 stage 6 merged `77708f3` 2026-07-13** (born
   from the 2026-07 blind baseline ablation, user-scored 2026-07-06 - verdict recorded in
   `docs/action-items.md`). The desk WON the blind read on substance (implications + watch
   items; neither web-only baseline produced them), and every deficit the user named is
@@ -772,7 +774,7 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > fundamentals render with their real age. OPEN design question (to confirm): last-week/last-month =
 > exactly 7/30 days ago (point-in-time) vs this-week-whole-vs-last-week (aggregate).
 
-- [ ] **F78 — Daily-refreshed, change-first market-state brief (retires the monthly product).**
+- [x] **F78 — Daily-refreshed, change-first market-state brief (retires the monthly product). DONE — ALL 6 STAGES MERGED, closed with stage 6 `77708f3` 2026-07-13.**
   One brief, run daily. Fresh gather = a **7-day initial sweep** with **discretionary older-lead
   pursuit that is LOGGED** (reworks F58, replacing its 45-day hard-drop; the agent may chase an
   older lead when it judges it worth it and records the age + one-line reason — closing the v4 gap

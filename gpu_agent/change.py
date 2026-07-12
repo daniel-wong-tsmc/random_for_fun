@@ -17,6 +17,7 @@ from gpu_agent.asof import period_end, days_between, AsOfError
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
 from gpu_agent.thesis import ThesisBook
 from gpu_agent.report import _VERSION_RE, compute_sdgi, load_scorecard
+from gpu_agent import bands
 
 # Headline-metric selectors (registry indicator ids). Tier 2 rental price comes from the
 # price feed (PriceCell), not a finding, so it is not in SCARCITY_INDICATORS.
@@ -342,6 +343,145 @@ def build_change_report(store_dir, sc: Scorecard, book: Optional[ThesisBook] = N
         horizons.append(diff_states(name, days, current, prior_state, prior_asof, book))
     _annotate_unchanged_since(horizons)
     return ChangeReport(asOf=sc.asOf, horizons=horizons, priors=priors)
+
+
+# ---------------------------------------------------------------------------
+# AMENDED 2026-07-11 — executive alert ladder (spec 2026-07-11 §4). Rule-based v1;
+# F79 swaps the trigger definitions for sigma-bands, keeping AlertState/fold intact.
+
+_ALERT_RANK = {"green": 0, "yellow": 1, "orange": 2, "red": 3}
+_BAND_RANK = ["contracting"] + [w for _, w in reversed(bands.BANDS)]  # mirrors bands._WORD_RANK
+_YELLOW_RULES = ("gap-band-changed", "high-call-moved", "constraint-rotated", "calls-co-move")
+
+
+class AlertState(BaseModel):
+    color: str                        # displayed color after anti-flapping
+    priorColor: Optional[str] = None  # prior run's displayed color; None on the first run
+    rawColor: str = "green"           # today's raw ladder evaluation (pre-fold)
+    triggers: list[str] = Field(default_factory=list)   # today's fired rule ids
+
+
+def _band_rank(word: str) -> int:
+    return _BAND_RANK.index(word)
+
+
+def _thesis_moves_between(book: ThesisBook, after_asof: str, at_or_before_asof: str):
+    """Standing theses whose lastChangedAsOf lies in (after_asof, at_or_before_asof].
+    Current-book timestamps (see the Task 5b assumption note)."""
+    _DIR = {1: "up", -1: "down", 0: "same"}
+    out = []
+    for e in book.standing():
+        if (days_between(e.lastChangedAsOf, after_asof) > 0
+                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0):
+            out.append((e, _DIR.get(e.lastDirection, "same")))
+    return out
+
+
+def _high_break_between(book: ThesisBook, after_asof: str, at_or_before_asof: str) -> bool:
+    """A high-conviction call that broke/retired inside the window. Iterates ALL entries —
+    standing() excludes retired, which is exactly what a break produces."""
+    for e in book.entries:
+        if e.conviction != "high":
+            continue
+        if not (e.status == "retired" or e.lastVerdict == "broken"):
+            continue
+        if (days_between(e.lastChangedAsOf, after_asof) > 0
+                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0):
+            return True
+    return False
+
+
+def _raw_alert(cur: StateVector, prior7: Optional[StateVector], prior7_asof: Optional[str],
+               book: Optional[ThesisBook]) -> tuple[str, list[str]]:
+    """One run's raw ladder color. First match from the top wins; co-occurrence is counted at
+    the RULE level (two rules fed by one event still count as two — spec §4)."""
+    triggers: list[str] = []
+    if prior7 is not None:
+        if bands.band_word(cur.sdgi) != bands.band_word(prior7.sdgi):
+            triggers.append("gap-band-changed")
+        if (cur.constraintLabel and prior7.constraintLabel
+                and cur.constraintLabel != prior7.constraintLabel):
+            triggers.append("constraint-rotated")
+    if book is not None and prior7_asof is not None:
+        moves = _thesis_moves_between(book, prior7_asof, cur.asOf)
+        if any(e.conviction == "high" for e, _d in moves):
+            triggers.append("high-call-moved")
+        for d in ("up", "down"):
+            if sum(1 for _e, dd in moves if dd == d) >= 2:
+                triggers.append("calls-co-move")
+                break
+        if _high_break_between(book, prior7_asof, cur.asOf):
+            triggers.append("high-call-broke")
+    if prior7 is not None:
+        demand_worsened = _band_rank(bands.band_word(cur.demand)) < _band_rank(
+            bands.band_word(prior7.demand))
+        gap_toward_glut = round(cur.sdgi, _ROUND) < round(prior7.sdgi, _ROUND)
+        if demand_worsened and gap_toward_glut:
+            triggers.append("demand-reversal")   # asymmetric: this pair ALONE escalates
+
+    y_hits = [t for t in triggers if t in _YELLOW_RULES]
+    if "high-call-broke" in triggers and "gap-band-changed" in triggers:
+        return "red", triggers
+    if "high-call-broke" in triggers or "demand-reversal" in triggers or len(y_hits) >= 2:
+        return "orange", triggers
+    if y_hits:
+        return "yellow", triggers
+    return "green", triggers
+
+
+def _raw_alert_for(store_dir, sc_run: Scorecard, book: Optional[ThesisBook]) -> tuple[str, list[str]]:
+    cur = build_state(sc_run)
+    target = period_end(sc_run.asOf) - datetime.timedelta(days=7)
+    prior_path = nearest_run_at_or_before(store_dir, sc_run.categoryId, target)
+    prior7 = prior7_asof = None
+    if prior_path is not None:
+        prior_sc = load_scorecard(prior_path)
+        prior7, prior7_asof = build_state(prior_sc), prior_sc.asOf
+    return _raw_alert(cur, prior7, prior7_asof, book)
+
+
+def _fold_displayed(raws: list[str]) -> list[str]:
+    """Anti-flapping: escalation is immediate; a color steps DOWN only after 2 consecutive
+    runs whose raw evaluation sits below the held color (spec §4). displayed[i] is:
+    raw[i] when raw[i] >= displayed[i-1]; the held color when this is the FIRST calm run
+    (raw[i-1] had earned the held color); otherwise the higher of the last two raws."""
+    disp: list[str] = []
+    for i, raw in enumerate(raws):
+        if i == 0:
+            disp.append(raw)
+            continue
+        held = disp[i - 1]
+        if _ALERT_RANK[raw] >= _ALERT_RANK[held]:
+            disp.append(raw)
+        elif _ALERT_RANK[raws[i - 1]] >= _ALERT_RANK[held]:
+            disp.append(held)
+        else:
+            disp.append(max(raw, raws[i - 1], key=lambda c: _ALERT_RANK[c]))
+    return disp
+
+
+def alert_state(store_dir, sc: Scorecard, book: Optional[ThesisBook] = None) -> AlertState:
+    """Today's displayed alert. Recomputes every stored run's raw color chronologically and
+    folds the de-escalation memory — pure projection, no stored field, replayable."""
+    cat_dir = Path(store_dir) / sc.categoryId
+    runs: dict[str, tuple[int, Path]] = {}
+    if cat_dir.is_dir():
+        for p in sorted(cat_dir.iterdir()):
+            m = _VERSION_RE.match(p.name)
+            if not m:
+                continue
+            as_of, ver = m.group(1), int(m.group(2))
+            if as_of == sc.asOf:
+                continue          # today is evaluated from `sc`, not the store copy
+            if as_of not in runs or ver > runs[as_of][0]:
+                runs[as_of] = (ver, p)
+    ordered = sorted(runs, key=period_end)
+    raws = [_raw_alert_for(store_dir, load_scorecard(runs[a][1]), book)[0] for a in ordered]
+    raw_today, triggers = _raw_alert_for(store_dir, sc, book)
+    raws.append(raw_today)
+    disp = _fold_displayed(raws)
+    return AlertState(color=disp[-1], priorColor=(disp[-2] if len(disp) > 1 else None),
+                      rawColor=raw_today, triggers=triggers)
 
 
 # --- Stage-5 price-feed adapter (the assumption seam) ---------------------------------

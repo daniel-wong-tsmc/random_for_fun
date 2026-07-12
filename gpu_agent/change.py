@@ -26,6 +26,12 @@ MONEY_INDICATORS = ("vendorRevenueGuidance", "rpoBacklog", "grossMargin")
 # (name, calendar-day lookback) — the three horizons of the change-first lead (D3).
 LOOKBACKS = (("yesterday", 1), ("last week", 7), ("last month", 30))
 _PRICE_REL_TOL = 0.01   # mirrors price_track.REL_TOL — "flat" band for a rental price move
+# Verdicts that count as a real thesis MOVE. "reaffirmed" re-stamps lastChangedAsOf without a
+# real move (thesis.py applies every non-reversal judgment), so a timestamp-only predicate
+# degenerates under daily cadence; spec 2026-07-11 §4 counts strengthened/weakened/challenged
+# only. Known accepted gap (user-accepted): a conviction promotion carried by a reaffirmed
+# verdict won't read as a move until per-run book state exists (F79).
+_MOVED_VERDICTS = frozenset({"strengthened", "weakened", "broken"})
 
 
 class DimCell(BaseModel):
@@ -219,8 +225,10 @@ def diff_states(name: str, days: int, current: StateVector,
                 book: Optional[ThesisBook]) -> HorizonDiff:
     """One horizon's point-in-time diff. Dimensions/indices/metrics/prices are two-snapshot
     diffs (current vs prior); theses read movement from the current book's lastChangedAsOf vs
-    prior_asof (stored scorecards don't embed past book state — see the Task 3 assumption).
-    prior=None (no run at/before this horizon) -> empty items list."""
+    prior_asof (stored scorecards don't embed past book state — see the Task 3 assumption),
+    AND the verdict must be in _MOVED_VERDICTS — "reaffirmed" re-stamps the timestamp without
+    a real move (spec 2026-07-11 §4). prior=None (no run at/before this horizon) -> empty
+    items list."""
     items: list[ItemDelta] = []
     if prior is None:
         return HorizonDiff(horizon=name, lookbackDays=days, priorAsOf=None, items=items)
@@ -285,11 +293,13 @@ def diff_states(name: str, days: int, current: StateVector,
                                    direction=("same" if current.constraintLabel == prior.constraintLabel
                                               else "new")))
 
-    # theses — movement from the current book's timestamps vs this horizon's prior asOf
+    # theses — movement from the current book's timestamps vs this horizon's prior asOf,
+    # gated on _MOVED_VERDICTS: a plain reaffirmation re-stamps the timestamp but is not a move
     if book is not None and prior_asof is not None:
         _DIR = {1: "up", -1: "down", 0: "same"}
         for e in book.standing():
-            moved = days_between(e.lastChangedAsOf, prior_asof) > 0
+            moved = (days_between(e.lastChangedAsOf, prior_asof) > 0
+                     and e.lastVerdict in _MOVED_VERDICTS)
             items.append(ItemDelta(key=f"thesis:{e.id}", changed=moved,
                                    today=f"{e.conviction}/{e.lastVerdict}",
                                    direction=(_DIR.get(e.lastDirection, "same") if moved else "same")))
@@ -366,13 +376,16 @@ def _band_rank(word: str) -> int:
 
 
 def _thesis_moves_between(book: ThesisBook, after_asof: str, at_or_before_asof: str):
-    """Standing theses whose lastChangedAsOf lies in (after_asof, at_or_before_asof].
-    Current-book timestamps (see the Task 5b assumption note)."""
+    """Standing theses whose lastChangedAsOf lies in (after_asof, at_or_before_asof] AND whose
+    lastVerdict is in _MOVED_VERDICTS — a plain reaffirmation re-stamps the timestamp without
+    a real move (spec 2026-07-11 §4). Current-book timestamps (see the Task 5b assumption
+    note)."""
     _DIR = {1: "up", -1: "down", 0: "same"}
     out = []
     for e in book.standing():
         if (days_between(e.lastChangedAsOf, after_asof) > 0
-                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0):
+                and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0
+                and e.lastVerdict in _MOVED_VERDICTS):
             out.append((e, _DIR.get(e.lastDirection, "same")))
     return out
 

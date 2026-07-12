@@ -77,6 +77,20 @@ def test_thesis_not_moved_when_change_precedes_prior_asof():
     assert not th.changed
 
 
+def test_thesis_reaffirmed_in_window_is_not_moved():
+    # USER-APPROVED 2026-07-12 (spec §4 governs): thesis.py re-stamps lastChangedAsOf on every
+    # applied daily judgment including plain reaffirmations, so an in-window timestamp with
+    # lastVerdict="reaffirmed" must NOT read as a move.
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(lastVerdict="reaffirmed", lastDirection=0, lastChangedAsOf="2026-07-08")])
+    cur = build_state(Scorecard(categoryId="c", asOf="2026-07-08", findings=[],
+                      demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),
+                      narrative="n", confidence=_conf()), book=book)
+    hd = diff_states("last week", 7, cur, cur, "2026-07-01", book)
+    th = next(i for i in hd.items if i.key == "thesis:demand-durability")
+    assert th.changed is False
+
+
 def test_price_change_uses_rel_tol():
     cur = build_state(Scorecard(categoryId="c", asOf="2026-07-08", findings=[],
                       demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),

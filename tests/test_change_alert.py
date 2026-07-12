@@ -50,6 +50,17 @@ def test_yellow_on_high_call_moved():
     assert color == "yellow" and "high-call-moved" in trig
 
 
+def test_reaffirmed_high_call_in_window_stays_green():
+    # USER-APPROVED 2026-07-12 (spec §4 governs): a plain reaffirmation re-stamps
+    # lastChangedAsOf without a real move — it must not fire high-call-moved/calls-co-move.
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(eid="t1", verdict="reaffirmed", direction=0, changed="2026-07-05"),
+        _entry(eid="t2", verdict="reaffirmed", direction=0, changed="2026-07-06")])
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", book)
+    assert color == "green"
+    assert "high-call-moved" not in trig and "calls-co-move" not in trig
+
+
 def test_two_yellow_rules_escalate_orange():
     color, trig = _raw_alert(_st(sdgi=0.35, constraint="memory"),
                              _st(sdgi=0.10, constraint="export", as_of="2026-07-01"),

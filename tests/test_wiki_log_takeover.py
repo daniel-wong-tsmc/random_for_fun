@@ -112,6 +112,51 @@ def test_no_takeover_when_foreign_host(tmp_path):
         log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
 
 
+def test_racing_reclaimer_aborts_when_lock_was_replaced(tmp_path, monkeypatch, capsys):
+    """Two writers time out on the same stale lock. A reclaims first and creates a
+    FRESH lock (live pid). B, still acting on the stale identity it read earlier,
+    must re-validate before unlinking - and abort with the fail-loud TimeoutError,
+    never unlink A's live lock, never acquire a second lock."""
+    import gpu_agent.wiki.log as wiki_log
+    log = WikiLog(tmp_path / "log.jsonl")
+    log._lock_timeout = 0.1
+    lock = _plant_lock(tmp_path, pid=_dead_pid(), hostname=socket.gethostname(),
+                       age_seconds=120)
+    fresh_body = json.dumps({"pid": os.getpid(), "hostname": socket.gethostname(),
+                             "timestamp": time.time()})
+    real_pid_is_dead = wiki_log._pid_is_dead
+
+    def probe_then_lose_race(pid):
+        result = real_pid_is_dead(pid)
+        lock.write_text(fresh_body)      # A reclaims between B's checks and B's unlink
+        return result
+
+    monkeypatch.setattr(wiki_log, "_pid_is_dead", probe_then_lose_race)
+    with pytest.raises(TimeoutError) as ei:
+        log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
+    assert "delete this file if no writer is running" in str(ei.value)
+    assert json.loads(lock.read_text("utf-8")) == json.loads(fresh_body)  # A's lock untouched
+    assert "WIKI-LOCK-TAKEOVER" not in capsys.readouterr().err
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows refuses to delete an open file")
+def test_reclaim_blocked_unlink_fails_loud_not_permissionerror(tmp_path):
+    """If the reclaim unlink is refused by the OS (the lock is held open by another
+    process), takeover must abort into the clean fail-loud TimeoutError contract -
+    a raw PermissionError must never escape append()."""
+    log = WikiLog(tmp_path / "log.jsonl")
+    log._lock_timeout = 0.1
+    lock = _plant_lock(tmp_path, pid=_dead_pid(), hostname=socket.gethostname(),
+                       age_seconds=120)
+    holder = os.open(str(lock), os.O_RDONLY)     # an open handle blocks deletion on Windows
+    try:
+        with pytest.raises(TimeoutError) as ei:
+            log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
+        assert "delete this file if no writer is running" in str(ei.value)
+    finally:
+        os.close(holder)
+
+
 def test_no_takeover_on_legacy_or_garbage_body(tmp_path):
     lock = pathlib.Path(str(tmp_path / "log.jsonl") + ".lock")
     lock.parent.mkdir(parents=True, exist_ok=True)

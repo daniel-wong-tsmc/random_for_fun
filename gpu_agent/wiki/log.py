@@ -240,20 +240,31 @@ class WikiLog:
             return None                              # too young
         if not _pid_is_dead(pid):
             return None                              # live, or cannot prove dead
-        print(
-            f"WIKI-LOCK-TAKEOVER {self._lock_path}: reclaiming lock held by dead "
-            f"pid {pid}, age {age:.0f}s",
-            file=sys.stderr,
-        )
+        # Re-validate immediately before reclaiming: another timed-out writer may have
+        # taken over first and created a FRESH lock at this same path. If the body no
+        # longer carries the exact identity we decided on (or is unreadable), abort and
+        # fail loud rather than unlink a live writer's lock. On Windows the OS also
+        # refuses to delete an open file - the OSError catch below routes that refusal
+        # to the same fail-loud path; on POSIX the unlink of an open file would succeed,
+        # so this re-check is the guard against a double-acquire.
+        if self._read_lock_identity() != ident:
+            return None                              # lock changed hands - not ours to break
         try:
             os.unlink(self._lock_path)
         except FileNotFoundError:
-            pass
+            pass                                      # already gone; the O_EXCL retry decides
+        except OSError:
+            return None                              # OS refused the delete -> fail loud
         try:
             fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, self._lock_identity())
         except (FileExistsError, PermissionError):
             return None                              # lost the one immediate retry race
-        os.write(fd, self._lock_identity())
+        print(
+            f"WIKI-LOCK-TAKEOVER {self._lock_path}: reclaimed lock held by dead "
+            f"pid {pid}, age {age:.0f}s",
+            file=sys.stderr,
+        )
         return fd
 
     def _release_lock(self, fd: int) -> None:

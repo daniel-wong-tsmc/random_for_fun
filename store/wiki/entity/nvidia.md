@@ -2,7 +2,7 @@
 id: "entity:nvidia"
 type: "entity"
 title: "nvidia"
-category: null
+category: "chips.merchant-gpu"
 status: "provisional"
 state: ""
 trajectory: ""

@@ -2,7 +2,7 @@
 id: "entity:multi"
 type: "entity"
 title: "multi"
-category: null
+category: "chips.merchant-gpu"
 status: "provisional"
 state: ""
 trajectory: ""

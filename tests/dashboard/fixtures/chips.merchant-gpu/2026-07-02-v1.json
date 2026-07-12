@@ -1,0 +1,903 @@
+{
+  "categoryId": "chips.merchant-gpu",
+  "asOf": "2026-07-02",
+  "findings": [
+    {
+      "id": "blogs-nvidia-com-817f7ea6-1",
+      "statement": "NVIDIA is launching a new revenue-sharing and credit-support business model that lets AI clouds procure NVIDIA infrastructure, expanding compute access to startups, model builders, enterprises, research organizations and regional AI players.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Financing has been a bottleneck for capital-intensive AI infrastructure; NVIDIA's revenue-share and credit-support model unlocks financing and expands its addressable demand while adding a share of cloud revenue on top of standard product revenue.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "infrastructure.hyperscale-cloud",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "Revenue-sharing and credit support unlock financing for AI-cloud buildouts, pulling through more NVIDIA GPU sales and adding a recurring cloud-revenue share."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Blog / Newsroom",
+          "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+          "date": "2026-07-01",
+          "excerpt": "NVIDIA is introducing a new business model that opens up compute access to the fast-growing AI ecosystem of startups, model builders, enterprises, research organizations and regional AI players",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Single vendor blog (secondary), qualitative announcement without figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "blogs-nvidia-com-817f7ea6-2",
+      "statement": "NVIDIA reports compute demand is accelerating and shifting from model development toward continuously operating production-inference 'AI factories' that generate tokens at scale.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A shift to always-on inference implies sustained, high-utilization datacenter GPU demand rather than episodic training bursts, supporting durable merchant-GPU consumption.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud",
+          "models.reasoning-agentic"
+        ],
+        "direction": "positive",
+        "mechanism": "Production inference at token scale requires continuously utilized accelerated compute, sustaining datacenter GPU demand."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Blog / Newsroom",
+          "url": "https://blogs.nvidia.com/blog/nvidia-unlocks-ai-compute-at-scale-capital-partners-to-power-ai-infrastructure-buildout/",
+          "date": "2026-07-01",
+          "excerpt": "compute demand is accelerating and shifting toward continuously operating AI factories that generate tokens at scale",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor blog (secondary), qualitative claim without figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D2",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-1",
+      "statement": "Lambda lists NVIDIA B200 SXM6 GPU-cloud rental at $6.69/hr per GPU (8x configuration), the flagship Blackwell rate.",
+      "kind": "measured",
+      "value": {
+        "number": 6.69,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Provides a current per-GPU market rental level for flagship Blackwell B200 capacity, a reference point for $/GPU-hr economics; no baseline in the document so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level sets the cost baseline for renting B200 compute; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "Lambda (lambda.ai)",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-02",
+          "excerpt": "NVIDIA B200 SXM6: 8x configuration $6.69/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "lambda-ai-845323fc-2",
+      "statement": "Lambda lists NVIDIA H100 SXM GPU-cloud rental at $3.99/hr per GPU (8x configuration).",
+      "kind": "measured",
+      "value": {
+        "number": 3.99,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Current per-GPU rental level for prior-generation H100 capacity; no baseline in the document so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level for H100 compute; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "Lambda (lambda.ai)",
+          "url": "https://lambda.ai/service/gpu-cloud",
+          "date": "2026-07-02",
+          "excerpt": "NVIDIA H100 SXM: 8x $3.99/hr",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-2de12e3b-1",
+      "statement": "Anthropic's Claude models are now generally available in Microsoft Foundry, running in production on NVIDIA GB300 (Blackwell Ultra) GPUs in Microsoft Azure.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A frontier lab's flagship models reaching general availability on current-generation Blackwell Ultra inside a major hyperscaler is a concrete production-demand data point for merchant datacenter GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud",
+          "models.frontier-closed",
+          "models.reasoning-agentic"
+        ],
+        "direction": "positive",
+        "mechanism": "Production GA deployment of Claude on GB300 pulls through Blackwell Ultra GPU demand via Azure."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom",
+          "url": "https://nvidianews.nvidia.com/news/claude-anthropic-nvidia-gb300-azure",
+          "date": "2026-06-29",
+          "excerpt": "Anthropic's Claude models in Microsoft Foundry — hosted on Microsoft Azure and running on NVIDIA GB300 Blackwell Ultra GPUs — are now generally available",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor newsroom (secondary) announcement."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "nvidianews-nvidia-com-7296b2f1-1",
+      "statement": "NVIDIA positions its full inference software stack (not just silicon) as the driver of the lowest cost per token, as buyers shift evaluation from peak chip specifications to useful tokens delivered per dollar, per watt and within latency targets.",
+      "kind": "observed",
+      "value": null,
+      "trend": "flat",
+      "why": "If NVIDIA's software stack sustains a token-cost advantage, it defends NVIDIA's datacenter GPU share against the total-cost-of-ownership push from AMD Instinct and custom ASICs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "chips.ai-silicon-startups",
+          "infrastructure.cluster-software"
+        ],
+        "direction": "positive",
+        "mechanism": "Software-driven lower cost per token strengthens NVIDIA's TCO position on the metric buyers now optimize, defending merchant-GPU share versus competing accelerators."
+      },
+      "evidence": [
+        {
+          "source": "NVIDIA Newsroom",
+          "url": "https://nvidianews.nvidia.com/news/how-nvidias-inference-software-stack-powers-the-lowest-token-cost",
+          "date": "2026-06-30",
+          "excerpt": "infrastructure decisions have shifted from peak chip specifications to cost per token",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor-authored positioning (secondary), qualitative, no figures."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-coreweave-com-eb7fcb71-1",
+      "statement": "CoreWeave on-demand pricing for an 8-GPU NVIDIA HGX B200 instance is $68.80/hr (spot $34.11/hr), i.e. about $8.60 per GPU-hour when divided across the 8 GPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 8.6,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Current on-demand rental level for flagship Blackwell B200 capacity; the per-GPU figure is derived by dividing the listed 8-GPU HGX instance price ($68.80) by 8, giving a $/GPU-hr reference. No baseline in the document, so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level for B200 capacity; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "CoreWeave",
+          "url": "https://www.coreweave.com/pricing",
+          "date": "2026-07-02",
+          "excerpt": "NVIDIA HGX B200: On-Demand Price: $68.80; Spot Price: $34.11/hour",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary); per-GPU value derived from listed 8-GPU instance price."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-coreweave-com-eb7fcb71-2",
+      "statement": "CoreWeave on-demand pricing for an 8-GPU NVIDIA HGX H100 instance is $49.24/hr (spot $19.71/hr), i.e. about $6.16 per GPU-hour when divided across the 8 GPUs.",
+      "kind": "measured",
+      "value": {
+        "number": 6.16,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Current on-demand rental level for prior-generation H100 capacity; the per-GPU figure is derived by dividing the listed 8-GPU HGX instance price ($49.24) by 8. No baseline in the document, so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level for H100 capacity; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "CoreWeave",
+          "url": "https://www.coreweave.com/pricing",
+          "date": "2026-07-02",
+          "excerpt": "NVIDIA HGX H100: On-Demand Price (Per Hour): $49.24; Spot Price: $19.71/hour",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary); per-GPU value derived from listed 8-GPU instance price."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-8764779e-1",
+      "statement": "NVIDIA became the revenue leader in the global data center Ethernet switch market for the first time in Q1 2026, an adjacent share gain tied to Spectrum-X/Quantum networking bundled with Blackwell/GB300 deployments.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Networking leadership shows NVIDIA's GPU platform pulling through bundled Spectrum-X/Quantum networking, extending its datacenter footprint and share beyond compute.",
+      "impact": {
+        "targets": [
+          "chips.networking-silicon",
+          "infrastructure.networking-fabric",
+          "chips.merchant-gpu"
+        ],
+        "direction": "positive",
+        "mechanism": "GB300/Blackwell deployments bundle NVIDIA networking, driving data center Ethernet switch revenue share and reinforcing platform lock-in."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260701PD224/nvidia-data-center-ethernet-idc.html",
+          "date": "2026-07-01",
+          "excerpt": "Nvidia's networking business has surged to the top, with the company becoming the revenue leader in the global data center Ethernet switch market for the first time in the first quarter of 2026.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; full article paywalled, no share percentage given."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "market-share-pct",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "NVDA",
+      "observedAt": "2026-07-01",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-f88ca4e6-1",
+      "statement": "Server supply-chain players report an AI infrastructure order boom spilling into 2H26, with demand sentiment turning increasingly upbeat.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "A broad order boom into 2H26 signals sustained datacenter accelerator demand and rising backlog across the supply chain.",
+      "impact": {
+        "targets": [
+          "infrastructure.datacenter-colo",
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising AI infrastructure orders lift server shipments and accelerator backlog into the second half of 2026."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+          "date": "2026-06-30",
+          "excerpt": "The AI infrastructure order boom is spilling into the second half of 2026, and server supply-chain players are turning increasingly upbeat about demand as Nvidia Vera Rubin, AMD Helios, AWS Trainium 3, and Google TPU all move into mass production.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; detailed figures paywalled."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "rpoBacklog",
+      "side": "demand",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-digitimes-com-f88ca4e6-2",
+      "statement": "Next-generation accelerators — NVIDIA Vera Rubin, AMD Helios (MI400-series), AWS Trainium 3 and Google TPU — are all moving into mass production simultaneously, expanding datacenter accelerator supply into 2H26.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "Simultaneous mass-production ramps across GPUs and custom ASICs expand alternative accelerator supply and intensify competition beyond NVIDIA merchant GPUs.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.hyperscaler-asic",
+          "chips.ai-silicon-startups",
+          "chips.foundry-packaging"
+        ],
+        "direction": "positive",
+        "mechanism": "Concurrent mass production of GPUs and custom ASICs increases available accelerator supply and competitive alternatives into the second half of 2026."
+      },
+      "evidence": [
+        {
+          "source": "Digitimes",
+          "url": "https://www.digitimes.com/news/a20260630PD226/gpu-asic-server-shipments-infrastructure-2026.html",
+          "date": "2026-06-30",
+          "excerpt": "stronger 2H26 server shipments as driven by simultaneous mass-production ramps across Nvidia's next-gen Vera Rubin GPU platform, AMD's Helios rack (MI400-series), AWS Trainium 3, and Google TPU custom silicon",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Trade press (secondary), free excerpt; capacity detail paywalled."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 0,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "market",
+      "observedAt": "2026-06-30",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-ebay-com-fe5361e5-1",
+      "statement": "Used NVIDIA H100 average sold price on eBay is $799 (last 240 listings), but the underlying pricing data was last updated February 4, 2025, so the figure is a stale vintage.",
+      "kind": "measured",
+      "value": {
+        "number": 799.0,
+        "unit": "USD_per_card"
+      },
+      "trend": "unknown",
+      "why": "Secondary-market resale level for used H100; heavily caveated because the source data was last updated 2025-02-04 and may not reflect current resale conditions. Static level with no baseline, so it does not score.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Resale price level is a display overlay for secondary GPU supply, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "eBay (via web search aggregation)",
+          "url": "https://www.ebay.com/shop/nvidia-h100-gpu?_nkw=nvidia+h100+gpu",
+          "date": "2026-07-02",
+          "excerpt": "The average sold price for used nvidia h100 is $799 from the last 240 listings.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Aggregated secondary listing data, explicitly stale (last updated 2025-02-04)."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "gpuSpotPrice",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-ebay-com-fe5361e5-2",
+      "statement": "Current eBay prices for new NVIDIA H100 average $6,113 (last 245 listings), while premium/international listings for new Tesla H100 80GB range $22,490-$23,000 — a very wide dispersion.",
+      "kind": "measured",
+      "value": {
+        "number": 6113.0,
+        "unit": "USD_per_card"
+      },
+      "trend": "unknown",
+      "why": "Current secondary-market ask for new H100 cards; the wide gap between average and premium listings reflects thin, heterogeneous resale liquidity. Static level with no baseline, so it does not score.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu"
+        ],
+        "direction": "mixed",
+        "mechanism": "Secondary-market price level; a display overlay, not a demand/supply signal."
+      },
+      "evidence": [
+        {
+          "source": "eBay (via web search aggregation)",
+          "url": "https://www.ebay.com/shop/nvidia-h100-gpu?_nkw=nvidia+h100+gpu",
+          "date": "2026-07-02",
+          "excerpt": "the average current price for new 'nvidia h100' is $6,113 from the last 245 listings",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Aggregated secondary listing data (secondary)."
+      },
+      "dispersion": "Wide range for new H100: average current $6,113 vs premium/international listings $22,490-$23,000; used sold average $799 (data last updated 2025-02-04).",
+      "asOf": "2026-07-02",
+      "indicatorId": "gpuSpotPrice",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-investing-com-f24cdca0-1",
+      "statement": "Cantor Fitzgerald raised its AMD price target to $700 from $500 (maintaining Overweight), citing AMD as offering the greatest compute momentum among semiconductor companies, driven by its data-center Instinct GPU trajectory.",
+      "kind": "observed",
+      "value": null,
+      "trend": "rising",
+      "why": "An analyst upgrade framed around AMD's Instinct data-center GPU momentum signals a strengthening competitive accelerator alternative to NVIDIA.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "chips.ai-silicon-startups",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Rising AMD Instinct momentum expands competitive accelerator supply and choice, pressuring NVIDIA's accelerator share."
+      },
+      "evidence": [
+        {
+          "source": "Investing.com",
+          "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+          "date": "2026-06-29",
+          "excerpt": "Cantor Fitzgerald raised its price target on Advanced Micro Devices stock to $700 from $500 while maintaining an Overweight rating.",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Analyst action reported via aggregator (secondary); qualitative, no market-share figure."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "S9",
+      "side": "supply",
+      "polarityDemand": 1,
+      "polaritySupply": 1,
+      "magnitude": 2,
+      "entity": "AMD",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-investing-com-f24cdca0-2",
+      "statement": "AMD's MI450/Helios customer engagement may be strengthening, per same-week secondary coverage that is explicitly not independently confirmed.",
+      "kind": "hypothesis",
+      "value": null,
+      "trend": "rising",
+      "why": "If MI450/Helios engagement is firming, AMD would be converting its Instinct roadmap into named platform adoption, a leading demand indicator for its accelerators.",
+      "impact": {
+        "targets": [
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "positive",
+        "mechanism": "Named MI450/Helios customer wins would validate AMD accelerator demand and erode NVIDIA's share."
+      },
+      "evidence": [
+        {
+          "source": "Investing.com",
+          "url": "https://www.investing.com/news/analyst-ratings/cantor-fitzgerald-raises-amd-stock-price-target-to-700-on-compute-momentum-93CH-4765131",
+          "date": "2026-06-29",
+          "excerpt": "separate analyst references to strengthening MI450/Helios customer engagement -- flagged here as secondary, not confirmed verbatim",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": "The engagement is reported only via secondary aggregation and explicitly not confirmed; treated as a hypothesis pending primary confirmation such as named customer announcements or filings.",
+      "confidence": {
+        "level": "low",
+        "basis": "Unconfirmed secondary aggregation; explicitly flagged as not verified."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "designWins",
+      "side": "structural",
+      "polarityDemand": 1,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "AMD",
+      "observedAt": "2026-06-29",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-runpod-io-bdb62dfd-1",
+      "statement": "Runpod lists dedicated NVIDIA B200 (180 GB VRAM) GPU-cloud pods at $5.89/hr per GPU, its flagship Blackwell rate (B300 at $7.39/hr).",
+      "kind": "measured",
+      "value": {
+        "number": 5.89,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Current neocloud per-GPU rental level for flagship Blackwell B200 capacity; Runpod markets pricing as up to 80% less than hyperscalers. No baseline in the document, so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level for B200 capacity; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "Runpod",
+          "url": "https://www.runpod.io/pricing",
+          "date": "2026-07-02",
+          "excerpt": "B200 at $5.89/hr with 180 GB VRAM",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    },
+    {
+      "id": "www-runpod-io-bdb62dfd-2",
+      "statement": "Runpod lists dedicated NVIDIA H100 SXM (80 GB) GPU-cloud pods at $3.29/hr per GPU (H100 PCIe at $2.89/hr).",
+      "kind": "measured",
+      "value": {
+        "number": 3.29,
+        "unit": "USD_per_gpu_hr"
+      },
+      "trend": "unknown",
+      "why": "Current neocloud per-GPU rental level for prior-generation H100 capacity. No baseline in the document, so it is a static level.",
+      "impact": {
+        "targets": [
+          "infrastructure.neocloud",
+          "chips.merchant-gpu",
+          "infrastructure.hyperscale-cloud"
+        ],
+        "direction": "mixed",
+        "mechanism": "Rental price level for H100 capacity; a display overlay, not a demand/supply mover."
+      },
+      "evidence": [
+        {
+          "source": "Runpod",
+          "url": "https://www.runpod.io/pricing",
+          "date": "2026-07-02",
+          "excerpt": "H100 SXM at $3.29/hr with 80 GB VRAM",
+          "tier": "secondary"
+        }
+      ],
+      "reasoning": null,
+      "confidence": {
+        "level": "medium",
+        "basis": "Vendor price page (secondary)."
+      },
+      "dispersion": null,
+      "asOf": "2026-07-02",
+      "indicatorId": "D6",
+      "side": "price",
+      "polarityDemand": 0,
+      "polaritySupply": 0,
+      "magnitude": 1,
+      "entity": "NVDA",
+      "observedAt": "2026-07-02",
+      "capturedAt": "2026-07-02T21:30:00Z",
+      "extractionModel": "claude-opus-4-8",
+      "schemaVersion": "1.2"
+    }
+  ],
+  "dimensionRatings": {
+    "competitiveStructure": {
+      "rating": "Mixed",
+      "direction": "worsening",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-2de12e3b-1",
+        "www-digitimes-com-f88ca4e6-2",
+        "www-investing-com-f24cdca0-1",
+        "www-investing-com-f24cdca0-2"
+      ],
+      "rationale": "NVIDIA still lands marquee design wins (Anthropic GA on GB300 in Azure), but Vera Rubin, AMD Helios/MI400, AWS Trainium 3 and Google TPU are all entering mass production at once, Cantor flags AMD as the greatest compute-momentum name, and MI450/Helios engagement may be strengthening; the +0.42 anchor keeps it off Weak, but intensifying multi-vendor rivalry makes Mixed with a worsening tilt the honest read.",
+      "voteSpread": "3/3 Mixed"
+    },
+    "moat": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "nvidianews-nvidia-com-7296b2f1-1",
+        "www-digitimes-com-8764779e-1"
+      ],
+      "rationale": "The full inference software stack is positioned as the lowest cost-per-token driver as buyers shift to useful-tokens-per-dollar/watt, and NVIDIA became the data-center Ethernet switch revenue leader for the first time via Spectrum-X/Quantum bundled with Blackwell/GB300 — an adjacent, widening lock-in consistent with the +0.50 anchor.",
+      "voteSpread": "3/3 Strong"
+    },
+    "momentum": {
+      "rating": "Strong",
+      "direction": "improving",
+      "confidence": {
+        "level": "medium",
+        "basis": "majority of 3/3 samples; capped by finding confidence (medium)"
+      },
+      "findingIds": [
+        "blogs-nvidia-com-817f7ea6-1",
+        "blogs-nvidia-com-817f7ea6-2",
+        "www-digitimes-com-f88ca4e6-1"
+      ],
+      "rationale": "Compute demand is accelerating and shifting toward always-on production-inference AI factories, a new revenue-share/credit model is broadening access, and supply-chain players report an order boom spilling into 2H26 with upbeat sentiment; the +0.67 anchor supports a firmly positive, improving read.",
+      "voteSpread": "3/3 Strong"
+    }
+  },
+  "demandSupply": {
+    "dmiContribution": 0.22666666666666668,
+    "smiContribution": 0.05333333333333334,
+    "anchors": {
+      "momentum": 0.6666666666666666,
+      "competitiveStructure": 0.41666666666666663,
+      "moat": 0.5
+    },
+    "sdgi": 0.17333333333333334,
+    "sdgiDirection": "demand-led"
+  },
+  "narrative": "Demand momentum and moat are both strong and improving — accelerating inference demand, an order boom into 2H26, cost-per-token software leadership, and a new networking-market share win. The binding constraint is competitiveStructure, where simultaneous mass-production ramps from AMD, AWS and Google intensify rivalry even as NVIDIA keeps winning flagship designs. Net posture is strong but the competitive front is where the bottleneck sits.",
+  "confidence": {
+    "level": "medium",
+    "basis": "self-consistency over 3 samples; capped: one or more dimensions under-supported"
+  },
+  "sources": [
+    "CoreWeave",
+    "Digitimes",
+    "Investing.com",
+    "Lambda (lambda.ai)",
+    "NVIDIA Blog / Newsroom",
+    "NVIDIA Newsroom",
+    "Runpod",
+    "eBay (via web search aggregation)"
+  ],
+  "provenance": {
+    "assignment": "asg.chips.merchant-gpu@1.1"
+  },
+  "dimensionStatus": {
+    "momentum": {
+      "evidenceStatus": "grounded",
+      "findingCount": 3,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "unitEconomics": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to unitEconomics this cycle"
+    },
+    "competitiveStructure": {
+      "evidenceStatus": "grounded",
+      "findingCount": 4,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "moat": {
+      "evidenceStatus": "grounded",
+      "findingCount": 2,
+      "confidenceCap": "medium",
+      "note": "secondary-only evidence"
+    },
+    "bottleneck": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to bottleneck this cycle"
+    },
+    "strategicRisk": {
+      "evidenceStatus": "under-supported",
+      "findingCount": 0,
+      "confidenceCap": "low",
+      "note": "no findings mapped to strategicRisk this cycle"
+    }
+  },
+  "categoryStatus": {
+    "rating": "Strong",
+    "direction": "improving",
+    "bottleneck": "competitiveStructure",
+    "reason": "Momentum is accelerating and the moat is widening across software and networking, so the single binding constraint is the competitive structure: AMD, AWS and Google accelerators reaching mass production simultaneously is the one dimension pressuring an otherwise strong position."
+  },
+  "indices": {
+    "momentum": {
+      "dmiContribution": 0.16,
+      "smiContribution": 0.05333333333333334,
+      "anchors": {},
+      "sdgi": 0.10666666666666666,
+      "sdgiDirection": "demand-led"
+    },
+    "outlook": {
+      "dmiContribution": 0.06666666666666667,
+      "smiContribution": 0.0,
+      "anchors": {},
+      "sdgi": 0.06666666666666667,
+      "sdgiDirection": "demand-led"
+    },
+    "divergence": {
+      "state": "aligned",
+      "sdgiGap": -0.039999999999999994,
+      "outlookFindingCount": 1,
+      "momentumFindingCount": 6,
+      "note": ""
+    }
+  }
+}

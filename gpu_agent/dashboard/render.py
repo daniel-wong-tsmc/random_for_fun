@@ -105,7 +105,8 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px}
 .helps{color:#166534}.hurts{color:#9a3412}
 @media (prefers-color-scheme:dark){.helps{color:#86efac}.hurts{color:#fca5a5}}
 .alert{font-weight:650}
-.alert-green{color:#2e7d32}.alert-yellow{color:#f9a825}.alert-orange{color:#ef6c00}.alert-red{color:#c62828}
+.alert-green{color:#2e7d32}.alert-yellow{color:#9a6700}.alert-orange{color:#c2410c}.alert-red{color:#c62828}
+@media (prefers-color-scheme:dark){.alert-green{color:#4ade80}.alert-yellow{color:#f9a825}.alert-orange{color:#ef6c00}.alert-red{color:#ef5350}}
 .wc-row{padding:6px 0;border-bottom:1px solid var(--line)}.wc-row:last-child{border-bottom:none}
 """
 

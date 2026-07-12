@@ -46,15 +46,21 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
     # re-derivation). `store_dir` here is the dashboard's own established convention:
     # the category's flat scorecard directory (e.g. "store/chips.merchant-gpu" — the
     # real CLI default below, and load_scorecards' own convention). The change engine /
-    # ThesisStore expect the STORE ROOT one level up (e.g. "store", holding
-    # theses/<category>/ alongside <category>/ — confirmed on disk), so it is derived
-    # here as store_dir.parent rather than changing load_scorecards' frozen contract.
-    cat_dir = Path(store_dir)
+    # ThesisStore expect the STORE ROOT (e.g. "store", holding theses/<category>/
+    # alongside <category>/ — confirmed on disk). Detection honors BOTH layouts: if
+    # store_dir already contains a <category_id>/ subdir it IS the root (this also
+    # gracefully accepts a caller passing the store root directly); otherwise it's the
+    # category dir and its parent is the root. Naive `.parent` alone was wrong for any
+    # store_dir not literally named after the category (e.g. tests/dashboard/fixtures)
+    # — it silently produced false first-run output (alert prior None, every horizon
+    # "no run yet"); pinned by test_build_model_change_parity_sees_fixture_history.
+    store_dir = Path(store_dir)
+    store_root = store_dir if (store_dir / category_id).is_dir() else store_dir.parent
+    cat_dir = store_dir
     latest_path = max((p for p in cat_dir.iterdir() if _VERSION_RE.match(p.name)),
                       key=lambda p: (_VERSION_RE.match(p.name).group(1),
                                      int(_VERSION_RE.match(p.name).group(2))))
     sc = load_scorecard(latest_path)
-    store_root = Path(store_dir).parent
     book = None
     tstore = ThesisStore(store_root / "theses" / category_id)
     if tstore.book_path.exists():

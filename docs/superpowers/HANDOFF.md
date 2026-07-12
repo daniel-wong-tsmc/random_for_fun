@@ -22,14 +22,21 @@
     and **F80** (live-store `category: null` on entity:nvidia/entity:multi wiki pages → NVIDIA
     contributes ZERO store findings to its own corpus, pre-existing since F62) logged in
     `docs/fix-backlog.md`. A concurrent instance landed the live 2026-07 **v5** top-up (`60879fb`).
-- **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies 2026-07-09 +
-  2026-07-11 + 2026-07-12 — re-run interactively or skip like 07-07 (the F78-1-unpushed part of the 07-11
-  callout was RESOLVED 2026-07-11: user said push); (2) F80 store fix mechanism (store edits are
-  sacred); (3) merged-worktree cleanup (see registry); (4) repo rename before TSMC-branded exposure.
+- **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies — the standing
+  grant-vs-skip decision is RESOLVED 2026-07-12 (user-approved, interactive): grant the scheduled
+  session ALL tools, recorded as **F83** (implementation sequenced post-current-backlog; the
+  config flip can happen earlier on the user's word); still open: whether the three skipped days
+  (07-09/07-11/07-12) are re-run — the 07-07 precedent is skip (the F78-1-unpushed part of the
+  07-11 callout was RESOLVED 2026-07-11: user said push); (2) F80 store fix mechanism (store
+  edits are sacred); (3) merged-worktree cleanup (see registry); (4) repo rename before
+  TSMC-branded exposure.
 - **NEXT:** claim a stage-6 lane per its plan
   (`docs/superpowers/plans/2026-07-08-f78-stage6-change-first-renderer.md`, base must import
   `gpu_agent.asof` + `gpu_agent.pricefeed` — current main does). After F78: F79 (own
-  brainstorm/spec), F65, F66, F80.
+  brainstorm/spec), F65, F66, F80. Then the **F81–F86 gap wave** (2026-07-12 section in
+  `docs/fix-backlog.md`, user-adjudicated: brain diversity, corrections pathway, scheduled-daily
+  grant + event wake, external scoreboard, manipulation-resistance slice, model-swap
+  recalibration), beside the standing F23/F24/F25 track.
 
 > **[2026-07-12 SCHEDULED DAILY — BLOCKED (web-fetch tooling still permission-gated); AFK-default 2026-07-12.]**
 > The scheduled 2026-07-12 headless daily (`category:chips.merchant-gpu`, mode=daily, live gather) hit the

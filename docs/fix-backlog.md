@@ -781,9 +781,116 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   step in the next cycle; the corpus's SKIPPED-PAGE stderr lines have been reporting this on
   every run). After tagging, the ~343-day NVIDIA spec-page fact correctly fades under aging
   (eff 0.069 < 0.1 floor). *(Small but judgment-bearing: store writes are sacred.)*
+  **Forward pointer:** F82 (2026-07-12 wave, above) generalizes this into the full
+  corrections/retraction pathway — pick an F80 mechanism F82 can inherit.
 - [ ] Doc drift (non-blocking, plan-flagged): `.claude/skills/desk-config-and-flags/references/cli-verbs.md`
   still documents the removed `--window-days`/`--corpus-window-days`; replace with
   `--salience-floor`/`--corpus-salience-floor` once stage 3 merges.
+
+## From the 2026-07-12 gap review (F81–F86) — the post-current-backlog wave
+
+> Source: a "what is missing for a fully fledged digital analysis team?" review (2026-07-12),
+> adjudicated by the user the same day. **Sequencing (user-approved 2026-07-12): these start only
+> after the current pipeline closes** — F78 → F79, then F65 / F66 / F80 and the F56/F68 small
+> items — and slot beside the standing F23/F24/F25 track and Phase-2 prep. Directions marked
+> `user-approved` are the user's 2026-07-12 answers; the mechanics beneath them are the
+> assistant's lean, to be confirmed when each item's own brainstorm runs (repo convention: each
+> is a feature — brainstorm → spec → plan when picked up). Two quieter observations from the same
+> review, recorded but deliberately not minted as F-items: the ~1-session desk-recipe estimate
+> predates F79's backfill requirement (the roadmap already says recalibrate after Phase 2), and
+> the org's bus factor is one human (approver, reader, onboarding author, incident responder —
+> no succession story; revisit if a second operator ever appears).
+
+- [ ] **F81 — Brain diversity: decorrelate the validators (user-approved direction 2026-07-12:
+  Sonnet, Haiku, and possibly older model versions).** Today every brain, validator, and grader
+  is the same model, so blind spots correlate across the whole org — and the Phase-3 structured
+  challenge inherits them (a validator sharing the author's bias agrees with the mistake).
+  Direction: draw *validator / challenger / grader* roles from a model-diversity pool (sonnet,
+  haiku, maybe older versions) while authoring brains stay opus. This amends the standing model
+  policy for those roles; "Claude Code is the brain" holds — these are still tool-less Claude
+  Code dispatches. Lean: measure first — dispatch the same validation task across tiers on
+  recorded cases and check whether disagreement is actually decorrelated or just noisier — then
+  wire the pool in as registry data (model tier per role, per gate). Early cheap slice: F66's
+  citation-audit subagent and the grade-the-grader cadence run on the pool. Interacts with F86
+  (per-role model pinning); any prompt change rides the F6 gate.
+
+- [ ] **F82 — Corrections & retraction pathway (truth maintenance).** No designed exit exists for
+  evidence later proven wrong (source retraction, restated figure, mis-extraction found
+  post-cycle): the store is append-only and sacred, so a bad finding can today only be diluted,
+  never corrected — and every judgment that leaned on it stands silently. Plan (user asked for
+  one 2026-07-12; lean, to confirm at brainstorm): **(a)** an append-only `correction` event
+  referencing finding id(s) + reason + evidence — store sacredness holds, nothing edited or
+  deleted; **(b)** corpus/judge exclusion — corrected findings drop out of corpora and citation
+  groups (`corpus.py` is not frozen core; any gate/sufficiency semantics change ships as a
+  Part 33 migration); **(c)** re-judgment trigger — a dimension or thesis whose citations include
+  a corrected finding is flagged for re-judgment next cycle; **(d)** a visible corrections line
+  in the brief (real desks issue corrections; silence is the failure mode); **(e)** entry
+  channels: upstream retraction caught by gather/watchlist, restatements, operator-entered
+  correction. F80 is the degenerate first case of "store repair with provenance" — build F82's
+  mechanism compatible with whatever F80 decides.
+
+- [ ] **F83 — Scheduled daily unblocked + event-triggered wake (user-approved 2026-07-12: grant
+  the scheduled session ALL tools).** Resolves the standing 07-09/07-11/07-12 open gate in the
+  grant direction, not keep-skipping: the scheduled daily session gets full tool access
+  (WebSearch, WebFetch, agent-reach, file writes). Brains stay tool-less — this is the
+  orchestrating session's permissions, doctrine untouched. The grant itself is config-only and
+  can be flipped earlier at the user's word; the rest of this item waits for the wave. Folded-in
+  prerequisite (already standing on the roadmap's autonomy track): the **orchestration-prose
+  conformance pin** — run-cycle's session-orchestrated behavior gets its replay-based conformance
+  test before cycles run genuinely unattended. Second half (the timeliness gap): an
+  **event-triggered off-schedule cycle** — the standing watchlist poller (desk-maturity list)
+  detects a sufficiently large event (rule-based v1: reuse F78 stage 6's alert-ladder triggers)
+  and may trigger ONE off-schedule cycle, logged, depth-1 (Part 5 one-level rule; rides the
+  Phase-3 trigger pathway design). Also seeds the ops track: the fleet currently lives on one
+  Windows machine; the owner/monitoring/restart story lands with Phase 6's unattended
+  scheduling. The three skipped July days stay skipped per the 07-07 precedent unless the user
+  says otherwise.
+
+- [ ] **F84 — Recurring external scoreboard (how we know the desk beats a cheap alternative).**
+  Assistant's proposed resolution (user requested 2026-07-12; mechanics to confirm at
+  brainstorm). **(1) Recurring blind ablation** — every N cycles (lean: quarterly, and after any
+  major desk change such as F79), re-run the procedure that already worked once in 2026-07:
+  same-day desk brief vs a web-only baseline from a plain Claude+search session, blinded,
+  user-scored on the same rubric, verdict recorded in `docs/action-items.md`. Champion-vs-
+  baseline as a standing eval instead of a spent one-off. **(2) Forecasts vs actuals** — once
+  F79's series and range forecasts exist, score every interval forecast against the realized
+  print (quarterly filings, TWSE monthly revenue — sources the desk already ingests): interval
+  hit rate + calibration curve logged beside the F64 Brier record; external ground truth with
+  zero new gathering. **(3) Deferred:** consensus-departure scoring (was the desk right when it
+  departed from visible consensus?) — valuable, harder to source cleanly; revisit at the Layer
+  tier. Renders as a scoreboard line in the trust footer. Needs no new reader — consistent with
+  the first-reader decision (user, 2026-07-04).
+
+- [ ] **F85 — Manipulation-resistance early slice (Part 26 pulled forward, thin).** Assistant's
+  proposal (user requested 2026-07-12; mechanics to confirm at brainstorm). Desks ingest the
+  open web daily NOW; the full Part 26 threat model stays Phase 7, but three cheap deterministic
+  pieces land early: **(a) publisher-reputation registry** — per-publisher tier/notes as data (a
+  sibling of `registry/syndicators.json`); unknown or first-seen publishers stamped provisional;
+  **(b) new-publisher tripwire** — a lint: any rating/conviction move whose corroboration set
+  leans on publishers first seen < N days ago is flagged in the cycle log + trust footer, never
+  silent (F72's asymmetry lesson: disguised thin evidence is the dangerous kind); **(c)
+  content-lineage collapse** — generalize F72's syndication collapse from known wire domains to
+  same-origin content tracing: if every "corroborating" story quotes one origin, it counts as
+  one publisher. Data + lint only — no frozen core, no prompt changes (no F6-gate hit) unless
+  gatherer prose tightens; any F2e counting-semantics change rides a Part 33 migration as F72
+  did.
+
+- [ ] **F86 — Model-swap recalibration plan (the analysts get replaced on Anthropic's schedule,
+  not ours).** User asked for this 2026-07-12; assistant's lean, to confirm at brainstorm. The
+  eval baseline, voice, and gate behavior are all tuned to one model version, backed by a single
+  line of doctrine ("shadow runs qualify any model swap") and no machinery. Build the procedure
+  while it is cheap: **(a) pin + record** — cycle log and eval baseline carry the exact model id
+  per brain role (extends the commit-trailer rule into run data); **(b) qualification protocol**
+  — a candidate model runs the F6 eval as brain (3 replicates per eval-v2) plus one
+  recorded-gather shadow cycle diffed against the incumbent: seam scores, gate-rejection and
+  re-dispatch rates, voice-lint failures, thesis-movement deltas; **(c) acceptance bar** — meet
+  the eval-v2 bar AND no gate-behavior regression → rebaseline under the new model id (baselines
+  become model-version-scoped); **(d) canary-desk rollout** — swap one desk, soak N cycles, then
+  the fleet; never mid-cycle. Doubles as the deliberate-downgrade path (sonnet/haiku for cost —
+  Phase 4's dials) and supplies the per-role model pinning F81 needs. Harness/baseline-schema
+  work; no prompt changes.
+
+---
 
 ## From the 2026-07-11 executive-format session (F79)
 
@@ -802,3 +909,6 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   `docs/superpowers/specs/2026-07-11-executive-brief-format-design.md` §6. **Decision provenance:
   user chose the full rebuild against the assistant's incremental-two-layer recommendation
   (interactive, 2026-07-11).** *(Feature — own brainstorm/spec/plan/SDD when it starts.)*
+  **Forward pointer:** the 2026-07-12 wave (above) consumes F79's outputs — F84 scores its
+  range forecasts against realized prints; F86 model-scopes the eval baselines its re-gate
+  produces.

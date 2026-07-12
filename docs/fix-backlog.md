@@ -801,7 +801,7 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   and so never caught this. The auto-tightening loop already in `render_report` (`while
   len(body.split(reader.APPENDIX_DIVIDER)[0].splitlines()) > _ABOVE_FOLD_BUDGET and k > 1: k -= 1`)
   only has one lever — compressing `THE CALLS` (`top[4]`) down to `top_k == 1` — and still
-  overshoots once it hits that floor with a book this size (33 standing calls). Fix direction:
+  overshoots once it hits that floor with a book this size (17 standing calls). Fix direction:
   extend the fold mechanism to a second section once ranked calls bottom out (candidates: `WHAT
   CHANGED`'s `_CHANGE_LINE_CAP`, or `QUICK GLANCE` Tier 2/3 rows), or deliberately re-scope the
   88-line budget now that the 2026-07-11 exec top band and the change-first lead both live above

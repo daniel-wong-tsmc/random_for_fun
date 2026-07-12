@@ -36,7 +36,7 @@ def test_three_tiers_present_with_arrows_and_age():
     out = render_quick_glance(_state(), _change(), _reg())
     assert "QUICK GLANCE" in out
     assert "Verdict" in out and "Scarcity" in out and "Money" in out
-    assert "Demand momentum" in out            # Tier 1 uses DIM_LABEL
+    assert "Demand momentum" in out            # Tier 1 index line (dim row shows "Momentum rating")
     assert "B200 rental" in out and "$3.99" in out
     # Tier 3 money row carries an age tag (asOf 2026-07-08 vs observed 2026-05-20 = 49 days)
     assert "49 days old" in out

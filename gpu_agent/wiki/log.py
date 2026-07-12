@@ -111,6 +111,7 @@ class WikiLog:
         self.parsed_lines = 0            # instrumentation: cumulative disk lines parsed
         self._lock_path = str(self.path) + ".lock"
         self._lock_timeout = 10.0        # seconds to wait for the append lock before failing loud
+        self._stale_after = 60.0         # seconds before a same-host, dead-pid lock is stale
 
     def _reset(self) -> None:
         self._events = []
@@ -161,20 +162,36 @@ class WikiLog:
         self._sync()
         return len(self._events)
 
+    def _lock_identity(self) -> bytes:
+        """The JSON identity record stamped into the lock file at acquire time, so a
+        later run can decide whether a leftover lock's holder is provably dead."""
+        return json.dumps({
+            "pid": os.getpid(),
+            "hostname": socket.gethostname(),
+            "timestamp": time.time(),
+        }).encode("utf-8")
+
     def _acquire_lock(self) -> int:
         """Cross-process advisory lock via an O_EXCL lock file (Windows + POSIX, no deps).
-        Fails loud on timeout rather than silently corrupting the seq sequence."""
+        The lock body carries an identity record ({pid, hostname, timestamp}) so a later
+        run can reclaim a lock whose holder is provably dead (see _try_takeover). Fails
+        loud on timeout otherwise rather than silently corrupting the seq sequence."""
         deadline = time.monotonic() + self._lock_timeout
         self.path.parent.mkdir(parents=True, exist_ok=True)
         while True:
             try:
-                return os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, self._lock_identity())
+                return fd
             except FileExistsError:
                 pass                      # another writer holds it
             except PermissionError:
                 pass                      # Windows: lock file is delete-pending; treat as busy
             if time.monotonic() >= deadline:
-                raise TimeoutError(f"wiki log lock busy: {self._lock_path}")
+                raise TimeoutError(
+                    f"wiki log lock busy: {self._lock_path} "
+                    f"- delete this file if no writer is running"
+                )
             time.sleep(0.005)
 
     def _release_lock(self, fd: int) -> None:

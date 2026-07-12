@@ -325,11 +325,13 @@ def _extract(args) -> int:
         client = make_client(args.backend)
     captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()
     all_findings, all_dropped = [], []
+    unregistered: set[str] = set()
     for doc in docs:
         outcome = extract_findings(doc, client, as_of=args.as_of, captured_at=captured_at,
                                    extraction_model=args.model, model=args.model)
         all_findings.extend(outcome.findings)
         all_dropped.extend(outcome.dropped)
+        unregistered.update(outcome.unregisteredEntities)
     payload = json.dumps([f.model_dump() for f in all_findings], indent=2)
     if args.out:
         pathlib.Path(args.out).write_text(payload, encoding="utf-8")
@@ -338,6 +340,11 @@ def _extract(args) -> int:
         print(payload)
     for d in all_dropped:
         print(f"DROPPED {d.id}: {'; '.join(d.violations)}", file=sys.stderr)
+    if unregistered:
+        # F24: per-cycle flag surface (DROPPED pattern). run-cycle Step 6 copies count+names
+        # into the cycle-log journal entry — the durable half (user-approved Q3 2026-07-12).
+        names = sorted(unregistered)
+        print(f"UNREGISTERED-ENTITY {len(names)}: {', '.join(names)}", file=sys.stderr)
     return 0
 
 def _emit_judge_prompt(args) -> int:
@@ -757,15 +764,21 @@ def _pipeline(args) -> int:
         ext_client = make_client(args.backend)
     captured_at = args.captured_at or datetime.now(timezone.utc).isoformat()
     findings, dropped = [], []
+    unregistered: set[str] = set()
     for doc in docs:
         outcome = extract_findings(doc, ext_client, as_of=args.as_of, captured_at=captured_at,
                                    extraction_model=args.model, model=args.model)
         findings.extend(outcome.findings)
         dropped.extend(outcome.dropped)
+        unregistered.update(outcome.unregisteredEntities)
     for d in dropped:
         print(f"DROPPED {d.id}: {'; '.join(d.violations)}", file=sys.stderr)
     if dropped:
         print(f"gate dropped {len(dropped)} finding(s)", file=sys.stderr)
+    if unregistered:
+        # F24: same flag surface as `extract` (see _extract) — pipeline is the live path.
+        names = sorted(unregistered)
+        print(f"UNREGISTERED-ENTITY {len(names)}: {', '.join(names)}", file=sys.stderr)
     if args.recorded_judge:
         judge_answers = json.loads(pathlib.Path(args.recorded_judge).read_text("utf-8"))
         # F67: the live cycle never calls `judge --recorded` directly -- it produces the

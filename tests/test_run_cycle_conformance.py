@@ -316,3 +316,12 @@ def test_procedure_step_list_matches_pinned_constant():
         "run-cycle Procedure step list drifted from the pinned constant. If the "
         "change is intentional, update EXPECTED_STEPS and the SKILL.md "
         "run-cycle-step-fingerprint comment together.")
+
+
+def test_skill_fingerprint_in_sync():
+    text = SKILL.read_text("utf-8")
+    m = _FINGERPRINT_RE.search(text)
+    assert m, "SKILL.md is missing the run-cycle-step-fingerprint comment (F83 pin)"
+    assert m.group(1) == _expected_fingerprint(), (
+        "SKILL.md fingerprint comment is out of sync with the pinned step list - "
+        "the step list changed without regenerating the fingerprint (or vice versa).")

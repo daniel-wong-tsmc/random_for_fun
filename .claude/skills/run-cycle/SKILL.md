@@ -44,6 +44,8 @@ report the rest `skipped-no-assignment` (surfaced, never dropped).
 
 ## Procedure
 
+<!-- run-cycle-step-fingerprint: sha256=119f95946d06c337734cbfab640ef5d35be7a50d795c68bba1cee9cacbfb7460 — F83 conformance pin over the ordered Procedure step list; regenerate this AND EXPECTED_STEPS in tests/test_run_cycle_conformance.py in lockstep if the steps legitimately change. -->
+
 ### 1. Resolve the scope to a cycle plan (deterministic — no LLM)
 ```
 .venv/Scripts/python -m gpu_agent.cli cycle-plan --scope <scope> --out work/<run-dir>/cycle-plan.json

@@ -115,6 +115,12 @@ def test_extract_system_byte_identical_without_price_indicators():
     assert extraction_prompt.build_system(price_indicators=None) == extraction_prompt.SYSTEM
 
 
+def test_extract_system_byte_identical_with_empty_price_indicators():
+    # F56(c): an empty list must render nothing (no malformed "shown: ." sentence),
+    # exactly like None. Unreachable by default (registry has price ids) but pinned.
+    assert extraction_prompt.build_system(price_indicators=[]) == extraction_prompt.SYSTEM
+
+
 def test_extract_system_lists_price_vocabulary_when_given():
     s = extraction_prompt.build_system(price_indicators=[
         {"id": "D6", "label": "GPU rental price", "unit": "USD_per_gpu_hr",

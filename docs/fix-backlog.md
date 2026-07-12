@@ -833,8 +833,15 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   the scheduled session ALL tools).** Resolves the standing 07-09/07-11/07-12 open gate in the
   grant direction, not keep-skipping: the scheduled daily session gets full tool access
   (WebSearch, WebFetch, agent-reach, file writes). Brains stay tool-less — this is the
-  orchestrating session's permissions, doctrine untouched. The grant itself is config-only and
-  can be flipped earlier at the user's word; the rest of this item waits for the wave. Folded-in
+  orchestrating session's permissions, doctrine untouched. **The grant is FLIPPED 2026-07-12
+  (user-approved, interactive):** the Task Scheduler job script (machine-local
+  `~/.claude/jobs/gpu-daily-cycle.ps1`, NOT in the repo) now launches headless claude with
+  `--dangerously-skip-permissions` — scoped to the scheduled session only; interactive sessions
+  keep their normal prompting. Residual to watch: the one-time bypass-mode acceptance dialog is
+  not recorded on this machine; headless `-p` is expected not to show it — the next scheduled
+  run (2026-07-13 08:57) confirms; fallback = the user runs
+  `claude --dangerously-skip-permissions` once interactively and accepts. The rest of this item
+  waits for the wave. Folded-in
   prerequisite (already standing on the roadmap's autonomy track): the **orchestration-prose
   conformance pin** — run-cycle's session-orchestrated behavior gets its replay-based conformance
   test before cycles run genuinely unattended. Second half (the timeliness gap): an

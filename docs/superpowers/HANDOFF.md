@@ -22,14 +22,16 @@
     and **F80** (live-store `category: null` on entity:nvidia/entity:multi wiki pages → NVIDIA
     contributes ZERO store findings to its own corpus, pre-existing since F62) logged in
     `docs/fix-backlog.md`. A concurrent instance landed the live 2026-07 **v5** top-up (`60879fb`).
-- **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies — the standing
-  grant-vs-skip decision is RESOLVED 2026-07-12 (user-approved, interactive): grant the scheduled
-  session ALL tools, recorded as **F83** (implementation sequenced post-current-backlog; the
-  config flip can happen earlier on the user's word); still open: whether the three skipped days
-  (07-09/07-11/07-12) are re-run — the 07-07 precedent is skip (the F78-1-unpushed part of the
-  07-11 callout was RESOLVED 2026-07-11: user said push); (2) F80 store fix mechanism (store
-  edits are sacred); (3) merged-worktree cleanup (see registry); (4) repo rename before
-  TSMC-branded exposure.
+- **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies — RESOLVED
+  2026-07-12 (user-approved, interactive): grant the scheduled session ALL tools, recorded as
+  **F83**, and the config flip is DONE the same day — the machine-local Task Scheduler job
+  script (`~/.claude/jobs/gpu-daily-cycle.ps1`, not in the repo) now passes
+  `--dangerously-skip-permissions` (scheduled session only; see F83 for the one residual —
+  the unrecorded bypass acceptance dialog, confirmed by the 2026-07-13 08:57 run); still open:
+  whether the three skipped days (07-09/07-11/07-12) are re-run — the 07-07 precedent is skip
+  (the F78-1-unpushed part of the 07-11 callout was RESOLVED 2026-07-11: user said push);
+  (2) F80 store fix mechanism (store edits are sacred); (3) merged-worktree cleanup (see
+  registry); (4) repo rename before TSMC-branded exposure.
 - **NEXT:** claim a stage-6 lane per its plan
   (`docs/superpowers/plans/2026-07-08-f78-stage6-change-first-renderer.md`, base must import
   `gpu_agent.asof` + `gpu_agent.pricefeed` — current main does). After F78: F79 (own

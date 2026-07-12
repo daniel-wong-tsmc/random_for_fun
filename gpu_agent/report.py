@@ -38,6 +38,7 @@ SDGI_INTERP_RULES = [
     (float("-inf"), "Supply outrunning demand — glut pressure forming"),
 ]
 _VERSION_RE = re.compile(r"^(\d{4}-\d{2}(?:-\d{2})?)-v(\d+)\.json$")
+_CHANGE_LINE_CAP = 4   # F77: bound per-horizon lead width; overflow folds to "+N more moved"
 
 
 # ── I/O helpers ──────────────────────────────────────────────────────────────
@@ -364,6 +365,68 @@ def render_dmi_smi_sdgi(sc: Scorecard, prior: Optional[Scorecard]) -> str:
         f"  SDGI  {sdgi:.3f}   Δ {_fmt_delta(sdgi, prior_sdgi)}"
         f"   {_sdgi_interpretation(sdgi)}"
     )
+    return "\n".join(lines)
+
+
+_CHANGE_ARROW = {"up": "↑", "down": "↓", "same": "→", "new": "＋"}
+_HORIZON_PHRASE = {"yesterday": "Since yesterday", "last week": "Since last week",
+                   "last month": "Since last month"}
+
+
+def _change_item_label(item, registry) -> str:
+    """Exec-plain label for a change item key. dim:/metric: map through reader; index:/price:/
+    thesis: get plain words. Never leaks a raw id above the fold."""
+    kind, _, rest = item.key.partition(":")
+    if kind == "dim":
+        return reader.DIM_LABEL.get(rest, rest)
+    if kind == "index":
+        return {"demand": "Demand momentum", "supply": "Supply momentum",
+                "gap": "Demand-supply gap"}.get(rest, rest)
+    if kind == "metric":
+        return reader.indicator_label(rest, registry)
+    if kind == "price":
+        return f"{rest} rental"
+    if kind == "thesis":
+        return "a standing call"     # the ranked-calls section names it; the lead just counts
+    return rest
+
+
+def _dim_arrow(item) -> str:
+    """Refine a dim item's arrow from the rating rank (the engine only knows tokens differ)."""
+    if not item.changed or item.today is None or item.prior is None:
+        return _CHANGE_ARROW["same"]
+    cur = RATING_SCALE.get(item.today.split("/")[0], 0)
+    pri = RATING_SCALE.get(item.prior.split("/")[0], 0)
+    return _CHANGE_ARROW["up"] if cur > pri else _CHANGE_ARROW["down"] if cur < pri else _CHANGE_ARROW["same"]
+
+
+def render_change_lines(change, registry=None) -> str:
+    """WHAT CHANGED (F64 lead): one line per horizon naming the moved items with arrows, or an
+    explicit unchanged/no-run state. Above the fold — every token is exec-plain (reader.DIM_LABEL
+    / registry labels / plain words) and passes reader.lint_acronyms. change=None -> honest
+    empty-state header (a caller with no store yet)."""
+    lines = ["WHAT CHANGED"]
+    if change is None:
+        lines.append("  (no store history yet — needs a prior daily run to compare)")
+        return "\n".join(lines)
+    for h in change.horizons:
+        phrase = _HORIZON_PHRASE.get(h.horizon, f"Since {h.horizon}")
+        if h.priorAsOf is None:
+            lines.append(f"  {phrase}: no run yet at/before this horizon — first tracked {h.horizon}")
+            continue
+        moved = [it for it in h.items if it.changed]
+        if not moved:
+            since = next((it.unchangedSince for it in h.items if it.unchangedSince), h.priorAsOf)
+            lines.append(f"  {phrase} (vs {h.priorAsOf}): no change — unchanged since {since}")
+            continue
+        parts = []
+        for it in moved[:_CHANGE_LINE_CAP]:
+            arrow = _dim_arrow(it) if it.key.startswith("dim:") else _CHANGE_ARROW.get(it.direction, "→")
+            label = _change_item_label(it, registry)
+            parts.append(f"{label} {arrow}")
+        extra = len(moved) - len(parts)
+        tail = f"; +{extra} more moved" if extra > 0 else ""
+        lines.append(f"  {phrase} (vs {h.priorAsOf}): " + "; ".join(parts) + tail)
     return "\n".join(lines)
 
 

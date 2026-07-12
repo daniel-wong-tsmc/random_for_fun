@@ -779,7 +779,7 @@ _ALERT_DOT = "●"
 
 
 _UNIT_DISPLAY = {"pct": "%", "USD_B": " billion USD", "USD_per_gpu_hr": "/GPU-hr",
-                 "USD_per_gpu": " USD", "USD_per_card": " USD"}
+                 "USD_per_gpu": " USD", "USD_per_card": " USD", "weeks": " weeks"}
 
 
 def _metric_display(cell) -> str:

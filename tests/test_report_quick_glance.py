@@ -45,3 +45,15 @@ def test_three_tiers_present_with_arrows_and_age():
 def test_quick_glance_passes_acronym_lint():
     out = render_quick_glance(_state(), _change(), _reg())
     assert reader.lint_acronyms(out) == []
+
+
+def test_numeric_lead_times_render_with_weeks_unit():
+    # Live store carries numeric leadTimes findings (unit "weeks" in registry/indicators.json);
+    # a bare "52" with no unit above the fold would be a dishonest number.
+    state = _state()
+    state.metrics["leadTimes"] = MetricCell(indicatorId="leadTimes", value=52.0, unit="weeks",
+                                            statement="lead times ~52 weeks",
+                                            observedAt="2026-06-30", tier="scarcity")
+    out = render_quick_glance(state, _change(), _reg())
+    assert "52 weeks" in out
+    assert reader.lint_acronyms(out) == []

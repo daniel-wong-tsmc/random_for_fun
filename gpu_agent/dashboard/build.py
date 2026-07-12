@@ -11,6 +11,16 @@ from .plain_language import (
     STATE_OF_MARKET_KEY, claim_key, finding_key,
 )
 
+# F78 Task 11 — dashboard parity: the SAME change engine the text brief uses, never
+# re-derived math. gpu_agent.change imports gpu_agent.report (one-way rule: report.py
+# must never import change), so this import direction is allowed here.
+from gpu_agent import bands
+from gpu_agent import change as change_mod
+from gpu_agent.config import REGISTRY_PATH
+from gpu_agent.registry.indicators import IndicatorRegistry
+from gpu_agent.report import load_scorecard, render_change_lines, _VERSION_RE
+from gpu_agent.thesis import ThesisStore
+
 SLOP = ["delve", "leverage", "seamless", "boasts", "robust", "in today's fast-paced",
         "tapestry", "underscore", "testament to"]
 _DIM_ORDER = ["momentum", "unitEconomics", "competitiveStructure", "moat", "bottleneck", "strategicRisk"]
@@ -32,6 +42,35 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
     prev = recs[-2] if len(recs) > 1 else None
     ts = trend_series(recs)
 
+    # F78 Task 11 — same engine as the text brief (parity by construction, not
+    # re-derivation). `store_dir` here is the dashboard's own established convention:
+    # the category's flat scorecard directory (e.g. "store/chips.merchant-gpu" — the
+    # real CLI default below, and load_scorecards' own convention). The change engine /
+    # ThesisStore expect the STORE ROOT one level up (e.g. "store", holding
+    # theses/<category>/ alongside <category>/ — confirmed on disk), so it is derived
+    # here as store_dir.parent rather than changing load_scorecards' frozen contract.
+    cat_dir = Path(store_dir)
+    latest_path = max((p for p in cat_dir.iterdir() if _VERSION_RE.match(p.name)),
+                      key=lambda p: (_VERSION_RE.match(p.name).group(1),
+                                     int(_VERSION_RE.match(p.name).group(2))))
+    sc = load_scorecard(latest_path)
+    store_root = Path(store_dir).parent
+    book = None
+    tstore = ThesisStore(store_root / "theses" / category_id)
+    if tstore.book_path.exists():
+        book = tstore.load()
+    change = change_mod.build_change_report(store_root, sc, book=book)
+    state = change_mod.build_state(sc, book)
+    alert = change_mod.alert_state(store_root, sc, book=book)
+
+    _reg = IndicatorRegistry.load(REGISTRY_PATH)
+    change_lines = render_change_lines(change, _reg).splitlines()[1:]   # drop the header row
+    what_changed = []
+    for line in change_lines:
+        phrase, _, rest = line.strip().partition(":")
+        phrase = phrase.split(" (vs ")[0]
+        what_changed.append({"phrase": phrase, "text": rest.strip()})
+
     counters = {"rewrites_applied": 0, "auto_simplified": 0}
 
     def resolve(key, original):
@@ -41,10 +80,18 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
 
     state_text, state_pending = resolve(STATE_OF_MARKET_KEY, latest["reason"])
 
+    prior1 = (change.priors or {}).get("yesterday")
     tiles = []
-    for label, key in (("Demand momentum", "dmi"), ("Supply momentum", "smi"),
-                       ("Demand-vs-supply gap", "sdgi")):
-        tiles.append({"label": label, "value": f'{latest[key]:.2f}',
+    for label, key, cur_v, pri_v in (
+            ("Demand momentum", "dmi", state.demand,
+             prior1.demand if prior1 else None),
+            ("Supply momentum", "smi", state.supply,
+             prior1.supply if prior1 else None),
+            ("Demand-vs-supply gap", "sdgi", state.sdgi,
+             prior1.sdgi if prior1 else None)):
+        tiles.append({"label": label,
+                      "band": bands.band_with_prior(cur_v, pri_v),
+                      "value": f'{latest[key]:.2f}',
                       "delta": _delta(latest[key], prev[key] if prev else None),
                       "spark": ts[key]})
 
@@ -89,6 +136,8 @@ def build_model(category_id, store_dir, work_dir, plain_path, generated_at):
                           "sdgi": latest["sdgi"], "sdgi_direction": latest["sdgi_direction"]},
         "dimensions": dims, "runs": runs, "glossary_rows": glossary_rows,
         "slop_denylist": SLOP,
+        "alert": {"color": alert.color, "prior": alert.priorColor},
+        "what_changed": what_changed,
     }
     return model, {"runs": len(recs), "claims": len(calls_raw), **counters}
 

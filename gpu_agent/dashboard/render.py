@@ -104,6 +104,9 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--li
 details{margin-top:6px}summary{cursor:pointer;color:var(--muted);font-size:13px}
 .helps{color:#166534}.hurts{color:#9a3412}
 @media (prefers-color-scheme:dark){.helps{color:#86efac}.hurts{color:#fca5a5}}
+.alert{font-weight:650}
+.alert-green{color:#2e7d32}.alert-yellow{color:#f9a825}.alert-orange{color:#ef6c00}.alert-red{color:#c62828}
+.wc-row{padding:6px 0;border-bottom:1px solid var(--line)}.wc-row:last-child{border-bottom:none}
 """
 
 
@@ -113,13 +116,18 @@ def _dir_word(direction):
 
 def _sec_headline(m):
     h = m["headline"]
+    a = m.get("alert") or {}
+    was = (f' <span class="meta">(was {esc((a.get("prior") or "").upper())})</span>'
+           if a.get("prior") else "")
+    dot = (f'<span class="alert alert-{esc(a.get("color", "green"))}">● '
+           f'{esc(a.get("color", "green").upper())}</span>{was} · ' if a else "")
     tiles = "".join(
         f'<div class="tile"><div class="meta">{esc(t["label"])}</div>'
-        f'<div class="v">{esc(t["value"])} {svg_sparkline(t["spark"])}</div>'
-        f'<div class="d">{esc(t["delta"])} vs previous run</div></div>'
+        f'<div class="v">{esc(t.get("band", t["value"]))} {svg_sparkline(t["spark"])}</div>'
+        f'<div class="d">{esc(t["value"])} · {esc(t["delta"])} vs previous run</div></div>'
         for t in m["tiles"])
     return (f'<section id="headline"><h2>Where the market stands</h2>'
-            f'<div class="card"><strong>{esc(h["rating"])} · {esc(_dir_word(h["direction"]))}</strong>'
+            f'<div class="card"><strong>{dot}{esc(h["rating"])} · {esc(_dir_word(h["direction"]))}</strong>'
             f'<div class="meta">Main limiting factor: {esc(h["limiting_factor"])}</div>'
             f'<p>{esc(h["state_of_market"])}{_pending_html(h["state_pending"])}</p></div>'
             f'<div class="tiles">{tiles}</div></section>')
@@ -138,6 +146,16 @@ def _impact_span(direction):
     if direction == "positive":
         return '<span class="helps">▲ helps the market</span>'
     return '<span class="meta">mixed</span>'
+
+
+def _sec_what_changed(m):
+    rows = "".join(
+        f'<div class="wc-row"><strong>{esc(w["phrase"])}</strong>: {esc(w["text"])}</div>'
+        for w in m.get("what_changed", []))
+    if not rows:
+        return ""
+    return (f'<section id="what-changed"><h2>What changed</h2>'
+            f'<div class="card">{rows}</div></section>')
 
 
 def _sec_top_signals(m):
@@ -210,7 +228,7 @@ def _sec_guide(m):
 
 def render_html(model):
     body = "".join(f(model) for f in (
-        _sec_headline, _sec_trend, _sec_top_signals, _sec_calls,
+        _sec_headline, _sec_trend, _sec_what_changed, _sec_top_signals, _sec_calls,
         _sec_demand_supply, _sec_dimensions, _sec_runs, _sec_guide))
     head = (f'<h1>{esc(model["category_label"])} — Agent Dashboard</h1>'
             f'<div class="sub">Latest run {esc(model["latest_date"])} · {esc(model["run_count"])} runs · '

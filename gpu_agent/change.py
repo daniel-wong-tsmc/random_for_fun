@@ -125,3 +125,36 @@ def build_state(sc: Scorecard, book: Optional[ThesisBook] = None,
         statusRating=(cs.rating if cs is not None else None),
         statusDirection=(cs.direction if cs is not None else None),
         constraintLabel=(getattr(cs, "constraintLabel", None) if cs is not None else None))
+
+
+def nearest_run_at_or_before(store_dir, category_id: str, target: datetime.date,
+                             *, before: Optional[tuple[str, int]] = None):
+    """The stored scorecard whose asOf period-end is the GREATEST that is <= `target`
+    (nearest at/before — robust to skipped days). Generalizes report.find_prior from a
+    single 'prior' to an arbitrary calendar-day target. `before`, when given as the current
+    run's (asOf, version), excludes that run and anything at/after it so a run never diffs
+    against itself (tuple compare, exactly as find_prior's `(asof, v) < cur_key`). Files
+    that don't match <asOf>-v<N>.json, or carry an unparseable asOf, are skipped silently
+    (they're not scorecards). Returns a Path or None."""
+    cat_dir = Path(store_dir) / category_id
+    if not cat_dir.is_dir():
+        return None
+    cands: list[tuple[datetime.date, str, int, Path]] = []
+    for p in cat_dir.glob("*.json"):
+        m = _VERSION_RE.match(p.name)
+        if not m:
+            continue
+        asof, v = m.group(1), int(m.group(2))
+        try:
+            pe = period_end(asof)
+        except AsOfError:
+            continue
+        if pe > target:
+            continue
+        if before is not None and (asof, v) >= before:
+            continue
+        cands.append((pe, asof, v, p))
+    if not cands:
+        return None
+    cands.sort(key=lambda t: (t[0], t[2]))   # period-end asc, then version asc
+    return cands[-1][3]

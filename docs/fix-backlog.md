@@ -795,7 +795,13 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > items — and slot beside the standing F23/F24/F25 track and Phase-2 prep. Directions marked
 > `user-approved` are the user's 2026-07-12 answers; the mechanics beneath them are the
 > assistant's lean, to be confirmed when each item's own brainstorm runs (repo convention: each
-> is a feature — brainstorm → spec → plan when picked up). Two quieter observations from the same
+> is a feature — brainstorm → spec → plan when picked up). **STANDING ORCHESTRATION RULE
+> (user-approved 2026-07-12, interactive):** design-weight items — F79, F24, and this whole
+> F81–F87 wave — get their brainstorm run INTERACTIVELY WITH THE USER before any lane is
+> dispatched; a dispatched agent may not substitute a solo brainstorm with AFK-precedent picks
+> for these. (Solo-brainstorm-with-labels remains acceptable only for narrow-design-space fixes
+> of the F56 kind, and every fork still lands in the spec's decision-provenance section.)
+> Two quieter observations from the same
 > review, recorded but deliberately not minted as F-items: the ~1-session desk-recipe estimate
 > predates F79's backfill requirement (the roadmap already says recalibrate after Phase 2), and
 > the org's bus factor is one human (approver, reader, onboarding author, incident responder —

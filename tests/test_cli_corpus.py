@@ -112,8 +112,13 @@ def test_drops_and_skips_hit_stderr(tmp_path):
     assert "DROPPED-DUPLICATE fresh-dup" in out.stderr
 
 
-def test_bad_as_of_label_exits_1(tmp_path):
+def test_bad_as_of_label_rejected_at_seam(tmp_path):
+    # F56(a): a malformed --as-of is now rejected at the argparse seam (exit 2, naming
+    # the flag) before reaching corpus_assemble -- earlier and more uniformly than the
+    # prior downstream period_end AsOfError (exit 1, "invalid asOf label"), which stays
+    # as belt-and-suspenders behind the seam.
     out = _run("corpus", "--store", str(tmp_path), "--category", "chips.merchant-gpu",
                "--as-of", "2026/07")
-    assert out.returncode == 1
-    assert "invalid asOf label" in out.stderr
+    assert out.returncode == 2, out.stderr
+    assert "--as-of" in out.stderr
+    assert "must be YYYY-MM or YYYY-MM-DD" in out.stderr

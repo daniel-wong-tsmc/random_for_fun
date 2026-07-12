@@ -795,12 +795,16 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > items — and slot beside the standing F23/F24/F25 track and Phase-2 prep. Directions marked
 > `user-approved` are the user's 2026-07-12 answers; the mechanics beneath them are the
 > assistant's lean, to be confirmed when each item's own brainstorm runs (repo convention: each
-> is a feature — brainstorm → spec → plan when picked up). **STANDING ORCHESTRATION RULE
-> (user-approved 2026-07-12, interactive):** design-weight items — F79, F24, and this whole
-> F81–F87 wave — get their brainstorm run INTERACTIVELY WITH THE USER before any lane is
-> dispatched; a dispatched agent may not substitute a solo brainstorm with AFK-precedent picks
-> for these. (Solo-brainstorm-with-labels remains acceptable only for narrow-design-space fixes
-> of the F56 kind, and every fork still lands in the spec's decision-provenance section.)
+> is a feature — brainstorm → spec → plan when picked up). **STANDING ORCHESTRATION RULES
+> (user-approved 2026-07-12, interactive; the question-stop rule supersedes the same-day
+> solo-brainstorm allowance):** (1) design-weight items — F79, F24, and this whole F81–F87
+> wave — get their brainstorm run INTERACTIVELY WITH THE USER before any lane is dispatched.
+> (2) QUESTION-STOP: any dispatched lane agent that hits a question or fork while writing its
+> brainstorm, spec, or implementation plan stops, writes the question(s) + recommendation to
+> `.superpowers/handoffs/<lane>-QUESTIONS.md`, and ends its turn; the orchestrator relays to
+> the user and resumes the agent with the answers. Proceeding on AFK-precedent design picks is
+> no longer permitted (trivial mechanical choices may proceed but still land in the spec's
+> decision-provenance section). Full rule text: repo CLAUDE.md "Orchestrated lane agents".
 > Two quieter observations from the same
 > review, recorded but deliberately not minted as F-items: the ~1-session desk-recipe estimate
 > predates F79's backfill requirement (the roadmap already says recalibrate after Phase 2), and

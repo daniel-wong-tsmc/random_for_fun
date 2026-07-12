@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
+from gpu_agent.asof import period_end
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import bands
@@ -416,7 +417,12 @@ def render_change_lines(change, registry=None) -> str:
             continue
         moved = [it for it in h.items if it.changed]
         if not moved:
-            since = next((it.unchangedSince for it in h.items if it.unchangedSince), h.priorAsOf)
+            # Honest stability window for the WHOLE set: the most RECENT unchangedSince
+            # across items (a changed-then-reverted key resets its date; claiming the
+            # oldest would overstate stability). Chronological max via period_end —
+            # labels may be day- or month-grain, so lexical comparison is not enough.
+            vals = [it.unchangedSince for it in h.items if it.unchangedSince]
+            since = max(vals, key=period_end) if vals else h.priorAsOf
             lines.append(f"  {phrase} (vs {h.priorAsOf}): no change — unchanged since {since}")
             continue
         parts = []

@@ -23,13 +23,31 @@
     contributes ZERO store findings to its own corpus, pre-existing since F62) logged in
     `docs/fix-backlog.md`. A concurrent instance landed the live 2026-07 **v5** top-up (`60879fb`).
 - **OPEN GATES (user decisions still pending):** (1) blocked scheduled dailies 2026-07-09 +
-  2026-07-11 — re-run interactively or skip like 07-07 (the F78-1-unpushed part of the 07-11
+  2026-07-11 + 2026-07-12 — re-run interactively or skip like 07-07 (the F78-1-unpushed part of the 07-11
   callout was RESOLVED 2026-07-11: user said push); (2) F80 store fix mechanism (store edits are
   sacred); (3) merged-worktree cleanup (see registry); (4) repo rename before TSMC-branded exposure.
 - **NEXT:** claim a stage-6 lane per its plan
   (`docs/superpowers/plans/2026-07-08-f78-stage6-change-first-renderer.md`, base must import
   `gpu_agent.asof` + `gpu_agent.pricefeed` — current main does). After F78: F79 (own
   brainstorm/spec), F65, F66, F80.
+
+> **[2026-07-12 SCHEDULED DAILY — BLOCKED (web-fetch tooling still permission-gated); AFK-default 2026-07-12.]**
+> The scheduled 2026-07-12 headless daily (`category:chips.merchant-gpu`, mode=daily, live gather) hit the
+> SAME wall as 2026-07-09 and 2026-07-11: every sanctioned web-fetch path is permission-gated in this
+> non-interactive session. Confirmed THIS session by direct probe: `agent-reach doctor --json` (approval
+> required), `scripts\web-reach-ensure.cmd --json` (approval required), `WebFetch` and `WebSearch`
+> (permission not granted — probed at BOTH main-loop and subagent level). `import gpu_agent` OK (venv
+> fine); `git pull --ff-only` already up to date; tree clean at session start (no concurrent instance
+> mid-run; `store/cycle-log.json` keeps its finalized journal). Recorded/demo mode NOT authorized (the
+> schedule asks for live gather); hand-rolling raw fetches would be improvising outside the skill
+> (forbidden). Claude file-write tools (Edit/Write) gated again — this note written via the allowlisted
+> `.venv` Python channel. **Action taken (AFK-default; scheduled run, no user available):** category NOT
+> run, NO scorecard written, `store/` untouched, nothing fabricated, no scratch `work/` dir created. This
+> doc-only commit IS pushed — an AFK-default judgment: `main == origin/main` and the tree was clean
+> beforehand, so no other instance's unpushed work gets published (the 2026-07-11 confound), it is not a
+> merge, and the project rule requires session end with `main == origin/main`. **Standing decision still
+> open (07-09/07-11 gate):** grant WebSearch+WebFetch(+agent-reach) to the scheduled session, or keep
+> skipping blocked days. Do NOT auto-re-run this day until the user decides.
 
 ## HISTORICAL — blocked-daily callouts + 2026-07-08 state (superseded 2026-07-12 by the block above)
 

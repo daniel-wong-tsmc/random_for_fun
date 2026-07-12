@@ -171,6 +171,19 @@ class WikiLog:
             "timestamp": time.time(),
         }).encode("utf-8")
 
+    def _create_lock_file(self) -> int:
+        """O_EXCL-create the lock file and stamp the identity body. If stamping fails,
+        close the fd and remove the just-created lock before re-raising, so a failed
+        write can never leak the fd or orphan an empty-body lock (which nothing could
+        ever take over). os.open contention errors propagate unchanged to the caller."""
+        fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        try:
+            os.write(fd, self._lock_identity())
+        except Exception:
+            self._release_lock(fd)        # close + unlink the empty lock
+            raise
+        return fd
+
     def _acquire_lock(self) -> int:
         """Cross-process advisory lock via an O_EXCL lock file (Windows + POSIX, no deps).
         The lock body carries an identity record ({pid, hostname, timestamp}) so a later
@@ -180,9 +193,7 @@ class WikiLog:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         while True:
             try:
-                fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                os.write(fd, self._lock_identity())
-                return fd
+                return self._create_lock_file()
             except FileExistsError:
                 pass                      # another writer holds it
             except PermissionError:
@@ -256,8 +267,7 @@ class WikiLog:
         except OSError:
             return None                              # OS refused the delete -> fail loud
         try:
-            fd = os.open(self._lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.write(fd, self._lock_identity())
+            fd = self._create_lock_file()
         except (FileExistsError, PermissionError):
             return None                              # lost the one immediate retry race
         print(

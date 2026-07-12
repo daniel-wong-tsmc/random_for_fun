@@ -167,3 +167,21 @@ def test_no_takeover_on_legacy_or_garbage_body(tmp_path):
         with pytest.raises(TimeoutError) as ei:
             log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
         assert "delete this file if no writer is running" in str(ei.value)
+
+
+def test_failed_identity_write_does_not_orphan_lock(tmp_path, monkeypatch):
+    """If stamping the identity into a just-created lock fails (e.g. disk full), the
+    fd must be closed and the empty lock removed - an orphaned empty-body lock would
+    be unparseable forever (never taken over) and would brick every later append."""
+    log = WikiLog(tmp_path / "log.jsonl")
+
+    def boom():
+        raise OSError("disk full")
+
+    monkeypatch.setattr(log, "_lock_identity", boom)
+    with pytest.raises(OSError, match="disk full"):
+        log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
+    assert not os.path.exists(log._lock_path)    # no orphaned empty lock left behind
+    monkeypatch.undo()
+    ev = log.append(asOf="2026-07-12", kind="append-observation", pageId="p", findingId="f")
+    assert ev.seq == 0                           # lock usable again immediately

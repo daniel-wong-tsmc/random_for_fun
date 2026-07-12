@@ -4,7 +4,7 @@
 
 **Goal:** When the wiki log's append lock times out, reclaim it automatically — but ONLY when its holder is provably dead on this machine and the lock is stale — so a crashed unattended run cannot brick every later run; every uncertain case still fails loud with a remedy in the message.
 
-**Architecture:** The `O_EXCL` lock file (introduced by F25) gains a JSON identity body `{pid, hostname, timestamp}` written at acquire time. On acquire timeout, instead of raising immediately, `_acquire_lock` calls `_try_takeover`: it reads and parses the body, and reclaims the lock (unlink + one immediate retry, with a LOUD stderr line naming the dead pid and lock age) only if ALL of — body parses with the three typed fields, hostname matches this machine, age exceeds a 60s stale threshold, and the pid is provably not running (Windows: `kernel32.OpenProcess` + `GetExitCodeProcess` via `ctypes`; POSIX: `os.kill(pid, 0)`). Any failure of any condition (unparseable/legacy body, foreign host, young lock, live-or-unprovable pid) returns `None` and the caller fails loud. The normal (uncontended) locking path is byte-for-byte unchanged.
+**Architecture:** The `O_EXCL` lock file (introduced by F25) gains a JSON identity body `{pid, hostname, timestamp}` written at acquire time. On acquire timeout, instead of raising immediately, `_acquire_lock` calls `_try_takeover`: it reads and parses the body, and reclaims the lock (unlink + one immediate retry, with a LOUD stderr line naming the dead pid and lock age) only if ALL of — body parses with the three typed fields, hostname matches this machine, age exceeds a 60s stale threshold, and the pid is provably not running (Windows: `kernel32.OpenProcess` + `GetExitCodeProcess` via `ctypes`; POSIX: `os.kill(pid, 0)`). Any failure of any condition (unparseable/legacy body, foreign host, young lock, live-or-unprovable pid) returns `None` and the caller fails loud. The locking SEMANTICS of the normal (uncontended) path are unchanged — the lock file itself now carries a body; F25's concurrency tests are byte-identical and green.
 
 **Tech Stack:** Python 3, stdlib only (`os`, `json`, `socket`, `sys`, `ctypes`), pydantic (already present, unchanged here), pytest.
 
@@ -14,7 +14,7 @@
 - **No new dependency.** Windows pid-liveness via stdlib `ctypes` (`kernel32`) only. "Can't prove dead" always means "treat as alive" (never take over).
 - **Stale threshold is 60s. Do NOT loosen it** (loosening is a QUESTION-STOP per the spec). The critical section is milliseconds; 60s is already very conservative.
 - **Suite baseline on this branch (F25's): 1215 passed / 5 skipped — green at every commit.** `tests/test_evals_baseline_pin.py` stays green (no prompt touched).
-- **F25's existing concurrency tests (`tests/test_wiki_log_concurrency.py`) must pass unchanged** — the normal-path locking semantics are byte-for-byte the same.
+- **F25's existing concurrency tests (`tests/test_wiki_log_concurrency.py`) must pass unchanged** — the normal-path locking semantics are unchanged (the test file itself stays byte-identical).
 - **Merge order: this branch (`f87-stale-lock-takeover`) merges only AFTER `f25-wiki-store-scale`.** It is stacked on F25, not main.
 - Tests run from the worktree root: `../../.venv/Scripts/python -m pytest -q`. Never create a venv. LF canonical. Commit messages via bash heredoc (no double quotes in `git commit -m`). `git log --oneline -1` before every commit. Trailer: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 
@@ -53,7 +53,48 @@
 | 3 | Young-lock refusal | `age <= 60` ⇒ `None` | `test_no_takeover_when_lock_is_young` |
 | 4 | Foreign-host refusal | `hostname != gethostname()` ⇒ `None` | `test_no_takeover_when_foreign_host` |
 | 5 | Legacy/unparseable body refusal + remedy | `_read_lock_identity` returns `None`; message carries remedy | `test_no_takeover_on_legacy_or_garbage_body` |
-| 6 | F25 concurrency tests unchanged & green | normal path byte-for-byte unchanged | `tests/test_wiki_log_concurrency.py` (unmodified) |
+| 6 | F25 concurrency tests unchanged & green | normal-path locking semantics unchanged | `tests/test_wiki_log_concurrency.py` (unmodified) |
+
+## Fix round (2026-07-12 final review: FIXES NEEDED — all applied)
+
+**Important — two-reclaimers race in `_try_takeover` (verified, reproduced, fixed).** The
+reclaim unlinked the lock path unconditionally (catching only `FileNotFoundError`) based on a
+body read earlier, never re-validating. If two writers timed out on the same stale lock, A could
+reclaim and create a FRESH lock (live pid, fd open) before B's unlink: on Windows B's unlink
+raised an UNCAUGHT `PermissionError` (WinError 32) out of `append()` — wrong contract; on POSIX
+the unlink of A's open file SUCCEEDED and B double-acquired (duplicate seqs — the exact
+corruption the lock prevents). Fix (commit `b6ee6e3`):
+
+- Re-validate the body immediately before the unlink (`_read_lock_identity() != ident` ⇒ abort ⇒
+  fail loud). Tuple comparison covers pid, hostname, and timestamp.
+- Catch `OSError` (not just `FileNotFoundError`) on the reclaim unlink ⇒ abort ⇒ fail loud. This
+  alone makes Windows fully clean (the OS refuses to delete an open lock).
+- Emit the loud `WIKI-LOCK-TAKEOVER` line only AFTER the reclaim fully succeeds (a failed
+  takeover no longer announces one) — mechanical choice, recorded here.
+- Two new tests stage the race deterministically: `test_racing_reclaimer_aborts_when_lock_was_replaced`
+  (lock swapped to a fresh live-pid body between B's checks and B's unlink — portable) and
+  `test_reclaim_blocked_unlink_fails_loud_not_permissionerror` (unlink blocked by an open handle —
+  Windows-only, reproduces the reviewer's crash pre-fix).
+- **Residual risk (documented):** on POSIX a TOCTOU window remains between the re-read and the
+  unlink — now microseconds (no probe/sleep in between) instead of seconds, in an already-rare
+  double-crash scenario; Windows (the load-bearing platform) is fully safe because the OS itself
+  refuses the delete and the refusal is routed to fail-loud. Atomic-rename reclaim was considered
+  and rejected: renaming the shared path can capture another reclaimer's FRESH lock with no safe
+  undo — strictly worse than verify-then-unlink.
+
+**Minor 1 — orphaned empty lock on identity-write failure (fixed, commit `4c3fccb`).**
+`_create_lock_file` now wraps the identity stamp: on failure it closes the fd and unlinks the
+just-created lock before re-raising (an orphaned empty-body lock would be unparseable forever —
+never taken over — and would brick every later append). Used at both creation sites. Pinned by
+`test_failed_identity_write_does_not_orphan_lock`.
+
+**Minor 2 — wording (fixed).** "Byte-for-byte" claims about the locking path replaced with the
+accurate claim: locking SEMANTICS for non-stale paths are unchanged; the lock FILE now carries a
+body; F25's concurrency tests are byte-identical and green.
+
+Reviewer verified clean (no action): pid probe on all modes incl. ACCESS_DENIED, clock/
+future-timestamp safety, identity-write partial-read window safe-by-refusal, scope, suite
+reproduction.
 
 ---
 

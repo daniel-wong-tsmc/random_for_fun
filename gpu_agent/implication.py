@@ -216,3 +216,31 @@ def gate_implication(answer: ImplicationAnswer, *, findings_by_id: dict,
         if hits:
             errors.append(f"{label}: reads as a recommendation ({', '.join(sorted(hits))})")
     return errors
+
+
+# --- store (carve-out; the scorecard is untouched) -----------------------------
+
+class ImplicationStore:
+    """<store>/implications/<categoryId>/<asOf>.json — one gated artifact per cycle. No
+    frozen schema; carved out from the scorecard, whitelisted in .gitignore."""
+
+    def __init__(self, root):
+        self.root = pathlib.Path(root)
+
+    def _path(self, as_of: str) -> pathlib.Path:
+        return self.root / f"{as_of}.json"
+
+    def exists(self) -> bool:
+        return self.root.is_dir() and any(self.root.glob("*.json"))
+
+    def write(self, artifact: ImplicationArtifact) -> pathlib.Path:
+        self.root.mkdir(parents=True, exist_ok=True)
+        p = self._path(artifact.asOf)
+        p.write_text(json.dumps(artifact.model_dump(), indent=2, sort_keys=True) + "\n", "utf-8")
+        return p
+
+    def load(self, as_of: str) -> ImplicationArtifact:
+        p = self._path(as_of)
+        if not p.exists():
+            raise ImplicationError(f"no implication artifact at {p}")
+        return ImplicationArtifact.model_validate_json(p.read_text("utf-8"))

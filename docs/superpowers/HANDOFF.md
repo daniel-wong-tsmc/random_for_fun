@@ -306,9 +306,16 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **ALL F78 stage lanes are CLOSED (2026-07-12): stages 2/3/4/5 merged to main by the user**
-  (`fd0b08c`/`6e24259`/`b9a3251`/`fdbc7fb`). No lane is currently claimed or in flight. The
-  stage-6 lane is UNCLAIMED — next instance claims it per instance-sync. Original stage-2
+- **F78 stage-6 lane CLAIMED + IN FLIGHT (2026-07-12).** Worktree `.worktrees/f78-stage6`,
+  branch `f78-stage6` off `b7e66aa` (dependency gate verified: `gpu_agent.asof` +
+  `gpu_agent.pricefeed` import). Plan
+  `docs/superpowers/plans/2026-07-08-f78-stage6-change-first-renderer.md` incl. the 2026-07-11
+  amendment (Tasks 5b/5c/8-amend/11). Touches: `gpu_agent/change.py` (new), `gpu_agent/report.py`,
+  `gpu_agent/reader.py`, `gpu_agent/brief.py` wording, CLI wiring, `registry/acronyms.json`,
+  `docs/dashboard.html`, new `tests/test_change_*` + `tests/test_report_*`. Subagent-driven;
+  STOPS before merge — only the user merges. Sentinel: `.superpowers/handoffs/f78-stage6-DONE.md`.
+- **ALL PRIOR F78 stage lanes are CLOSED (2026-07-12): stages 2/3/4/5 merged to main by the user**
+  (`fd0b08c`/`6e24259`/`b9a3251`/`fdbc7fb`). Original stage-2
   instance, if you return: your lane was adopted (user-directed), reconciled, reviewed, and
   merged — see `.superpowers/handoffs/f78-stage2-DONE.md`; do not resume it.
 

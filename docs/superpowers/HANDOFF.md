@@ -1,4 +1,13 @@
-# HANDOFF — GPU Category Agent (resume point: SIX FIX MERGES LANDED 2026-07-13 — F25, F87, F23, F72 v1.4.1, F24 stage 1, F80 — `main == origin/main == ab48786`, suite **1265/5**, eval pin green. F78 STAGE 6 is DONE on its branch @ `4b6df95`, reviewed, AWAITING THE USER'S MERGE (the other instance's lane — expect a real rebase onto the post-merge main; see the conflict note). Then F56 rebase+merge, then the F79 interactive brainstorm.)
+# HANDOFF — GPU Category Agent (resume point: **F78 CLOSED** — STAGE 6 MERGED 2026-07-13 `77708f3` (user-directed) on top of the six-lane merge train; `main == origin/main == 77708f3`, suite **1336/5**, eval pin green. The change-first daily brief + exec top band + alert ladder + dashboard parity are live (`gpu-agent report --change-first`). Next: F56 rebase+merge, then the F79 interactive brainstorm.)
+
+- **Date: 2026-07-13 — F78 STAGE 6 MERGED (`77708f3`, pushed).** User-directed interactively
+  ("merge into main"). No rebase needed on the post-merge-train main: ONE conflict
+  (docs/fix-backlog.md, both sides appended sections — resolved keep-both), everything else
+  auto-merged; merged-suite gate **1336 passed / 5 skipped** run BEFORE push. Full lane record:
+  `.superpowers/handoffs/f78-stage6-DONE.md` (8 user-approved decisions, sanctioned deviations,
+  corrected 101/88 above-fold record, two unnumbered backlog follow-ups awaiting F-numbers).
+  Branch `f78-stage6` + worktree `.worktrees/f78-stage6` RETAINED per the merged-worktree
+  cleanup gate (holds the gitignored `.superpowers/sdd/` build ledger).
 
 - **Date: 2026-07-13 (LATEST) — the wave-1/wave-2 merge train landed.** User-authorized
   interactively ("merge them all", 2026-07-13); full suite run green between EVERY merge;
@@ -391,16 +400,12 @@ User gave **"go"** 2026-07-06. Actioned:
     round 2: Ready to merge. OPEN DECISION A4 in the sentinel (P19.budget DEFERRED vs
     NOT-ENFORCED — reviewer leans DEFERRED). Sentinel:
     `.superpowers/handoffs/f23-compliance-DONE.md`.
-- **F78 stage-6 lane DONE (2026-07-13) — READY TO MERGE, awaiting the user.** Worktree
-  `.worktrees/f78-stage6`, branch `f78-stage6` @ `4b6df95` (23 commits on base `b7e66aa`, NOT
-  pushed). Suite **1270/6** (the 6th skip = honest data-dependent price-feed contract test),
-  eval pin green, frozen core untouched, legacy render path byte-identical (79/79 regression).
-  Final opus whole-branch review: **Ready to merge** (after a verified fix wave). Built
-  subagent-driven (12 tasks, per-task reviews + fix loops). EIGHT user-approved interactive
-  decisions recorded in the sentinel (`.superpowers/handoffs/f78-stage6-DONE.md` — full
-  delivered-list, sanctioned deviations, corrected Task-10 record 101/88 note, and two
-  unnumbered backlog follow-ups in `docs/fix-backlog.md` awaiting F-numbers). ZERO AFK-defaults.
-  After merge: F79 unblocks.
+- **F78 stage-6 lane CLOSED — MERGED to main `77708f3` + pushed (2026-07-13, user-directed).**
+  Was: 23 commits @ `4b6df95`, final opus review Ready-to-merge, EIGHT user-approved interactive
+  decisions, ZERO AFK-defaults (full record: `.superpowers/handoffs/f78-stage6-DONE.md`).
+  Merged-suite gate 1336/5 before push. Branch + worktree retained (cleanup gate). **ALL SIX
+  F78 STAGES ARE NOW ON MAIN — F78 is CLOSED; F79 unblocks** (interactive brainstorm first,
+  per the standing orchestration rules).
 - **ALL PRIOR F78 stage lanes are CLOSED (2026-07-12): stages 2/3/4/5 merged to main by the user**
   (`fd0b08c`/`6e24259`/`b9a3251`/`fdbc7fb`). Original stage-2
   instance, if you return: your lane was adopted (user-directed), reconciled, reviewed, and

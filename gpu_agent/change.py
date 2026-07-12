@@ -28,9 +28,12 @@ LOOKBACKS = (("yesterday", 1), ("last week", 7), ("last month", 30))
 _PRICE_REL_TOL = 0.01   # mirrors price_track.REL_TOL — "flat" band for a rental price move
 # Verdicts that count as a real thesis MOVE. "reaffirmed" re-stamps lastChangedAsOf without a
 # real move (thesis.py applies every non-reversal judgment), so a timestamp-only predicate
-# degenerates under daily cadence; spec 2026-07-11 §4 counts strengthened/weakened/challenged
-# only. Known accepted gap (user-accepted): a conviction promotion carried by a reaffirmed
-# verdict won't read as a move until per-run book state exists (F79).
+# degenerates under daily cadence; spec 2026-07-11 §4 counts strengthened/weakened/challenged.
+# All three are detectable now (user-approved 2026-07-12): strengthened/weakened via this set,
+# challenged via an in-window pendingChallenge.asOf at both move sites. "broken" stays for
+# completeness even though standing() filters retired entries. Known accepted gap
+# (user-accepted): a conviction promotion carried by a reaffirmed verdict won't read as a
+# move until per-run book state exists (F79).
 _MOVED_VERDICTS = frozenset({"strengthened", "weakened", "broken"})
 
 
@@ -224,11 +227,14 @@ def diff_states(name: str, days: int, current: StateVector,
                 prior: Optional[StateVector], prior_asof: Optional[str],
                 book: Optional[ThesisBook]) -> HorizonDiff:
     """One horizon's point-in-time diff. Dimensions/indices/metrics/prices are two-snapshot
-    diffs (current vs prior); theses read movement from the current book's lastChangedAsOf vs
-    prior_asof (stored scorecards don't embed past book state — see the Task 3 assumption),
-    AND the verdict must be in _MOVED_VERDICTS — "reaffirmed" re-stamps the timestamp without
-    a real move (spec 2026-07-11 §4). prior=None (no run at/before this horizon) -> empty
-    items list."""
+    diffs (current vs prior); theses read movement from the current book vs prior_asof
+    (stored scorecards don't embed past book state — see the Task 3 assumption) with per-entry
+    precedence (spec 2026-07-11 §4; user-approved 2026-07-12): a real verdict move
+    (lastChangedAsOf in-window AND lastVerdict in _MOVED_VERDICTS — "reaffirmed" re-stamps
+    the timestamp without a real move; direction from lastDirection) > an in-window
+    pendingChallenge ("down", token "<conviction>/challenged") > an in-window createdAsOf
+    ("new" — diff surface only, the alert ladder never counts creations) > unmoved.
+    prior=None (no run at/before this horizon) -> empty items list."""
     items: list[ItemDelta] = []
     if prior is None:
         return HorizonDiff(horizon=name, lookbackDays=days, priorAsOf=None, items=items)
@@ -293,16 +299,26 @@ def diff_states(name: str, days: int, current: StateVector,
                                    direction=("same" if current.constraintLabel == prior.constraintLabel
                                               else "new")))
 
-    # theses — movement from the current book's timestamps vs this horizon's prior asOf,
-    # gated on _MOVED_VERDICTS: a plain reaffirmation re-stamps the timestamp but is not a move
+    # theses — movement from the current book vs this horizon's prior asOf. Per-entry
+    # precedence (user-approved 2026-07-12): verdict move (_MOVED_VERDICTS; reaffirmed is not
+    # a move) > in-window pendingChallenge ("down") > in-window createdAsOf ("new"; the alert
+    # ladder never counts creations) > unmoved.
     if book is not None and prior_asof is not None:
         _DIR = {1: "up", -1: "down", 0: "same"}
         for e in book.standing():
-            moved = (days_between(e.lastChangedAsOf, prior_asof) > 0
-                     and e.lastVerdict in _MOVED_VERDICTS)
-            items.append(ItemDelta(key=f"thesis:{e.id}", changed=moved,
-                                   today=f"{e.conviction}/{e.lastVerdict}",
-                                   direction=(_DIR.get(e.lastDirection, "same") if moved else "same")))
+            token = f"{e.conviction}/{e.lastVerdict}"
+            if (days_between(e.lastChangedAsOf, prior_asof) > 0
+                    and e.lastVerdict in _MOVED_VERDICTS):
+                changed, direction = True, _DIR.get(e.lastDirection, "same")
+            elif (e.pendingChallenge is not None
+                    and days_between(e.pendingChallenge.asOf, prior_asof) > 0):
+                changed, direction, token = True, "down", f"{e.conviction}/challenged"
+            elif days_between(e.createdAsOf, prior_asof) > 0:
+                changed, direction, token = True, "new", f"{e.conviction}/new"
+            else:
+                changed, direction = False, "same"
+            items.append(ItemDelta(key=f"thesis:{e.id}", changed=changed, today=token,
+                                   direction=direction))
 
     return HorizonDiff(horizon=name, lookbackDays=days, priorAsOf=prior_asof, items=items)
 
@@ -376,10 +392,12 @@ def _band_rank(word: str) -> int:
 
 
 def _thesis_moves_between(book: ThesisBook, after_asof: str, at_or_before_asof: str):
-    """Standing theses whose lastChangedAsOf lies in (after_asof, at_or_before_asof] AND whose
-    lastVerdict is in _MOVED_VERDICTS — a plain reaffirmation re-stamps the timestamp without
-    a real move (spec 2026-07-11 §4). Current-book timestamps (see the Task 5b assumption
-    note)."""
+    """Standing theses that MOVED in (after_asof, at_or_before_asof]: lastChangedAsOf
+    in-window with lastVerdict in _MOVED_VERDICTS (a plain reaffirmation re-stamps the
+    timestamp without a real move), else a pendingChallenge whose asOf is in-window — a
+    challenge counts as a "down" move (spec 2026-07-11 §4 counts challenged; user-approved
+    2026-07-12). In-window creations are NOT moves here — new-call surfacing is diff-only.
+    Current-book timestamps (see the Task 5b assumption note)."""
     _DIR = {1: "up", -1: "down", 0: "same"}
     out = []
     for e in book.standing():
@@ -387,6 +405,10 @@ def _thesis_moves_between(book: ThesisBook, after_asof: str, at_or_before_asof: 
                 and days_between(at_or_before_asof, e.lastChangedAsOf) >= 0
                 and e.lastVerdict in _MOVED_VERDICTS):
             out.append((e, _DIR.get(e.lastDirection, "same")))
+        elif (e.pendingChallenge is not None
+                and days_between(e.pendingChallenge.asOf, after_asof) > 0
+                and days_between(at_or_before_asof, e.pendingChallenge.asOf) >= 0):
+            out.append((e, "down"))
     return out
 
 

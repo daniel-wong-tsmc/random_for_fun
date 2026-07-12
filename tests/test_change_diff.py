@@ -91,6 +91,39 @@ def test_thesis_reaffirmed_in_window_is_not_moved():
     assert th.changed is False
 
 
+def test_thesis_challenged_in_window_is_moved_down():
+    # USER-APPROVED 2026-07-12 (spec §4: "challenged" counts): an in-window pendingChallenge
+    # reads as a move — direction "down", token "<conviction>/challenged".
+    from gpu_agent.thesis import PendingChallenge
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(lastVerdict="reaffirmed", lastDirection=0, lastChangedAsOf="2026-06-20",
+               pendingChallenge=PendingChallenge(verdict="weakened", asOf="2026-07-05",
+                                                 rationale="r", findingIds=[]))])
+    cur = build_state(Scorecard(categoryId="c", asOf="2026-07-08", findings=[],
+                      demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),
+                      narrative="n", confidence=_conf()), book=book)
+    hd = diff_states("last week", 7, cur, cur, "2026-07-01", book)
+    th = next(i for i in hd.items if i.key == "thesis:demand-durability")
+    assert th.changed is True and th.direction == "down"
+    assert th.today.endswith("/challenged")
+
+
+def test_thesis_created_in_window_surfaces_as_new():
+    # USER-APPROVED 2026-07-12: a thesis born inside the window (no verdict move, no
+    # challenge) surfaces on the diff as changed=True / direction "new". Diff surface ONLY —
+    # the alert ladder never counts creations (see test_change_alert).
+    book = ThesisBook(categoryId="c", entries=[
+        _entry(lastVerdict=None, lastDirection=0, createdAsOf="2026-07-05",
+               lastChangedAsOf="2026-07-05")])
+    cur = build_state(Scorecard(categoryId="c", asOf="2026-07-08", findings=[],
+                      demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),
+                      narrative="n", confidence=_conf()), book=book)
+    hd = diff_states("last week", 7, cur, cur, "2026-07-01", book)
+    th = next(i for i in hd.items if i.key == "thesis:demand-durability")
+    assert th.changed is True and th.direction == "new"
+    assert th.today.endswith("/new")
+
+
 def test_price_change_uses_rel_tol():
     cur = build_state(Scorecard(categoryId="c", asOf="2026-07-08", findings=[],
                       demandSupply=DemandSupply(dmiContribution=0.5, smiContribution=0.3),

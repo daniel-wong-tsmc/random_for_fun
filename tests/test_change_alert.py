@@ -61,6 +61,28 @@ def test_reaffirmed_high_call_in_window_stays_green():
     assert "high-call-moved" not in trig and "calls-co-move" not in trig
 
 
+def test_yellow_on_high_call_challenged():
+    # USER-APPROVED 2026-07-12 (spec §4: "challenged" counts): an in-window pendingChallenge
+    # on a high-conviction call is a "down" move -> high-call-moved fires.
+    from gpu_agent.thesis import PendingChallenge
+    e = _entry(verdict="reaffirmed", direction=0, changed="2026-06-20").model_copy(
+        update={"pendingChallenge": PendingChallenge(verdict="weakened", asOf="2026-07-05",
+                                                     rationale="r", findingIds=[])})
+    book = ThesisBook(categoryId="c", entries=[e])
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", book)
+    assert color == "yellow" and "high-call-moved" in trig
+
+
+def test_new_call_in_window_is_not_an_alert_trigger():
+    # USER-APPROVED 2026-07-12: new-call surfacing is diff-only — a thesis created inside the
+    # window (no verdict, no challenge) must not fire any ladder trigger.
+    e = _entry(verdict=None, direction=0, changed="2026-07-05").model_copy(
+        update={"createdAsOf": "2026-07-05"})
+    book = ThesisBook(categoryId="c", entries=[e])
+    color, trig = _raw_alert(_st(), _st(as_of="2026-07-01"), "2026-07-01", book)
+    assert color == "green" and trig == []
+
+
 def test_two_yellow_rules_escalate_orange():
     color, trig = _raw_alert(_st(sdgi=0.35, constraint="memory"),
                              _st(sdgi=0.10, constraint="export", as_of="2026-07-01"),

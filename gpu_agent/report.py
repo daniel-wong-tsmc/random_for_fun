@@ -12,11 +12,13 @@ from pathlib import Path
 from typing import Optional
 
 from gpu_agent.schema.scorecard import Scorecard, DIMENSIONS
+from gpu_agent.asof import period_end, days_between
 from gpu_agent.registry.indicators import IndicatorRegistry
 from gpu_agent.price_track import PriceTrack, compute_price_track
 from gpu_agent import bands
 from gpu_agent import reader
 from gpu_agent import brief   # module ref; brief also does `from gpu_agent import report` — both resolve at call-time
+from gpu_agent.thesis import CONVICTION_RANK
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -38,6 +40,9 @@ SDGI_INTERP_RULES = [
     (float("-inf"), "Supply outrunning demand — glut pressure forming"),
 ]
 _VERSION_RE = re.compile(r"^(\d{4}-\d{2}(?:-\d{2})?)-v(\d+)\.json$")
+_CHANGE_LINE_CAP = 4   # F77: bound per-horizon lead width; overflow folds to "+N more moved"
+_ABOVE_FOLD_BUDGET = 88   # F77: hard line budget above reader.APPENDIX_DIVIDER (80 + the
+                          # 2026-07-11 exec top band: <=6 band lines + section separator)
 
 
 # ── I/O helpers ──────────────────────────────────────────────────────────────
@@ -364,6 +369,75 @@ def render_dmi_smi_sdgi(sc: Scorecard, prior: Optional[Scorecard]) -> str:
         f"  SDGI  {sdgi:.3f}   Δ {_fmt_delta(sdgi, prior_sdgi)}"
         f"   {_sdgi_interpretation(sdgi)}"
     )
+    return "\n".join(lines)
+
+
+_CHANGE_ARROW = {"up": "↑", "down": "↓", "same": "→", "new": "＋"}
+_HORIZON_PHRASE = {"yesterday": "Since yesterday", "last week": "Since last week",
+                   "last month": "Since last month"}
+
+
+def _change_item_label(item, registry) -> str:
+    """Exec-plain label for a change item key. dim:/metric: map through reader; index:/price:/
+    thesis: get plain words. Never leaks a raw id above the fold."""
+    kind, _, rest = item.key.partition(":")
+    if kind == "dim":
+        return reader.DIM_LABEL.get(rest, rest)
+    if kind == "index":
+        return {"demand": "Demand momentum", "supply": "Supply momentum",
+                "gap": "Demand-supply gap"}.get(rest, rest)
+    if kind == "metric":
+        return reader.indicator_label(rest, registry)
+    if kind == "price":
+        return f"{rest} rental"
+    if kind == "status":
+        return {"constraint": "Binding constraint"}.get(rest, rest)
+    if kind == "thesis":
+        return "a standing call"     # the ranked-calls section names it; the lead just counts
+    return rest
+
+
+def _dim_arrow(item) -> str:
+    """Refine a dim item's arrow from the rating rank (the engine only knows tokens differ)."""
+    if not item.changed or item.today is None or item.prior is None:
+        return _CHANGE_ARROW["same"]
+    cur = RATING_SCALE.get(item.today.split("/")[0], 0)
+    pri = RATING_SCALE.get(item.prior.split("/")[0], 0)
+    return _CHANGE_ARROW["up"] if cur > pri else _CHANGE_ARROW["down"] if cur < pri else _CHANGE_ARROW["same"]
+
+
+def render_change_lines(change, registry=None) -> str:
+    """WHAT CHANGED (F64 lead): one line per horizon naming the moved items with arrows, or an
+    explicit unchanged/no-run state. Above the fold — every token is exec-plain (reader.DIM_LABEL
+    / registry labels / plain words) and passes reader.lint_acronyms. change=None -> honest
+    empty-state header (a caller with no store yet)."""
+    lines = ["WHAT CHANGED"]
+    if change is None:
+        lines.append("  (no store history yet — needs a prior daily run to compare)")
+        return "\n".join(lines)
+    for h in change.horizons:
+        phrase = _HORIZON_PHRASE.get(h.horizon, f"Since {h.horizon}")
+        if h.priorAsOf is None:
+            lines.append(f"  {phrase}: no run yet at/before this horizon — first tracked {h.horizon}")
+            continue
+        moved = [it for it in h.items if it.changed]
+        if not moved:
+            # Honest stability window for the WHOLE set: the most RECENT unchangedSince
+            # across items (a changed-then-reverted key resets its date; claiming the
+            # oldest would overstate stability). Chronological max via period_end —
+            # labels may be day- or month-grain, so lexical comparison is not enough.
+            vals = [it.unchangedSince for it in h.items if it.unchangedSince]
+            since = max(vals, key=period_end) if vals else h.priorAsOf
+            lines.append(f"  {phrase} (vs {h.priorAsOf}): no change — unchanged since {since}")
+            continue
+        parts = []
+        for it in moved[:_CHANGE_LINE_CAP]:
+            arrow = _dim_arrow(it) if it.key.startswith("dim:") else _CHANGE_ARROW.get(it.direction, "→")
+            label = _change_item_label(it, registry)
+            parts.append(f"{label} {arrow}")
+        extra = len(moved) - len(parts)
+        tail = f"; +{extra} more moved" if extra > 0 else ""
+        lines.append(f"  {phrase} (vs {h.priorAsOf}): " + "; ".join(parts) + tail)
     return "\n".join(lines)
 
 
@@ -706,6 +780,131 @@ def render_citation_map(sc: Scorecard) -> str:
     return "\n".join(lines)
 
 
+_ALERT_DOT = "●"
+
+
+_UNIT_DISPLAY = {"pct": "%", "USD_B": " billion USD", "USD_per_gpu_hr": "/GPU-hr",
+                 "USD_per_gpu": " USD", "USD_per_card": " USD", "weeks": " weeks"}
+
+
+def _metric_display(cell) -> str:
+    """Exec-plain value token for a metric cell — raw units (USD_B, pct) relabeled so nothing
+    off the acronym allowlist reaches above the fold; qualitative metrics show their statement."""
+    if cell.value is None:
+        return cell.statement
+    unit = _UNIT_DISPLAY.get(cell.unit, "")
+    prefix = "$" if cell.unit and cell.unit.startswith("USD_per") else ""
+    return f"{prefix}{cell.value:g}{unit}"
+
+
+def _age_tag(as_of: str, observed) -> str:
+    """'N days old' from the run date to a fact's newest evidence date (asof day-math, never
+    the clock). Empty when the date is missing or in the future (no negative ages)."""
+    if not observed:
+        return ""
+    try:
+        n = days_between(as_of, observed)
+    except Exception:   # noqa: BLE001 — a malformed date must not crash the brief
+        return ""
+    return f"{n} days old" if n > 0 else ""
+
+
+def _glance_arrow(change, key) -> str:
+    """Nearest-horizon arrow for a glance row (yesterday first); '→' when it didn't move."""
+    if change is None:
+        return _CHANGE_ARROW["same"]
+    for h in sorted(change.horizons, key=lambda h: h.lookbackDays):
+        for it in h.items:
+            if it.key == key:
+                return _CHANGE_ARROW.get(it.direction, "→")
+    return _CHANGE_ARROW["same"]
+
+
+def render_quick_glance(state, change=None, registry=None) -> str:
+    """QUICK GLANCE (D8) — three tiers, each row its move arrow + (money) an age tag. Tier 1
+    verdict: the six ratings + demand/supply momentum. Tier 2 scarcity: rental price (feed) +
+    lead times + packaging/HBM. Tier 3 money: revenue guidance + backlog + gross margin,
+    age-tagged (they move on earnings). Above the fold — passes reader.lint_acronyms. Share
+    price is excluded (spec §5.6)."""
+    lines = ["QUICK GLANCE"]
+
+    lines.append("  Tier 1 — Verdict")
+    d_arrow = _glance_arrow(change, "index:demand")
+    s_arrow = _glance_arrow(change, "index:supply")
+    lines.append(f"    Demand momentum {_momentum_word(state.demand)} {d_arrow}"
+                 f"    Supply momentum {_momentum_word(state.supply)} {s_arrow}")
+    for dim, cell in state.dimensions.items():
+        arrow = _glance_arrow(change, f"dim:{dim}")
+        label = reader.DIM_LABEL.get(dim, dim)
+        lines.append(f"    {label:<24} {cell.rating} {arrow}")
+
+    lines.append("  Tier 2 — Scarcity")
+    for p in state.prices:
+        arrow = _glance_arrow(change, f"price:{p.model}")
+        lines.append(f"    {p.model + ' rental':<24} ${p.usdPerGpuHour:g}/GPU-hr {arrow}")
+    for iid, cell in state.metrics.items():
+        if cell.tier != "scarcity":
+            continue
+        arrow = _glance_arrow(change, f"metric:{iid}")
+        lines.append(f"    {reader.indicator_label(iid, registry):<24} {_metric_display(cell)} {arrow}")
+
+    lines.append("  Tier 3 — Money")
+    for iid, cell in state.metrics.items():
+        if cell.tier != "money":
+            continue
+        arrow = _glance_arrow(change, f"metric:{iid}")
+        age = _age_tag(state.asOf, cell.observedAt)
+        age_str = f"  ({age})" if age else ""
+        lines.append(f"    {reader.indicator_label(iid, registry):<24} "
+                     f"{_metric_display(cell)} {arrow}{age_str}")
+
+    return "\n".join(lines)
+
+
+def _category_title(category_id: str) -> str:
+    """'chips.merchant-gpu' -> 'MERCHANT GPU' (leaf id, dashes to spaces, upper)."""
+    return category_id.rsplit(".", 1)[-1].replace("-", " ").upper()
+
+
+def render_top_band(sc, state, alert, change) -> str:
+    """EXEC TOP BAND (2026-07-11 amendment, spec §3): title + alert dot + banded tiles +
+    binding constraint + since-yesterday count. Words only (read direction, not level);
+    every line passes reader.lint_acronyms; deterministic."""
+    was = (f" (was {alert.priorColor.upper()})" if alert.priorColor
+           else " (first tracked run)")
+    lines = [f"{_category_title(sc.categoryId)} — DAILY — {sc.asOf}"
+             f"    {_ALERT_DOT} {alert.color.upper()}{was}"]
+
+    prior1 = (change.priors or {}).get("yesterday") if change is not None else None
+    p_dem = prior1.demand if prior1 is not None else None
+    p_sup = prior1.supply if prior1 is not None else None
+    lines.append(f"  Demand: {bands.band_with_prior(state.demand, p_dem)}      "
+                 f"Supply: {bands.band_with_prior(state.supply, p_sup)}")
+    lines.append(f"  Gap: {_sdgi_interpretation(state.sdgi)}")
+    if state.constraintLabel:
+        lines.append(f"  Binding constraint: {state.constraintLabel}")
+
+    if change is not None:
+        h1 = next((h for h in change.horizons if h.horizon == "yesterday"), None)
+        if h1 is None or h1.priorAsOf is None:
+            lines.append("  Since yesterday: first tracked run — nothing to compare yet")
+        else:
+            moved = [it for it in h1.items if it.changed]
+            if not moved:
+                # Most RECENT unchangedSince across items (same rule as render_change_lines:
+                # a changed-then-reverted key resets its date; claiming an older one would
+                # overstate stability). Chronological max via period_end — order-independent.
+                vals = [it.unchangedSince for it in h1.items if it.unchangedSince]
+                since = max(vals, key=period_end) if vals else h1.priorAsOf
+                lines.append(f"  Since yesterday: no change — unchanged since {since}")
+            else:
+                calls = sum(1 for it in moved if it.key.startswith("thesis:"))
+                call_part = (f" ({calls} standing call{'s' if calls != 1 else ''})"
+                             if calls else "")
+                lines.append(f"  Since yesterday: {len(moved)} moved{call_part} — detail below")
+    return "\n".join(lines)
+
+
 def render_report(
     sc: Scorecard,
     prior: Optional[Scorecard],
@@ -718,6 +917,10 @@ def render_report(
     thesis_last_findings=None,
     daily: bool = False,
     gate_waivers=None,
+    change=None,          # F78 Stage 6: a change.ChangeReport -> lead change-first
+    state=None,           # F78 Stage 6: a change.StateVector for the quick-glance tiers
+    alert=None,           # AMENDED 2026-07-11: a change.AlertState -> exec top band leads
+    top_k: int = 5,       # F78 Stage 6: ranked-calls detail cap (F77)
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -741,7 +944,21 @@ def render_report(
     ``daily`` (F67 §4): the daily cadence shares this exact renderer/order — "one
     renderer, so monthly and daily cannot drift apart" — but swaps STATE OF THE MARKET
     and WHAT MOVED so the daily leads with the diff (its natural content); everything
-    else, including the appendix, is untouched.
+    else, including the appendix, is untouched. This swap only applies on the legacy
+    (``change is None``) path — the change-first path already leads with the diff.
+
+    F78 Stage 6 change-first mode (AMENDED 2026-07-11): when ``change`` is supplied,
+    the page leads differently — TOP BAND (only when both ``state`` and ``alert`` are
+    supplied) -> WHAT CHANGED -> QUICK GLANCE (only when ``state`` is supplied) ->
+    ranked THE CALLS (folded to ``top_k`` detailed entries, F77) -> STATE OF THE MARKET
+    -> WHY -> DEMAND|SUPPLY board -> STORYLINES -> TRUST & COVERAGE -> the same
+    untouched appendix, plus (change-first only) a full, un-folded THE CALLS section
+    leading the appendix so the ranked-calls fold line's "full detail in THE CALLS
+    appendix" promise is true. An above-the-fold ``_ABOVE_FOLD_BUDGET`` line cap keeps
+    the change-first lead short: if it overshoots, ranked calls re-renders at a
+    shrinking ``top_k`` (deterministic, never below 1) until it fits. Every existing
+    caller passes ``change=None`` and gets byte-identical output to before this mode
+    existed.
 
     Args:
         sc: the current scorecard to render.
@@ -757,28 +974,64 @@ def render_report(
             (read from theses/<categoryId>/history.jsonl by the caller — the book itself
             does not store them); feeds THE CALLS' cited-evidence line and, per spec §4,
             every WHY driver/Contested line's trailing findingIds citation.
-        daily: when True, lead with WHAT MOVED instead of STATE OF THE MARKET (F67 §4).
+        daily: when True, lead with WHAT MOVED instead of STATE OF THE MARKET (F67 §4),
+            legacy path only.
+        change: optional change.ChangeReport; when supplied, switches to the change-first
+            page order described above (F78 Stage 6).
+        state: optional change.StateVector; feeds QUICK GLANCE and (with ``alert``) TOP
+            BAND on the change-first path.
+        alert: optional change.AlertState; together with ``state``, leads the
+            change-first page with the exec TOP BAND (AMENDED 2026-07-11).
+        top_k: ranked-calls detail cap on the change-first path (F77); default 5.
     """
     if render_ts is None:
         render_ts = datetime.now(timezone.utc).isoformat()
 
     track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
 
-    top = [
-        render_header(sc, render_ts),
-        brief.render_state_of_market(sc, prior, track),       # words-first BLUF
-        brief.render_what_moved(movement),
-        brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
-        brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
-        brief.render_demand_supply_board(sc, horizons, registry=registry),
-        brief.render_storylines(movement),
-        render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
-    ]
-    if daily:   # F67 §4: the daily's headline is the diff
-        top[1], top[2] = top[2], top[1]
+    if change is not None:
+        # F78 Stage 6 change-first lead (F64 + F77, AMENDED 2026-07-11): TOP BAND ->
+        # WHAT CHANGED -> QUICK GLANCE -> ranked calls, then the rest of the above-the-fold
+        # sections, then the untouched appendix.
+        top = [
+            render_header(sc, render_ts),
+            (render_top_band(sc, state, alert, change)
+             if (state is not None and alert is not None) else ""),
+            render_change_lines(change, registry),
+            render_quick_glance(state, change, registry) if state is not None else "",
+            render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
+                                registry=registry, top_k=top_k),
+            brief.render_state_of_market(sc, prior, track),
+            brief.render_why(thesis_book, thesis_last_findings),
+            brief.render_demand_supply_board(sc, horizons, registry=registry),
+            brief.render_storylines(movement),
+            render_trust_footer(sc, gate_waivers=gate_waivers),
+        ]
+    else:
+        top = [
+            render_header(sc, render_ts),
+            brief.render_state_of_market(sc, prior, track),       # words-first BLUF
+            brief.render_what_moved(movement),
+            brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
+            brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
+            brief.render_demand_supply_board(sc, horizons, registry=registry),
+            brief.render_storylines(movement),
+            render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
+        ]
+        if daily:   # F67 §4: the daily's headline is the diff
+            top[1], top[2] = top[2], top[1]
 
     appendix = [
         reader.APPENDIX_DIVIDER,
+    ]
+    if change is not None:
+        # USER-APPROVED ADDITION (2026-07-12, interactive): the ranked-calls fold line
+        # above the fold promises "full detail in THE CALLS appendix" — make that promise
+        # true by leading the appendix with the un-capped, un-folded book. Legacy
+        # (change is None) path is untouched — it must stay byte-identical to today.
+        appendix.append(brief.render_the_calls(thesis_book, sc, thesis_last_findings,
+                                                registry=registry))
+    appendix.extend([
         render_overall_status(sc),
         render_dimensions(sc, prior),
         render_raw_indices(sc, prior),      # off-allowlist DMI/SMI/SDGI, demoted below the fold
@@ -788,5 +1041,58 @@ def render_report(
         render_sources(sc),
         render_coverage_gaps(sc),
         render_citation_map(sc),            # spec §1 row 9: full finding id -> source/date/tier map
-    ]
-    return "\n\n".join(s for s in top + appendix if s)
+    ])
+    body = "\n\n".join(s for s in top + appendix if s)
+
+    # F77 length budget: if the above-the-fold half overshoots, tighten the ranked-calls cap
+    # (the one section that grows with book size) until it fits or top_k hits 1 — deterministic.
+    if change is not None:
+        k = top_k
+        # AMENDED 2026-07-11: ranked calls sits at top[4] (the top band is top[1]).
+        while len(body.split(reader.APPENDIX_DIVIDER)[0].splitlines()) > _ABOVE_FOLD_BUDGET and k > 1:
+            k -= 1
+            top[4] = render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
+                                         registry=registry, top_k=k)
+            body = "\n\n".join(s for s in top + appendix if s)
+    return body
+
+
+def _moved_thesis_ids(change) -> set[str]:
+    if change is None:
+        return set()
+    out = set()
+    for h in change.horizons:
+        for it in h.items:
+            if it.key.startswith("thesis:") and it.changed:
+                out.add(it.key.split(":", 1)[1])
+    return out
+
+
+def render_ranked_calls(book, sc, change=None, last_findings=None, registry=None, top_k=5) -> str:
+    """THE CALLS ranked by (moved-this-cycle, conviction) desc — the F77 importance order and
+    volume cap. Top-K get the full three-line block (headline / statement+source-count / breaks-if,
+    reusing brief's helpers); the remainder compress to one headline line each with an explicit
+    fold count. book=None -> the same honest empty-state brief.render_the_calls emits, so the
+    change-first and legacy paths degrade identically."""
+    if book is None:
+        return "THE CALLS\n  (no thesis book yet - runs after the first thesis cycle)"
+
+    moved = _moved_thesis_ids(change)
+    findings_by_id = {f.id: f for f in sc.findings}
+    standing = sorted(
+        book.standing(),
+        key=lambda e: (e.id not in moved, -CONVICTION_RANK[e.conviction], e.id),
+    )
+
+    lines = ["THE CALLS  (most-moved / highest-conviction first)"]
+    detailed, tail = standing[:top_k], standing[top_k:]
+    for entry in detailed:
+        finding_ids = (last_findings or {}).get(entry.id)
+        lines.append(brief._calls_headline_line(entry))
+        lines.append(brief._calls_evidence_line(entry, finding_ids, findings_by_id))
+        lines.append(f"      breaks if: {reader.label_ids_in_text(entry.falsifiableTrigger, registry)}")
+    for entry in tail:
+        lines.append(brief._calls_headline_line(entry))
+    if tail:
+        lines.append(f"  (+{len(tail)} more calls folded to one line each — full detail in THE CALLS appendix)")
+    return "\n".join(lines)

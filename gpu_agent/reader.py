@@ -22,6 +22,17 @@ STATUS_LABEL = {
     "provisional": "early — not yet corroborated",
 }
 
+# Six scorecard dimension ids -> exec-plain labels for above-the-fold change/quick-glance
+# lines (the DIMENSION RATINGS appendix section keeps the raw ids). All pass lint_acronyms.
+DIM_LABEL = {
+    "momentum": "Momentum rating",
+    "unitEconomics": "Unit economics",
+    "competitiveStructure": "Competitive structure",
+    "moat": "Moat",
+    "bottleneck": "Supply bottleneck",
+    "strategicRisk": "Strategic risk",
+}
+
 # Brain-prose ban list (spec §2a + stop-slop's filler subset — deterministic slice only).
 BANNED_WORDS = (
     "delve", "delves", "crucial", "pivotal", "robust", "landscape",

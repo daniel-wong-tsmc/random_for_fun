@@ -1004,11 +1004,29 @@ def _report(args) -> int:
             entry = next((e for e in entries
                           if isinstance(e, dict) and e.get("category_id") == sc.categoryId), None)
             gate_waivers = brief.gate_waivers_from_cycle_log((entry or {}).get("gates"))
+    change = None
+    state = None
+    alert = None
+    if getattr(args, "change_first", False):
+        from gpu_agent import change as change_mod
+        prices_by_days = None
+        try:
+            prices_by_days = change_mod.prices_by_lookback(sc.asOf)
+        except Exception as e:   # noqa: BLE001 — a missing/partial feed must not sink the brief
+            print(f"gpu-agent report: note: price feed unavailable ({e}); "
+                  f"rendering change-first without the rental tier", file=sys.stderr)
+        change = change_mod.build_change_report(
+            pathlib.Path(args.store), sc, book=thesis_book, prices_by_days=prices_by_days)
+        state = change_mod.build_state(
+            sc, thesis_book, (prices_by_days or {}).get(0))
+        # AMENDED 2026-07-11: the exec top band's alert color (pure store projection).
+        alert = change_mod.alert_state(pathlib.Path(args.store), sc, book=thesis_book)
     text = render_report(sc, prior, registry,
                          render_ts=getattr(args, "render_ts", None),
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
-                         daily=getattr(args, "daily", False), gate_waivers=gate_waivers)
+                         daily=getattr(args, "daily", False), gate_waivers=gate_waivers,
+                         change=change, state=state, alert=alert)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -1190,6 +1208,9 @@ def main(argv=None) -> int:
     rp.add_argument("--daily", action="store_true",
                     help="daily cadence: lead with WHAT MOVED instead of STATE OF THE MARKET "
                          "(F67 §4; same renderer/section order otherwise)")
+    rp.add_argument("--change-first", action="store_true",
+                    help="F78 daily: lead with the three-horizon change lines + quick-glance "
+                         "tiers (reads the store at asOf-1/7/30 days). Overrides --daily's order.")
     rp.add_argument("--cycle-log", default=None,
                     help="path to the run's cycle-log JSON; any gate the log records as "
                          "bypassed/waived (gates.*) surfaces a waiver line in the trust footer (F75)")

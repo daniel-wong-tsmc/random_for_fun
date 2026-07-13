@@ -1052,7 +1052,8 @@ def _web_reach_ensure(args) -> int:
     # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
     registry = wre.load_registry(wre.REGISTRY_PATH)
     log = (lambda m: None) if args.json else print
-    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    results = wre.ensure_all(registry, check_only=args.check_only, unattended=args.unattended,
+                              timeout=args.timeout, log=log)
     if args.json:
         print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
@@ -1279,6 +1280,9 @@ def main(argv=None) -> int:
     wre = sub.add_parser("web-reach-ensure",
                          help="idempotently ensure web-reach tools are installed")
     wre.add_argument("--check-only", action="store_true")
+    wre.add_argument("--unattended", action="store_true",
+                     help="scheduled/unwatched run: never install or upgrade (supply-chain "
+                          "freeze); report version/pin/drift instead")
     wre.add_argument("--json", action="store_true")
     wre.add_argument("--timeout", type=int, default=600)
     wf = sub.add_parser("webreach-fetch",

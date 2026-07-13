@@ -8,11 +8,14 @@ import argparse
 import json
 import pathlib
 import platform
+import re
 import subprocess
 
 REGISTRY_PATH = pathlib.Path("registry/web-reach-tools.json")
 
 _HEALTH_TIMEOUT = 60  # health checks are cheap; cap them low
+
+_VERSION_RE = re.compile(r"\d+\.\d+(?:\.\d+)?")
 
 
 def _augment_path() -> None:
@@ -63,6 +66,37 @@ def health_ok(tool: dict, os_key: str, timeout: int = _HEALTH_TIMEOUT) -> bool:
         return False
 
 
+def version_of(tool: dict, os_key: str, timeout: int = _HEALTH_TIMEOUT) -> str:
+    """Best-effort installed-version probe for drift reporting. Never raises.
+
+    Runs the tool's versionCmd for os_key and pulls the first semver-shaped
+    substring (X.Y or X.Y.Z) out of stdout. Falls back to the stripped first
+    non-empty stdout line if no such substring is found. If the tool has no
+    versionCmd (e.g. last30days, a versionless skill-dir marker), returns its
+    registry `pin` instead (so a present-but-unversioned tool still reports
+    something meaningful for the cycle log) -- or "unknown" if there's no pin
+    either. A command that times out or can't be launched also yields
+    "unknown"; this is a reporting probe, not a gate, so it must never blow up
+    ensure_all.
+    """
+    cmd = (tool.get("versionCmd") or {}).get(os_key)
+    if not cmd:
+        return tool.get("pin", "unknown")
+    try:
+        r = _run(cmd, timeout)
+    except (subprocess.TimeoutExpired, OSError):
+        return "unknown"
+    stdout = r.stdout or ""
+    m = _VERSION_RE.search(stdout)
+    if m:
+        return m.group(0)
+    for line in stdout.splitlines():
+        line = line.strip()
+        if line:
+            return line
+    return "unknown"
+
+
 def ensure_tool(tool: dict, os_key: str, *, check_only: bool = False,
                 timeout: int = 600, log=print) -> dict:
     tid = tool["id"]
@@ -95,15 +129,35 @@ def ensure_tool(tool: dict, os_key: str, *, check_only: bool = False,
 
 
 def ensure_all(registry: dict, os_key: str | None = None, *, check_only: bool = False,
-               timeout: int = 600, log=print) -> list[dict]:
+               unattended: bool = False, timeout: int = 600, log=print) -> list[dict]:
+    # unattended is a supply-chain freeze: an unattended (scheduled/unwatched) run must
+    # NEVER install or upgrade anything, so it behaves like check_only for the install
+    # decision -- reusing check_only's "never call ensure_tool's install path" behavior
+    # rather than adding a second install-suppression code path to keep in sync.
     _augment_path()
     os_key = os_key or detect_os()
+    effective_check_only = check_only or unattended
     results = []
     for tool in registry.get("tools", []):
         if not tool.get("enabled"):
             continue
-        results.append(ensure_tool(tool, os_key, check_only=check_only,
-                                    timeout=timeout, log=log))
+        result = ensure_tool(tool, os_key, check_only=effective_check_only,
+                              timeout=timeout, log=log)
+        # Drift is reported, not enforced: health_ok is NOT made to fail on pin
+        # mismatch (that would make interactive ensure_tool try to reinstall on
+        # drift, and agent-reach's archive/main.zip install can't converge to a
+        # semver pin). Instead every result carries version/pin/drift so the
+        # cycle log and CLI --json output surface drift loudly without touching
+        # install/health control flow.
+        pin = tool.get("pin")
+        version = version_of(tool, os_key, timeout=timeout)
+        drift = bool(pin) and version != "unknown" and version != pin
+        result["version"] = version
+        result["pin"] = pin
+        result["drift"] = drift
+        if drift:
+            log(f"web-reach: {tool['id']} VERSION DRIFT installed={version} pinned={pin}")
+        results.append(result)
     return results
 
 
@@ -111,13 +165,17 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="web-reach-ensure",
                                  description="Idempotently ensure web-reach tools are installed.")
     ap.add_argument("--check-only", action="store_true", help="health-check only; never install")
+    ap.add_argument("--unattended", action="store_true",
+                    help="scheduled/unwatched run: never install or upgrade (supply-chain "
+                         "freeze); report version/pin/drift instead")
     ap.add_argument("--json", action="store_true", help="emit a machine-readable webReach block")
     ap.add_argument("--timeout", type=int, default=600, help="per-install-command timeout (s)")
     args = ap.parse_args(argv)
 
     registry = load_registry(REGISTRY_PATH)
     log = (lambda m: None) if args.json else print
-    results = ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    results = ensure_all(registry, check_only=args.check_only, unattended=args.unattended,
+                          timeout=args.timeout, log=log)
     if args.json:
         print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1

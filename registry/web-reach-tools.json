@@ -7,7 +7,14 @@
       "role": "fetch",
       "repo": "https://github.com/Panniantong/agent-reach",
       "installDocUrl": "https://raw.githubusercontent.com/Panniantong/agent-reach/main/docs/install.md",
+      "pin": "1.5.0",
+      "pinNote": "exact-ref install pin is a follow-up (needs an upstream tag/commit); pin recorded for drift-detection; unattended never installs.",
       "healthCmd": {
+        "windows": "agent-reach --version",
+        "macos": "agent-reach --version",
+        "linux": "agent-reach --version"
+      },
+      "versionCmd": {
         "windows": "agent-reach --version",
         "macos": "agent-reach --version",
         "linux": "agent-reach --version"
@@ -47,6 +54,7 @@
       "role": "discovery",
       "repo": "https://github.com/mvanhorn/last30days-skill",
       "installDocUrl": "https://github.com/mvanhorn/last30days-skill#readme",
+      "pin": "skill-present",
       "healthCmd": {
         "windows": "py -3 -c \"import os,sys; sys.exit(0 if os.path.isdir(os.path.expanduser('~/.agents/skills/last30days')) else 1)\"",
         "macos": "python3 -c \"import os,sys; sys.exit(0 if os.path.isdir(os.path.expanduser('~/.agents/skills/last30days')) else 1)\"",
@@ -68,28 +76,34 @@
       "role": "fetch",
       "repo": "https://github.com/unclecode/crawl4ai",
       "installDocUrl": "https://docs.crawl4ai.com/core/installation/",
+      "pin": "0.9.0",
       "healthCmd": {
         "windows": "crwl --help",
         "macos": "crwl --help",
         "linux": "crwl --help"
       },
+      "versionCmd": {
+        "windows": "pipx runpip crawl4ai show crawl4ai",
+        "macos": "pipx runpip crawl4ai show crawl4ai",
+        "linux": "pipx runpip crawl4ai show crawl4ai"
+      },
       "install": {
         "windows": [
           "py -3 -m pip install --user pipx",
-          "py -3 -m pipx install crawl4ai",
+          "py -3 -m pipx install crawl4ai==0.9.0",
           "py -3 -m pipx ensurepath",
           "crawl4ai-setup"
         ],
         "macos": [
           "python3 -m pip install --user pipx || brew install pipx",
           "pipx ensurepath",
-          "pipx install crawl4ai",
+          "pipx install crawl4ai==0.9.0",
           "crawl4ai-setup"
         ],
         "linux": [
           "python3 -m pip install --user pipx",
           "python3 -m pipx ensurepath",
-          "pipx install crawl4ai",
+          "pipx install crawl4ai==0.9.0",
           "crawl4ai-setup"
         ]
       },

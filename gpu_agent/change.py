@@ -519,6 +519,106 @@ def alert_state(store_dir, sc: Scorecard, book: Optional[ThesisBook] = None) -> 
                       rawColor=raw_today, triggers=triggers)
 
 
+# ---------------------------------------------------------------------------
+# F79 Stage 4 — the σ-band alert engine (scoring v2.0), SHADOW-ONLY until the G4
+# cutover. The v1 ladder above (_raw_alert / alert_state) keeps feeding the rendered
+# top band; raw_alert_v2 computes beside it (recorded via shadow provenance, consumed
+# by the backtest harness). At G4 the caller switches engines — AlertState, the rule-
+# level co-occurrence counting, and _fold_displayed's anti-flapping fold carry over
+# unchanged (exec-format spec §4 upgrade path).
+#
+# Pre-registered σ parameters (disclosed at G2; no tweaks off a single backtest miss):
+# shortage-side edges mean+1.0σ / mean+2.0σ; reversal(glut)-side edges mean−0.75σ /
+# mean−1.5σ (asymmetric, doc-settled); demand-reversal escalator = DMI drop > 0.75σ of
+# DMI history with the gap moving toward glut; ΔSDGI momentum per the series engine
+# (two same-direction moves, cumulative > 0.5σ, fires even at green).
+
+_V2_MIN_HISTORY = 4          # prior runs needed before any σ rule can fire
+_V2_SHORTAGE_EDGES = (1.0, 2.0)     # yellow, outer — in σ above the rolling mean
+_V2_REVERSAL_EDGES = (0.75, 1.5)    # yellow, outer — in σ below the rolling mean
+_V2_DMI_DROP_SIGMA = 0.75
+_V2_YELLOW_RULES = ("gap-sigma-crossed", "gap-extreme", "delta-sdgi-momentum",
+                    "high-call-moved", "constraint-rotated", "calls-co-move")
+
+
+def _v2_edges(prior_values: list[float]):
+    """(yellow_up, orange_up, yellow_down, orange_down) around the rolling mean of the
+    PRIOR history, or None while history is too short/flat for σ to mean anything."""
+    import statistics
+    if len(prior_values) < _V2_MIN_HISTORY:
+        return None
+    mean = statistics.mean(prior_values)
+    sigma = statistics.stdev(prior_values)
+    if sigma == 0.0:
+        return None
+    return (mean + _V2_SHORTAGE_EDGES[0] * sigma, mean + _V2_SHORTAGE_EDGES[1] * sigma,
+            mean - _V2_REVERSAL_EDGES[0] * sigma, mean - _V2_REVERSAL_EDGES[1] * sigma)
+
+
+def raw_alert_v2(sdgi_series: list[float], dmi_series: list[float], *,
+                 book: Optional[ThesisBook] = None, prior7_asof: Optional[str] = None,
+                 cur_asof: Optional[str] = None, constraint_now: Optional[str] = None,
+                 constraint_prior: Optional[str] = None) -> tuple[str, list[str]]:
+    """One run's raw v2 color from the chronological v2 index series (current last).
+    First match from the top wins; co-occurrence counts at the RULE level, exactly as
+    the v1 ladder does. σ rules stay silent until _V2_MIN_HISTORY prior runs exist."""
+    import statistics
+    from gpu_agent.series import delta_sdgi_trigger
+    triggers: list[str] = []
+
+    if len(sdgi_series) >= 2:
+        cur, prior = sdgi_series[-1], sdgi_series[-2]
+        edges = _v2_edges(sdgi_series[:-1])
+        if edges is not None:
+            yu, ou, yd, od = edges
+            # a crossing = prior and current on opposite sides of any edge
+            if any(((prior - e) <= 0) != ((cur - e) <= 0) for e in (yu, ou, yd, od)):
+                triggers.append("gap-sigma-crossed")
+            if cur > ou or cur < od:
+                triggers.append("gap-extreme")
+        if delta_sdgi_trigger(sdgi_series):
+            triggers.append("delta-sdgi-momentum")
+
+    if book is not None and prior7_asof is not None and cur_asof is not None:
+        moves = _thesis_moves_between(book, prior7_asof, cur_asof)
+        if any(e.conviction == "high" for e, _d in moves):
+            triggers.append("high-call-moved")
+        for d in ("up", "down"):
+            if sum(1 for _e, dd in moves if dd == d) >= 2:
+                triggers.append("calls-co-move")
+                break
+        if _high_break_between(book, prior7_asof, cur_asof):
+            triggers.append("high-call-broke")
+
+    if constraint_now and constraint_prior and constraint_now != constraint_prior:
+        triggers.append("constraint-rotated")
+
+    # asymmetric demand-reversal escalator (doc-settled: downside protected harder)
+    if len(dmi_series) >= 2 and len(sdgi_series) >= 2:
+        prior_d = dmi_series[:-1]
+        if len(prior_d) >= _V2_MIN_HISTORY:
+            sigma_d = statistics.stdev(prior_d)
+            if sigma_d > 0.0:
+                dmi_drop = dmi_series[-2] - dmi_series[-1]
+                if dmi_drop > _V2_DMI_DROP_SIGMA * sigma_d and sdgi_series[-1] < sdgi_series[-2]:
+                    triggers.append("demand-reversal")
+
+    y_hits = [t for t in triggers if t in _V2_YELLOW_RULES]
+    if "high-call-broke" in triggers and "gap-sigma-crossed" in triggers:
+        return "red", triggers
+    if "high-call-broke" in triggers or "demand-reversal" in triggers or len(y_hits) >= 2:
+        return "orange", triggers
+    if y_hits:
+        return "yellow", triggers
+    return "green", triggers
+
+
+def fold_displayed(raws: list[str]) -> list[str]:
+    """Public fold for v2 consumers (the backtest harness; the G4 cutover caller).
+    Identical anti-flapping semantics to the v1 ladder — one shared implementation."""
+    return _fold_displayed(raws)
+
+
 # --- Stage-5 price-feed adapter (the assumption seam) ---------------------------------
 #
 # DEVIATION (plan-sanctioned seam): Stage 5 shipped headline_prices(as_of, data_dir)

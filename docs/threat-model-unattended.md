@@ -136,12 +136,18 @@ F88 closes the content-flow and supply-chain holes described above, but the foll
   Their blast radius is limited to coverage bookkeeping and dedupe: sufficiency, the gate, and
   scoring all sit downstream and are unchanged by F88, so a lie in either field cannot move a
   rating — at worst it mis-tracks what's already been covered.
-- **Query-kind fetch verbs are not URL-scheme-validated; only url-kind verbs are.** A verb like
-  agent-reach's `search` takes a free-text query rather than a URL, and its target is passed
-  through without a scheme check (unlike url-kind verbs, which must be `http`/`https` with a
-  parseable host). Under D6 (licensed sources are fetched and flagged rather than blocked
-  anyway), this is not a paywall-bypass channel, but it is worth naming: a query-kind target
-  reaches its tool with no scheme validation at all.
+- **Query-kind fetch verbs are not URL-scheme-validated; only url-kind verbs are — this is an
+  argument-injection-into-the-trusted-CLI channel, precisely named.** A verb like agent-reach's
+  `search` takes a free-text query rather than a URL; `build_argv` substitutes that query-kind
+  `target` verbatim as a single argv element into the tool's trusted-template argv, with no
+  validation at all (unlike url-kind verbs, which must be `http`/`https` with a parseable host).
+  A target beginning with `-` could therefore be parsed as a FLAG by the tool itself, not as the
+  query text it was meant to be. The blast radius is bounded entirely by that tool's own flag
+  surface: this can never become shell command execution (the call is `shell=False` over a
+  trusted-template argv, never a shell string) or a write outside `out_dir` (the result file's
+  path is built from a sanitized slug, never the raw target). Under D6 (licensed sources are
+  fetched and flagged rather than blocked anyway) there is also no paywall boundary here to
+  bypass.
 - **Interactive installs of `agent-reach` still pull from its `main` branch, not a pinned
   ref.** The registry records a version (`1.5.0`) for drift detection, but the install command
   itself installs from upstream `main` — an exact-ref (tag/commit) pin is a follow-up.

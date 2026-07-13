@@ -208,8 +208,9 @@ ONLY — never Bash** (Invariants above). Give each subagent ONE slice and this 
 > source type you need (social posts, forum threads, video transcripts, RSS, global search), WRITE
 > your requests to `work/<run-dir>/fetch-requests.json` instead — a JSON array of
 > `{"toolId","verb","target"}` objects, one per page/query — and say in your reply that a request
-> file is waiting. The **coordinator** then runs
-> `gpu-agent webreach-fetch --requests work/<run-dir>/fetch-requests.json --out-dir work/<run-dir>/webreach/`
+> file is waiting. The **coordinator** then runs (no `gpu-agent` console script exists — this is
+> the runnable form):
+> `.venv/Scripts/python -m gpu_agent.cli webreach-fetch --requests work/<run-dir>/fetch-requests.json --out-dir work/<run-dir>/webreach/`
 > (never you) and re-dispatches you for a **second round** to Read the result files listed in
 > `webreach/fetch-manifest.json` and write blobs from them exactly like any other page. This
 > write-requests / coordinator-runs / read-results round-trip is capped at **3 rounds total**,
@@ -275,9 +276,14 @@ Append the resulting gap list to `gather-log.json` under the key `coverageGaps`.
 loaded, `coverageGaps` is an empty list `[]`.
 
 **5. Assemble the snapshot envelope — never by hand.** Once the trail goes dry, run
-`gpu-agent gather-assemble --blob-dir work/<run-dir>/blobs --out work/<run-dir>/blobs.json` to
-deterministically build the `{"rounds","skipped","blobs"}` envelope straight from the blob files
-on disk (its own duplicate-URL check keeps the earlier file on a collision, logged in `skipped`).
+`gpu-agent gather-assemble --blob-dir work/<run-dir>/blobs --out work/<run-dir>/blobs.json` — there
+is no `gpu-agent` console script, so the runnable form is:
+```
+.venv/Scripts/python -m gpu_agent.cli gather-assemble --blob-dir work/<run-dir>/blobs/ --out work/<run-dir>/blobs.json
+```
+to deterministically build the `{"rounds","skipped","blobs"}` envelope straight from the blob
+files on disk (its own duplicate-URL check keeps the earlier file on a collision, logged in
+`skipped`).
 The coordinator never opens a blob file or hand-assembles this JSON — content travels only as
 files, from gatherer to assembler to `ingest`, never through the coordinator's own context. If
 this round tracked any `pursuedDespiteAge` entries (the "Discretionary pursuit" step above — the

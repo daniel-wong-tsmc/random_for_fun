@@ -89,11 +89,19 @@ them here.)
 The coordinator handles gatherer **receipts and file paths only — it never opens a blob file or
 hand-assembles `blobs.json`** (F88: fetched page content travels only as files, never through the
 coordinator's own context). Between gatherer rounds, run `gpu-agent webreach-fetch` (see the
-gather-category skill's runner contract) for any fetch requests a gatherer wrote; once gathering is
-done, run `gpu-agent gather-assemble --blob-dir work/<run-dir>/blobs --out work/<run-dir>/blobs.json`
-to deterministically build the `{rounds,skipped,blobs}` envelope from the blob files on disk, then
-feed that file to `ingest` → a per-category `docs/` folder. If zero documents are gathered, **skip
-this category with a logged reason** (no empty scorecard) and continue.
+gather-category skill's runner contract) for any fetch requests a gatherer wrote — there is no
+`gpu-agent` console script, so the runnable form is:
+```
+.venv/Scripts/python -m gpu_agent.cli webreach-fetch --requests work/<run-dir>/fetch-requests.json --out-dir work/<run-dir>/webreach/
+```
+once gathering is done, run `gpu-agent gather-assemble --blob-dir work/<run-dir>/blobs --out
+work/<run-dir>/blobs.json` to deterministically build the `{rounds,skipped,blobs}` envelope from
+the blob files on disk — runnable form:
+```
+.venv/Scripts/python -m gpu_agent.cli gather-assemble --blob-dir work/<run-dir>/blobs/ --out work/<run-dir>/blobs.json
+```
+then feed that file to `ingest` → a per-category `docs/` folder. If zero documents are gathered,
+**skip this category with a logged reason** (no empty scorecard) and continue.
 *(recorded mode: use the committed `fixtures/raw` docs instead of gathering.)*
 
 **(b) Extraction — Claude Code is the brain.** Emit the canonical extraction prompt (when the

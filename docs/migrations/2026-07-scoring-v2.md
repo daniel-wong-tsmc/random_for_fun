@@ -104,6 +104,24 @@ PASS = catches ≥2 of the 3 named turns (H100 crunch onset, CoWoS bottleneck, H
 with ≥1 quarter of lead time each, AND ≤1 false orange-or-worse alarm per backtest year.
 A miss = STOP and redesign; no weight tweaks off a single miss.
 
+## Backtest run of record (2026-07-13, frozen, un-tuned — G2 evidence)
+
+One authoritative run (`gpu-agent backtest`, defaults: G1-approved series + the
+pre-registered σ parameters and turn definitions in `gpu_agent/backtest.py`):
+
+- **Recall: 3/3 named turns caught** — the 2023-06 orange episode leads h100-crunch
+  (2023-09) by 3mo, cowos-bottleneck (2023-12) by 6mo, hbm-squeeze (2024-03) by 9mo.
+- **False alarms: FAIL** — orange episodes at 2024-11, 2025-03, 2025-07, 2025-11 count
+  false under the named-turn windows: max 3/year (2025) vs the ≤1/year bar.
+- **VERDICT: FAIL** per the letter of the pre-committed bar. Nothing was re-tuned after
+  the run; disposition belongs to the user-signed G2 gate.
+- Attribution note (analysis, not re-scoring): 2025-03 coincides with the real
+  March-2025 financing squeeze (X5 −2: MSFT pullback, downsized IPO), 2025-07 with the
+  real re-tightening (S1 back to −50: "demand getting stronger and stronger"), 2025-11
+  with the real credit stress (X5: CDS blowout, guidance cut) — real, documented events
+  absent from the three-turn list. 2024-11 (demand-reversal off a one-month DMI dip)
+  reads as genuine noise.
+
 ## Backfill results (Stage 2, 2026-07-13 — reviewed at G1)
 
 156 points across the six series, all vintage-stamped with per-point source URL +

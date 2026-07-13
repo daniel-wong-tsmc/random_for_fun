@@ -85,9 +85,15 @@ cap this gather at `min(manifest maxDocuments, 10)` documents. An empty store me
 exactly as before. (Gather slices/floors and L1 seen-doc threading stay F57 — do not improvise
 them here.)
 
-**(a) Gather (live).** Follow the **`gather-category`** skill to gather real documents for this assignment →
-`blobs.json` → `ingest` → a per-category `docs/` folder. If zero documents are gathered, **skip this category
-with a logged reason** (no empty scorecard) and continue.
+**(a) Gather (live).** Follow the **`gather-category`** skill to gather real documents for this assignment.
+The coordinator handles gatherer **receipts and file paths only — it never opens a blob file or
+hand-assembles `blobs.json`** (F88: fetched page content travels only as files, never through the
+coordinator's own context). Between gatherer rounds, run `gpu-agent webreach-fetch` (see the
+gather-category skill's runner contract) for any fetch requests a gatherer wrote; once gathering is
+done, run `gpu-agent gather-assemble --blob-dir work/<run-dir>/blobs --out work/<run-dir>/blobs.json`
+to deterministically build the `{rounds,skipped,blobs}` envelope from the blob files on disk, then
+feed that file to `ingest` → a per-category `docs/` folder. If zero documents are gathered, **skip
+this category with a logged reason** (no empty scorecard) and continue.
 *(recorded mode: use the committed `fixtures/raw` docs instead of gathering.)*
 
 **(b) Extraction — Claude Code is the brain.** Emit the canonical extraction prompt (when the
@@ -265,6 +271,10 @@ the corpus artifacts (`corpus-coverage.json`, `corpus-findings.json`, `deduped-f
 `corpus-report.json`) and the corpus counts (store in-window / fresh new / update / duplicate),
 the F24 unregistered-entities record (`unregisteredEntities: {count, names}` from Step 3(b)'s
 `UNREGISTERED-ENTITY` stderr line; `{count: 0, names: []}` when none printed),
+the F88 web-reach record — fold in the tool version/pin/drift block from this run's
+`gpu-agent web-reach-ensure --json` (`--unattended` too, on a scheduled/headless run) and any
+`licensed-source fetched: <domain>` line this category's gather logged (an empty list when
+none were flagged) —
 and the tier-stage statuses
 (`category: done` | `failed` | `skipped`, `thesis: done` | `failed` | `skipped`, `layer: deferred`,
 `main: deferred`). A category that was `ready` in the plan but skipped mid-run (e.g. zero docs

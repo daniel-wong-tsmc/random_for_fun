@@ -39,7 +39,9 @@ def validate_request(req: FetchRequest, registry: dict,
         parsed = urlparse(req.target)
         if parsed.scheme not in ("http", "https") or not parsed.netloc:
             return f"refused scheme/shape: {req.target!r} (http/https only)"
-        host = parsed.netloc.lower().split(":")[0]
+        host = parsed.hostname
+        if not host:
+            return f"refused scheme/shape: {req.target!r} (unparseable host)"
         for dom in refused_domains:
             if host == dom or host.endswith("." + dom):
                 return f"paywalled/licensed domain refused: {host} (Part 22)"

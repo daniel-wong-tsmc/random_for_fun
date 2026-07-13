@@ -45,3 +45,15 @@ def test_load_refused_domains(tmp_path):
     p = tmp_path / "pay.json"
     p.write_text(json.dumps({"domains": ["TrendForce.com", "dello.ro"]}), "utf-8")
     assert load_refused_domains(p) == {"trendforce.com", "dello.ro"}
+
+def test_userinfo_host_is_not_a_bypass():
+    reason = validate_request(
+        _req(target="https://user:pass@trendforce.com/x"), REGISTRY, REFUSED)
+    assert reason is not None and "paywalled" in reason
+    ok = validate_request(
+        _req(target="https://user:pass@example.com/a"), REGISTRY, REFUSED)
+    assert ok is None
+
+def test_lookalike_domains_are_not_over_refused():
+    for url in ("https://nottrendforce.com/r", "https://trendforce.com.evil.com/r"):
+        assert validate_request(_req(target=url), REGISTRY, REFUSED) is None

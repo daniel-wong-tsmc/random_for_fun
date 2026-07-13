@@ -359,14 +359,21 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **F88 lane CLAIMED + BUILDING (2026-07-13, F88 session).** The D5 gate is satisfied — the
-  F83 pin MERGED to main via the concurrent session (`58a9620`; main now `48c4c39`, suite
-  1356/5), not by me: my own local F83 merge was BACKED OUT unpushed the moment I found that
-  session had an unpushed commit + a live cycle on the shared checkout (no double-merge, no
-  foreign work published). F88 is now dispatched in `.worktrees/f88-hardening`, branch
-  `f88-orchestrator-hardening` (base `48c4c39`), subagent-driven per the 9-task plan. STOPS
-  before merge; only the user merges. Spec D5 was user-approved interactively (against the
-  assistant lean; not AFK). Spec
+- **F88 lane MERGED to main (2026-07-13, F88 session) — user-authorized interactively ("merge
+  to main now").** Merge commit on THIS push; base `48c4c39`, 13 commits, suite 1419/6, F6 pin
+  + F83 conformance 12/12 green, frozen core + brain prompts untouched. Whole-branch review
+  (fable): Ready to merge; three real bugs caught+fixed en route (userinfo paywall bypass,
+  batch-abort, robustness gaps). **Merged onto PUBLISHED `origin/main` (067448c), NOT local
+  main, so the concurrent session's unpushed F95 commits (`0df6945`/`fae5faa`) are NOT
+  republished** — that session reconciles its F95 work against this merge on its next push.
+  Branch `f88-orchestrator-hardening` + worktree `.worktrees/f88-hardening` RETAINED (hold the
+  gitignored `.superpowers/sdd/` build ledger + the `f88-hardening-DONE.md` sentinel). D6
+  (licensed sources allow-but-flag) + D7 (version-pin achievability) were mid-build user/
+  orchestrator decisions. **Deferred follow-ups (next free F-numbers, user to assign):**
+  agent-reach exact-ref install pin; per-finding licensed trust-footer tag (schema migration);
+  in-memory capture streaming cap; receipt sha256 code-verification; charter Part 22/37 edit;
+  + doc-drift sweep (market-state-reference "never fetched", stale "16 verbs" count). Spec D5
+  was user-approved interactively (against the assistant lean; not AFK). Spec
   `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`
   (+ D5 amendment `3c27774`), plan
   `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). OWNS: NEW `gpu_agent/gathering/{webreach,assemble}.py` + `registry/paywalled-domains.json`;

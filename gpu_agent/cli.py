@@ -1057,6 +1057,29 @@ def _web_reach_ensure(args) -> int:
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
 
 
+def _webreach_fetch(args) -> int:
+    """Runner half of the F88 wall: reader agents (no shell access) write a JSON
+    array of FetchRequest objects; this executes ONLY the requests that pass
+    validate_request, as argv arrays (shell=False), and writes a result manifest.
+    Individual request failures/refusals are data (exit 0); a malformed/missing
+    requests file is a usage error (exit 2) caught here before anything runs."""
+    from gpu_agent.gathering import webreach
+    try:
+        registry = json.loads(pathlib.Path(args.registry).read_text(encoding="utf-8"))
+        refused = webreach.load_refused_domains(pathlib.Path(args.refused))
+        manifest = webreach.run_requests(args.requests, args.out_dir, registry, refused)
+    except (OSError, json.JSONDecodeError, ValueError, ValidationError) as e:
+        print(f"gpu-agent webreach-fetch: error: {e}", file=sys.stderr)
+        return 2
+    results = manifest["results"]
+    n_refused = sum(1 for r in results if r["refused"] is not None)
+    n_failed = sum(1 for r in results if r["refused"] is None and r["error"] is not None)
+    print(f"webreach-fetch: {len(results)} request(s) -> {args.out_dir}/fetch-manifest.json "
+          f"({n_refused} refused, {n_failed} failed, "
+          f"{len(results) - n_refused - n_failed} ok)")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -1230,6 +1253,15 @@ def main(argv=None) -> int:
     wre.add_argument("--check-only", action="store_true")
     wre.add_argument("--json", action="store_true")
     wre.add_argument("--timeout", type=int, default=600)
+    wf = sub.add_parser("webreach-fetch",
+                        help="execute validated web-reach fetch requests (argv-exec, "
+                             "sanitized result paths) and write a result manifest")
+    wf.add_argument("--requests", required=True,
+                    help="JSON array of FetchRequest objects (toolId, verb, target, outName?)")
+    wf.add_argument("--out-dir", required=True,
+                    help="dir for per-request result files + fetch-manifest.json")
+    wf.add_argument("--registry", default="registry/web-reach-tools.json")
+    wf.add_argument("--refused", default="registry/paywalled-domains.json")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -1281,6 +1313,8 @@ def main(argv=None) -> int:
             return 1
     if args.cmd == "web-reach-ensure":
         return _web_reach_ensure(args)
+    if args.cmd == "webreach-fetch":
+        return _webreach_fetch(args)
     if args.cmd == "report":
         return _report(args)
     try:

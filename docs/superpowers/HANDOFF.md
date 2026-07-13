@@ -359,13 +359,17 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
-- **F88 lane PARKED READY (2026-07-13, F88 session) — starts only AFTER the F83-pin lane
-  MERGES (user-approved, interactive, spec D5 — against assistant lean; not AFK).** Spec
+- **F88 lane CLAIMED + BUILDING (2026-07-13, F88 session).** The D5 gate is satisfied — the
+  F83 pin MERGED to main via the concurrent session (`58a9620`; main now `48c4c39`, suite
+  1356/5), not by me: my own local F83 merge was BACKED OUT unpushed the moment I found that
+  session had an unpushed commit + a live cycle on the shared checkout (no double-merge, no
+  foreign work published). F88 is now dispatched in `.worktrees/f88-hardening`, branch
+  `f88-orchestrator-hardening` (base `48c4c39`), subagent-driven per the 9-task plan. STOPS
+  before merge; only the user merges. Spec D5 was user-approved interactively (against the
+  assistant lean; not AFK). Spec
   `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`
   (+ D5 amendment `3c27774`), plan
-  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). Will claim
-  `.worktrees/f88-hardening`, branch `f88-orchestrator-hardening`, post-merge. OWNS from
-  then: NEW `gpu_agent/gathering/{webreach,assemble}.py` + `registry/paywalled-domains.json`;
+  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). OWNS: NEW `gpu_agent/gathering/{webreach,assemble}.py` + `registry/paywalled-domains.json`;
   `cli.py` append-only verbs (`webreach-fetch`, `gather-assemble`);
   `gpu_agent/web_reach_ensure.py`; `registry/web-reach-tools.json` (`pin` + `fetchVerbs`);
   `gather-category` + `run-cycle` SKILL prose INCLUDING the F83 fingerprint/constant

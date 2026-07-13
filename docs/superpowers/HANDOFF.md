@@ -370,10 +370,12 @@ User gave **"go"** 2026-07-06. Actioned:
   mid-review: drill-down reconciliation = "label honestly" (interactive 2026-07-13, not AFK).
   Full record: `.superpowers/handoffs/f95-site-DONE.md` (sanctioned deviations incl. spec
   §7.2 gitignore step unnecessary; deferred-minor list for a follow-up batch).
-  **Rebase-over-F88 (roles flipped):** F88 merged to main FIRST, so F95 — not F88 — became
-  the last prose-toucher and rebases over the F88 merge (run-cycle SKILL + cli.py overlap);
-  the orchestrator session performs that rebase + suite re-run and records the post-rebase
-  head here. **Launch gates still open (user):** repo-rename/TSMC-exposure decision +
+  **Rebase-over-F88 DONE (roles flipped):** F88 merged to main FIRST, so F95 — not F88 —
+  became the last prose-toucher and was rebased over the F88 merge by the orchestrator
+  session: ONE conflict (cli.py, both lanes' appended verb helpers — resolved keep-both;
+  run-cycle prose and the F83 step fingerprint merged clean), plus an F76 vocabulary fix
+  the handoff-integrity tripwire caught (`4e0214d`). **Post-rebase head `21cf7c7`
+  (force-pushed with lease), suite 1463/6, F6 pin + F83 conformance green.** **Launch gates still open (user):** repo-rename/TSMC-exposure decision +
   pages.dev subdomain BEFORE the first Cloudflare deploy (docs/cloudflare-pages.md has the
   checklist; building and committing site/ is fine meanwhile).
 - **F88 lane MERGED to main (2026-07-13, F88 session) — user-authorized interactively ("merge

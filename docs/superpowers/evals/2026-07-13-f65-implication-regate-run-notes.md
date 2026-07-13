@@ -1,13 +1,58 @@
 # F65 implication re-gate — run notes (2026-07-13)
 
-**FINAL OUTCOME: FAIL on the two-run mean (judge seam) → STOP FINAL per the pre-committed
-replication disposition. BLOCKED. No third attempt.**
+**LATEST: user-approved F73 pooled-dispersion remedy → QUESTION-STOP (no legitimate harness
+path exists for the append). The two-run FAIL below stands unmodified; baseline untouched.**
+
+**Two-run outcome: FAIL on the two-run mean (judge seam) → STOP FINAL per the pre-committed
+replication disposition. No third attempt.**
 No rebaseline was performed; `fixtures/evals/baseline.json` is untouched; the F6 pin stays green
 on the committed tree. Chronology: run 1 HARD-FAIL → hard stop, BLOCKED-on-user (below) →
 user disposition, relayed by the coordinator as the user's explicit override of the hard stop:
 ONE authorized replication, the TWO-RUN MEAN decides per the eval-v2 marginal machinery; if it
 fails or the judge seam sags again in isolation, STOP FINAL with grader-drift evidence — no
 third attempt. Run 2 was executed under that authorization; the two-run verdict is FAIL.
+
+## F73 pooling remedy (user-approved 2026-07-13, interactive) → QUESTION-STOP
+
+The user approved (governance signature, relayed by the coordinator) the F73 pooled-dispersion
+remedy: append BOTH runs' seam scores to the baseline's stored noise history through the
+harness's legitimate path, recompute ε from the enlarged history, and re-evaluate the SAME
+two-run verdict — zero new runs, zero score changes. Rationale signed with it: byte-identical
+judge prompt, calibration held, ε at quantum floor from a 3-run history (the F73 failure
+class). Constraint attached: a real harness mechanism only; never hand-edit baseline.json;
+if no mechanism exists, QUESTION-STOP.
+
+Findings (verified in `gpu_agent/evals/harness.py` and `gpu_agent/cli.py`):
+
+- F73's pooling machinery shipped: `pooled_epsilon` (ε = max(2·stdev of the seam's run
+  history, quantum floor)) and `append_run_to_history` (appends a run's seamMeans to
+  `seamHistory`, recomputes ε; for a pre-F73 baseline like ours — no seamHistory/quanta
+  fields — it seeds the pool from the 3 stored replicate seam means).
+- `append_run_to_history` enforces the NON-POISONING invariant (explicit F73 review fix,
+  pinned by `tests/test_evals_v2.py`): it refuses any run whose verdict decision is not
+  pass/marginal-pass — "a regression can never widen epsilon and hide itself". Our runs
+  (hard-fail, marginal-fail, two-run fail) are all refused.
+- No CLI/governance surface exposes pooling: `eval` actions are emit-brain, record-brain,
+  emit-grade, record-grade, verdict, rebaseline only.
+- Conclusion: the requested append has no legitimate path. Hand-editing baseline.json is
+  forbidden; calling the library function with a spoofed verdict would bypass the invariant
+  (a hand-edit with extra steps); editing the guard is worse. None of these was done —
+  QUESTION-STOP per the disposition's own constraint branch.
+
+Read-only projection (real harness functions `_seed_history` + `pooled_epsilon`, true quanta
+from the cases, bars anchored at the stored seamMeans — `append_run_to_history` does not move
+means; nothing written):
+
+- extract: pool [6.625, 6.5, 7.125] + [7.0, 6.875] → ε 0.5184, bar 6.2316; two-run 6.9375 PASS
+- judge:   pool [7.75, 7.5, 7.5] + [7.0, 7.25]     → ε 0.5701, bar 7.0132; two-run 7.1250 PASS
+- thesis:  pool [6.0, 6.0, 6.0] + [6.0, 6.5]       → ε 0.5000, bar 5.5000; two-run 6.2500 PASS
+
+The remedy would flip the verdict to PASS on every seam; the blocker is solely the missing
+signed mechanism. Recommended minimal mechanism and the conservative alternative are filed in
+`.superpowers/handoffs/f65-tsmc-QUESTIONS.md` (Option A: governance-signed `--force-reason`
+override on `append_run_to_history` + an `eval pool` CLI action with the override
+audit-stamped into the baseline, mirroring `rebaseline_v2`'s existing force_reason idiom;
+Option B: fresh 3-run rebaseline at current grader strictness, invariant kept absolute).
 
 ## Two-run verdict (`work/eval-2026-07-13-r2/verdict.json`, authoritative)
 

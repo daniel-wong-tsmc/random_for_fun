@@ -108,17 +108,22 @@ BASE = {"schemaVersion": 2, "promptHashes": HASHES,
         "seamMeans": {"extract": 6.5}, "epsilon": {"extract": 0.25},
         "caseMedians": {"e1": 7, "e2": 6}}
 
+# F65g seam-scoped verdicts: bars only bind seams whose emitted-prompt hash MOVED vs the
+# baseline. CHANGED marks the extract seam as actually changed; tests that exercise the
+# bar/marginal machinery use it. Reports left on HASHES (== BASE's) are hash-identical.
+CHANGED = dict(HASHES, extract="f" * 64)
+
 def test_verdict_pass_on_bar_touch():
     # F73b: a value sitting exactly on the bar is within the marginal band by definition,
     # so it now reads marginal-pass (still a pass, but flagged for one replication).
-    v = evaluate_v2(BASE, [_report({"extract": 6.25}, {"e1": 7, "e2": 6})])
+    v = evaluate_v2(BASE, [_report({"extract": 6.25}, {"e1": 7, "e2": 6}, hashes=CHANGED)])
     assert (v["decision"], v["pass"]) == ("marginal-pass", True)
 
 
 # --- F73b: symmetric marginal band on the PASS side ----------------------------
 
 def report_with_extract_mean(mean):
-    return _report({"extract": mean}, {"e1": 7, "e2": 6})
+    return _report({"extract": mean}, {"e1": 7, "e2": 6}, hashes=CHANGED)
 
 def test_verdict_marginal_pass_within_one_epsilon_above_bar():
     # extract mean 6.30, base 6.5, eps 0.25 -> bar 6.25; 6.30 in [6.25, 6.50) -> marginal-pass
@@ -136,16 +141,17 @@ def test_two_run_mean_after_marginal_pass_decides_plain():
     assert v["decision"] in ("pass", "fail")
 
 def test_verdict_marginal_within_one_epsilon_below_bar():
-    v = evaluate_v2(BASE, [_report({"extract": 6.0}, {"e1": 7, "e2": 5})])
+    v = evaluate_v2(BASE, [_report({"extract": 6.0}, {"e1": 7, "e2": 5}, hashes=CHANGED)])
     assert v["decision"] == "marginal-fail"
     assert any("extract" in r for r in v["reasons"])
 
 def test_verdict_hard_fail_below_two_epsilon():
-    v = evaluate_v2(BASE, [_report({"extract": 5.875}, {"e1": 6, "e2": 6})])
+    v = evaluate_v2(BASE, [_report({"extract": 5.875}, {"e1": 6, "e2": 6}, hashes=CHANGED)])
     assert (v["decision"], v["pass"]) == ("hard-fail", False)
 
 def test_crater_fails_at_median_minus_three_even_when_seam_passes():
-    # e1 total 4 = median 7 - 3 -> crater (marginal band: within 1 beyond the line)
+    # e1 total 4 = median 7 - 3 -> crater (marginal band: within 1 beyond the line).
+    # 'e1' maps to no seam name -> fail-closed: treated as gated even on identical hashes.
     v = evaluate_v2(BASE, [_report({"extract": 6.5}, {"e1": 4, "e2": 8})])
     assert v["decision"] == "marginal-fail"
     assert v["craters"] == [{"caseId": "e1", "value": 4, "median": 7}]
@@ -155,11 +161,60 @@ def test_crater_hard_fails_at_median_minus_five():
     assert v["decision"] == "hard-fail"
 
 def test_two_run_mean_decides_after_marginal():
-    r1 = _report({"extract": 6.0}, {"e1": 7, "e2": 5})
-    r2 = _report({"extract": 6.5}, {"e1": 7, "e2": 6})   # mean 6.25 == bar -> pass
+    r1 = _report({"extract": 6.0}, {"e1": 7, "e2": 5}, hashes=CHANGED)
+    r2 = _report({"extract": 6.5}, {"e1": 7, "e2": 6}, hashes=CHANGED)   # mean 6.25 == bar -> pass
     assert evaluate_v2(BASE, [r1, r2])["decision"] == "pass"
-    r3 = _report({"extract": 6.375}, {"e1": 7, "e2": 6})  # mean 6.1875 < bar -> fail
+    r3 = _report({"extract": 6.375}, {"e1": 7, "e2": 6}, hashes=CHANGED)  # mean 6.1875 < bar -> fail
     assert evaluate_v2(BASE, [r1, r3])["decision"] == "fail"
+
+
+# --- F65g: seam-scoped verdicts (user decision 2026-07-13; spec
+# docs/superpowers/specs/2026-07-13-eval-seam-scoped-verdicts-design.md) ---------
+
+def test_hash_identical_seam_below_bar_is_informational_and_passes():
+    # The byte-identical-judge episode: the seam's prompt never moved, so even a value
+    # below the HARD bar is informational — recorded, displayed, but cannot fail the run.
+    v = evaluate_v2(BASE, [_report({"extract": 5.875}, {"e1": 7, "e2": 6})])
+    assert (v["decision"], v["pass"]) == ("pass", True)
+    assert v["seams"]["extract"]["gated"] is False
+    assert v["reasons"] == []
+
+def test_hash_changed_seam_below_bar_still_fails():
+    v = evaluate_v2(BASE, [_report({"extract": 6.0}, {"e1": 7, "e2": 6}, hashes=CHANGED)])
+    assert (v["decision"], v["pass"]) == ("marginal-fail", False)
+    assert v["seams"]["extract"]["gated"] is True
+
+def test_new_seam_has_no_bar_and_is_recorded():
+    hashes = dict(HASHES, implication="9" * 64)
+    v = evaluate_v2(BASE, [_report({"extract": 6.5, "implication": 3.0},
+                                   {"e1": 7, "e2": 6}, hashes=hashes)])
+    assert v["pass"] is True
+    assert v["seams"]["implication"] == {"value": 3.0, "new": True, "gated": False}
+
+def test_calibration_breach_fails_even_when_every_seam_is_hash_identical():
+    bad = _report({"extract": 6.5}, {"e1": 7, "e2": 6},
+                  calibration={"n1": {"score": 5, "max": 4, "ok": False}})
+    v = evaluate_v2(BASE, [bad])
+    assert (v["decision"], v["pass"]) == ("invalid-run", False)
+
+def test_informational_crater_recorded_but_cannot_fail():
+    base = dict(BASE, caseMedians={"extract-2026-07-01": 7})
+    v = evaluate_v2(base, [_report({"extract": 6.5}, {"extract-2026-07-01": 4})])
+    assert v["pass"] is True
+    assert v["craters"] == [{"caseId": "extract-2026-07-01", "value": 4, "median": 7,
+                             "informational": True}]
+
+def test_hash_identical_seam_never_asks_for_marginal_pass_replication():
+    # value on the bar would be marginal-pass if gated; informational -> plain pass
+    v = evaluate_v2(BASE, [_report({"extract": 6.25}, {"e1": 7, "e2": 6})])
+    assert v["decision"] == "pass"
+
+def test_missing_hash_info_is_fail_closed_gated():
+    # a report with no promptHashes for the seam cannot prove hash-identity -> gated
+    rep = _report({"extract": 6.0}, {"e1": 7, "e2": 6}, hashes={})
+    v = evaluate_v2(dict(BASE), [rep])
+    assert v["decision"] == "marginal-fail"
+    assert v["seams"]["extract"]["gated"] is True
 
 def test_invalid_run_on_miscalibration_missing_seam_or_hash_mismatch():
     bad_cal = _report({"extract": 6.5}, {"e1": 7, "e2": 6},

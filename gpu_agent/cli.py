@@ -690,6 +690,15 @@ def _eval(args) -> int:
         vp = pathlib.Path(args.runs[-1]) / "verdict.json"
         vp.write_text(json.dumps(v, indent=2, sort_keys=True), "utf-8")
         print(f"{v['decision'].upper()}  -> {vp}")
+        # F65g seam-scoped verdicts: show each seam's standing so an informational
+        # (hash-identical) or new seam is never mistaken for a gated one.
+        for seam, info in sorted(v.get("seams", {}).items()):
+            if info.get("new"):
+                print(f"  {seam}: {info['value']:.3f}  "
+                      "[new seam - no bar; gated at first rebaseline]")
+            else:
+                tag = "gated" if info.get("gated") else "informational (hash-identical)"
+                print(f"  {seam}: {info['value']:.3f} vs bar {info['bar']:.3f}  [{tag}]")
         for r in v["reasons"]:
             print(f"  - {r}")
         return 0 if v["pass"] else 1

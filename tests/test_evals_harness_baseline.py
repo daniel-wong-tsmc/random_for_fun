@@ -43,7 +43,9 @@ def test_v2_verdict_embeds_in_report():
         "extract-t-01": _grade_json("extract-t-01", 1),   # total 4
         "extract-t-02": _grade_json("extract-t-02", 0),
     })
-    base = {"schemaVersion": 2, "promptHashes": HASHES,
+    # F65g: the marginal machinery only binds a GATED seam, so the baseline records a
+    # different extract hash than the run (the seam's prompt moved).
+    base = {"schemaVersion": 2, "promptHashes": dict(HASHES, extract="0" * 64),
             "seamMeans": {"extract": 4.25}, "epsilon": {"extract": 0.25},
             "caseMedians": {"extract-t-01": 4}, "replicates": [], "provenance": {}}
     report = build_report(cases, grades, HASHES, baseline=base, as_of="2026-07-05")
@@ -53,6 +55,10 @@ def test_v2_verdict_embeds_in_report():
     tight = dict(base, seamMeans={"extract": 4.5})        # bar 4.25 -> marginal band
     report2 = build_report(cases, grades, HASHES, baseline=tight, as_of="2026-07-05")
     assert report2["verdict"]["decision"] == "marginal-fail"
+    # ...and the same sag on a hash-identical (informational) seam cannot fail the run
+    report3 = build_report(cases, grades, HASHES,
+                           baseline=dict(tight, promptHashes=HASHES), as_of="2026-07-05")
+    assert report3["verdict"]["decision"] == "pass"
 
 def test_v1_baseline_yields_no_comparison():
     cases, grades = _scored()

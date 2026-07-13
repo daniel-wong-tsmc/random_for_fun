@@ -255,7 +255,17 @@ _EPS = 1e-9
 def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
     """The eval-v2 gate decision. One report -> pass | marginal-fail | hard-fail;
     two reports (the single sanctioned replication) -> pass | fail, decided on
-    two-run means against the SAME bars. Values exactly on a bar pass."""
+    two-run means against the SAME bars. Values exactly on a bar pass.
+
+    F65g seam-scoped verdicts (user decision 2026-07-13, spec
+    docs/superpowers/specs/2026-07-13-eval-seam-scoped-verdicts-design.md): a seam's
+    bar binds ONLY when that seam's emitted-prompt hash in the run differs from the
+    baseline's recorded hash. Hash-identical seams are informational — scored,
+    recorded, displayed, but they cannot fail the run (bars, marginal bands, and
+    craters in their cases alike). A NEW seam (no baseline entry) has no bar and is
+    recorded; it becomes gated at its first rebaseline. Grader-calibration negatives
+    stay enforced unconditionally. Missing hash info on either side is fail-closed
+    (the seam is treated as gated), as is a crater case that maps to no known seam."""
     if not reports:
         return {"pass": False, "decision": "invalid-run",
                 "reasons": ["no reports supplied"], "seams": {}, "craters": []}
@@ -279,6 +289,15 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
         return {"pass": False, "decision": "invalid-run", "reasons": reasons,
                 "seams": {}, "craters": []}
 
+    base_hashes = baseline.get("promptHashes") or {}
+    run_hashes = reports[0].get("promptHashes") or {}
+
+    def _is_gated(seam: str) -> bool:
+        # F65g: the bar binds only when the seam's prompt actually moved. Missing hash
+        # info on either side cannot prove hash-identity -> fail-closed (gated).
+        bh, rh = base_hashes.get(seam), run_hashes.get(seam)
+        return bh is None or rh is None or bh != rh
+
     seams: dict[str, dict] = {}
     craters: list[dict] = []
     any_fail = any_hard = any_marginal_pass = False
@@ -287,7 +306,11 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
         value = sum(r["seamMeans"][seam] for r in reports) / len(reports)
         bar, hard_bar = base_mean - eps, base_mean - 2 * eps
         ok = value >= bar - _EPS
-        seams[seam] = {"value": value, "bar": bar, "hardBar": hard_bar, "ok": ok}
+        gated = _is_gated(seam)
+        seams[seam] = {"value": value, "bar": bar, "hardBar": hard_bar, "ok": ok,
+                       "gated": gated}
+        if not gated:
+            continue   # informational: recorded and displayed, but cannot fail the run
         # F73b: symmetric marginal band — a seam that clears the bar but sits within one
         # eps of it (value in [bar, base_mean)) is not a clean pass; flag it so a single
         # run is replicated once, mirroring the fail-side marginal band.
@@ -299,15 +322,35 @@ def evaluate_v2(baseline: dict, reports: list[dict]) -> dict:
                            f"(replicate mean {base_mean:.3f} - eps {eps:.3f})")
             if value < hard_bar - _EPS:
                 any_hard = True
+    # F65g: a NEW seam (scored in the run, no baseline entry) has no bar; record it so
+    # the verdict displays it. It becomes gated at its first rebaseline.
+    for seam in reports[0].get("seamMeans", {}):
+        if seam not in baseline["seamMeans"]:
+            value = sum(r["seamMeans"][seam] for r in reports) / len(reports)
+            seams[seam] = {"value": value, "new": True, "gated": False}
+
+    def _case_seam(cid: str):
+        for s in sorted(seams, key=len, reverse=True):
+            if cid == s or cid.startswith(s + "-"):
+                return s
+        return None   # unmappable -> fail-closed (treated as gated)
+
     for cid, median in baseline["caseMedians"].items():
         totals = [r["scores"][cid]["total"] for r in reports if cid in r.get("scores", {})]
         if not totals:
             continue
         value = sum(totals) / len(totals)
         if value <= median - CRATER_DROP + _EPS:
+            crater = {"caseId": cid, "value": value if len(reports) > 1 else totals[0],
+                      "median": median}
+            case_seam = _case_seam(cid)
+            if case_seam is not None and not _is_gated(case_seam):
+                # F65g: crater in a hash-identical seam's case — recorded, cannot fail.
+                crater["informational"] = True
+                craters.append(crater)
+                continue
             any_fail = True
-            craters.append({"caseId": cid, "value": value if len(reports) > 1 else totals[0],
-                            "median": median})
+            craters.append(crater)
             reasons.append(f"crater: case '{cid}' at {value:.1f} <= "
                            f"baseline median {median} - {CRATER_DROP}")
             if value <= median - CRATER_DROP - HARD_CRATER_EXTRA + _EPS:

@@ -35,6 +35,7 @@ from gpu_agent.thesis import (
 from gpu_agent.memory import build_memory_bundle, render_memory_text
 from gpu_agent.sufficiency import check_sufficiency
 from gpu_agent.gathering.ingest import normalize_documents
+from gpu_agent.gathering.assemble import assemble as assemble_blobs
 from gpu_agent.gathering.dedup import (
     SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
@@ -1083,6 +1084,30 @@ def _webreach_fetch(args) -> int:
     return 0
 
 
+def _gather_assemble(args) -> int:
+    """Handler for `gpu-agent gather-assemble`: the F88 hand-off seam between reader-gatherer
+    subagents (which write each fetched page's blob to its own JSON file and never return
+    content in their replies) and `ingest --blobs` (which needs the single blobs.json
+    envelope). The coordinating session never opens a blob file or hand-assembles the
+    envelope -- this command does both deterministically. A missing/non-directory
+    --blob-dir is a usage error (exit 2); an all-skipped or empty directory is still a
+    valid result (exit 0, loud in the envelope's `skipped` list -- cap/skip doctrine, not
+    a crash)."""
+    blob_dir = pathlib.Path(args.blob_dir)
+    if not blob_dir.is_dir():
+        print(f"gpu-agent gather-assemble: error: --blob-dir {blob_dir} does not exist "
+              f"or is not a directory", file=sys.stderr)
+        return 2
+    envelope = assemble_blobs(blob_dir)
+    out = pathlib.Path(args.out)
+    out.write_text(json.dumps(envelope, indent=2), encoding="utf-8", newline="\n")
+    for row in envelope["skipped"]:
+        print(f"SKIPPED {row['path']}: {row['reason']}", file=sys.stderr)
+    print(f"assembled {len(envelope['blobs'])} blob(s), {len(envelope['skipped'])} skipped "
+          f"-> {out}")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -1268,6 +1293,12 @@ def main(argv=None) -> int:
                     help="licensed/inventoried source domains (TrendForce, SemiAnalysis, "
                          "...); fetches to these are executed and flagged via the "
                          "manifest's licensedSource field, not refused (D6)")
+    ga = sub.add_parser("gather-assemble",
+                        help="assemble a directory of reader-gatherer blob files into the "
+                             "single blobs.json envelope `ingest --blobs` accepts")
+    ga.add_argument("--blob-dir", required=True,
+                    help="dir of per-page blob JSON files (+ optional rounds.txt)")
+    ga.add_argument("--out", required=True, help="write the assembled envelope JSON here")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -1321,6 +1352,8 @@ def main(argv=None) -> int:
         return _web_reach_ensure(args)
     if args.cmd == "webreach-fetch":
         return _webreach_fetch(args)
+    if args.cmd == "gather-assemble":
+        return _gather_assemble(args)
     if args.cmd == "report":
         return _report(args)
     try:

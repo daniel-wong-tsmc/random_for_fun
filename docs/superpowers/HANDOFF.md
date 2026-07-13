@@ -366,7 +366,7 @@ User gave **"go"** 2026-07-06. Actioned:
   `docs/cloudflare-pages.md`. Suite on the branch **1399/6** pre-rebase, F6 pin green. Built
   subagent-driven under the question-stop rule; per-task reviews + fresh-context opus
   whole-branch review — round 1 "With fixes" (2 Important), fix pass, round 2 **Ready to
-  merge: YES** (reviewer independently re-ran the suite). ONE user-decided design call
+  merge: YES** (reviewer independently re-ran the suite). ONE user-approved design call
   mid-review: drill-down reconciliation = "label honestly" (interactive 2026-07-13, not AFK).
   Full record: `.superpowers/handoffs/f95-site-DONE.md` (sanctioned deviations incl. spec
   §7.2 gitignore step unnecessary; deferred-minor list for a follow-up batch).

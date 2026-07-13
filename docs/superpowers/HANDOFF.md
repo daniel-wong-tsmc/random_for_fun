@@ -359,6 +359,23 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F95 lane DONE — READY TO MERGE (2026-07-13, orchestrator session; only the user merges).**
+  Branch `f95-market-site`, worktree `.worktrees/f95-site`. Category page static site (E2
+  tiles + dynamic featured metric + WHY block + evidence drill-down), `site` CLI verb
+  (cli.py append-only), first committed `site/` build, run-cycle step-7 site-rebuild prose,
+  `docs/cloudflare-pages.md`. Suite on the branch **1399/6** pre-rebase, F6 pin green. Built
+  subagent-driven under the question-stop rule; per-task reviews + fresh-context opus
+  whole-branch review — round 1 "With fixes" (2 Important), fix pass, round 2 **Ready to
+  merge: YES** (reviewer independently re-ran the suite). ONE user-decided design call
+  mid-review: drill-down reconciliation = "label honestly" (interactive 2026-07-13, not AFK).
+  Full record: `.superpowers/handoffs/f95-site-DONE.md` (sanctioned deviations incl. spec
+  §7.2 gitignore step unnecessary; deferred-minor list for a follow-up batch).
+  **Rebase-over-F88 (roles flipped):** F88 merged to main FIRST, so F95 — not F88 — became
+  the last prose-toucher and rebases over the F88 merge (run-cycle SKILL + cli.py overlap);
+  the orchestrator session performs that rebase + suite re-run and records the post-rebase
+  head here. **Launch gates still open (user):** repo-rename/TSMC-exposure decision +
+  pages.dev subdomain BEFORE the first Cloudflare deploy (docs/cloudflare-pages.md has the
+  checklist; building and committing site/ is fine meanwhile).
 - **F88 lane MERGED to main (2026-07-13, F88 session) — user-authorized interactively ("merge
   to main now").** Merge commit on THIS push; base `48c4c39`, 13 commits, suite 1419/6, F6 pin
   + F83 conformance 12/12 green, frozen core + brain prompts untouched. Whole-branch review

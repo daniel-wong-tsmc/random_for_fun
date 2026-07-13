@@ -10,10 +10,16 @@ temp store and asserts the machine-checkable prescriptions of
 
   1. Journal shape - a finalized cycle-log entry carries asOf/mode/capturedAt/gates
      and is never a bare plan skeleton (checked via the existing cycle models + the
-     F74 helper, not a hand-copied key list).
+     F74 helper, not a hand-copied key list). Disclosure: NO CLI path produces a
+     finalized journal (Step 6 is session prose), so the journal-shape test AUTHORS
+     a Step-6-shaped journal from the real recorded run's outputs - it pins the
+     models' shape rules, not a run's own journal output.
   2. Gate order + presence - extraction -> judgment(sufficiency) -> thesis -> report
-     in the prescription; each gate recorded in the journal; no whole-run bypass
-     flag on the live `pipeline` verb (F75: `--no-sufficiency` is gone).
+     in the prescription (the DOCUMENTED order; a $0 replay of single CLI verbs
+     cannot observe the session's runtime cross-verb sequencing); each gate's
+     outcome recorded per finalized entry in the REAL committed journal
+     (store/cycle-log.json); no whole-run bypass flag on the live `pipeline` verb
+     (F75: `--no-sufficiency` is gone).
   3. Nothing silent - a selected-but-unassigned category is a logged SKIPPED line,
      and a recorded-answer/count mismatch fails LOUD (exit 2), never a silent partial.
   4. Write discipline - the recorded pipeline writes ONLY the scorecard carve-out;
@@ -257,6 +263,9 @@ def test_pipeline_has_no_whole_run_sufficiency_bypass():
 
 
 def test_gate_order_in_prescription():
+    """Pins the PRESCRIPTION's gate order - what SKILL.md documents - not runtime
+    execution order: a $0 replay of single CLI verbs cannot observe the session's
+    cross-verb sequencing (that residual is the docstring's R2/R5 territory)."""
     steps = _parse_procedure_steps(SKILL.read_text("utf-8"))
     titles = [t for _, t in steps]
 
@@ -269,15 +278,24 @@ def test_gate_order_in_prescription():
     assert idx("extraction") < idx("judgment") < idx("thesis") < idx("render")
 
 
-def test_journal_records_each_gate_outcome(tmp_path):
-    store = tmp_path / "store"
-    scorecard = _run_recorded_pipeline(store)
-    plan = CyclePlan(scope=f"category:{CATEGORY}",
-                     entries=[CycleEntry(category_id=CATEGORY,
-                                         assignment_path=ASSIGNMENT, status="ready")])
-    gates = _finalized_journal(plan, scorecard)["entries"][0]["gates"]
-    for gate in ("extract", "sufficiency", "voiceLint", "thesis"):
-        assert gates.get(gate), f"gate {gate!r} outcome not recorded in the journal"
+def test_journal_records_each_gate_outcome():
+    """Every finalized (`done`) entry in the REAL committed journal records a
+    per-gate outcome - Step 6's 'each gate's outcome recorded' prescription asserted
+    against actual run output, not against a journal this suite authored (the
+    review-caught tautology). Same working-tree read as the F74 tripwire; a journal
+    with zero done entries (all failed/skipped) has nothing to demand and passes."""
+    log = ROOT / "store" / "cycle-log.json"
+    if not log.exists():
+        return  # nothing to check yet (fresh category store) - F74 tripwire precedent
+    journal = json.loads(log.read_text("utf-8"))
+    for entry in journal.get("entries", []):
+        if entry.get("status") != "done":
+            continue
+        gates = entry.get("gates") or {}
+        for gate in ("extract", "sufficiency", "voiceLint", "thesis"):
+            assert gates.get(gate), (
+                f"{entry.get('category_id')}: gate {gate!r} outcome not recorded in "
+                f"the finalized journal (run-cycle Step 6)")
 
 
 # --------------------------------------------------------------------------- #

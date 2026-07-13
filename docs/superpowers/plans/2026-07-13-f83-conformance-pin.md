@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Touch NOTHING but: the new test file `tests/test_run_cycle_conformance.py`, ONE fingerprint-comment line in `.claude/skills/run-cycle/SKILL.md`, and this plan doc. No product code, prompts, `store/`, or frozen core.
+- Touch NOTHING but: the new test file `tests/test_run_cycle_conformance.py`, one fingerprint-comment content line (plus its blank separator line — the SKILL.md diff is +2) in `.claude/skills/run-cycle/SKILL.md`, and this plan doc. No product code, prompts, `store/`, or frozen core.
 - Never hand-author brain answers — reuse only committed recorded artifacts (`fixtures/recorded/extract-nvda.json`, `fixtures/recorded/judge-nvda.json`) and committed config (taxonomy, the two `asg.*` files). If a needed shape has no committed fixture, that step is a documented residual — do not fabricate it.
 - Suite green at every commit (fresh baseline: 1345 passed, 6 skipped). F6 pin (`tests/test_evals_baseline_pin.py`) untouched and green.
 - Cardinal rule: if a conformance assertion FAILS against current behavior, that is a FINDING to report via QUESTION-STOP — never "fix" product code in this lane.
@@ -39,7 +39,7 @@
 ## File Structure
 
 - `tests/test_run_cycle_conformance.py` (create) — the whole conformance suite. Stdlib + `gpu_agent` imports only; no network, no LLM. One module, grouped by the spec's five assertion families plus the sync guard.
-- `.claude/skills/run-cycle/SKILL.md` (modify, ONE line) — the fingerprint comment, added in the final task.
+- `.claude/skills/run-cycle/SKILL.md` (modify, one content line + blank separator) — the fingerprint comment, added in the final task.
 
 Helpers reused (imported, not re-implemented):
 - `gpu_agent.cli.main` — the CLI entrypoint (returns int exit code).
@@ -137,10 +137,10 @@ Module-level constants in the test:
 - [ ] **Step 5: Mutation-verify** — temporarily append a fake step to `EXPECTED_STEPS` → RED; revert.
 - [ ] **Step 6: Commit** (`test(f83): pin run-cycle Procedure step list`).
 
-## Task 6: Fingerprint desync guard (the ONE SKILL.md line — LAST)
+## Task 6: Fingerprint desync guard (the one SKILL.md fingerprint comment — LAST)
 
 **Files:**
-- Modify: `.claude/skills/run-cycle/SKILL.md` (ONE fingerprint-comment line)
+- Modify: `.claude/skills/run-cycle/SKILL.md` (one fingerprint-comment content line + a blank separator line; diff +2)
 - Modify/Test: `tests/test_run_cycle_conformance.py`
 
 **Interfaces:**
@@ -149,7 +149,7 @@ Module-level constants in the test:
 - [ ] **Step 1: Write the failing test** — `test_skill_fingerprint_in_sync`: compute `fp = hashlib.sha256(repr(EXPECTED_STEPS).encode()).hexdigest()`; read the SKILL.md fingerprint comment via `STEP_FINGERPRINT_RE`; assert the comment exists and its digest == `fp`. (This is RED until the comment line is added.)
 - [ ] **Step 2: Run to verify FAIL** — comment absent → RED.
 - [ ] **Step 3: Concurrent-edit guard** — `git -C <worktree> status --porcelain .claude/skills/run-cycle/SKILL.md` must be clean (no other instance mid-edit); `git log --oneline -1`; read the current Procedure header region to confirm it is unchanged since baseline.
-- [ ] **Step 4: Add the ONE line** — insert directly under the `## Procedure` header:
+- [ ] **Step 4: Add the fingerprint comment (one content line + blank separator)** — insert directly under the `## Procedure` header:
   `<!-- run-cycle-step-fingerprint: sha256=<fp> — F83 conformance pin; regenerate via tests/test_run_cycle_conformance.py if the step list legitimately changes -->`
 - [ ] **Step 5: Verify PASS + full suite** — `pytest tests/test_run_cycle_conformance.py -v` green; full suite green (1345+N passed).
 - [ ] **Step 6: Mutation-verify** — temporarily corrupt the comment digest → RED; temporarily reorder a real SKILL step (in a scratch copy, or edit+revert) → parser output changes → `EXPECTED_STEPS` mismatch (Task 5) AND fingerprint mismatch → RED; revert.
@@ -165,3 +165,24 @@ Module-level constants in the test:
 
 - Spec #1 journal shape → Task 2. Spec #2 gate order/presence/no-bypass → Task 3 (+ order via Task 5). Spec #3 nothing silent → Task 4. Spec #4 write discipline → Task 1 (+ F74 clobber refusal folded into Task 1 or 2) + Task 2 no-skeleton. Spec #5 sync guard → Tasks 5+6. Acceptance #1 recorded run passes on main → Task 1. Acceptance #2 mutation red-green → every task's Step 5. Acceptance #3 fingerprint desync fails loud → Task 6. Acceptance #4 residual written → module docstring + sentinel.
 - Note: fold the F74 `cycle-plan --out <finalized>` clobber-refusal assertion into Task 1 as a second test (`test_cycle_plan_refuses_to_clobber_finalized_journal`) — it is write-discipline and needs the same fixtures.
+
+## Review round (2026-07-13, post-implementation)
+
+Reviewer verdict READY TO MERGE; one Important honesty item + two minors, applied:
+
+- **Important (a)** — the module docstring now discloses plainly that the journal-shape
+  test AUTHORS a Step-6-shaped journal (no CLI path produces a finalized journal;
+  Step 6 is session prose) and pins the models' shape rules, not a run's own output.
+- **Important (b)** — `test_journal_records_each_gate_outcome` as planned in Task 3 was
+  tautological (asserted the keys the `_finalized_journal` helper itself wrote).
+  **Pick recorded: re-pointed at the REAL committed journal** (`store/cycle-log.json`,
+  same working-tree read as the F74 tripwire, missing-file early return per that
+  precedent) instead of deleting — this keeps spec item 2's "each gate's outcome
+  recorded in the journal" pinned against actual run output. Done entries must carry
+  extract/sufficiency/voiceLint/thesis outcomes. Mutation M13: dropped `sufficiency`
+  from a scratch copy of the real journal → RED; intact copy → GREEN (non-vacuous).
+- **Minor (1)** — "ONE line" wording corrected here and in the sentinel: the SKILL.md
+  change is one fingerprint-comment content line plus a blank separator (diff +2).
+- **Minor (2)** — `test_gate_order_in_prescription` now states in its docstring (and
+  the module docstring) that it pins the PRESCRIPTION's documented order, not runtime
+  execution order — a $0 replay of single CLI verbs cannot observe cross-verb sequencing.

@@ -1124,3 +1124,22 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   **Forward pointer:** the 2026-07-12 wave (above) consumes F79's outputs — F84 scores its
   range forecasts against realized prints; F86 model-scopes the eval baselines its re-gate
   produces.
+
+## From the 2026-07-13 three-tier site brainstorm (F95)
+
+- [ ] **F95 — Three-tier market site on Cloudflare Pages (category page build-now; layer/market
+  rollup contract pinned).** Public static site rendering the exec page per tier: E2 word tiles
+  + alert dot PLUS one dynamic numerical "featured metric" (library-backed,
+  `registry/featured-metrics.json`, deterministic selector — rule-hit → biggest-move →
+  priority, selection reason always rendered); bottom "WHY IT READS THIS WAY" explanation
+  block; full drill-down trail on every KPI (components/weights → findings → evidence
+  publisher/date/tier/link). Layer + market pages = computed rollups (worst-color-wins,
+  disagreement shown not averaged, mandatory coverage chip — real layer/market brains
+  explicitly rejected for now), **contract-only until ≥2 categories run**. Architecture:
+  extend `gpu_agent/dashboard/` to emit a committed `site/` folder; Cloudflare Pages serves it
+  with no build step (commit-then-serve). Renderer-only — F6 pin green, frozen core untouched.
+  **Launch gates (user): repo-rename/TSMC-exposure decision + Pages subdomain naming before
+  FIRST deploy** (build/commit may proceed). Sequencing: F95's run-cycle prose step lands
+  before F88 merges (F88 goes last of the prose-touchers, per its own rule). Spec:
+  `docs/superpowers/specs/2026-07-13-f95-market-site-design.md` (decisions S1–S8, all
+  user-approved interactive 2026-07-13). *(Feature — spec done; next is writing-plans.)*

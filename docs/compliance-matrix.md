@@ -28,8 +28,8 @@
 | Status | Count |
 |---|---|
 | ENFORCED | 57 |
-| PARTIAL | 25 |
-| SESSION-PROSE | 10 |
+| PARTIAL | 26 |
+| SESSION-PROSE | 9 |
 | DEFERRED | 27 |
 | NOT-ENFORCED | 4 |
 | NARRATIVE | 0 |
@@ -78,7 +78,7 @@ rows and the thinner `PARTIAL` rows are the honest gaps — see Findings.
 | P7.j | 7 | Every canonical Finding declares its demand/supply polarity | ENFORCED | gpu_agent/gate.py (affects-neither-track check) | tests/test_gate_finding.py::test_finding_affecting_neither_track_fails |
 | P7.k | 7 | No dimension rating contradicts its cited measured anchor | ENFORCED | gpu_agent/gate.py (F36 rating-consistent-with-anchor) | tests/test_gate_scorecard.py::test_rating_contradicting_anchor_fails |
 | P8.orphan | 8 | No orphan numbers, no invented numbers (the two cardinal sins) | ENFORCED | gpu_agent/gate.py (check_finding) | tests/test_gate_finding.py::test_measured_without_value_fails |
-| P8.injection | 8 | Fetched content is data, not instructions | PARTIAL | gpu_agent/extraction/prompt.py (F16 delimiting) plus SESSION-PROSE (tool-less dispatch, .claude/skills/gather-category/SKILL.md) | tests/test_extraction_prompt.py |
+| P8.injection | 8 | Fetched content is data, not instructions | PARTIAL | gpu_agent/extraction/prompt.py (F16 delimiting) plus gpu_agent/gathering/webreach.py (validate_request refuses non-http(s) scheme, unknown tool, unknown verb; run_requests execs shell=False argv only, no page-controlled syntax) plus SESSION-PROSE (no-Bash gatherers, receipts-not-content hand-off, .claude/skills/gather-category/SKILL.md) | tests/test_extraction_prompt.py plus tests/test_webreach_runner.py |
 | P8.primary | 8 | Primary over secondary; mark the tier; let confidence reflect it | ENFORCED | gpu_agent/gathering/ingest.py (tier stamp) plus gpu_agent/gate.py (F2e cap) | tests/test_ingest.py::test_open_web_is_secondary plus tests/test_gate_corroboration.py::test_two_distinct_publishers_still_rejected_with_count |
 | P8.dispersion | 8 | Report dispersion; when the world disagrees the range is the finding | ENFORCED | gpu_agent/gathering/dedup.py | tests/test_dedup_classify.py::test_classify_conflicting_batch_mates_set_dispersion |
 | P8.vintage | 8 | Vintage honesty: asOf per Finding; no future-dated evidence; no blended dates | ENFORCED | gpu_agent/gate.py (F17 future-dated and ISO checks) | tests/test_gate_v12.py::test_future_dated_evidence_month_grain |
@@ -124,7 +124,7 @@ rows and the thinner `PARTIAL` rows are the honest gaps — see Findings.
 | P21.countonce | 21 | A multi-category entity is counted once, owned by its primaryCategory | DEFERRED | DEFERRED (reconciliation runs at Layer and Main - deferred) | — |
 | P21.resolve | 21 | Alias dedup (NVDA, nvidia) plus per-category entity namespacing before counting | NOT-ENFORCED | NOT ENFORCED - aspiration (F24 open: docs/taxonomy.json seeds entities with aliases but no code consumes them; no alias canonicalization, entity id is global) | — |
 | P22.tiered | 22 | Tiered acquisition; an unsourceable metric is estimate or unavailable, never faked | PARTIAL | gpu_agent/gathering/ingest.py (tier stamp) plus gpu_agent/gate.py (secondary cap) | tests/test_ingest.py |
-| P22.allowlist | 22 | A license and ToS allowlist enforced by the fetch tool | SESSION-PROSE | SESSION-PROSE (paywall boundary followed by gatherers; no code allowlist) | — |
+| P22.allowlist | 22 | A license and ToS allowlist enforced by the fetch tool | PARTIAL | Per D6 (user-decided 2026-07-13) the fetch tool now identifies and flags licensed/inventoried sources in code (gpu_agent/gathering/webreach.py::licensed_source_host plus registry/licensed-sources.json plus the licensedSource field stamped in the fetch manifest) but deliberately does not hard-block them (fetch openly, flag loudly); the charter's literal allowlist-enforced-by-the-fetch-tool wording is intentionally softened pending a charter edit | tests/test_webreach_requests.py |
 | P22.tables | 22 | Structured tables extracted by code, not the model's eyes | PARTIAL | gpu_agent/pricefeed.py (code-extracted price data); general PDF and Excel extraction not built | tests/test_pricefeed_helpers.py |
 | P23.humanloop | 23 | Human-in-the-loop made operational: trigger, approver, SLA, pending state | DEFERRED | DEFERRED (charter Part 38 Not yet; no Main or headline in v1) | — |
 | P23.access | 23 | Role-based human access and a data classification | NOT-ENFORCED | NOT ENFORCED - aspiration (no access control or classification in v1) | — |
@@ -205,10 +205,15 @@ review (some already have open backlog items, noted inline).
 - **P18.modularity (Part 18).** The named seams (LLM backend, tier driver, web-reach registry, store) are
   real and individually pinned, but the universal "every component behind a seam" property is enforced by
   architecture review, not by any deterministic check — no lint can prove a negative here.
-- **P8.injection / P26.privsep / P37.caps / P22.allowlist.** The adversarial boundary is real but leans on
-  **skill prose** for the tool-less-dispatch, raw-material-only, and paywall pieces; only the extraction-
-  prompt delimiting (F16) is code-enforced. If the gather skills are ever bypassed, these clauses have no
-  code backstop.
+- **P8.injection / P26.privsep / P37.caps / P22.allowlist.** F88 added a second code-level wall alongside the
+  extraction-prompt delimiting (F16): the web-reach runner execs via `shell=False` argv only, refusing any
+  non-http(s) scheme, unknown tool, or unknown verb before a request runs (`gpu_agent/gathering/webreach.py`
+  `validate_request` / `run_requests`), and licensed/inventoried sources are now identified and flagged in
+  the fetch manifest instead of being silently indistinguishable from the open web
+  (`licensed_source_host`, `registry/licensed-sources.json`). The full Part 26 privilege-separation
+  boundary — tool-less brain dispatch, raw-material-only ingestion, and a charter-literal hard allowlist —
+  still leans on **skill prose** (`.claude/skills/gather-category/SKILL.md`) and is not yet code-enforced
+  end to end; if the gather skills are ever bypassed, these clauses still lack a full code backstop.
 
 ### Enforced-but-unpinned (code enforces it, no dedicated test names it)
 

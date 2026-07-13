@@ -35,6 +35,7 @@ from gpu_agent.thesis import (
 from gpu_agent.memory import build_memory_bundle, render_memory_text
 from gpu_agent.sufficiency import check_sufficiency
 from gpu_agent.gathering.ingest import normalize_documents
+from gpu_agent.gathering.assemble import assemble as assemble_blobs
 from gpu_agent.gathering.dedup import (
     SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
@@ -1051,10 +1052,61 @@ def _web_reach_ensure(args) -> int:
     # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
     registry = wre.load_registry(wre.REGISTRY_PATH)
     log = (lambda m: None) if args.json else print
-    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    results = wre.ensure_all(registry, check_only=args.check_only, unattended=args.unattended,
+                              timeout=args.timeout, log=log)
     if args.json:
         print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
+
+
+def _webreach_fetch(args) -> int:
+    """Runner half of the F88 wall: reader agents (no shell access) write a JSON
+    array of FetchRequest objects; this executes ONLY the requests that pass
+    validate_request, as argv arrays (shell=False), and writes a result manifest.
+    Individual request failures/refusals are data (exit 0); a malformed/missing
+    requests file, or a syntactically-valid-but-structurally-malformed registry/licensed
+    file (e.g. missing an expected key -> KeyError), is a usage error (exit 2) caught
+    here before anything runs. D6: licensed/inventoried domains are no longer refused --
+    they execute like any other request and are flagged per-row via `licensedSource`."""
+    from gpu_agent.gathering import webreach
+    try:
+        registry = json.loads(pathlib.Path(args.registry).read_text(encoding="utf-8"))
+        licensed = webreach.load_licensed_domains(pathlib.Path(args.licensed))
+        manifest = webreach.run_requests(args.requests, args.out_dir, registry, licensed)
+    except (OSError, json.JSONDecodeError, ValueError, KeyError, ValidationError) as e:
+        print(f"gpu-agent webreach-fetch: error: {e}", file=sys.stderr)
+        return 2
+    results = manifest["results"]
+    n_refused = sum(1 for r in results if r["refused"] is not None)
+    n_failed = sum(1 for r in results if r["refused"] is None and r["error"] is not None)
+    print(f"webreach-fetch: {len(results)} request(s) -> {args.out_dir}/fetch-manifest.json "
+          f"({n_refused} refused, {n_failed} failed, "
+          f"{len(results) - n_refused - n_failed} ok)")
+    return 0
+
+
+def _gather_assemble(args) -> int:
+    """Handler for `gpu-agent gather-assemble`: the F88 hand-off seam between reader-gatherer
+    subagents (which write each fetched page's blob to its own JSON file and never return
+    content in their replies) and `ingest --blobs` (which needs the single blobs.json
+    envelope). The coordinating session never opens a blob file or hand-assembles the
+    envelope -- this command does both deterministically. A missing/non-directory
+    --blob-dir is a usage error (exit 2); an all-skipped or empty directory is still a
+    valid result (exit 0, loud in the envelope's `skipped` list -- cap/skip doctrine, not
+    a crash)."""
+    blob_dir = pathlib.Path(args.blob_dir)
+    if not blob_dir.is_dir():
+        print(f"gpu-agent gather-assemble: error: --blob-dir {blob_dir} does not exist "
+              f"or is not a directory", file=sys.stderr)
+        return 2
+    envelope = assemble_blobs(blob_dir)
+    out = pathlib.Path(args.out)
+    out.write_text(json.dumps(envelope, indent=2), encoding="utf-8", newline="\n")
+    for row in envelope["skipped"]:
+        print(f"SKIPPED {row['path']}: {row['reason']}", file=sys.stderr)
+    print(f"assembled {len(envelope['blobs'])} blob(s), {len(envelope['skipped'])} skipped "
+          f"-> {out}")
+    return 0
 
 
 def main(argv=None) -> int:
@@ -1228,8 +1280,29 @@ def main(argv=None) -> int:
     wre = sub.add_parser("web-reach-ensure",
                          help="idempotently ensure web-reach tools are installed")
     wre.add_argument("--check-only", action="store_true")
+    wre.add_argument("--unattended", action="store_true",
+                     help="scheduled/unwatched run: never install or upgrade (supply-chain "
+                          "freeze); report version/pin/drift instead")
     wre.add_argument("--json", action="store_true")
     wre.add_argument("--timeout", type=int, default=600)
+    wf = sub.add_parser("webreach-fetch",
+                        help="execute validated web-reach fetch requests (argv-exec, "
+                             "sanitized result paths) and write a result manifest")
+    wf.add_argument("--requests", required=True,
+                    help="JSON array of FetchRequest objects (toolId, verb, target, outName?)")
+    wf.add_argument("--out-dir", required=True,
+                    help="dir for per-request result files + fetch-manifest.json")
+    wf.add_argument("--registry", default="registry/web-reach-tools.json")
+    wf.add_argument("--licensed", default="registry/licensed-sources.json",
+                    help="licensed/inventoried source domains (TrendForce, SemiAnalysis, "
+                         "...); fetches to these are executed and flagged via the "
+                         "manifest's licensedSource field, not refused (D6)")
+    ga = sub.add_parser("gather-assemble",
+                        help="assemble a directory of reader-gatherer blob files into the "
+                             "single blobs.json envelope `ingest --blobs` accepts")
+    ga.add_argument("--blob-dir", required=True,
+                    help="dir of per-page blob JSON files (+ optional rounds.txt)")
+    ga.add_argument("--out", required=True, help="write the assembled envelope JSON here")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)
@@ -1281,6 +1354,10 @@ def main(argv=None) -> int:
             return 1
     if args.cmd == "web-reach-ensure":
         return _web_reach_ensure(args)
+    if args.cmd == "webreach-fetch":
+        return _webreach_fetch(args)
+    if args.cmd == "gather-assemble":
+        return _gather_assemble(args)
     if args.cmd == "report":
         return _report(args)
     try:

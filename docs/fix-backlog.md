@@ -1005,8 +1005,27 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > the two unnumbered F78-stage-6 follow-ups (section above) keep their user-assigned-number
 > reservation; this wave took the next free numbers at mint time (F88–F94).
 
-- [ ] **F88 — Unattended-orchestrator threat model (the injection boundary, one level up — and
-  the exposure went live 2026-07-13).** The F16/Part-8 boundary protects the *brains*: tool-less
+- [x] **F88 — DONE (on branch `f88-orchestrator-hardening`, awaiting user merge; spec
+  `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`, plan
+  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md`, sentinel
+  `.superpowers/handoffs/f88-hardening-DONE.md`).** Four sub-parts delivered: **(1)** the written
+  threat model (`docs/threat-model-unattended.md`, T1); **(2)** the injection wall — a
+  registry-templated, shell=False argv fetch runner with scheme/tool/verb validation
+  (`gpu_agent/gathering/webreach.py`) plus no-Bash-reader / receipts-not-content skill prose; **(3)**
+  the third-party web-reach supply-chain pin (`registry/web-reach-tools.json` version pins +
+  `gpu_agent/web_reach_ensure.py`, which never installs unattended); **(4)** D6's licensed-source
+  allow-but-flag rework (mid-build, user-decided 2026-07-13) — the fetch tool now identifies and
+  flags licensed/inventoried sources instead of hard-blocking them. **F88 follow-ups (logged not
+  lost, next free F-number — user to assign):** agent-reach's exact-ref install pin (D7 needs an
+  upstream tag/commit; interactive install still pulls `main`); a per-finding licensed-source
+  trust-footer tag (needs a `RawDocument` schema field — a frozen-core Part 33 migration); the
+  web-reach runner's in-memory capture has no streaming cap (only the on-disk result is capped,
+  bounded today only by the request timeout); the fetch manifest's `sha256` is gatherer-agent-
+  reported, not code-computed/verified (make the coordinator or assembler compute/verify it); and
+  a charter Part 22/37 edit to match the D6 doctrine (this lane only put the doctrine note in
+  `docs/web-reach.md`).
+  Original entry: Unattended-orchestrator threat model (the injection boundary, one level up — and
+  the exposure went live 2026-07-13). The F16/Part-8 boundary protects the *brains*: tool-less
   dispatches, fetched text fenced as data-not-instructions. Nothing protects the *orchestrating
   session* — and since 2026-07-13 that session runs headless on a schedule with
   `--dangerously-skip-permissions` (F83 flip): full tools (file writes, git push, arbitrary

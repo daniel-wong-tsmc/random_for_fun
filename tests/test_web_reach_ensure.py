@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import types
 import pytest
@@ -126,3 +127,125 @@ def test_cli_subcommand_delegates(monkeypatch, capsys, tmp_path):
     out = json.loads(capsys.readouterr().out)
     assert rc == 0
     assert set(out["webReach"].keys()) == {"toolA", "toolB"}
+
+
+# --- Task 5: version_of + unattended-never-installs + drift reporting ---
+
+
+def _vp(stdout, returncode=0, stderr=""):
+    return types.SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+
+
+def test_version_of_extracts_semver_from_agent_reach_style_output(monkeypatch):
+    monkeypatch.setattr(wre, "_run", lambda cmd, timeout: _vp("Agent Reach v1.5.0\n"))
+    tool = {"id": "agent-reach", "pin": "1.5.0", "versionCmd": {"linux": "agent-reach --version"}}
+    assert wre.version_of(tool, "linux") == "1.5.0"
+
+
+def test_version_of_extracts_semver_from_pip_show_style_output(monkeypatch):
+    monkeypatch.setattr(wre, "_run", lambda cmd, timeout: _vp("Name: crawl4ai\nVersion: 0.9.0\n"))
+    tool = {"id": "crawl4ai", "pin": "0.9.0",
+            "versionCmd": {"linux": "pipx runpip crawl4ai show crawl4ai"}}
+    assert wre.version_of(tool, "linux") == "0.9.0"
+
+
+def test_version_of_falls_back_to_pin_when_no_versioncmd():
+    tool = {"id": "last30days", "pin": "skill-present"}
+    assert wre.version_of(tool, "linux") == "skill-present"
+
+
+def test_version_of_returns_unknown_when_no_versioncmd_and_no_pin():
+    tool = {"id": "mystery"}
+    assert wre.version_of(tool, "linux") == "unknown"
+
+
+def test_version_of_falls_back_to_first_nonempty_line_when_no_semver(monkeypatch):
+    monkeypatch.setattr(wre, "_run", lambda cmd, timeout: _vp("\n  dev-build  \n"))
+    tool = {"id": "agent-reach", "pin": "1.5.0", "versionCmd": {"linux": "agent-reach --version"}}
+    assert wre.version_of(tool, "linux") == "dev-build"
+
+
+def test_version_of_returns_unknown_when_stdout_empty(monkeypatch):
+    monkeypatch.setattr(wre, "_run", lambda cmd, timeout: _vp(""))
+    tool = {"id": "agent-reach", "versionCmd": {"linux": "agent-reach --version"}}
+    assert wre.version_of(tool, "linux") == "unknown"
+
+
+def test_version_of_returns_unknown_on_oserror(monkeypatch):
+    def boom(cmd, timeout):
+        raise OSError("nope")
+    monkeypatch.setattr(wre, "_run", boom)
+    tool = {"id": "agent-reach", "pin": "1.5.0", "versionCmd": {"linux": "agent-reach --version"}}
+    assert wre.version_of(tool, "linux") == "unknown"
+
+
+def test_version_of_returns_unknown_on_timeout(monkeypatch):
+    def boom(cmd, timeout):
+        raise subprocess.TimeoutExpired(cmd, timeout)
+    monkeypatch.setattr(wre, "_run", boom)
+    tool = {"id": "agent-reach", "pin": "1.5.0", "versionCmd": {"linux": "agent-reach --version"}}
+    assert wre.version_of(tool, "linux") == "unknown"
+
+
+def test_unattended_never_installs_and_carries_version_pin_drift(monkeypatch):
+    calls = []
+    reg = {"tools": [
+        {"id": "toolX", "enabled": True, "pin": "1.5.0",
+         "healthCmd": {"linux": "hc-X"},
+         "versionCmd": {"linux": "vc-X"},
+         "install": {"linux": ["INSTALL-SHOULD-NOT-RUN"]}},
+    ]}
+    monkeypatch.setattr(wre, "health_ok", lambda tool, os_key, timeout=60: False)
+
+    def fake_run(cmd, timeout):
+        calls.append(cmd)
+        return _vp("1.5.0")
+    monkeypatch.setattr(wre, "_run", fake_run)
+
+    out = wre.ensure_all(reg, "linux", unattended=True, log=lambda m: None)
+
+    assert "INSTALL-SHOULD-NOT-RUN" not in calls
+    assert out[0]["status"] == "missing"
+    assert out[0]["version"] == "1.5.0"
+    assert out[0]["pin"] == "1.5.0"
+    assert out[0]["drift"] is False
+
+
+def test_ensure_all_reports_drift_and_logs_it(monkeypatch):
+    logs = []
+    reg = {"tools": [
+        {"id": "agent-reach", "enabled": True, "pin": "1.5.0",
+         "healthCmd": {"linux": "hc"}, "versionCmd": {"linux": "vc"},
+         "install": {"linux": ["i"]}},
+    ]}
+
+    def fake_run(cmd, timeout):
+        if cmd == "hc":
+            return _cp(0)  # healthy -> ensure_tool short-circuits to "ok"
+        if cmd == "vc":
+            return _vp("1.6.0")
+        return _cp(0)
+    monkeypatch.setattr(wre, "_run", fake_run)
+
+    out = wre.ensure_all(reg, "linux", log=logs.append)
+
+    assert out[0]["status"] == "ok"
+    assert out[0]["version"] == "1.6.0"
+    assert out[0]["pin"] == "1.5.0"
+    assert out[0]["drift"] is True
+    assert any("VERSION DRIFT" in m and "agent-reach" in m for m in logs)
+
+
+def test_cli_unattended_flag_threads_through(monkeypatch, capsys, tmp_path):
+    from gpu_agent import cli, web_reach_ensure as w
+    reg_file = tmp_path / "reg.json"
+    reg_file.write_text(json.dumps(_reg()), encoding="utf-8")
+    monkeypatch.setattr(w, "REGISTRY_PATH", reg_file)
+    monkeypatch.setattr(w, "health_ok", lambda tool, os_key, timeout=60: False)
+    calls = []
+    monkeypatch.setattr(w, "_run", lambda cmd, timeout: (calls.append(cmd), _cp(1))[1])
+    rc = cli.main(["web-reach-ensure", "--unattended", "--json"])
+    out = json.loads(capsys.readouterr().out)
+    assert rc == 1  # tools are "missing" -> non-ok status -> exit 1
+    assert all("i-A" not in c and "i-B" not in c for c in calls)  # no install cmds ran
+    assert out["webReach"]["toolA"]["status"] == "missing"

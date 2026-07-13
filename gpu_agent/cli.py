@@ -1073,11 +1073,14 @@ def _backtest(args) -> int:
     for m, d, s, g, r, f in zip(res.months, res.dmi, res.smi, res.sdgi,
                                 res.rawColors, res.foldedColors):
         print(f"{m:8s} {d:8.3f} {s:8.3f} {g:8.3f} {r:7s} {f}")
-    print("\nVERDICT vs the pre-committed bar (>=2 of 3 turns, >=1Q lead, <=1 false/yr):")
+    print("\nVERDICT vs the pre-committed bar (>=2 named turns, >=1Q lead, <=1 false/yr;")
+    print("ground truth = named turns + the user-signed G2 amendment of 2026-07-13):")
     for c in verdict.catches:
-        print(f"  CATCH {c.turnId}: episode {c.episodeStart}, lead {c.leadMonths}mo")
+        print(f"  CATCH  {c.turnId}: episode {c.episodeStart}, lead {c.leadMonths}mo")
+    for c in verdict.concurrentDetections:
+        print(f"  DETECT {c.turnId}: episode {c.episodeStart}, lead {c.leadMonths}mo (nowcast)")
     for t in verdict.missedTurns:
-        print(f"  MISS  {t}")
+        print(f"  MISS   {t}")
     print(f"  false episodes: {verdict.falseEpisodes or 'none'}"
           f" (max/yr: {verdict.maxFalsePerYear})")
     print(f"  PASSED: {verdict.passed}")

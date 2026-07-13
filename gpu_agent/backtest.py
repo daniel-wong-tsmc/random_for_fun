@@ -48,6 +48,13 @@ class Turn(BaseModel):
     id: str
     turnMonth: str                 # YYYY-MM: when the condition became public consensus
     direction: str = "shortage"
+    # G2 amendment semantics: a detection-only event grants DETECTION credit (an
+    # episode in the tight concurrent window stops the false-alarm clock) but never an
+    # early-warning CATCH — otherwise the wide 3-9mo catch window would chain earlier
+    # unrelated episodes onto later events (e.g. crediting the 2024-11 noise episode
+    # as a "warning" of the 2025-03 squeeze), which the signed disposition forbids:
+    # Nov-2024 stays a genuine false alarm.
+    detectionOnly: bool = False
 
 
 NAMED_TURNS = [
@@ -55,6 +62,32 @@ NAMED_TURNS = [
     Turn(id="cowos-bottleneck", turnMonth="2023-12"),
     Turn(id="hbm-squeeze", turnMonth="2024-03"),
 ]
+
+# G2 disposition (USER-APPROVED, interactive, 2026-07-13): OPTION B — the ground-truth
+# list is amended with three documented 2025 episodes and the SAME frozen run of record
+# is re-scored. Zero re-tuning, zero parameter changes, zero new runs (pinned by
+# tests/test_backtest_run_of_record.py, which also keeps the original three-turn FAIL
+# reproducible for provenance). Motivated-reasoning mitigation: the run was frozen and
+# committed (fcc93ba) BEFORE this amendment; each event below cites independent
+# documentation captured in the G1-approved store BEFORE the backtest existed; 2024-11
+# stays counted as a genuine false alarm (the known noise rate: 1 episode / 3 years).
+AMENDED_EVENTS_2026_07_13 = [
+    # Microsoft datacenter-lease pullback + CoreWeave's downsized IPO (X5 2025-03 = -2;
+    # store note "CoreWeave distress-signal, equity-raise"; coindesk.com 2025-03-27).
+    Turn(id="financing-squeeze-2025-03", turnMonth="2025-03", detectionOnly=True),
+    # TSMC 2Q25: "demand getting stronger and stronger... trying to narrow the gap.
+    # I don't want to use that word balance" (S1 2025-07 = -50; transcript 2025-07-17).
+    Turn(id="re-tightening-2025-07", turnMonth="2025-07", detectionOnly=True),
+    # Oracle/CoreWeave CDS spreads widening + investors flocking to CDS on AI credit
+    # concerns (X5 2025-11 = -1 / 2025-12 = -2; investing.com 2025-11-20,
+    # cryptopolitan.com 2025-12-15).
+    Turn(id="credit-stress-2025-11", turnMonth="2025-11", detectionOnly=True),
+]
+
+# The current user-signed ground truth: the spec's three named turns + the G2
+# amendment. evaluate() scores against this by default; the PASS rule is UNCHANGED
+# (>= 2 turns caught with >= 1Q lead, <= 1 false episode/year).
+GROUND_TRUTH = NAMED_TURNS + AMENDED_EVENTS_2026_07_13
 
 LEAD_MIN_MONTHS = 3        # >= 1 quarter (the pre-committed bar)
 LEAD_MAX_MONTHS = 9        # inside the series' stated 2-4Q lead horizon
@@ -79,6 +112,10 @@ class Catch(BaseModel):
 
 class Verdict(BaseModel):
     catches: list[Catch] = Field(default_factory=list)
+    # events detected WITHOUT the 1-quarter lead (an episode inside the association
+    # window at lead < LEAD_MIN — a "nowcast", not an early warning). They don't count
+    # toward the recall clause; they stop the false-alarm clock.
+    concurrentDetections: list[Catch] = Field(default_factory=list)
     missedTurns: list[str] = Field(default_factory=list)
     falseEpisodes: list[str] = Field(default_factory=list)   # episode start months
     maxFalsePerYear: int = 0
@@ -136,27 +173,46 @@ def _episodes(result: BacktestResult) -> list[str]:
 
 
 def evaluate(result: BacktestResult, turns: Optional[Sequence[Turn]] = None) -> Verdict:
-    turns = list(NAMED_TURNS if turns is None else turns)
+    """Score an alert stream against a ground-truth event list (default: the current
+    user-signed GROUND_TRUTH — the spec's named turns + the G2 amendment)."""
+    turns = list(GROUND_TRUTH if turns is None else turns)
     episodes = _episodes(result)
     catches: list[Catch] = []
+    concurrent: list[Catch] = []
     missed: list[str] = []
     for t in turns:
         leads = [(_months_between(e, t.turnMonth), e) for e in episodes]
-        ok = [(lead, e) for lead, e in leads if LEAD_MIN_MONTHS <= lead <= LEAD_MAX_MONTHS]
+        # detection-only events (the G2 amendment) never earn early-warning catches:
+        # only the tight concurrent window counts, so an earlier unrelated episode is
+        # not laundered into a "warning" of a later event (Nov-2024 stays false).
+        ok = ([] if t.detectionOnly else
+              [(lead, e) for lead, e in leads if LEAD_MIN_MONTHS <= lead <= LEAD_MAX_MONTHS])
+        near = [(lead, e) for lead, e in leads
+                if -GRACE_AFTER_MONTHS <= lead < LEAD_MIN_MONTHS]
         if ok:
             lead, e = min(ok)          # the NEAREST qualifying episode — the
             # conservative lead (an early episode is not double-credited with
             # inflated leads across every later overlapping turn)
             catches.append(Catch(turnId=t.id, episodeStart=e, leadMonths=lead))
+        elif near:
+            lead, e = max(near)        # the closest-to-lead concurrent detection
+            concurrent.append(Catch(turnId=t.id, episodeStart=e, leadMonths=lead))
         else:
             missed.append(t.id)
-    false_eps = [e for e in episodes
-                 if not any(-GRACE_AFTER_MONTHS <= _months_between(e, t.turnMonth)
-                            <= LEAD_MAX_MONTHS for t in turns)]
+
+    def _associated(e: str, t: Turn) -> bool:
+        lead = _months_between(e, t.turnMonth)
+        if t.detectionOnly:
+            # the narrow window only: a detection-only event exempts concurrent
+            # episodes from the false clock, never months-earlier ones
+            return -GRACE_AFTER_MONTHS <= lead < LEAD_MIN_MONTHS
+        return -GRACE_AFTER_MONTHS <= lead <= LEAD_MAX_MONTHS
+
+    false_eps = [e for e in episodes if not any(_associated(e, t) for t in turns)]
     per_year: dict[str, int] = {}
     for e in false_eps:
         per_year[e[:4]] = per_year.get(e[:4], 0) + 1
     max_false = max(per_year.values(), default=0)
     passed = len(catches) >= 2 and max_false <= 1
-    return Verdict(catches=catches, missedTurns=missed, falseEpisodes=false_eps,
-                   maxFalsePerYear=max_false, passed=passed)
+    return Verdict(catches=catches, concurrentDetections=concurrent, missedTurns=missed,
+                   falseEpisodes=false_eps, maxFalsePerYear=max_false, passed=passed)

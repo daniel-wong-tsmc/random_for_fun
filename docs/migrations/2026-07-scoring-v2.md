@@ -122,6 +122,35 @@ pre-registered σ parameters and turn definitions in `gpu_agent/backtest.py`):
   absent from the three-turn list. 2024-11 (demand-reversal off a one-month DMI dip)
   reads as genuine noise.
 
+## G2 disposition (USER-APPROVED, interactive, 2026-07-13): Option B — re-scored PASS
+
+The user amended the ground-truth event list with the three documented 2025 episodes
+and directed a re-score of the SAME frozen run. Zero re-tuning, zero parameter
+changes, zero new runs. Amendment semantics: the amended events are **detection-only**
+(`Turn.detectionOnly`) — an episode in the tight concurrent window stops the
+false-alarm clock, but never earns an early-warning catch (the wide 3–9-month catch
+window would otherwise chain earlier unrelated episodes onto later events, laundering
+the 2024-11 noise episode into a "warning" of the 2025-03 squeeze; the signed
+disposition explicitly keeps Nov-2024 false).
+
+**Re-scored verdict of record (pinned by `tests/test_backtest_run_of_record.py`):**
+
+- CATCH h100-crunch-onset (lead 3mo), cowos-bottleneck (6mo), hbm-squeeze (9mo) —
+  the recall clause passes on the ORIGINAL named turns alone.
+- DETECT financing-squeeze-2025-03, re-tightening-2025-07, credit-stress-2025-11 —
+  concurrent (lead 0) detections; 6/6 ground-truth events accounted for.
+- False alarms: **2024-11 only** — the known noise rate, 1 episode across 3 backtest
+  years (≤ 1/year bar holds). **PASSED: True.**
+
+Motivated-reasoning mitigation, recorded per the disposition: (1) the run of record
+was frozen and committed (fcc93ba) BEFORE the amendment existed; (2) each amended
+event cites independent documentation captured in the G1-approved store BEFORE the
+backtest was built (X5 2025-03 note + coindesk 2025-03-27; S1 2025-07 TSMC transcript
+2025-07-17; X5 2025-11/12 notes + investing.com 2025-11-20 / cryptopolitan
+2025-12-15); (3) the amendment is user-signed, relayed via the orchestrator; (4) the
+original three-turn FAIL stays reproducible in code and is pinned by test for
+provenance; (5) Nov-2024 stays counted false.
+
 ## Backfill results (Stage 2, 2026-07-13 — reviewed at G1)
 
 156 points across the six series, all vintage-stamped with per-point source URL +

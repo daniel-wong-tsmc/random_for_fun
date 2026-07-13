@@ -56,7 +56,7 @@ def test_evaluate_catches_with_lead_and_counts_false_episodes():
     colors[5] = "orange"                      # 2023-06: lead 3 to h100 turn (2023-09)
     colors[8] = "orange"                      # 2023-09: lead 3 to cowos (2023-12)
     colors[26] = colors[27] = "orange"        # 2025-03/04: ONE false episode
-    v = bt.evaluate(_result(colors))
+    v = bt.evaluate(_result(colors), turns=bt.NAMED_TURNS)
     caught = {c.turnId: c for c in v.catches}
     assert caught["h100-crunch-onset"].leadMonths == 3
     assert caught["cowos-bottleneck"].leadMonths == 3
@@ -70,16 +70,16 @@ def test_evaluate_catches_with_lead_and_counts_false_episodes():
 def test_evaluate_fails_below_two_catches():
     colors = ["green"] * 36
     colors[5] = "orange"                      # catches h100 only (and cowos at lead 6)
-    v = bt.evaluate(_result(colors))
+    v = bt.evaluate(_result(colors), turns=bt.NAMED_TURNS)
     assert len(v.catches) >= 1
     # force the single-catch case: an alert too late for every other turn
     colors2 = ["green"] * 36
     colors2[8] = "orange"                     # 2023-09: lead 0 to h100 (NOT a catch),
-    v2 = bt.evaluate(_result(colors2))        # lead 3 to cowos, lead 6 to hbm -> 2 catches
+    v2 = bt.evaluate(_result(colors2), turns=bt.NAMED_TURNS)        # lead 3 to cowos, lead 6 to hbm -> 2 catches
     assert {c.turnId for c in v2.catches} == {"cowos-bottleneck", "hbm-squeeze"}
     colors3 = ["green"] * 36
     colors3[30] = "orange"                    # 2025-07: associated with nothing -> false
-    v3 = bt.evaluate(_result(colors3))
+    v3 = bt.evaluate(_result(colors3), turns=bt.NAMED_TURNS)
     assert v3.catches == [] and v3.passed is False
 
 
@@ -89,7 +89,7 @@ def test_evaluate_false_bar_breach_fails():
     colors[8] = "orange"                      # catch cowos + hbm
     colors[24] = "orange"                     # 2025-01 false
     colors[28] = "orange"                     # 2025-05 false (separate episode)
-    v = bt.evaluate(_result(colors))
+    v = bt.evaluate(_result(colors), turns=bt.NAMED_TURNS)
     assert v.maxFalsePerYear == 2
     assert v.passed is False
 

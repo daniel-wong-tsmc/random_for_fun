@@ -1062,13 +1062,15 @@ def _webreach_fetch(args) -> int:
     array of FetchRequest objects; this executes ONLY the requests that pass
     validate_request, as argv arrays (shell=False), and writes a result manifest.
     Individual request failures/refusals are data (exit 0); a malformed/missing
-    requests file is a usage error (exit 2) caught here before anything runs."""
+    requests file, or a syntactically-valid-but-structurally-malformed registry/refused
+    file (e.g. missing an expected key -> KeyError), is a usage error (exit 2) caught
+    here before anything runs."""
     from gpu_agent.gathering import webreach
     try:
         registry = json.loads(pathlib.Path(args.registry).read_text(encoding="utf-8"))
         refused = webreach.load_refused_domains(pathlib.Path(args.refused))
         manifest = webreach.run_requests(args.requests, args.out_dir, registry, refused)
-    except (OSError, json.JSONDecodeError, ValueError, ValidationError) as e:
+    except (OSError, json.JSONDecodeError, ValueError, KeyError, ValidationError) as e:
         print(f"gpu-agent webreach-fetch: error: {e}", file=sys.stderr)
         return 2
     results = manifest["results"]

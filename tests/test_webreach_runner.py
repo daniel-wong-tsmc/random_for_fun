@@ -1,9 +1,10 @@
 import json
+import subprocess
 import sys
 import pathlib
 import pytest
 
-from gpu_agent.gathering.webreach import run_requests
+from gpu_agent.gathering.webreach import run_requests, MAX_RESULT_BYTES
 from gpu_agent import cli
 
 
@@ -155,6 +156,87 @@ def test_timeout_is_recorded_and_does_not_raise(tmp_path):
     assert row["error"] is not None
 
 
+def _huge_output_registry():
+    """A fake tool whose `huge` verb prints a string well past MAX_RESULT_BYTES so we can
+    prove the runner caps what it writes to disk (defense against a hostile/oversized
+    response) rather than writing an unbounded amount of captured stdout."""
+    return {"tools": [{
+        "id": "fake-fetch", "enabled": True, "role": "fetch",
+        "healthCmd": {"windows": "x", "macos": "x", "linux": "x"},
+        "fetchVerbs": {
+            "huge": {
+                "argv": [sys.executable, "-c", "print('A' * 6_000_000)", "{target}"],
+                "kind": "url",
+            },
+        },
+    }]}
+
+
+def test_large_result_is_capped_at_max_result_bytes_and_flagged_truncated(tmp_path):
+    reqs = [{"toolId": "fake-fetch", "verb": "huge", "target": "https://example.com/big"}]
+    req_path = _write_requests(tmp_path, reqs)
+    out_dir = tmp_path / "out"
+
+    manifest = run_requests(req_path, out_dir, _huge_output_registry(), REFUSED)
+
+    row = manifest["results"][0]
+    assert row["exitCode"] == 0
+    assert row["path"] is not None
+    result_path = pathlib.Path(row["path"])
+    assert result_path.exists()
+    on_disk = result_path.read_text(encoding="utf-8")
+    assert len(on_disk) == MAX_RESULT_BYTES
+    assert row["bytes"] == MAX_RESULT_BYTES
+    assert row["error"] is not None
+    assert "truncat" in row["error"].lower()
+
+
+def test_unexpected_exception_during_one_request_is_recorded_and_batch_continues(tmp_path, monkeypatch):
+    """A per-request exception that is neither TimeoutExpired nor OSError (simulated here
+    by monkeypatching subprocess.run to raise ValueError on the first call) must still be
+    recorded as a failed manifest row -- not raised out of run_requests -- and a later,
+    otherwise-valid request in the same batch must still execute and appear in the
+    manifest with its own result file."""
+    reqs = [
+        {"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/willraise"},
+        {"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/good"},
+    ]
+    req_path = _write_requests(tmp_path, reqs)
+    out_dir = tmp_path / "out"
+
+    real_run = subprocess.run
+    calls = {"n": 0}
+
+    def flaky_run(*args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise ValueError("simulated unexpected failure")
+        return real_run(*args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", flaky_run)
+
+    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+
+    assert len(manifest["results"]) == 2
+    bad_row, good_row = manifest["results"]
+    assert bad_row["path"] is None
+    assert bad_row["exitCode"] is None
+    assert bad_row["error"] is not None
+    assert "ValueError" in bad_row["error"]
+
+    assert good_row["exitCode"] == 0
+    assert good_row["path"] is not None
+    assert pathlib.Path(good_row["path"]).exists()
+    assert good_row["bytes"] > 0
+
+    # the manifest itself was still written to disk covering both rows -- the batch
+    # was not aborted and the manifest was not dropped
+    manifest_path = out_dir / "fetch-manifest.json"
+    assert manifest_path.exists()
+    on_disk = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert on_disk == manifest
+
+
 def test_malformed_requests_file_is_rejected_before_execution(tmp_path):
     req_path = tmp_path / "requests.json"
     req_path.write_text("{ not json !!!", encoding="utf-8")
@@ -257,6 +339,69 @@ def test_cli_webreach_fetch_exit_2_on_malformed_json(tmp_path):
                              encoding="utf-8")
     bad_path = tmp_path / "requests.json"
     bad_path.write_text("{ not json !!!", encoding="utf-8")
+    out_dir = tmp_path / "out"
+
+    rc = cli.main(["webreach-fetch",
+                   "--requests", str(bad_path),
+                   "--out-dir", str(out_dir),
+                   "--registry", str(reg_path),
+                   "--refused", str(refused_path)])
+    assert rc == 2
+
+
+def test_cli_webreach_fetch_exit_2_on_malformed_registry_keyerror(tmp_path):
+    """A registry file that is valid JSON but structurally malformed (missing the
+    "tools" key any real registry has) must surface as a clean exit 2, not an
+    uncaught KeyError traceback."""
+    reg_path = tmp_path / "registry.json"
+    reg_path.write_text("{}", encoding="utf-8")
+    refused_path = tmp_path / "refused.json"
+    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+                             encoding="utf-8")
+    reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/a"}]
+    req_path = _write_requests(tmp_path, reqs)
+    out_dir = tmp_path / "out"
+
+    rc = cli.main(["webreach-fetch",
+                   "--requests", str(req_path),
+                   "--out-dir", str(out_dir),
+                   "--registry", str(reg_path),
+                   "--refused", str(refused_path)])
+    assert rc == 2
+
+
+def test_cli_webreach_fetch_exit_2_on_malformed_refused_domains_keyerror(tmp_path):
+    """Same as above but for a structurally malformed --refused file (valid JSON,
+    missing the "domains" key)."""
+    reg_path = tmp_path / "registry.json"
+    reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
+    refused_path = tmp_path / "refused.json"
+    refused_path.write_text("{}", encoding="utf-8")
+    reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/a"}]
+    req_path = _write_requests(tmp_path, reqs)
+    out_dir = tmp_path / "out"
+
+    rc = cli.main(["webreach-fetch",
+                   "--requests", str(req_path),
+                   "--out-dir", str(out_dir),
+                   "--registry", str(reg_path),
+                   "--refused", str(refused_path)])
+    assert rc == 2
+
+
+def test_cli_webreach_fetch_exit_2_on_schema_invalid_request(tmp_path):
+    """A requests file that is a valid JSON array containing an object missing a
+    required field (here: "verb") must exit 2 via the pydantic ValidationError path,
+    not raise out of cli.main."""
+    reg_path = tmp_path / "registry.json"
+    reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
+    refused_path = tmp_path / "refused.json"
+    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+                             encoding="utf-8")
+    bad_path = tmp_path / "requests.json"
+    bad_path.write_text(json.dumps([{"toolId": "fake-fetch",
+                                     "target": "https://example.com/a"}]),
+                        encoding="utf-8")  # missing required "verb"
     out_dir = tmp_path / "out"
 
     rc = cli.main(["webreach-fetch",

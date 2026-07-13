@@ -14,6 +14,12 @@ PAYWALLED_REGISTRY = pathlib.Path("registry/paywalled-domains.json")
 _TOOL_VERSION_TIMEOUT = 30  # health-check-style probe; keep it snappy
 _SLUG_MAX_LEN = 80
 
+# Defensive cap on the bytes written to disk per result file. Bounds disk use from a
+# hostile/oversized response even though the in-process capture of stdout (via
+# subprocess.run(capture_output=True)) itself is bounded only by `timeout`, not by size --
+# full incremental streaming to cap memory too is out of scope here (accepted residual).
+MAX_RESULT_BYTES = 5_000_000
+
 # Anything outside this set is stripped from a result-file slug. This is the last
 # line of defense against path traversal: even if a hostile `target` (attacker-
 # controlled web content) contains "/", "\", "..", drive letters, or shell/URL
@@ -116,7 +122,8 @@ def run_requests(requests_path, out_dir, registry: dict, refused_domains: set[st
     """Read a JSON array of FetchRequest objects from requests_path, validate each
     (BEFORE building/executing anything), execute the allowed ones as argv arrays
     (shell=False), save stdout to a sanitized-path result file, and write/return a
-    result manifest. One request's failure/timeout never aborts the batch."""
+    result manifest. One request's failure/timeout/unexpected exception never aborts the
+    batch -- the manifest is still written covering every other request."""
     requests_path = pathlib.Path(requests_path)
     raw = json.loads(requests_path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
@@ -150,14 +157,29 @@ def run_requests(requests_path, out_dir, registry: dict, refused_domains: set[st
             row["error"] = str(e)
             results.append(row)
             continue
+        except Exception as e:
+            # Catch-all: an unexpected exception executing/writing THIS ONE request must
+            # never abort the batch or drop the manifest for every other request.
+            row["error"] = f"{type(e).__name__}: {e}"
+            results.append(row)
+            continue
 
         stdout = cp.stdout or ""
+        truncated = False
+        if len(stdout) > MAX_RESULT_BYTES:
+            # Defensive cap: bound disk use from a hostile/oversized response. The
+            # in-memory capture above is already complete (bounded only by `timeout`,
+            # not by size) by the time we get here -- see MAX_RESULT_BYTES docstring.
+            stdout = stdout[:MAX_RESULT_BYTES]
+            truncated = True
         result_path = _safe_result_path(out_dir, seq, req.toolId, req.target)
         result_path.write_text(stdout, encoding="utf-8", newline="\n")
         row["path"] = str(result_path)
         row["bytes"] = len(stdout)
         row["exitCode"] = cp.returncode
-        if cp.returncode != 0:
+        if truncated:
+            row["error"] = "truncated: output exceeded MAX_RESULT_BYTES"
+        elif cp.returncode != 0:
             row["error"] = (cp.stderr or "")[-500:]
         results.append(row)
 

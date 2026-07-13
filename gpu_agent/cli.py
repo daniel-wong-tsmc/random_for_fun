@@ -1087,6 +1087,19 @@ def _backtest(args) -> int:
     return 0
 
 
+def _v2_shadow(args) -> int:
+    """F79 (append-only verb): within-cycle pre-commit shadow stamp; v1-only rendering
+    until G4. A no-op (empty series store) exits 0 with a plain note."""
+    from gpu_agent.shadow import stamp_scorecard
+    stamped = stamp_scorecard(args.scorecard, series_registry_path=args.series_registry,
+                              series_root=args.series_root)
+    if stamped:
+        print(f"v2 shadow stamped: {args.scorecard}")
+    else:
+        print(f"v2 shadow no-op (series store empty at this vintage): {args.scorecard}")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -1269,9 +1282,18 @@ def main(argv=None) -> int:
     btp.add_argument("--series-root", default="store/series")
     btp.add_argument("--series-registry", default="registry/series-indicators.json")
     btp.add_argument("--json", action="store_true")
+    # F79 (append-only verb): stamp the v2 shadow indices into a stored scorecard's
+    # provenance — a WITHIN-CYCLE pre-commit step; only v1 renders until G4.
+    v2s = sub.add_parser("v2-shadow",
+                         help="F79: record v2 indices in a scorecard's provenance (shadow mode)")
+    v2s.add_argument("--scorecard", required=True, help="path to the stored <asOf>-v<N>.json")
+    v2s.add_argument("--series-root", default="store/series")
+    v2s.add_argument("--series-registry", default="registry/series-indicators.json")
     args = p.parse_args(argv)
     if args.cmd == "backtest":
         return _backtest(args)
+    if args.cmd == "v2-shadow":
+        return _v2_shadow(args)
     if args.cmd == "ingest":
         return _ingest(args)
     if args.cmd == "wiki-ingest":

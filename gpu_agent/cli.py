@@ -1062,14 +1062,15 @@ def _webreach_fetch(args) -> int:
     array of FetchRequest objects; this executes ONLY the requests that pass
     validate_request, as argv arrays (shell=False), and writes a result manifest.
     Individual request failures/refusals are data (exit 0); a malformed/missing
-    requests file, or a syntactically-valid-but-structurally-malformed registry/refused
+    requests file, or a syntactically-valid-but-structurally-malformed registry/licensed
     file (e.g. missing an expected key -> KeyError), is a usage error (exit 2) caught
-    here before anything runs."""
+    here before anything runs. D6: licensed/inventoried domains are no longer refused --
+    they execute like any other request and are flagged per-row via `licensedSource`."""
     from gpu_agent.gathering import webreach
     try:
         registry = json.loads(pathlib.Path(args.registry).read_text(encoding="utf-8"))
-        refused = webreach.load_refused_domains(pathlib.Path(args.refused))
-        manifest = webreach.run_requests(args.requests, args.out_dir, registry, refused)
+        licensed = webreach.load_licensed_domains(pathlib.Path(args.licensed))
+        manifest = webreach.run_requests(args.requests, args.out_dir, registry, licensed)
     except (OSError, json.JSONDecodeError, ValueError, KeyError, ValidationError) as e:
         print(f"gpu-agent webreach-fetch: error: {e}", file=sys.stderr)
         return 2
@@ -1263,7 +1264,10 @@ def main(argv=None) -> int:
     wf.add_argument("--out-dir", required=True,
                     help="dir for per-request result files + fetch-manifest.json")
     wf.add_argument("--registry", default="registry/web-reach-tools.json")
-    wf.add_argument("--refused", default="registry/paywalled-domains.json")
+    wf.add_argument("--licensed", default="registry/licensed-sources.json",
+                    help="licensed/inventoried source domains (TrendForce, SemiAnalysis, "
+                         "...); fetches to these are executed and flagged via the "
+                         "manifest's licensedSource field, not refused (D6)")
     args = p.parse_args(argv)
     if args.cmd == "ingest":
         return _ingest(args)

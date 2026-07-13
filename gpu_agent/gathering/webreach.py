@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from gpu_agent.web_reach_ensure import detect_os
 
-PAYWALLED_REGISTRY = pathlib.Path("registry/paywalled-domains.json")
+LICENSED_REGISTRY = pathlib.Path("registry/licensed-sources.json")
 
 _TOOL_VERSION_TIMEOUT = 30  # health-check-style probe; keep it snappy
 _SLUG_MAX_LEN = 80
@@ -34,7 +34,7 @@ class FetchRequest(BaseModel):
     outName: Optional[str] = None
 
 
-def load_refused_domains(path: pathlib.Path = PAYWALLED_REGISTRY) -> set[str]:
+def load_licensed_domains(path: pathlib.Path = LICENSED_REGISTRY) -> set[str]:
     data = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
     return {d.lower() for d in data["domains"]}
 
@@ -47,7 +47,13 @@ def _tool_entry(registry: dict, tool_id: str) -> dict | None:
 
 
 def validate_request(req: FetchRequest, registry: dict,
-                     refused_domains: set[str]) -> str | None:
+                     licensed_domains: set[str]) -> str | None:
+    """Refuse only on: unknown tool, unknown verb, or (for url-kind targets) a
+    non-http(s) scheme / unparseable host. D6: licensed/inventoried domains
+    (TrendForce, SemiAnalysis, ...) are NO LONGER refused here -- they are fetched
+    like any other host and flagged via `licensed_source_host` instead, so
+    `licensed_domains` is accepted for call-site/signature stability but is not
+    consulted for a refusal decision."""
     tool = _tool_entry(registry, req.toolId)
     if tool is None:
         return f"unknown tool: {req.toolId}"
@@ -61,9 +67,25 @@ def validate_request(req: FetchRequest, registry: dict,
         host = parsed.hostname
         if not host:
             return f"refused scheme/shape: {req.target!r} (unparseable host)"
-        for dom in refused_domains:
-            if host == dom or host.endswith("." + dom):
-                return f"paywalled/licensed domain refused: {host} (Part 22)"
+    return None
+
+
+def licensed_source_host(target: str, licensed_domains: set[str]) -> str | None:
+    """Return the licensed/inventoried domain that `target`'s host matches (exact
+    host or dot-suffix subdomain -- the same matching `validate_request` used for
+    its now-removed domain refusal, including reading `parsed.hostname` so
+    userinfo (`user:pass@host`) can't hide the real host), or None if it doesn't
+    match any licensed domain -- including when `target` isn't a fetchable
+    http(s) URL at all (e.g. a query-kind request's free-text target)."""
+    parsed = urlparse(target)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        return None
+    host = parsed.hostname
+    if not host:
+        return None
+    for dom in licensed_domains:
+        if host == dom or host.endswith("." + dom):
+            return dom
     return None
 
 
@@ -117,13 +139,16 @@ def _tool_version(tool: dict, os_key: str, timeout: int = _TOOL_VERSION_TIMEOUT)
     return first_line[0].strip() if first_line and first_line[0].strip() else "unknown"
 
 
-def run_requests(requests_path, out_dir, registry: dict, refused_domains: set[str],
+def run_requests(requests_path, out_dir, registry: dict, licensed_domains: set[str],
                  timeout: int = 120) -> dict:
     """Read a JSON array of FetchRequest objects from requests_path, validate each
     (BEFORE building/executing anything), execute the allowed ones as argv arrays
     (shell=False), save stdout to a sanitized-path result file, and write/return a
     result manifest. One request's failure/timeout/unexpected exception never aborts the
-    batch -- the manifest is still written covering every other request."""
+    batch -- the manifest is still written covering every other request. D6: every
+    EXECUTED row (i.e. not refused) carries `licensedSource` -- the matched
+    licensed/inventoried domain, or None -- so a licensed-domain fetch is allowed but
+    never silent; refused rows always keep `licensedSource: None`."""
     requests_path = pathlib.Path(requests_path)
     raw = json.loads(requests_path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
@@ -138,12 +163,17 @@ def run_requests(requests_path, out_dir, registry: dict, refused_domains: set[st
     used_tool_ids: list[str] = []
     for seq, req in enumerate(reqs, start=1):
         row = {"toolId": req.toolId, "verb": req.verb, "target": req.target,
-               "path": None, "bytes": 0, "exitCode": None, "refused": None, "error": None}
-        reason = validate_request(req, registry, refused_domains)
+               "path": None, "bytes": 0, "exitCode": None, "refused": None, "error": None,
+               "licensedSource": None}
+        reason = validate_request(req, registry, licensed_domains)
         if reason is not None:
             row["refused"] = reason
             results.append(row)
             continue   # never build/execute a refused request
+
+        # D6: the request executes regardless of licensed-domain status; flag it
+        # instead of blocking it.
+        row["licensedSource"] = licensed_source_host(req.target, licensed_domains)
 
         tool = _tool_entry(registry, req.toolId)
         argv = build_argv(tool, req)

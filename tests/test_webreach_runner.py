@@ -35,7 +35,7 @@ def _fake_registry():
     }]}
 
 
-REFUSED = {"trendforce.com", "semianalysis.com"}
+LICENSED = {"trendforce.com", "semianalysis.com"}
 
 
 def _write_requests(tmp_path, reqs):
@@ -49,7 +49,7 @@ def test_happy_path_writes_result_file_and_manifest_row(tmp_path):
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     assert len(manifest["results"]) == 1
     row = manifest["results"][0]
@@ -59,6 +59,7 @@ def test_happy_path_writes_result_file_and_manifest_row(tmp_path):
     assert row["refused"] is None
     assert row["error"] is None
     assert row["exitCode"] == 0
+    assert row["licensedSource"] is None  # clean host, executed, not a licensed source
     expected_stdout = "FETCHED https://example.com/a\n"
     assert row["bytes"] == len(expected_stdout)
     assert row["path"] is not None
@@ -78,25 +79,29 @@ def test_happy_path_writes_result_file_and_manifest_row(tmp_path):
     assert manifest["toolVersions"] == {"fake-fetch": "v9.9.9 fake-tool"}
 
 
-def test_refused_request_yields_refused_row_and_is_not_executed(tmp_path):
+def test_licensed_domain_request_is_executed_and_flagged_not_refused(tmp_path):
+    # D6: licensed/inventoried domains are fetched like any other page and flagged
+    # in the manifest row, not refused.
     reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://trendforce.com/report"}]
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     assert len(manifest["results"]) == 1
     row = manifest["results"][0]
-    assert row["refused"] is not None
-    assert "paywalled" in row["refused"]
-    assert row["path"] is None
-    assert row["bytes"] == 0
-    assert row["exitCode"] is None
+    assert row["refused"] is None
+    assert row["licensedSource"] == "trendforce.com"
+    expected_stdout = "FETCHED https://trendforce.com/report\n"
+    assert row["exitCode"] == 0
+    assert row["bytes"] == len(expected_stdout)
     assert row["error"] is None
-    # nothing executed -> no result files besides the manifest itself
-    assert list(out_dir.iterdir()) == [out_dir / "fetch-manifest.json"]
-    # no tool was ever "used" (only refused), so no health check ran
-    assert manifest["toolVersions"] == {}
+    assert row["path"] is not None
+    result_path = pathlib.Path(row["path"])
+    assert result_path.exists()
+    assert result_path.read_text(encoding="utf-8") == expected_stdout
+    # the request WAS executed (unlike the old hard-block) -> the tool was used
+    assert manifest["toolVersions"] == {"fake-fetch": "v9.9.9 fake-tool"}
 
 
 def test_nonzero_exit_records_exit_code_and_stderr_tail(tmp_path):
@@ -104,7 +109,7 @@ def test_nonzero_exit_records_exit_code_and_stderr_tail(tmp_path):
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     row = manifest["results"][0]
     assert row["refused"] is None
@@ -124,7 +129,7 @@ def test_one_bad_request_does_not_abort_the_batch(tmp_path):
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     assert len(manifest["results"]) == 2
     assert manifest["results"][0]["exitCode"] == 3
@@ -148,7 +153,7 @@ def test_timeout_is_recorded_and_does_not_raise(tmp_path):
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, sleepy_registry, REFUSED, timeout=1)
+    manifest = run_requests(req_path, out_dir, sleepy_registry, LICENSED, timeout=1)
 
     row = manifest["results"][0]
     assert row["path"] is None
@@ -177,7 +182,7 @@ def test_large_result_is_capped_at_max_result_bytes_and_flagged_truncated(tmp_pa
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _huge_output_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _huge_output_registry(), LICENSED)
 
     row = manifest["results"][0]
     assert row["exitCode"] == 0
@@ -215,7 +220,7 @@ def test_unexpected_exception_during_one_request_is_recorded_and_batch_continues
 
     monkeypatch.setattr(subprocess, "run", flaky_run)
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     assert len(manifest["results"]) == 2
     bad_row, good_row = manifest["results"]
@@ -242,7 +247,7 @@ def test_malformed_requests_file_is_rejected_before_execution(tmp_path):
     req_path.write_text("{ not json !!!", encoding="utf-8")
     out_dir = tmp_path / "out"
     with pytest.raises((ValueError, json.JSONDecodeError)):
-        run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+        run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
 
 def test_requests_file_must_be_a_json_array(tmp_path):
@@ -250,7 +255,7 @@ def test_requests_file_must_be_a_json_array(tmp_path):
     req_path.write_text(json.dumps({"toolId": "x"}), encoding="utf-8")
     out_dir = tmp_path / "out"
     with pytest.raises(ValueError):
-        run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+        run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
 
 # --- SECURITY: path-traversal / metacharacter sanitization of the result filename ---
@@ -265,7 +270,7 @@ def test_hostile_target_produces_file_safely_inside_out_dir(tmp_path, hostile_ta
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     row = manifest["results"][0]
     assert row["refused"] is None  # not a refusal case; this is a raw sanitization test
@@ -284,7 +289,7 @@ def test_outname_field_is_never_used_for_the_result_path(tmp_path):
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
 
-    manifest = run_requests(req_path, out_dir, _fake_registry(), REFUSED)
+    manifest = run_requests(req_path, out_dir, _fake_registry(), LICENSED)
 
     row = manifest["results"][0]
     result_path = pathlib.Path(row["path"]).resolve()
@@ -297,8 +302,8 @@ def test_outname_field_is_never_used_for_the_result_path(tmp_path):
 def test_cli_webreach_fetch_happy_path(tmp_path, monkeypatch):
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/a"}]
     req_path = _write_requests(tmp_path, reqs)
@@ -308,7 +313,7 @@ def test_cli_webreach_fetch_happy_path(tmp_path, monkeypatch):
                    "--requests", str(req_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 0
     manifest = json.loads((out_dir / "fetch-manifest.json").read_text(encoding="utf-8"))
     assert manifest["results"][0]["exitCode"] == 0
@@ -317,8 +322,8 @@ def test_cli_webreach_fetch_happy_path(tmp_path, monkeypatch):
 def test_cli_webreach_fetch_exit_2_on_missing_requests_file(tmp_path):
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     out_dir = tmp_path / "out"
     missing_path = tmp_path / "does-not-exist.json"
@@ -327,15 +332,15 @@ def test_cli_webreach_fetch_exit_2_on_missing_requests_file(tmp_path):
                    "--requests", str(missing_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2
 
 
 def test_cli_webreach_fetch_exit_2_on_malformed_json(tmp_path):
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     bad_path = tmp_path / "requests.json"
     bad_path.write_text("{ not json !!!", encoding="utf-8")
@@ -345,7 +350,7 @@ def test_cli_webreach_fetch_exit_2_on_malformed_json(tmp_path):
                    "--requests", str(bad_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2
 
 
@@ -355,8 +360,8 @@ def test_cli_webreach_fetch_exit_2_on_malformed_registry_keyerror(tmp_path):
     uncaught KeyError traceback."""
     reg_path = tmp_path / "registry.json"
     reg_path.write_text("{}", encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/a"}]
     req_path = _write_requests(tmp_path, reqs)
@@ -366,17 +371,17 @@ def test_cli_webreach_fetch_exit_2_on_malformed_registry_keyerror(tmp_path):
                    "--requests", str(req_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2
 
 
-def test_cli_webreach_fetch_exit_2_on_malformed_refused_domains_keyerror(tmp_path):
-    """Same as above but for a structurally malformed --refused file (valid JSON,
+def test_cli_webreach_fetch_exit_2_on_malformed_licensed_domains_keyerror(tmp_path):
+    """Same as above but for a structurally malformed --licensed file (valid JSON,
     missing the "domains" key)."""
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text("{}", encoding="utf-8")
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text("{}", encoding="utf-8")
     reqs = [{"toolId": "fake-fetch", "verb": "read", "target": "https://example.com/a"}]
     req_path = _write_requests(tmp_path, reqs)
     out_dir = tmp_path / "out"
@@ -385,7 +390,7 @@ def test_cli_webreach_fetch_exit_2_on_malformed_refused_domains_keyerror(tmp_pat
                    "--requests", str(req_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2
 
 
@@ -395,8 +400,8 @@ def test_cli_webreach_fetch_exit_2_on_schema_invalid_request(tmp_path):
     not raise out of cli.main."""
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     bad_path = tmp_path / "requests.json"
     bad_path.write_text(json.dumps([{"toolId": "fake-fetch",
@@ -408,15 +413,15 @@ def test_cli_webreach_fetch_exit_2_on_schema_invalid_request(tmp_path):
                    "--requests", str(bad_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2
 
 
 def test_cli_webreach_fetch_exit_2_on_non_list_json(tmp_path):
     reg_path = tmp_path / "registry.json"
     reg_path.write_text(json.dumps(_fake_registry()), encoding="utf-8")
-    refused_path = tmp_path / "refused.json"
-    refused_path.write_text(json.dumps({"version": 1, "domains": sorted(REFUSED)}),
+    licensed_path = tmp_path / "licensed.json"
+    licensed_path.write_text(json.dumps({"version": 1, "domains": sorted(LICENSED)}),
                              encoding="utf-8")
     bad_path = tmp_path / "requests.json"
     bad_path.write_text(json.dumps({"toolId": "x"}), encoding="utf-8")
@@ -426,5 +431,5 @@ def test_cli_webreach_fetch_exit_2_on_non_list_json(tmp_path):
                    "--requests", str(bad_path),
                    "--out-dir", str(out_dir),
                    "--registry", str(reg_path),
-                   "--refused", str(refused_path)])
+                   "--licensed", str(licensed_path)])
     assert rc == 2

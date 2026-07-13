@@ -1057,6 +1057,33 @@ def _web_reach_ensure(args) -> int:
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
 
 
+def _backtest(args) -> int:
+    """F79 (append-only verb): vintage replay of the series store + the pre-committed
+    bar verdict. Shadow tooling — nothing here renders in any user-facing surface."""
+    from gpu_agent.backtest import run_backtest, evaluate
+    from gpu_agent.series_registry import SeriesRegistry
+    reg = SeriesRegistry.load(args.series_registry)
+    res = run_backtest(reg, args.series_root, start=args.start, end=args.end)
+    verdict = evaluate(res)
+    if args.json:
+        print(json.dumps({"result": res.model_dump(), "verdict": verdict.model_dump()},
+                         indent=2))
+        return 0
+    print(f"{'month':8s} {'DMI':>8s} {'SMI':>8s} {'SDGI':>8s} raw     displayed")
+    for m, d, s, g, r, f in zip(res.months, res.dmi, res.smi, res.sdgi,
+                                res.rawColors, res.foldedColors):
+        print(f"{m:8s} {d:8.3f} {s:8.3f} {g:8.3f} {r:7s} {f}")
+    print("\nVERDICT vs the pre-committed bar (>=2 of 3 turns, >=1Q lead, <=1 false/yr):")
+    for c in verdict.catches:
+        print(f"  CATCH {c.turnId}: episode {c.episodeStart}, lead {c.leadMonths}mo")
+    for t in verdict.missedTurns:
+        print(f"  MISS  {t}")
+    print(f"  false episodes: {verdict.falseEpisodes or 'none'}"
+          f" (max/yr: {verdict.maxFalsePerYear})")
+    print(f"  PASSED: {verdict.passed}")
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="gpu-agent")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -1230,7 +1257,18 @@ def main(argv=None) -> int:
     wre.add_argument("--check-only", action="store_true")
     wre.add_argument("--json", action="store_true")
     wre.add_argument("--timeout", type=int, default=600)
+    # F79 (append-only verb): replay the series store by publication vintage and score
+    # the sigma-band alert stream against the pre-committed backtest bar (G2 evidence).
+    btp = sub.add_parser("backtest",
+                         help="F79: vintage replay of store/series + verdict vs the pre-committed bar")
+    btp.add_argument("--start", default="2023-01")
+    btp.add_argument("--end", default="2025-12")
+    btp.add_argument("--series-root", default="store/series")
+    btp.add_argument("--series-registry", default="registry/series-indicators.json")
+    btp.add_argument("--json", action="store_true")
     args = p.parse_args(argv)
+    if args.cmd == "backtest":
+        return _backtest(args)
     if args.cmd == "ingest":
         return _ingest(args)
     if args.cmd == "wiki-ingest":

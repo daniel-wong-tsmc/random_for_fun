@@ -360,7 +360,7 @@ User gave **"go"** 2026-07-06. Actioned:
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
 - **F88 lane PARKED READY (2026-07-13, F88 session) — starts only AFTER the F83-pin lane
-  MERGES (user-decided, interactive, spec D5 — against assistant lean; not AFK).** Spec
+  MERGES (user-approved, interactive, spec D5 — against assistant lean; not AFK).** Spec
   `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`
   (+ D5 amendment `3c27774`), plan
   `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). Will claim

@@ -46,3 +46,8 @@ def validate_request(req: FetchRequest, registry: dict,
             if host == dom or host.endswith("." + dom):
                 return f"paywalled/licensed domain refused: {host} (Part 22)"
     return None
+
+
+def build_argv(tool: dict, req: FetchRequest) -> list[str]:
+    template = tool["fetchVerbs"][req.verb]["argv"]
+    return [req.target if slot == "{target}" else slot for slot in template]

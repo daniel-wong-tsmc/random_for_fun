@@ -57,3 +57,18 @@ def test_userinfo_host_is_not_a_bypass():
 def test_lookalike_domains_are_not_over_refused():
     for url in ("https://nottrendforce.com/r", "https://trendforce.com.evil.com/r"):
         assert validate_request(_req(target=url), REGISTRY, REFUSED) is None
+
+def test_build_argv_substitutes_target_as_single_element():
+    from gpu_agent.gathering.webreach import build_argv
+    tool = REGISTRY["tools"][0]
+    argv = build_argv(tool, _req(target="https://e.com/a?b=1&c=2;rm -rf /"))
+    assert argv == ["agent-reach", "read", "https://e.com/a?b=1&c=2;rm -rf /"]
+    assert len(argv) == 3  # metacharacters stay INSIDE one argv element
+
+def test_build_argv_never_splits_or_formats_other_slots():
+    from gpu_agent.gathering.webreach import build_argv
+    tool = {"id": "t", "enabled": True,
+            "fetchVerbs": {"read": {"argv": ["t", "read", "{target}", "--flag{x}"],
+                                     "kind": "url"}}}
+    argv = build_argv(tool, FetchRequest(toolId="t", verb="read", target="https://e.com"))
+    assert argv == ["t", "read", "https://e.com", "--flag{x}"]  # only {target}, verbatim slots otherwise

@@ -35,7 +35,11 @@
       "invokeHint": "agent-reach <verb> <target>   # e.g. read <url>, search <query>, twitter/reddit/youtube ...",
       "capabilities": ["web", "search", "twitter", "reddit", "youtube", "github", "bilibili", "xiaohongshu", "rss"],
       "defaultTier": "secondary",
-      "notes": "FETCH role — unified internet-access CLI; auto-fallback backends; zero mandatory API fees. Returns raw content ingested as secondary blobs. Credentials local-only."
+      "notes": "FETCH role — unified internet-access CLI; auto-fallback backends; zero mandatory API fees. Returns raw content ingested as secondary blobs. Credentials local-only.",
+      "fetchVerbs": {
+        "read":   {"argv": ["agent-reach", "read", "{target}"],   "kind": "url"},
+        "search": {"argv": ["agent-reach", "search", "{target}"], "kind": "query"}
+      }
     },
     {
       "id": "last30days",
@@ -92,7 +96,10 @@
       "invokeHint": "crwl <url> -o markdown   # headless-browser crawl -> clean markdown; -o json|markdown-fit|all, -q <question>",
       "capabilities": ["web", "crawl", "markdown", "javascript-render", "deep-crawl", "structured-extract"],
       "defaultTier": "secondary",
-      "notes": "FETCH role - LLM-friendly crawler that renders pages in a managed headless browser (Chromium via Playwright), so it reaches JavaScript / dynamic pages agent-reach's Jina-Reader path cannot. Returns clean markdown ingested as secondary blobs: confidence-capped, gated, and chased toward a primary like any open-web page. The paywalled boundary still holds - never point crwl at licensed/inventoried sources (SemiAnalysis, TrendForce, ...). Install via pipx (isolated) + crawl4ai-setup (downloads Chromium); healthCmd is a fast console-script presence check that does not launch a browser."
+      "notes": "FETCH role - LLM-friendly crawler that renders pages in a managed headless browser (Chromium via Playwright), so it reaches JavaScript / dynamic pages agent-reach's Jina-Reader path cannot. Returns clean markdown ingested as secondary blobs: confidence-capped, gated, and chased toward a primary like any open-web page. The paywalled boundary still holds - never point crwl at licensed/inventoried sources (SemiAnalysis, TrendForce, ...). Install via pipx (isolated) + crawl4ai-setup (downloads Chromium); healthCmd is a fast console-script presence check that does not launch a browser.",
+      "fetchVerbs": {
+        "crawl": {"argv": ["crwl", "{target}", "-o", "markdown"], "kind": "url"}
+      }
     }
   ]
 }

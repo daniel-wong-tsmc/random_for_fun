@@ -1,0 +1,425 @@
+diff --git a/fixtures/evals/cases/implication-2026-07-90.json b/fixtures/evals/cases/implication-2026-07-90.json
+new file mode 100644
+index 0000000..7c1e696
+--- /dev/null
++++ b/fixtures/evals/cases/implication-2026-07-90.json
+@@ -0,0 +1,200 @@
++{
++  "caseId": "implication-2026-07-90",
++  "seam": "implication",
++  "kind": "negative",
++  "source": "Degraded hand-written counterpart of implication-2026-07-01 (same input scorecard/book): recommendation-verb action lines (should/must/recommend/suggest/hedge) and uncited assertions.",
++  "input": {
++    "scorecard": {
++      "categoryId": "chips.merchant-gpu",
++      "asOf": "2026-07",
++      "findings": [
++        {
++          "id": "introl-com-ef18d500-4",
++          "statement": "TSMC reported 100% capacity utilization for its 3nm node in H1 2026, with demand roughly three times available supply.",
++          "kind": "measured",
++          "value": {
++            "number": 100.0,
++            "unit": "percent"
++          },
++          "trend": "unknown",
++          "why": "Leading-edge foundry capacity is the binding upstream constraint on both GPU and custom-ASIC output.",
++          "impact": {
++            "targets": [
++              "chips.foundry-packaging",
++              "chips.merchant-gpu",
++              "chips.hyperscaler-asic"
++            ],
++            "direction": "negative",
++            "mechanism": "Full 3nm utilization with 3x oversubscription caps shippable advanced-chip volume."
++          },
++          "evidence": [
++            {
++              "source": "introl.com",
++              "url": "https://introl.com/blog/custom-silicon-inflection-2026-hyperscaler-asics-nvidia-gpu",
++              "date": "2026-02-23",
++              "excerpt": "TSMC reported 100% capacity utilization for its 3nm node in H1 2026, with demand running approximately three times higher than available supply.",
++              "tier": "secondary"
++            }
++          ],
++          "reasoning": null,
++          "confidence": {
++            "level": "medium",
++            "basis": "secondary industry roundup"
++          },
++          "dispersion": null,
++          "asOf": "2026-07",
++          "indicatorId": "S10",
++          "side": "supply",
++          "polarityDemand": 0,
++          "polaritySupply": -1,
++          "magnitude": 3,
++          "entity": "market",
++          "observedAt": "2026-02-23",
++          "capturedAt": "2026-07-03T12:54:01Z",
++          "extractionModel": "claude-opus-4-8",
++          "schemaVersion": "1.2"
++        },
++        {
++          "id": "nvidianews-nvidia-com-7b7a02ff-1",
++          "statement": "NVIDIA Data Center revenue was a record $75.2 billion in Q1 FY2027, up 92% year over year and 21% sequentially.",
++          "kind": "measured",
++          "value": {
++            "number": 75.2,
++            "unit": "USD billion"
++          },
++          "trend": "rising",
++          "why": "Record Data Center revenue growth quantifies the scale and pace of AI infrastructure demand.",
++          "impact": {
++            "targets": [
++              "chips.merchant-gpu",
++              "infrastructure.hyperscale-cloud",
++              "infrastructure.neocloud"
++            ],
++            "direction": "positive",
++            "mechanism": "Blackwell-led data-center sales drive merchant-GPU revenue and reflect hyperscale/neocloud buildout."
++          },
++          "evidence": [
++            {
++              "source": "nvidianews.nvidia.com",
++              "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
++              "date": "2026-05-20",
++              "excerpt": "First-quarter revenue was a record $75.2 billion, up 21% from the previous quarter and up 92% from a year ago.",
++              "tier": "secondary"
++            }
++          ],
++          "reasoning": null,
++          "confidence": {
++            "level": "medium",
++            "basis": "secondary company press release"
++          },
++          "dispersion": null,
++          "asOf": "2026-07",
++          "indicatorId": "D2",
++          "side": "demand",
++          "polarityDemand": 1,
++          "polaritySupply": 0,
++          "magnitude": 3,
++          "entity": "nvidia",
++          "observedAt": "2026-05-20",
++          "capturedAt": "2026-07-03T12:54:01Z",
++          "extractionModel": "claude-opus-4-8",
++          "schemaVersion": "1.2"
++        }
++      ],
++      "dimensionRatings": {
++        "bottleneck": {
++          "rating": "Strong",
++          "direction": "steady",
++          "confidence": {
++            "level": "medium",
++            "basis": "3 votes"
++          },
++          "findingIds": [
++            "introl-com-ef18d500-4"
++          ],
++          "rationale": "Foundry and packaging capacity is the binding cap on shippable supply."
++        },
++        "momentum": {
++          "rating": "Very strong",
++          "direction": "improving",
++          "confidence": {
++            "level": "medium",
++            "basis": "3 votes"
++          },
++          "findingIds": [
++            "nvidianews-nvidia-com-7b7a02ff-1"
++          ],
++          "rationale": "Record datacenter revenue shows demand outrunning supply."
++        }
++      },
++      "demandSupply": {
++        "dmiContribution": 0.62,
++        "smiContribution": 0.31
++      },
++      "narrative": "Demand outruns a supply ceiling set by advanced packaging and leading-edge foundry capacity.",
++      "confidence": {
++        "level": "medium",
++        "basis": "3 votes"
++      },
++      "categoryStatus": {
++        "rating": "Strong",
++        "direction": "improving",
++        "bottleneck": "advanced packaging and leading-edge foundry capacity",
++        "reason": "Demand momentum outruns the supply ramp.",
++        "constraintLabel": "advanced packaging and foundry capacity"
++      }
++    },
++    "book": {
++      "categoryId": "chips.merchant-gpu",
++      "entries": [
++        {
++          "id": "nvda-demand-durability",
++          "title": "NVDA demand durability",
++          "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
++          "lens": "demand",
++          "status": "registered",
++          "conviction": "high",
++          "lastVerdict": "strengthened",
++          "lastDirection": 1,
++          "pendingChallenge": null,
++          "streak": 1,
++          "mechanism": "Booked orders, financed deployments and multi-GW campus commitments accumulate faster than NVIDIA can ship, sustaining a demand overhang.",
++          "falsifiableTrigger": "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters.",
++          "sensitivity": "Hyperscaler and AI-cloud capex plans and the pace of Vera Rubin supply ramp.",
++          "createdAsOf": "2026-07-03",
++          "lastChangedAsOf": "2026-07-03",
++          "lastJudgedAsOf": "2026-07-03",
++          "provenance": "seeded"
++        },
++        {
++          "id": "supply-constraint-binding",
++          "title": "Supply constraint binding",
++          "statement": "Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.",
++          "lens": "supply",
++          "status": "registered",
++          "conviction": "medium",
++          "lastVerdict": "reaffirmed",
++          "lastDirection": 0,
++          "pendingChallenge": null,
++          "streak": 1,
++          "mechanism": "Advanced-packaging (CoWoS) and HBM capacity gate how much wafer and demand can be converted into shippable accelerators, so realizable revenue tracks packaging/HBM output.",
++          "falsifiableTrigger": "CoWoS/HBM leadTimes normalize to historical norms for 2 consecutive quarters while demand indicators stay positive.",
++          "sensitivity": "Packaging (Amkor/TSMC) and HBM capacity additions relative to the Vera Rubin ramp.",
++          "createdAsOf": "2026-07-03",
++          "lastChangedAsOf": "2026-07-03",
++          "lastJudgedAsOf": "2026-07-03",
++          "provenance": "seeded"
++        }
++      ]
++    },
++    "category": "chips.merchant-gpu",
++    "memoryText": null
++  },
++  "recordedAnswer": "{\"lines\": [{\"watchItem\": \"TSMC should accelerate advanced-packaging expansion and must lock in wafer pricing now.\", \"dimensions\": [\"bottleneck\"], \"thesisIds\": [], \"findingIds\": []}, {\"watchItem\": \"We recommend hedging leading-node customer concentration and suggest raising prices next quarter.\", \"dimensions\": [], \"thesisIds\": [], \"findingIds\": []}, {\"watchItem\": \"Demand is strong.\", \"dimensions\": [], \"thesisIds\": [], \"findingIds\": []}]}",
++  "checks": {
++    "mustMention": [],
++    "citationsResolve": false,
++    "gateOutcome": "reject"
++  },
++  "notes": "Calibration negative: the exact archetypes the F65 gate and charter Part 21 ban — lines that tell TSMC what to do (should/must/recommend/suggest/hedge) and lines that cite nothing. The deterministic gate rejects this answer; a calibrated grader must also score it in the bottom half (0s on exposure-not-recommendation and citation-discipline; 'Demand is strong.' is too vague to inform any decision)."
++}
+diff --git a/fixtures/evals/hash-input.json b/fixtures/evals/hash-input.json
+index 30d6db0..a2f5a1a 100644
+--- a/fixtures/evals/hash-input.json
++++ b/fixtures/evals/hash-input.json
+@@ -11,6 +11,113 @@
+       "url": "http://sec/nvda"
+     }
+   },
++  "implication": {
++    "book": {
++      "categoryId": "chips.merchant-gpu",
++      "entries": [
++        {
++          "conviction": "medium",
++          "createdAsOf": "2026-06",
++          "falsifiableTrigger": "Backlog growth falls below shipment growth for 2 consecutive quarters.",
++          "id": "nvda-demand-durability",
++          "lastChangedAsOf": "2026-06",
++          "lastDirection": 0,
++          "lastJudgedAsOf": "",
++          "lastVerdict": null,
++          "lens": "demand",
++          "mechanism": "Backlog grows faster than shipments.",
++          "pendingChallenge": null,
++          "provenance": "seeded",
++          "sensitivity": "Hyperscaler capex plans.",
++          "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
++          "status": "registered",
++          "streak": 0,
++          "title": "NVDA demand durability"
++        }
++      ]
++    },
++    "category": "chips.merchant-gpu",
++    "memoryText": null,
++    "scorecard": {
++      "asOf": "2026-06",
++      "categoryId": "chips.merchant-gpu",
++      "categoryStatus": {
++        "bottleneck": "advanced packaging",
++        "direction": "improving",
++        "rating": "Strong",
++        "reason": "Demand momentum outruns the supply ramp."
++      },
++      "confidence": {
++        "basis": "3 votes",
++        "level": "medium"
++      },
++      "demandSupply": {
++        "dmiContribution": 0.5,
++        "smiContribution": 0.3
++      },
++      "dimensionRatings": {
++        "momentum": {
++          "confidence": {
++            "basis": "3 votes",
++            "level": "medium"
++          },
++          "direction": "improving",
++          "findingIds": [
++            "doc-nvda-1"
++          ],
++          "rating": "Strong",
++          "rationale": "Datacenter revenue keeps rising."
++        }
++      },
++      "findings": [
++        {
++          "asOf": "2026-06",
++          "capturedAt": "2026-06-12",
++          "confidence": {
++            "basis": "primary filing",
++            "level": "high"
++          },
++          "dispersion": null,
++          "entity": "NVDA",
++          "evidence": [
++            {
++              "date": "2026-05-01",
++              "excerpt": "...",
++              "source": "NVIDIA 10-Q",
++              "tier": "primary",
++              "url": "http://sec/nvda"
++            }
++          ],
++          "extractionModel": "claude-opus-4-8",
++          "id": "doc-nvda-1",
++          "impact": {
++            "direction": "positive",
++            "mechanism": "Rising datacenter revenue lifts merchant-GPU demand.",
++            "targets": [
++              "chips.merchant-gpu"
++            ]
++          },
++          "indicatorId": "D2",
++          "kind": "measured",
++          "magnitude": 2,
++          "observedAt": "2026-05-01",
++          "polarityDemand": 1,
++          "polaritySupply": 0,
++          "reasoning": null,
++          "schemaVersion": "1.2",
++          "side": "demand",
++          "statement": "Data center revenue grew 8% sequentially on the Blackwell ramp.",
++          "trend": "rising",
++          "value": {
++            "number": 8.0,
++            "unit": "percent"
++          },
++          "why": "Sequential growth shows demand pull."
++        }
++      ],
++      "narrative": "Demand outruns supply."
++    }
++  },
+   "judge": {
+     "category": "chips.merchant-gpu",
+     "findings": [
+@@ -303,4 +410,4 @@
+     ],
+     "memoryText": null
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/gpu_agent/evals/emit.py b/gpu_agent/evals/emit.py
+index 180f13b..795a34e 100644
+--- a/gpu_agent/evals/emit.py
++++ b/gpu_agent/evals/emit.py
+@@ -87,4 +87,5 @@ def load_hash_input(path: pathlib.Path) -> dict:
+         "extract": ExtractInput.model_validate(raw["extract"]),
+         "judge": JudgeInput.model_validate(raw["judge"]),
+         "thesis": ThesisInput.model_validate(raw["thesis"]),
++        "implication": ImplicationInput.model_validate(raw["implication"]),
+     }
+diff --git a/gpu_agent/evals/prompt_hash.py b/gpu_agent/evals/prompt_hash.py
+index 41e1132..d4318f1 100644
+--- a/gpu_agent/evals/prompt_hash.py
++++ b/gpu_agent/evals/prompt_hash.py
+@@ -12,7 +12,7 @@ from gpu_agent.evals.emit import emit_brain_bundle, load_hash_input
+ def compute_prompt_hashes(registry, taxonomy, hash_input_path: pathlib.Path) -> dict[str, str]:
+     inputs = load_hash_input(hash_input_path)
+     hashes: dict[str, str] = {}
+-    for seam in ("extract", "judge", "thesis"):
++    for seam in ("extract", "judge", "thesis", "implication"):
+         bundle = emit_brain_bundle(seam, inputs[seam], registry, taxonomy)
+         canonical = json.dumps(bundle, sort_keys=True, ensure_ascii=False)
+         hashes[seam] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+diff --git a/tests/test_evals_baseline_pin.py b/tests/test_evals_baseline_pin.py
+index 21ca782..8f34373 100644
+--- a/tests/test_evals_baseline_pin.py
++++ b/tests/test_evals_baseline_pin.py
+@@ -28,13 +28,14 @@ def test_prompt_hashes_match_baseline():
+ 
+ def test_baseline_integrity():
+     b = load_baseline(BASELINE)
++    seams = {"extract", "judge", "thesis", "implication"}   # F65: implication joined at re-gate
+     assert b["schemaVersion"] == 2
+-    assert set(b["promptHashes"]) == {"extract", "judge", "thesis"}
++    assert set(b["promptHashes"]) == seams
+     assert len(b["replicates"]) == 3
+     for rep in b["replicates"]:
+-        assert set(rep["seamMeans"]) == {"extract", "judge", "thesis"}
++        assert set(rep["seamMeans"]) == seams
+         assert rep["cases"], "replicate has no case scores"
+-    assert set(b["seamMeans"]) == set(b["epsilon"]) == {"extract", "judge", "thesis"}
++    assert set(b["seamMeans"]) == set(b["epsilon"]) == seams
+     assert all(e > 0 for e in b["epsilon"].values())
+     assert b["caseMedians"], "baseline has no case medians"
+     prov = b["provenance"]
+diff --git a/tests/test_evals_fixture_health.py b/tests/test_evals_fixture_health.py
+index b1921f7..77f413a 100644
+--- a/tests/test_evals_fixture_health.py
++++ b/tests/test_evals_fixture_health.py
+@@ -26,14 +26,16 @@ def _reg():
+ 
+ def test_census_floors():
+     cases = _cases()
+-    by_seam = {s: [c for c in cases if c.seam == s] for s in ("extract", "judge", "thesis")}
++    by_seam = {s: [c for c in cases if c.seam == s]
++               for s in ("extract", "judge", "thesis", "implication")}
+     assert len(by_seam["extract"]) >= 5
+     assert len(by_seam["judge"]) >= 4
+     assert len(by_seam["thesis"]) >= 4
++    assert len(by_seam["implication"]) >= 2   # F65: 1 positive + 1 negative at the re-gate
+     negatives = [c for c in cases if c.kind == "negative"]
+-    assert len(negatives) >= 3
+-    assert {c.seam for c in negatives} == {"extract", "judge", "thesis"}
+-    assert len(cases) >= 15
++    assert len(negatives) >= 4
++    assert {c.seam for c in negatives} == {"extract", "judge", "thesis", "implication"}
++    assert len(cases) >= 17
+ 
+ def test_every_case_reemits():
+     registry, taxonomy = _reg()
+diff --git a/tests/test_evals_hash.py b/tests/test_evals_hash.py
+index 1340ed9..b16c444 100644
+--- a/tests/test_evals_hash.py
++++ b/tests/test_evals_hash.py
+@@ -20,7 +20,7 @@ def _reg():
+ def test_emit_bundles_have_prompt_parts():
+     registry, taxonomy = _reg()
+     inputs = load_hash_input(HASH_INPUT)
+-    for seam in ("extract", "judge", "thesis"):
++    for seam in ("extract", "judge", "thesis", "implication"):
+         bundle = emit_brain_bundle(seam, inputs[seam], registry, taxonomy)
+         assert set(bundle) == {"system", "schema", "user"}, seam
+         assert isinstance(bundle["system"], str) and bundle["system"]
+@@ -32,8 +32,8 @@ def test_hashes_deterministic_and_per_seam():
+     h1 = compute_prompt_hashes(registry, taxonomy, HASH_INPUT)
+     h2 = compute_prompt_hashes(registry, taxonomy, HASH_INPUT)
+     assert h1 == h2
+-    assert set(h1) == {"extract", "judge", "thesis"}
+-    assert len(set(h1.values())) == 3          # seams differ
++    assert set(h1) == {"extract", "judge", "thesis", "implication"}
++    assert len(set(h1.values())) == 4          # seams differ
+     assert all(len(v) == 64 for v in h1.values())
+ 
+ def test_judge_user_prompt_carries_citation_groups():

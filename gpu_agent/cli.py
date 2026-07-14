@@ -3,9 +3,9 @@ import argparse, json, pathlib, re, sys
 from datetime import datetime, timezone
 from pydantic import ValidationError
 from gpu_agent.assignment import load_assignment
-from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH
+from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH, IMPLICATIONS_REGISTRY_PATH
 from gpu_agent.schema.finding import Finding, Confidence
-from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus
+from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus, DIMENSIONS
 from gpu_agent.schema.raw_document import RawDocument
 from gpu_agent.extraction.extractor import extract_findings
 from gpu_agent.extraction.extractor import ExtractionResult
@@ -30,8 +30,11 @@ from gpu_agent.judgment.prompt import (
     build_user_prompt as build_judge_user_prompt)
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.thesis import (
-    ThesisAnswer, ThesisStore, apply_answer, gate_answer, seed_book,
+    ThesisAnswer, ThesisBook, ThesisStore, apply_answer, gate_answer, seed_book,
     THESIS_SYSTEM, build_thesis_system, build_thesis_user_prompt)
+from gpu_agent.implication import (
+    ImplicationAnswer, ImplicationArtifact, ImplicationRegistry, ImplicationStore,
+    ImplicationError, build_implication_system, build_implication_user_prompt, gate_implication)
 from gpu_agent.memory import build_memory_bundle, render_memory_text
 from gpu_agent.sufficiency import check_sufficiency
 from gpu_agent.gathering.ingest import normalize_documents
@@ -597,6 +600,70 @@ def _thesis(args) -> int:
           file=sys.stderr)
     return 2
 
+def _implication(args) -> int:
+    """Handler for `gpu-agent implication` (F65): emit the canonical "so what for TSMC" prompt
+    (decision variables + FINAL gated scorecard + standing thesis book + prior-cycle MEMORY),
+    or gate + store a recorded answer. Mirrors thesis's emit->recorded pattern; ONE author,
+    no sampling. A parse or gate failure exits 1 and never writes (the store stays unchanged).
+
+    Steps: load the scorecard; require --category to match its categoryId; load the registry
+    decision variables, the standing thesis book (empty when unseeded), and the memory bundle.
+    --emit-prompt prints system/schema/user, exit 0. --recorded parses -> gates -> writes the
+    artifact -> prints a summary, exit 0. Neither flag exits 2.
+    """
+    try:
+        sc = load_scorecard(pathlib.Path(args.scorecard))
+    except (ValueError, FileNotFoundError) as e:
+        print(f"gpu-agent implication: error: {e}", file=sys.stderr)
+        return 1
+    if sc.categoryId != args.category:
+        print(f"gpu-agent implication: error: --category {args.category!r} does not match "
+              f"scorecard categoryId {sc.categoryId!r}", file=sys.stderr)
+        return 2
+
+    variables = ImplicationRegistry.load(IMPLICATIONS_REGISTRY_PATH).variables_for(args.category)
+
+    tstore = ThesisStore(pathlib.Path(args.store) / "theses" / args.category)
+    book = tstore.load() if tstore.exists() else ThesisBook(categoryId=args.category)
+
+    registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
+    memory = build_memory_bundle(args.store, args.category, args.as_of, registry, horizons)
+    memory_text = render_memory_text(memory) if memory is not None else None
+
+    if args.emit_prompt:
+        bundle = {
+            "system": build_implication_system(),
+            "schema": ImplicationAnswer.model_json_schema(),
+            "user": build_implication_user_prompt(variables, sc, book, memory_text),
+        }
+        print(json.dumps(bundle, indent=2))
+        return 0
+
+    if args.recorded:
+        try:
+            answer = ImplicationAnswer.model_validate_json(
+                pathlib.Path(args.recorded).read_text("utf-8"))
+        except ValidationError as e:
+            print(f"gpu-agent implication: error: invalid recorded answer: {e}", file=sys.stderr)
+            return 1
+        violations = gate_implication(
+            answer, findings_by_id={f.id: f for f in sc.findings},
+            thesis_ids={e.id for e in book.standing()}, dimensions=set(DIMENSIONS))
+        if violations:
+            print("IMPLICATION GATE FAILED:", *violations, sep="\n  ", file=sys.stderr)
+            return 1
+        store = ImplicationStore(pathlib.Path(args.store) / "implications" / args.category)
+        artifact = ImplicationArtifact(categoryId=sc.categoryId, asOf=args.as_of,
+                                       lines=answer.lines)
+        path = store.write(artifact)
+        print(f"wrote {path}  {len(artifact.lines)} implication line(s)")
+        return 0
+
+    print("gpu-agent implication: error: exactly one of --emit-prompt or --recorded is required",
+          file=sys.stderr)
+    return 2
+
 def _eval(args) -> int:
     """F6 eval harness driver. Emit/record cycle mirrors extract/judge/thesis; run-dir files
     (brain-prompts/brain-answers/brain-gates/grade-prompts/grade-answers/report.json) are the
@@ -624,6 +691,15 @@ def _eval(args) -> int:
         vp = pathlib.Path(args.runs[-1]) / "verdict.json"
         vp.write_text(json.dumps(v, indent=2, sort_keys=True), "utf-8")
         print(f"{v['decision'].upper()}  -> {vp}")
+        # F65g seam-scoped verdicts: show each seam's standing so an informational
+        # (hash-identical) or new seam is never mistaken for a gated one.
+        for seam, info in sorted(v.get("seams", {}).items()):
+            if info.get("new"):
+                print(f"  {seam}: {info['value']:.3f}  "
+                      "[new seam - no bar; gated at first rebaseline]")
+            else:
+                tag = "gated" if info.get("gated") else "informational (hash-identical)"
+                print(f"  {seam}: {info['value']:.3f} vs bar {info['bar']:.3f}  [{tag}]")
         for r in v["reasons"]:
             print(f"  - {r}")
         return 0 if v["pass"] else 1
@@ -953,6 +1029,17 @@ def _report(args) -> int:
         thesis_book = tstore.load()
         thesis_last_findings = _latest_thesis_findings(tstore.history_path)
 
+    # F65: the FOR TSMC section is a pure projection of this cycle's stored implication
+    # artifact. Absent artifact -> None -> honest empty state ("no implication recorded this
+    # cycle"). A malformed/missing file raises ImplicationError from load(); we degrade to the
+    # empty state rather than sink the whole brief on it.
+    istore = ImplicationStore(pathlib.Path(args.store) / "implications" / sc.categoryId)
+    implications = None
+    try:
+        implications = istore.load(sc.asOf)
+    except ImplicationError:
+        implications = None
+
     prior = None
     if not args.no_prior:
         if args.prior:
@@ -1032,7 +1119,7 @@ def _report(args) -> int:
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
                          daily=getattr(args, "daily", False), gate_waivers=gate_waivers,
-                         change=change, state=state, alert=alert)
+                         change=change, state=state, alert=alert, implications=implications)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -1211,6 +1298,14 @@ def main(argv=None) -> int:
                     help="seed file path for a first run (default: registry/theses.<category>.json)")
     th.add_argument("--persona", default=None,
                     help="analyst persona for the emitted system prompt (default: GPU market)")
+    im = sub.add_parser("implication")
+    im.add_argument("--scorecard", required=True, help="path to the FINAL gated scorecard JSON")
+    im.add_argument("--store", default="store", help="store root (holds theses/, implications/)")
+    im.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
+    im.add_argument("--as-of", required=True, type=_as_of)
+    im.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical implication prompt + schema (no LLM) and exit")
+    im.add_argument("--recorded", default=None, help="path to a recorded ImplicationAnswer JSON")
     ev = sub.add_parser("eval", help="F6 eval harness: golden-set emit/record + rebaseline")
     ev.add_argument("action", choices=["emit-brain", "record-brain", "emit-grade",
                                        "record-grade", "verdict", "rebaseline"])
@@ -1333,6 +1428,15 @@ def main(argv=None) -> int:
             return _thesis(args)
         except RegistryError as e:
             print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+    if args.cmd == "implication":
+        try:
+            return _implication(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+        except ImplicationError as e:
+            print(f"IMPLICATION ERROR: {e}", file=sys.stderr)
             return 1
     if args.cmd == "eval":
         try:

@@ -11,6 +11,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from gpu_agent.schema.finding import Finding
 from gpu_agent.schema.raw_document import RawDocument
+from gpu_agent.schema.scorecard import Scorecard
 from gpu_agent.thesis import ThesisBook
 
 
@@ -38,7 +39,16 @@ class ThesisInput(BaseModel):
     memoryText: Optional[str] = None
 
 
-_SEAM_INPUT = {"extract": ExtractInput, "judge": JudgeInput, "thesis": ThesisInput}
+class ImplicationInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    scorecard: Scorecard
+    book: ThesisBook
+    category: str
+    memoryText: Optional[str] = None
+
+
+_SEAM_INPUT = {"extract": ExtractInput, "judge": JudgeInput, "thesis": ThesisInput,
+               "implication": ImplicationInput}
 
 
 class CaseChecks(BaseModel):
@@ -51,7 +61,7 @@ class CaseChecks(BaseModel):
 class EvalCase(BaseModel):
     model_config = ConfigDict(extra="forbid")
     caseId: str
-    seam: Literal["extract", "judge", "thesis"]
+    seam: Literal["extract", "judge", "thesis", "implication"]
     kind: Literal["positive", "negative"]
     source: str
     input: dict

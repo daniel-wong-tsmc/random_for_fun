@@ -13,6 +13,7 @@ store/*
 !store/findings/
 !store/seen_docs.jsonl
 !store/theses/
+!store/implications/
 work/
 blobs.json
 .worktrees/

@@ -1,5 +1,30 @@
 # HANDOFF — GPU Category Agent (resume point: **F78 CLOSED + F56 MERGED** 2026-07-13 — stage 6 `77708f3` (user-directed) then F56 `0c49d6a` (clean rebase, zero conflicts); `main == origin/main == 0c49d6a` after the close-out doc commit, suite **1346/5**, eval pin green. The change-first daily brief + exec top band + alert ladder + dashboard parity are live (`gpu-agent report --change-first`); all 10 `--as-of` CLI seams validate loud. Every wave-1/wave-2 lane is now MERGED (F23/F24-s1/F25/F56/F72-v1.4.1/F80/F87 + F78 closing F64/F77). Next: the **F79 interactive brainstorm** — user + orchestrator, per the standing rule — then F65, F66, F24 stage 2, the F81–F86 wave. Housekeeping open: retire ~9 merged worktrees/branches (user's call), skipped-days decision, repo rename, F23-A4 label.)
 
+- **Date: 2026-07-14 — DAILY CYCLE RAN (scheduled headless) `category:chips.merchant-gpu`.**
+  Scorecard `store/chips.merchant-gpu/2026-07-v7.json` — **Strong / steady, DMI 1.287 · SMI 0.287**
+  (SDGI 1.000; binding constraint HBM3E/HBM4 memory supply; 6/6 dimensions grounded; momentum Very
+  strong, unitEconomics Strong, rest Mixed; supply track notched ACCELERATING→FIRM; WHAT-MOVED empty,
+  same-asOf prior v6). Live daily sweep: 10 docs, corpus merged 76 (fresh 7 new / 5 update / 5 duplicate,
+  L1 droppedKnown 0); extract 17 findings 0 dropped; 3 tool-less Opus judge samples; thesis 19/19
+  applied + 2 provisional proposed. Committed+pushed **`2013d87`** (store artifacts + cycle log);
+  `main == origin/main`, suite **1420/5**, F6 pin + F83 conformance green. Full journal + AFK-defaults
+  in `store/cycle-log.json`.
+  **AFK-defaults (scheduled headless — re-surface for the user):** (1) reconciled an orphaned
+  uncommitted 2026-07-13 `seen_docs` delta forward as its own recovery commit **`d3fb9f3`** before
+  starting — verified NOT another instance mid-run (no lock, no store/ writes today, isolated f65
+  worktree lane already DONE) and `git pull --ff-only` clean, so proceeded rather than STOP; (2) this
+  harness exposes no per-dispatch tool allowlist and no tools-restricted gatherer/brain agent type, so
+  the F88 gatherer no-Bash injection wall and the tool-less extract/judge/thesis brains were enforced
+  BEHAVIOURALLY via explicit no-tool-use prompts (every brain returned `tool_uses=0`; deterministic
+  gate remained the backstop; `model: opus` pinned on all brain dispatches); (3) a `route_findings`
+  same-asOf re-fetch finding-id collision (F52 class — lambda.ai/pricing + BIS notice re-fetched within
+  asOf 2026-07) was resolved via the F52-precedent LOGGED wiki-ingest exclusion of the 2 colliders
+  (`work/daily-2026-07-14/ingest-exclusions.json`) after rolling back a half-applied write-back — no
+  committed finding edited/deleted, collision check not weakened; (4) discovery-role `last30days` pass
+  and the formal `compute_coverage_gaps` step were not separately run (bounded daily top-up; gatherer
+  WebSearch covered recency discovery; manifest paywalled TrendForce/SemiAnalysis logged as gaps, never
+  fetched).
+
 - **Date: 2026-07-13 — F78 STAGE 6 MERGED (`77708f3`, pushed).** User-directed interactively
   ("merge into main"). No rebase needed on the post-merge-train main: ONE conflict
   (docs/fix-backlog.md, both sides appended sections — resolved keep-both), everything else

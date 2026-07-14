@@ -1,0 +1,43 @@
+{
+  "id": "www-forbes-com-7c91863a-2026-07-2",
+  "statement": "The top three CoWoS clients account for over 85% of TSMC output, with Nvidia at ~60% (~595,000 wafers) and AMD ~11% (~105,000 wafers) - extreme customer concentration in AI-accelerator packaging.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Concentration of CoWoS allocation among the top three clients means smaller customers face severe packaging-supply constraints and the supply chain carries single-vendor dependence risk.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.merchant-gpu",
+      "chips.hbm-memory"
+    ],
+    "direction": "mixed",
+    "mechanism": "Highly concentrated packaging allocation secures supply for the top clients while constraining rivals and concentrating supply-chain risk."
+  },
+  "evidence": [
+    {
+      "source": "Forbes",
+      "url": "https://www.forbes.com/sites/greatspeculations/2026/07/13/will-tsmcs-capacity-crunch-derail-the-amd-stock-rally/",
+      "date": "2026-07-13",
+      "excerpt": "the top three CoWoS clients combined account for 'over 85% of total output'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Forbes); reported wafer/share figures, not filing-grade."
+  },
+  "dispersion": "conflicting same-key reports: statement/trend changed (trend rising -> rising); sources: Forbes",
+  "asOf": "2026-07",
+  "indicatorId": "customerConcentration",
+  "side": "structural",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-07-13",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

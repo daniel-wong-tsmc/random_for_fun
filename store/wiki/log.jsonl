@@ -101,3 +101,15 @@
 {"seq":100,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"finance-yahoo-com-acf60faa-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":101,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"compute-exchange-50e44183-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
 {"seq":102,"asOf":"2026-07","kind":"append-observation","pageId":"entity:nvidia","findingId":"compute-exchange-50e44183-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":103,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-forbes-com-7c91863a-2026-07-3","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":104,"asOf":"2026-07","kind":"append-observation","pageId":"entity:amd","findingId":"www-forbes-com-7c91863a-2026-07-4","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":105,"asOf":"2026-07","kind":"create-page","pageId":"entity:coreweave","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":106,"asOf":"2026-07","kind":"append-observation","pageId":"entity:coreweave","findingId":"www-fool-com-1f532293-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":107,"asOf":"2026-07","kind":"append-observation","pageId":"entity:coreweave","findingId":"www-fool-com-1f532293-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":108,"asOf":"2026-07","kind":"create-page","pageId":"entity:intc","findingId":null,"state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":109,"asOf":"2026-07","kind":"append-observation","pageId":"entity:intc","findingId":"newsroom-intel-com-297a8b5b-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":110,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"intuitionlabs-ai-f3e1fa32-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":111,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-forbes-com-335e62f0-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":112,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-digitimes-com-8f3d0347-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":113,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-forbes-com-7c91863a-2026-07-2","state":null,"trajectory":null,"salience":null,"detail":""}
+{"seq":114,"asOf":"2026-07","kind":"append-observation","pageId":"entity:multi","findingId":"www-forbes-com-7c91863a-2026-07-1","state":null,"trajectory":null,"salience":null,"detail":""}

@@ -1,0 +1,42 @@
+{
+  "id": "www-digitimes-com-8f3d0347-2026-07-1",
+  "statement": "Chinese AI labs (Zhipu AI, DeepSeek) are pursuing custom AI/inference ASICs to reduce reliance on Nvidia (and Huawei) GPUs, though viable in-house silicon is estimated to be more than two years out.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A broadening shift by top Chinese AI labs toward proprietary silicon, driven by surging inference demand and tightening export controls, points to long-run erosion of Nvidia's addressable China GPU demand and rising custom-ASIC competition.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.hyperscaler-asic"
+    ],
+    "direction": "mixed",
+    "mechanism": "Custom in-house ASICs are an alternative to merchant GPUs; more Chinese labs building them narrows Nvidia's China customer base while growing alternative silicon supply."
+  },
+  "evidence": [
+    {
+      "source": "DigiTimes",
+      "url": "https://www.digitimes.com/news/a20260708VL206/china-asic-chips-design-huawei-nvidia.html",
+      "date": "2026-07-08",
+      "excerpt": "DeepSeek is separately reported to be developing an in-house inference processor explicitly aimed at reducing reliance on BOTH Nvidia and Huawei hardware.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary coverage of one story (DigiTimes headline plus BigGo Finance and tech360tv corroboration); forward-looking, no partner selected, ASIC 2+ years out."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": -1,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-07-08",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

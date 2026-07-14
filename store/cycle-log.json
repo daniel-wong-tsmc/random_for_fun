@@ -1,79 +1,78 @@
 {
  "scope": "category:chips.merchant-gpu",
  "asOf": "2026-07",
- "mode": "live",
- "capturedAt": "2026-07-13T02:15:00Z",
- "note": "Second live 2026-07 cycle (v6) run same analysis month as the committed v5; monthly cadence normally uses a distinct asOf, so WHAT-MOVED vs prior shows no material moves (prior scorecard is same month) and two same-asOf price findings collided on write-back (see wikiWriteBack).",
+ "mode": "daily",
+ "capturedAt": "2026-07-14T01:29:33Z",
+ "note": "Scheduled headless daily recency sweep (2026-07-14), run same analysis month as the committed v6/v5, so WHAT-MOVED vs prior shows no material moves (prior scorecard is same month). Daily L1 dropped 0 as already-known; L2 split fresh 7 new / 5 update / 5 duplicate. Two same-asOf price/notice findings collided on write-back and were logged-and-excluded (F52 precedent, see wikiWriteBack + work/daily-2026-07-14/ingest-exclusions.json). See afkDefaults for unattended judgment calls.",
  "entries": [
   {
    "category_id": "chips.merchant-gpu",
    "assignment_path": "fixtures/asg.chips.merchant-gpu.json",
    "status": "done",
-   "scorecard": "store/chips.merchant-gpu/2026-07-v6.json",
-   "dmi": 1.127,
-   "smi": 0.420,
-   "sdgi": 0.707,
-   "runDir": "work/mgpu-2026-07-13",
+   "scorecard": "store/chips.merchant-gpu/2026-07-v7.json",
+   "dmi": 1.287,
+   "smi": 0.287,
+   "sdgi": 1.000,
+   "runDir": "work/daily-2026-07-14",
    "gather": {
-    "mode": "live",
+    "mode": "daily",
     "topUp": true,
     "cap": 10,
     "recencyDays": 7,
     "rounds": 1,
+    "maxSubagentsPerRound": 3,
     "docsIngested": 10,
-    "primaryVsSecondary": "0 primary / 10 secondary (top-up targeted open-web pricing/efficiency/share/news; no filing URLs matched manifest primaryDomains this gather)",
-    "subagents": 4,
+    "droppedKnown": 0,
+    "primaryVsSecondary": "1 primary / 9 secondary (nvidianews.nvidia.com matched manifest primaryDomains -> primary; bis.gov and newsroom.intel.com are NOT in primaryDomains so stayed secondary — conservative under-stamping, not overridden)",
+    "subagents": 3,
     "slices": [
-     "GPU cloud rental + secondary-market spot pricing (D6/gpuSpotPrice) — Lambda, RunPod, Thunder Compute, Compute Exchange",
-     "Datacenter GPU efficiency (perfPerWatt/flopsPerDollar) — Silicon Analysts, GPUAdvisor",
-     "Lead times + market share + HBM supply (leadTimes/market-share-pct/S10) — TweakTown x2",
-     "Vendor news + export controls (exportControlExposure/D2) — Reuters China H200, Forbes selloff"
+     "GPU cloud rental + spot pricing + cloud-provider ARR (D6/gpuSpotPrice/apiArr) — Lambda live pricing, IntuitionLabs H100 comparison, Motley Fool CoreWeave revenue",
+     "Vendor filings + earnings/guidance + design wins (D2/grossMargin/rpoBacklog/vendorRevenueGuidance/designWins/S9/S10) — NVIDIA Q1 FY2027 newsroom, AMD-Turing (Yahoo/Bloomberg), Intel Leixlip, Forbes TSMC Q2 preview",
+     "Market share + lead times + export controls + custom ASIC (market-share-pct/leadTimes/exportControlExposure/customerConcentration/S9/S10) — Forbes CoWoS crunch, DigiTimes China ASIC, BIS China license notice"
     ],
     "webReach": {
-     "agent-reach": "ok",
-     "last30days": "ok",
-     "crawl4ai": "ok",
-     "web(jina)": "ok",
-     "rss": "ok",
-     "bilibili": "ok",
-     "v2ex": "ok",
-     "github": "warn (gh CLI not installed — not needed for this gather)",
-     "youtube/reddit/xiaohongshu/twitter": "off (not needed for this gather)"
+     "agent-reach": {"version": "1.5.0", "pin": "1.5.0", "drift": false, "status": "ok"},
+     "last30days": {"version": "skill-present", "pin": "skill-present", "drift": false, "status": "ok"},
+     "crawl4ai": {"version": "0.9.0", "pin": "0.9.0", "drift": false, "status": "ok"},
+     "unattended": true,
+     "channels": "web(jina) ok, rss ok, bilibili ok, v2ex ok; github warn (gh CLI not installed), twitter warn, youtube/reddit/facebook/instagram/xiaohongshu/exa off — none required for this gather",
+     "licensedSourcesFetched": "none (paywalled TrendForce + SemiAnalysis-deep not fetched; free headlines only)"
     },
-    "blobs": "work/mgpu-2026-07-13/blobs.json",
-    "gatherLog": "work/mgpu-2026-07-13/docs/gather-log.json",
-    "coverageGaps": "18 required + 2 preferred source/indicator gaps from compute_coverage_gaps — expected for a top-up: covered series (D2, grossMargin, S9, customerConcentration, vendorRevenueGuidance, exportControlExposure) come from the store corpus, not this gather; several source gaps are URL-pattern mismatches where the indicator IS covered (e.g. market-share-pct via TweakTown). 2 paywalled never fetched (trendforce-gpu-tracker, semianalysis).",
-    "pursuedDespiteAge": "6 kept older than the 7-day sweep, each logged in blobs.json (Thunder Compute + Compute Exchange 12d; Silicon Analysts 91d; GPUAdvisor 120d; TweakTown Q1-share 32d; TweakTown 16-Hi HBM 197d)",
+    "blobs": "work/daily-2026-07-14/blobs.json",
+    "gatherLog": "work/daily-2026-07-14/docs/gather-log.json",
+    "coverageGaps": "Manifest paywalled expectedSources logged-and-not-fetched (is_paywalled): trendforce-gpu-tracker (~$5k/yr), semianalysis (deep channel-check). Formal compute_coverage_gaps was NOT run as a separate step this bounded daily top-up (see afkDefaults); covered series (D2, grossMargin, S9, customerConcentration, vendorRevenueGuidance, exportControlExposure, market-share-pct) come from the store corpus, not this gather.",
+    "pursuedDespiteAge": "[] — no NON-filing document older than the 7-day sweep was kept. Two kept docs are older but filing/official-primary class (sweep-exempt): nvidianews.nvidia.com Q1 FY2027 earnings (2026-05-20, latest official NVIDIA print) and bis.gov China-license notice (2026-01-13, current operative export-control policy).",
     "notableSkips": [
-     "4 cap-trims (top-up cap 10): KitGuru Q4-2025 AIB share, DIGITIMES HBM4 headline, NVIDIA Newsroom index, glennklockwood B200 spec page",
-     "2 provenance drops: Intel Gaudi 3 datasheet blob + AMD MLPerf-6.0 aggregate blob (content was search-summary paraphrase / multi-page mashup, not verbatim from one fetched page) — carried as leads",
-     "Live vast.ai pricing JS-rendered and eBay item pages timed out (carried as leads); DigiTimes CoWoS-2027 (2026-07-10) IP-blocked"
+     "maxDocuments cap 10 tripped after round 1 -> round 2 not spawned; leads carried, not chased: Vast.ai live H100/H200/B200 per-GPU prices (JS-rendered dashboard), full Federal Register 2026-00789 rule text (bot-block on direct fetch), upcoming TSMC Q2 (2026-07-16), Intel Q2 (2026-07-23), AMD Q2 (2026-08-04) earnings + AMD 'Advancing AI 2026' (2026-07-22/23), Nebius/SoftBank neocloud entrants",
+     "discovery-role last30days pass not separately invoked (bounded daily; gatherer WebSearch provided recency discovery) — see afkDefaults"
     ]
    },
    "corpus": {
-    "storeInWindow": 59,
-    "storeFaded": 21,
-    "freshNew": 9,
-    "freshUpdate": 4,
-    "duplicate": 14,
-    "merged": 72,
-    "coverageCoverage": "work/mgpu-2026-07-13/corpus-coverage.json",
-    "coverageReport": "work/mgpu-2026-07-13/corpus-report.json",
-    "pipelineReport": "work/mgpu-2026-07-13/corpus-pipeline-report.json"
+    "storeInWindow": 65,
+    "storeFaded": 26,
+    "freshNew": 7,
+    "freshUpdate": 5,
+    "duplicate": 5,
+    "merged": 76,
+    "coverageCoverage": "work/daily-2026-07-14/corpus-coverage.json",
+    "coverageReport": "work/daily-2026-07-14/corpus-report.json",
+    "pipelineReport": "work/daily-2026-07-14/corpus-pipeline-report.json",
+    "dailyDedupReport": "store/chips.merchant-gpu/dedup-2026-07.json (L2: new 7, update 5, duplicate 5)"
    },
    "answers": {
-    "extract": "work/mgpu-2026-07-13/extract-answer.json (10 doc-objects, assembled from ext_a/ext_b/ext_c/ext_d/ext_e/ext_rp.json)",
-    "judge": "work/mgpu-2026-07-13/judge-answer.json (3 independent tool-less samples at s1.json / s2.json / s3.json)",
-    "thesis": "work/mgpu-2026-07-13/thesis-answer.json"
+    "extract": "work/daily-2026-07-14/extract-answer.json (10 doc-objects; one tool-less Opus subagent, tool_uses=0)",
+    "judge": "work/daily-2026-07-14/judge-answer.json (3 independent tool-less Opus samples at judge-sample-1/2/3.json)",
+    "thesis": "work/daily-2026-07-14/thesis-answer.json (one tool-less Opus subagent)"
    },
    "gates": {
-    "extract": "27 drafts -> 27 findings gated, 0 dropped. First gate pass dropped 5 for 'excerpt not found' — cause was em-dash mojibake introduced by cp1252 default encoding when assembling extract-answer.json; fixed by re-assembling with explicit UTF-8, then 27/27 clean. 6 object-typed dispersion values coerced to strings to satisfy schema.",
-    "unregisteredEntity": "1: 'market' (F24 flag surfaced, not dropped)",
-    "voiceLint": "First pipeline pass flagged company acronyms not on registry/acronyms.json allowlist: 'ASE' (all 3 samples, bottleneck.rationale) and 'SK' (sample 3 narrative). Re-dispatched 3 separate tool-less samples to rephrase only the flagged strings (ASE->outside assemblers / Hanmi and other packaging firms; SK hynix->Hynix); all ratings unchanged; re-run clean. NO bypass.",
+    "extract": "10 doc-objects -> 17 findings gated, 0 dropped.",
+    "unregisteredEntity": "5: amd, coreweave, intc, lambda, multi (F24 flag surfaced, not dropped)",
+    "voiceLint": "First pipeline pass flagged sample 1 only: 'AI-GPU' (narrative) and 'OSAT' (bottleneck.rationale) not on registry/acronyms.json allowlist. Re-dispatched ONLY sample 1 as its own tool-less subagent to rephrase the flagged strings (AI-GPU->merchant GPU market; OSAT partners->outsourced packaging partners); all ratings/findingIds unchanged; re-run clean. NO bypass.",
     "sufficiency": "passed (no sufficiency lines emitted)",
-    "thesis": "17 standing theses judged, 0 gate rejections; 16 applied=True, 1 applied=False. pricing-power-persistence weakened APPLIED (corroborated secondary reversal, 3 distinct publishers; pending filing checkpoint). rising-memory-costs strengthened DEFERRED (secondary-only reversal, 2 distinct publishers < 3). custom-asic-substitution pending challenge resolved -> strengthened applied. 2 new provisional theses proposed (broadening-ai-demand-tightens-tsmc-capacity-and-pricing; hyperscaler-ai-spending-may-outrun-near-term-returns). Fixed one transcription typo in a proposal finding id before gating."
+    "thesis": "19 standing theses judged, all applied=True; 2 new provisional theses proposed. First gate attempt rejected 3 truncated forbes finding-id citations (dropped the -2026-07 vintage segment); re-dispatched the thesis subagent with the verbatim violations to correct only the ids (F38 protocol, no hand-edit), re-gated clean."
    },
-   "wikiWriteBack": "11 of 13 deduped-fresh findings routed to 2 pages; wiki-lint clean (0 contradictions). SKIPPED 2 findings that collided with committed same-asOf (v-prior) store files (differing content): lambda-ai-1252bbe3-2026-07-1 (H100 SXM $3.99-4.29 vs prior $6.69) and www-runpod-io-bdb62dfd-2026-07-1 (B300 $7.39 vs prior $5.89) — never overwrote committed findings; the v6 scorecard already used the fresh prices via the corpus merge.",
+   "wikiWriteBack": "10 of 12 deduped NEW+UPDATE findings routed to 4 pages; wiki-lint clean (0 contradictions, 0 crossRefGaps, 0 missingFindings). First wiki-ingest attempt hit a route_findings finding-id collision (F52 class) and left a half-applied write-back (5 finding files + 2 entity pages + log delta) which was ROLLED BACK cleanly (git restore log.jsonl + targeted rm of untracked files; no git clean). Re-ran on a filtered set EXCLUDING 2 findings whose ids already exist as committed same-asOf store files with differing content (logged in work/daily-2026-07-14/ingest-exclusions.json): lambda-ai-1252bbe3-2026-07-1 (statement/observedAt differ from the v5 2026-07-11 copy; price $4.29 unchanged) and www-bis-gov-dbeede91-2026-07-1. Never overwrote or deleted a committed finding; the v7 scorecard already used the fresh evidence via the corpus merge.",
+   "unregisteredEntities": {"count": 5, "names": ["amd", "coreweave", "intc", "lambda", "multi"]},
    "stageStatus": {
     "category": "done",
     "thesis": "done",
@@ -81,16 +80,24 @@
     "main": "deferred"
    },
    "thesis": {
-    "judgmentsApplied": 16,
-    "judgmentsDeferred": 1,
-    "appliedReversal": "supply-constraint-binding ADJUSTED (HBM, not packaging, now the binding supply — CoWoS gap narrowing 20%->10%); pricing-power-persistence WEAKENED applied (3-publisher corroborated, H100 rentals cut up to 45%); custom-asic-substitution STRENGTHENED applied (pending challenge resolved); conditional-china-re-opening ADJUSTED (case-by-case H200 path + China buyer signals); networking-attach / prepaid-HBM / amd-growth-leans / customer-concentration / vendor-financed-circularity strengthened",
-    "deferred": "rising-memory-costs-inflate-ai-server-economics strengthened DEFERRED (secondary-only, 2 distinct publishers < 3) — still CHALLENGED-pending",
+    "judgmentsApplied": 19,
+    "judgmentsDeferred": 0,
+    "strengthened": "nvda-demand-durability, amd-credible-second-source, custom-asic-substitution, vendor-financed-demand-circularity, customer-concentration-risk, prepaid-hbm-take-or-pay-locks-in-accelerator-demand, rising-memory-costs-inflate-ai-server-economics (pending challenge resolved, conviction low->medium), multi-vendor-accelerator-supply-wave-in-second-half-2026, amd-growth-leans-on-a-few-mega-deals",
+    "reaffirmed": "supply-constraint-binding, export-control-exposure, networking-attach-as-systems-moat, cheaper-inference-pulls-in-demand, conditional-china-re-opening-with-a-capped-ceiling, memory-based-inference-chips-route-around-the-packaging-bottleneck, broadening-ai-demand-tightens-tsmc-capacity-and-pricing, hyperscaler-ai-spending-may-outrun-near-term-returns",
+    "weakened": "pricing-power-persistence (H100 rentals cluster $2-4, new Blackwell/Rubin supply), cuda-software-lock-in-sustains-the-moat (Meituan LongCat trained on non-NVIDIA silicon; ROCm maturing)",
     "proposed": [
-     "broadening-ai-demand-tightens-tsmc-capacity-and-pricing",
-     "hyperscaler-ai-spending-may-outrun-near-term-returns"
+     "nvidia-holds-a-premium-gross-margin-as-it-ramps-new-chips",
+     "ai-packaging-supply-is-concentrated-in-a-few-buyers"
     ]
    },
-   "report": "rendered board-ready (standard, not --daily): Strong / improving; binding constraint HBM3E/HBM4 memory supply (shifted from advanced packaging as CoWoS eases); DMI 1.127 (Δ +0.593), SMI 0.420 (Δ +0.013), SDGI 0.707 (Δ +0.580) vs prior 2026-07 v5; 6/6 dimensions grounded, 0 under-supported; momentum Very strong, unitEconomics Strong, competitiveStructure/moat/bottleneck/strategicRisk Mixed; WHAT-MOVED empty (same-asOf prior). Price track: D6 lambda $3.99 (Δ -0.30), runpod $7.39, PMI -1.00."
+   "report": "rendered board-ready (--daily): Strong / steady; binding constraint HBM3E/HBM4 memory supply (packaging easing, memory now the cap); DMI 1.287 (Δ +0.160), SMI 0.287 (Δ −0.133), SDGI 1.000 (Δ +0.293) vs prior 2026-07 v6; 6/6 dimensions grounded, 0 under-supported; momentum Very strong, unitEconomics Strong, competitiveStructure/moat/strategicRisk Mixed↓, bottleneck Mixed↑; Supply track notched ACCELERATING->FIRM ▼; WHAT-MOVED empty (same-asOf prior). Price overlay: D6 lambda.ai $4.29/GPU-hr (Δ +0.30).",
+   "afkDefaults": [
+    "Startup git status showed an orphaned uncommitted store/seen_docs.jsonl delta (10 dedup entries, asOf 2026-07-13, mtime 7/13 22:59) from an interrupted 2026-07-13 evening gather. Verified NOT another instance mid-run (no lock, no store/ writes today, isolated f65 worktree lane already DONE, git pull --ff-only clean) and reconciled-forward as its own recovery commit d3fb9f3 before starting, rather than STOP. Reversible; kept the shared dedup ledger intact.",
+    "This harness's Agent tool exposes no per-dispatch tool allowlist and no tools-restricted gatherer/brain agent type was registered this session. The F88 gatherer injection wall (no Bash) and the tool-less extract/judge/thesis brains were enforced BEHAVIORALLY via explicit no-tool-use instructions rather than structural tool omission; all brain subagents returned tool_uses=0. The deterministic gate remained the backstop. Model pinned opus on every brain dispatch.",
+    "route_findings finding-id collision on write-back resolved via the F52-precedent LOGGED wiki-ingest exclusion (2 same-URL/same-asOf re-fetch colliders excluded + logged), NOT by editing/deleting committed findings or weakening the collision check. Half-applied write-back rolled back first.",
+    "discovery-role last30days pass not separately invoked (bounded daily top-up; gatherer WebSearch covered recency discovery) — logged, not silent.",
+    "Formal compute_coverage_gaps post-gather step not run as a separate command this bounded daily; manifest paywalled sources still logged as gaps and never fetched."
+   ]
   }
  ],
  "stages": [

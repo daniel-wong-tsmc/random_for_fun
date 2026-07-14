@@ -1,0 +1,42 @@
+{
+  "id": "newsroom-intel-com-297a8b5b-2026-07-1",
+  "statement": "Intel announced a EUR 5 billion (USD 5.7 billion) investment to expand its Leixlip, Ireland campus, adding Intel 3-node capacity for Xeon 6 and next-generation Xeon server/data-center processors.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "The expansion adds non-GPU server-CPU and domestic foundry capacity, a modest increase in alternative compute supply and advanced-node manufacturing capacity relevant to the AI data-center supply chain.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "New Intel 3 fab capacity for Xeon server CPUs expands non-GPU compute and foundry supply, a competitive/alternative-supply signal to merchant GPU."
+  },
+  "evidence": [
+    {
+      "source": "Intel Newsroom",
+      "url": "https://newsroom.intel.com/intel-foundry/intel-invests-5-billion-euro-to-expand-manufacturing-in-europe",
+      "date": "2026-07-13",
+      "excerpt": "Investment explicitly tied to output of Intel Xeon 6 processors and next-generation Intel Xeon processors built on the Intel 3 node -- i.e. server/data-center supply capacity, not consumer GPU.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single source (Intel press release, labeled secondary tier); server-CPU capacity only, tangential to GPU; capex-share context unverified."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S9",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "intc",
+  "observedAt": "2026-07-13",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

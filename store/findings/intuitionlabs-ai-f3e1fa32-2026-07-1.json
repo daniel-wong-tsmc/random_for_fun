@@ -1,0 +1,43 @@
+{
+  "id": "intuitionlabs-ai-f3e1fa32-2026-07-1",
+  "statement": "H100 GPU cloud rental prices span roughly $1.49 to $6.98 per GPU-hour across 15+ providers, with most clustering around $2-4 per GPU-hour.",
+  "kind": "observed",
+  "value": null,
+  "trend": "unknown",
+  "why": "Cloud H100 rental price levels are a demand/supply confirmation overlay; the wide dispersion reflects spot/marketplace versus reserved and provider-tier differences, but no baseline or change is stated so it is a static level.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "infrastructure.hyperscale-cloud",
+      "chips.merchant-gpu"
+    ],
+    "direction": "mixed",
+    "mechanism": "Per-GPU-hour rental price levels reflect the supply-demand balance for H100 capacity across cloud and marketplace providers."
+  },
+  "evidence": [
+    {
+      "source": "IntuitionLabs",
+      "url": "https://intuitionlabs.ai/articles/h100-rental-prices-cloud-comparison",
+      "date": "2026-07-11",
+      "excerpt": "H100 Rental Prices Compared: $1.49-$6.98/hr Across 15+ Cloud Providers (2026)",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary aggregator article; static price levels with no stated baseline or change."
+  },
+  "dispersion": "$1.49-$6.98/GPU-hr across providers; marketplace/spot lows near $1.49 (Vast.ai) up to ~$6.98 (Azure), clustering $2-4.",
+  "asOf": "2026-07",
+  "indicatorId": "D6",
+  "side": "price",
+  "polarityDemand": 0,
+  "polaritySupply": 0,
+  "magnitude": 1,
+  "entity": "multi",
+  "observedAt": "2026-07-11",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "www-forbes-com-7c91863a-2026-07-3",
+  "statement": "AMD must split its scarce ~11% CoWoS allocation between Venice EPYC CPUs and MI400 Instinct GPUs, so each EPYC packaging slot used cannot be allocated to an Instinct GPU.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Internal cannibalization of a fixed, reserved CoWoS allocation caps how many MI400 Instinct GPUs AMD can ship, a supply bottleneck AMD cannot relieve on short notice.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu",
+      "chips.foundry-packaging",
+      "chips.hbm-memory"
+    ],
+    "direction": "negative",
+    "mechanism": "Shared packaging capacity between AMD's CPU and GPU lines constrains MI400 accelerator supply because allocation is reserved years in advance."
+  },
+  "evidence": [
+    {
+      "source": "Forbes",
+      "url": "https://www.forbes.com/sites/greatspeculations/2026/07/13/will-tsmcs-capacity-crunch-derail-the-amd-stock-rally/",
+      "date": "2026-07-13",
+      "excerpt": "Each EPYC slot utilized cannot be allocated to an Instinct GPU",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Forbes); no primary filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-07-13",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

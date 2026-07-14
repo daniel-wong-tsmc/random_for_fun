@@ -1,0 +1,46 @@
+{
+  "id": "www-fool-com-1f532293-2026-07-2",
+  "statement": "CoreWeave holds a $21 billion multi-year purchase commitment from Meta running through 2032, even as Meta's new 'Meta Compute' unit emerges as a potential competitor.",
+  "kind": "measured",
+  "value": {
+    "number": 21.0,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "A $21B locked commitment underpins CoreWeave's forward revenue and signals sustained hyperscaler GPU-capacity demand, while Meta Compute is a competitive risk to future neocloud share.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "A large multi-year purchase commitment is forward GPU-capacity demand; a new Meta reseller of excess capacity is a competitive supply threat to neoclouds."
+  },
+  "evidence": [
+    {
+      "source": "The Motley Fool",
+      "url": "https://www.fool.com/investing/2026/07/07/whats-wrong-with-coreweave-stock/",
+      "date": "2026-07-07",
+      "excerpt": "despite Meta's own $21B multi-year commitment to CoreWeave through 2032.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Motley Fool); no primary filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "rpoBacklog",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "coreweave",
+  "observedAt": "2026-07-07",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

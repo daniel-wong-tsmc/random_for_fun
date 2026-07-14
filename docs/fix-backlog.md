@@ -133,9 +133,16 @@
   user-approved interactively): `gpu_agent/entities.py` resolver over taxonomy seedEntities;
   canonical ids at the new-finding seams (extractor + wiki ingest); unregistered names pass
   byte-unchanged, flagged stderr + cycle log; 10 test files migrated (review: all FAITHFUL).
-  **STAYS OPEN for stage 2:** historical split-page/store consolidation (nvda.md vs nvidia.md
-  — a sacred-store repair with its own sign-off) + registering more entities in seedEntities
-  (only nvidia/tsmc registered today) + full multi-category counting at desk #2.
+  **STATUS 2026-07-14: STAGE 2 MERGED `3b712fa`** (spec
+  `docs/superpowers/specs/2026-07-13-f24-stage2-design.md`, forks user-approved interactively):
+  13 entity registrations (amd/intel/broadcom own merchant-gpu; 5 hyperscalers, 3 memory makers,
+  2 neoclouds appear-in only); the user-signed nvda→nvidia consolidation (5 observations moved
+  with original vintages, nvda retired + pointer, NVIDIA retitle) executed in-session under the
+  user's direct signature; the append-vs-append wiki-log conflict with the 2026-07-14 daily v7
+  cycle was reconciled (disjoint pages, consolidation events renumbered seq 115-124). **STAYS
+  OPEN:** the 5 server ODMs stay UNREGISTERED by user decision (no honest category — creating one
+  is a Part-16 human gate; revisit when an ODM-adjacent desk onboards) + full multi-category
+  counting at desk #2.
 - [x] **F25 — Wiki store performance + concurrency. DONE — merged `bf8ad6c` (2026-07-13, user
   "merge them all").** Incremental byte-cursor log cache (every read revalidates via stat;
   truncation detected), Aho-Corasick health scan, lockfile-guarded seq mint (Windows-safe
@@ -435,12 +442,21 @@
   research report §5):** log every thesis judgment as a probabilistic call and Brier-score it
   as triggers resolve — conviction language earns a track record instead of assuming the
   judgment is calibrated.
-- [ ] **F65 — "So what for TSMC" section.** The charter's north star is a prioritized
-  recommendation, but the brief states everything market-facing and draws no implication even
-  where it concludes TSMC is the binding constraint of the category. Add a judgment step +
-  render section translating category state into TSMC decision variables (wafer starts by
-  node, CoWoS/SoIC allocation, N2 customer mix, pricing leverage, foundry-competitive events —
-  e.g. Anthropic–Samsung 2nm). Per-category now; becomes the Main-tier roll-up input later.
+- [x] **F65 — "So what for TSMC" section. DONE — merged `a01d840` (2026-07-14, user-directed).**
+  Dedicated registry-driven implication brain (`gpu_agent/implication.py` + `registry/
+  implications.json` — decision variables as DATA, so new issues are data edits; category-
+  agnostic for desk #2), runs after judgment reading the final gated scorecard + thesis book +
+  memory bundle (one author, no sampling); deterministic gate (citations resolve, voice lint,
+  length cap, hard no-recommendation-verb rule — lane discipline); `store/implications/` carve-
+  out; a "FOR TSMC" section in the brief below the exec top band. Spec
+  `docs/superpowers/specs/2026-07-13-f65-tsmc-implication-design.md`. **Eval re-gate: the first
+  two runs FAILED the judge seam on a byte-identical prompt (grader noise, ε at its 3-run
+  quantum floor); resolved by the user-chosen SEAM-SCOPED VERDICT rule (bars bind only to seams
+  whose emitted prompt actually changed — spec
+  `docs/superpowers/specs/2026-07-13-eval-seam-scoped-verdicts-design.md`); run 3 scored judge
+  7.50; 3-run rebaseline gave an honest judge ε 0.50.** The charter's north star is a prioritized
+  recommendation; this is the implication (never a recommendation — Layer/Main altitude), now
+  a Main-tier roll-up input later.
 - [ ] **F66 — Post-hoc citation audit pass (low priority).** Adopted from the research report
   §1: citation integrity is enforced at write time (the gate checks findingIds/excerpts), but
   nothing re-verifies the *finished* brief's claims against the findings they cite — the

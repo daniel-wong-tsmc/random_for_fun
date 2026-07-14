@@ -18,6 +18,31 @@ point comes from and how each series value is constructed.
   the standing `smiContribution: 0.0` residual. The reserved v1.5 side-semantics slot is
   **superseded** by this v2.0 migration.
 
+## G3 stage — registry promotion (Stage 7, 2026-07-14, pin red by design)
+
+The six series indicators are promoted into `registry/indicators.json` (brain vocabulary
++ data-of-record). `registry/series-indicators.json` remains the v2 ENGINE's metadata
+authority (compose_index reads it); the two files are pinned in lockstep by
+`tests/test_series_registry_promotion.py` so the vocabulary the brain sees can never
+drift from the weights/polarity the engine scores. Dual polarity (`polarityDemand`,
+`polaritySupply`) and `lifecycle` land as `IndicatorSpec` REGISTRY fields (not
+Finding-schema/* — the spec forbids that; pinned by test). Each of the six is
+`scoring: true`, mapped to a taxonomy dimension (S1/S2 → bottleneck, D1/D9/D4 →
+momentum, X5 → strategicRisk), tagged `leading` in `cadenceHorizon`, with the seed
+weights the user confirmed at G1.
+
+- **F6 pin goes RED by design** — and ONLY the **extract** seam hash moved (the extract
+  system prompt enumerates every non-price indicator; judge/thesis/implication are
+  hash-identical). Under F65's seam-scoped verdicts only the extract seam binds at the
+  re-gate; the others stay informational. Do NOT rebaseline autonomously — the
+  user-authorized G3 eval run does that.
+- **v1 replay fidelity intact**: the six are NEW ids; no stored finding references them,
+  so every stored scorecard's DMI/SMI is byte-identical (full replay pin green).
+- **F73 canary slot built**: `fixtures/evals/canary/extract-series-vocab-stripped/`
+  (PENDING) + `tests/test_evals_canary_f79.py` (skipped until capture). The seeded
+  damage = the extract prompt with the six new ids stripped; the live capture folds into
+  the G3 run (must not be hand-authored).
+
 ## Backfill discipline (F52 vintage rules, applied per point)
 
 - `publishedAt` = the REAL historical publication date of the source (article dateline,

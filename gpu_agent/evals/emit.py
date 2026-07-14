@@ -87,4 +87,5 @@ def load_hash_input(path: pathlib.Path) -> dict:
         "extract": ExtractInput.model_validate(raw["extract"]),
         "judge": JudgeInput.model_validate(raw["judge"]),
         "thesis": ThesisInput.model_validate(raw["thesis"]),
+        "implication": ImplicationInput.model_validate(raw["implication"]),
     }

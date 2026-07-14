@@ -1,0 +1,200 @@
+{
+  "caseId": "implication-2026-07-90",
+  "seam": "implication",
+  "kind": "negative",
+  "source": "Degraded hand-written counterpart of implication-2026-07-01 (same input scorecard/book): recommendation-verb action lines (should/must/recommend/suggest/hedge) and uncited assertions.",
+  "input": {
+    "scorecard": {
+      "categoryId": "chips.merchant-gpu",
+      "asOf": "2026-07",
+      "findings": [
+        {
+          "id": "introl-com-ef18d500-4",
+          "statement": "TSMC reported 100% capacity utilization for its 3nm node in H1 2026, with demand roughly three times available supply.",
+          "kind": "measured",
+          "value": {
+            "number": 100.0,
+            "unit": "percent"
+          },
+          "trend": "unknown",
+          "why": "Leading-edge foundry capacity is the binding upstream constraint on both GPU and custom-ASIC output.",
+          "impact": {
+            "targets": [
+              "chips.foundry-packaging",
+              "chips.merchant-gpu",
+              "chips.hyperscaler-asic"
+            ],
+            "direction": "negative",
+            "mechanism": "Full 3nm utilization with 3x oversubscription caps shippable advanced-chip volume."
+          },
+          "evidence": [
+            {
+              "source": "introl.com",
+              "url": "https://introl.com/blog/custom-silicon-inflection-2026-hyperscaler-asics-nvidia-gpu",
+              "date": "2026-02-23",
+              "excerpt": "TSMC reported 100% capacity utilization for its 3nm node in H1 2026, with demand running approximately three times higher than available supply.",
+              "tier": "secondary"
+            }
+          ],
+          "reasoning": null,
+          "confidence": {
+            "level": "medium",
+            "basis": "secondary industry roundup"
+          },
+          "dispersion": null,
+          "asOf": "2026-07",
+          "indicatorId": "S10",
+          "side": "supply",
+          "polarityDemand": 0,
+          "polaritySupply": -1,
+          "magnitude": 3,
+          "entity": "market",
+          "observedAt": "2026-02-23",
+          "capturedAt": "2026-07-03T12:54:01Z",
+          "extractionModel": "claude-opus-4-8",
+          "schemaVersion": "1.2"
+        },
+        {
+          "id": "nvidianews-nvidia-com-7b7a02ff-1",
+          "statement": "NVIDIA Data Center revenue was a record $75.2 billion in Q1 FY2027, up 92% year over year and 21% sequentially.",
+          "kind": "measured",
+          "value": {
+            "number": 75.2,
+            "unit": "USD billion"
+          },
+          "trend": "rising",
+          "why": "Record Data Center revenue growth quantifies the scale and pace of AI infrastructure demand.",
+          "impact": {
+            "targets": [
+              "chips.merchant-gpu",
+              "infrastructure.hyperscale-cloud",
+              "infrastructure.neocloud"
+            ],
+            "direction": "positive",
+            "mechanism": "Blackwell-led data-center sales drive merchant-GPU revenue and reflect hyperscale/neocloud buildout."
+          },
+          "evidence": [
+            {
+              "source": "nvidianews.nvidia.com",
+              "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027",
+              "date": "2026-05-20",
+              "excerpt": "First-quarter revenue was a record $75.2 billion, up 21% from the previous quarter and up 92% from a year ago.",
+              "tier": "secondary"
+            }
+          ],
+          "reasoning": null,
+          "confidence": {
+            "level": "medium",
+            "basis": "secondary company press release"
+          },
+          "dispersion": null,
+          "asOf": "2026-07",
+          "indicatorId": "D2",
+          "side": "demand",
+          "polarityDemand": 1,
+          "polaritySupply": 0,
+          "magnitude": 3,
+          "entity": "nvidia",
+          "observedAt": "2026-05-20",
+          "capturedAt": "2026-07-03T12:54:01Z",
+          "extractionModel": "claude-opus-4-8",
+          "schemaVersion": "1.2"
+        }
+      ],
+      "dimensionRatings": {
+        "bottleneck": {
+          "rating": "Strong",
+          "direction": "steady",
+          "confidence": {
+            "level": "medium",
+            "basis": "3 votes"
+          },
+          "findingIds": [
+            "introl-com-ef18d500-4"
+          ],
+          "rationale": "Foundry and packaging capacity is the binding cap on shippable supply."
+        },
+        "momentum": {
+          "rating": "Very strong",
+          "direction": "improving",
+          "confidence": {
+            "level": "medium",
+            "basis": "3 votes"
+          },
+          "findingIds": [
+            "nvidianews-nvidia-com-7b7a02ff-1"
+          ],
+          "rationale": "Record datacenter revenue shows demand outrunning supply."
+        }
+      },
+      "demandSupply": {
+        "dmiContribution": 0.62,
+        "smiContribution": 0.31
+      },
+      "narrative": "Demand outruns a supply ceiling set by advanced packaging and leading-edge foundry capacity.",
+      "confidence": {
+        "level": "medium",
+        "basis": "3 votes"
+      },
+      "categoryStatus": {
+        "rating": "Strong",
+        "direction": "improving",
+        "bottleneck": "advanced packaging and leading-edge foundry capacity",
+        "reason": "Demand momentum outruns the supply ramp.",
+        "constraintLabel": "advanced packaging and foundry capacity"
+      }
+    },
+    "book": {
+      "categoryId": "chips.merchant-gpu",
+      "entries": [
+        {
+          "id": "nvda-demand-durability",
+          "title": "NVDA demand durability",
+          "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
+          "lens": "demand",
+          "status": "registered",
+          "conviction": "high",
+          "lastVerdict": "strengthened",
+          "lastDirection": 1,
+          "pendingChallenge": null,
+          "streak": 1,
+          "mechanism": "Booked orders, financed deployments and multi-GW campus commitments accumulate faster than NVIDIA can ship, sustaining a demand overhang.",
+          "falsifiableTrigger": "Backlog/RPO growth falls below shipment growth for 2 consecutive quarters.",
+          "sensitivity": "Hyperscaler and AI-cloud capex plans and the pace of Vera Rubin supply ramp.",
+          "createdAsOf": "2026-07-03",
+          "lastChangedAsOf": "2026-07-03",
+          "lastJudgedAsOf": "2026-07-03",
+          "provenance": "seeded"
+        },
+        {
+          "id": "supply-constraint-binding",
+          "title": "Supply constraint binding",
+          "statement": "Advanced packaging + HBM — not wafers or demand — cap realizable merchant-GPU revenue.",
+          "lens": "supply",
+          "status": "registered",
+          "conviction": "medium",
+          "lastVerdict": "reaffirmed",
+          "lastDirection": 0,
+          "pendingChallenge": null,
+          "streak": 1,
+          "mechanism": "Advanced-packaging (CoWoS) and HBM capacity gate how much wafer and demand can be converted into shippable accelerators, so realizable revenue tracks packaging/HBM output.",
+          "falsifiableTrigger": "CoWoS/HBM leadTimes normalize to historical norms for 2 consecutive quarters while demand indicators stay positive.",
+          "sensitivity": "Packaging (Amkor/TSMC) and HBM capacity additions relative to the Vera Rubin ramp.",
+          "createdAsOf": "2026-07-03",
+          "lastChangedAsOf": "2026-07-03",
+          "lastJudgedAsOf": "2026-07-03",
+          "provenance": "seeded"
+        }
+      ]
+    },
+    "category": "chips.merchant-gpu",
+    "memoryText": null
+  },
+  "recordedAnswer": "{\"lines\": [{\"watchItem\": \"TSMC should accelerate advanced-packaging expansion and must lock in wafer pricing now.\", \"dimensions\": [\"bottleneck\"], \"thesisIds\": [], \"findingIds\": []}, {\"watchItem\": \"We recommend hedging leading-node customer concentration and suggest raising prices next quarter.\", \"dimensions\": [], \"thesisIds\": [], \"findingIds\": []}, {\"watchItem\": \"Demand is strong.\", \"dimensions\": [], \"thesisIds\": [], \"findingIds\": []}]}",
+  "checks": {
+    "mustMention": [],
+    "citationsResolve": false,
+    "gateOutcome": "reject"
+  },
+  "notes": "Calibration negative: the exact archetypes the F65 gate and charter Part 21 ban — lines that tell TSMC what to do (should/must/recommend/suggest/hedge) and lines that cite nothing. The deterministic gate rejects this answer; a calibrated grader must also score it in the bottom half (0s on exposure-not-recommendation and citation-discipline; 'Demand is strong.' is too vague to inform any decision)."
+}

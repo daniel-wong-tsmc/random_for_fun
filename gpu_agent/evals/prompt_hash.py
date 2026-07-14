@@ -12,7 +12,7 @@ from gpu_agent.evals.emit import emit_brain_bundle, load_hash_input
 def compute_prompt_hashes(registry, taxonomy, hash_input_path: pathlib.Path) -> dict[str, str]:
     inputs = load_hash_input(hash_input_path)
     hashes: dict[str, str] = {}
-    for seam in ("extract", "judge", "thesis"):
+    for seam in ("extract", "judge", "thesis", "implication"):
         bundle = emit_brain_bundle(seam, inputs[seam], registry, taxonomy)
         canonical = json.dumps(bundle, sort_keys=True, ensure_ascii=False)
         hashes[seam] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()

@@ -202,3 +202,26 @@ epsilon (0.250) sits at its quantum floor from a 3-run history. Options are the 
   text (e.g. "Compute & Networking" in the SEC excerpt).
 - record-brain gated 15/15 clean after the two brain re-dispatches; record-grade accepted all
   20 grades; the verdict machinery validated the run (no invalid-run reasons).
+
+## COMPLETION — 2026-07-14 (orchestrator, after lane agent hit usage limit)
+
+The lane agent died on a Fable usage limit mid-finish (17/20 r3 grades persisted). The
+orchestrator held the 3 pending r3 grades verbatim from their completion notifications
+(judge-2026-07-01, judge-2026-07-02, thesis-2026-07-01 — all high-scoring) and finished the
+mechanical governance steps under the eval-driver skill:
+
+- Persisted the 3 held grades; assembled `grade-answers.json` (20/20, all valid JSON, caseId
+  set matches r2 exactly); `record-grade` r3 → PASS (extract 7.12, implication 7.00,
+  **judge 7.50**, thesis 6.50) — the third independent confirmation that run-1's judge dip
+  was noise.
+- **Acceptance gate: `eval verdict --runs r1 r2` under the seam-scoped logic (7c2a4c0) →
+  PASS.** extract 6.938 / judge 7.125 / thesis 6.250 all INFORMATIONAL (hash-identical to
+  baseline — cannot fail the run); implication 7.000 new seam (no bar; gated at this
+  rebaseline). No seam had a changed-and-gated prompt, so the byte-identical-judge episode is
+  dissolved exactly as the user's "grade only what changed" decision intended.
+- **Governance rebaseline `--runs r1 r2 r3 --verdict r2/verdict.json`** (pin-join already in the
+  working tree from the lane's pre-death session): new 4-seam baseline — seamMeans extract 7.0
+  / implication 7.0 / judge 7.25 / thesis 6.333; **ε now judge 0.50** (honest floor from 3 real
+  replicates, up from the too-tight 0.25 that caused the false fail); promptHashes cover all 4
+  seams. No `--force`, no hand-edit of any brain/grader answer.
+- Eval suite (pin/hash/fixture-health/v2) 46 passed; full suite **1382 passed / 6 skipped**.

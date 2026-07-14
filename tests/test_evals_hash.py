@@ -20,7 +20,7 @@ def _reg():
 def test_emit_bundles_have_prompt_parts():
     registry, taxonomy = _reg()
     inputs = load_hash_input(HASH_INPUT)
-    for seam in ("extract", "judge", "thesis"):
+    for seam in ("extract", "judge", "thesis", "implication"):
         bundle = emit_brain_bundle(seam, inputs[seam], registry, taxonomy)
         assert set(bundle) == {"system", "schema", "user"}, seam
         assert isinstance(bundle["system"], str) and bundle["system"]
@@ -32,8 +32,8 @@ def test_hashes_deterministic_and_per_seam():
     h1 = compute_prompt_hashes(registry, taxonomy, HASH_INPUT)
     h2 = compute_prompt_hashes(registry, taxonomy, HASH_INPUT)
     assert h1 == h2
-    assert set(h1) == {"extract", "judge", "thesis"}
-    assert len(set(h1.values())) == 3          # seams differ
+    assert set(h1) == {"extract", "judge", "thesis", "implication"}
+    assert len(set(h1.values())) == 4          # seams differ
     assert all(len(v) == 64 for v in h1.values())
 
 def test_judge_user_prompt_carries_citation_groups():

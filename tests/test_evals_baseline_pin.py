@@ -28,13 +28,14 @@ def test_prompt_hashes_match_baseline():
 
 def test_baseline_integrity():
     b = load_baseline(BASELINE)
+    seams = {"extract", "judge", "thesis", "implication"}   # F65: implication joined at re-gate
     assert b["schemaVersion"] == 2
-    assert set(b["promptHashes"]) == {"extract", "judge", "thesis"}
+    assert set(b["promptHashes"]) == seams
     assert len(b["replicates"]) == 3
     for rep in b["replicates"]:
-        assert set(rep["seamMeans"]) == {"extract", "judge", "thesis"}
+        assert set(rep["seamMeans"]) == seams
         assert rep["cases"], "replicate has no case scores"
-    assert set(b["seamMeans"]) == set(b["epsilon"]) == {"extract", "judge", "thesis"}
+    assert set(b["seamMeans"]) == set(b["epsilon"]) == seams
     assert all(e > 0 for e in b["epsilon"].values())
     assert b["caseMedians"], "baseline has no case medians"
     prov = b["provenance"]

@@ -48,7 +48,20 @@
     "promotion": "provisional -> persists & corroborated (Part 10 signal test) -> proposed -> reviewed -> registered (prune is the reverse). Initial build = LOOSE: new category needs human approval before landing (Part 16); new metric/entity auto-proposes into a review queue cleared after the fact.",
     "seedEntities": [
       { "id": "nvidia", "name": "NVIDIA", "aliases": ["NVDA"], "appearsIn": ["chips.merchant-gpu", "chips.networking-silicon"], "primaryCategory": "chips.merchant-gpu" },
-      { "id": "tsmc", "name": "TSMC", "aliases": ["Taiwan Semiconductor"], "appearsIn": ["chips.foundry-packaging"], "primaryCategory": "chips.foundry-packaging" }
+      { "id": "tsmc", "name": "TSMC", "aliases": ["Taiwan Semiconductor"], "appearsIn": ["chips.foundry-packaging"], "primaryCategory": "chips.foundry-packaging" },
+      { "id": "amd", "name": "AMD", "aliases": ["Advanced Micro Devices"], "appearsIn": ["chips.merchant-gpu"], "primaryCategory": "chips.merchant-gpu" },
+      { "id": "intel", "name": "Intel", "aliases": ["INTC", "Intel Corporation"], "appearsIn": ["chips.merchant-gpu"], "primaryCategory": "chips.merchant-gpu" },
+      { "id": "broadcom", "name": "Broadcom", "aliases": ["AVGO", "Broadcom Inc"], "appearsIn": ["chips.merchant-gpu"], "primaryCategory": "chips.merchant-gpu" },
+      { "id": "microsoft", "name": "Microsoft", "aliases": ["MSFT", "Microsoft Corporation", "Microsoft Azure", "Azure"], "appearsIn": ["infrastructure.hyperscale-cloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.hyperscale-cloud" },
+      { "id": "alphabet", "name": "Alphabet", "aliases": ["GOOGL", "GOOG", "Google", "Google Cloud"], "appearsIn": ["infrastructure.hyperscale-cloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.hyperscale-cloud" },
+      { "id": "amazon", "name": "Amazon", "aliases": ["AMZN", "AWS", "Amazon Web Services", "Amazon.com"], "appearsIn": ["infrastructure.hyperscale-cloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.hyperscale-cloud" },
+      { "id": "meta", "name": "Meta", "aliases": ["META", "Meta Platforms", "Facebook"], "appearsIn": ["infrastructure.hyperscale-cloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.hyperscale-cloud" },
+      { "id": "oracle", "name": "Oracle", "aliases": ["ORCL", "Oracle Corporation", "Oracle Cloud", "OCI"], "appearsIn": ["infrastructure.hyperscale-cloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.hyperscale-cloud" },
+      { "id": "sk-hynix", "name": "SK Hynix", "aliases": ["SK hynix", "Hynix"], "appearsIn": ["chips.hbm-memory", "chips.merchant-gpu"], "primaryCategory": "chips.hbm-memory" },
+      { "id": "samsung", "name": "Samsung", "aliases": ["Samsung Electronics"], "appearsIn": ["chips.hbm-memory", "chips.merchant-gpu"], "primaryCategory": "chips.hbm-memory" },
+      { "id": "micron", "name": "Micron", "aliases": ["MU", "Micron Technology"], "appearsIn": ["chips.hbm-memory", "chips.merchant-gpu"], "primaryCategory": "chips.hbm-memory" },
+      { "id": "coreweave", "name": "CoreWeave", "aliases": ["CRWV"], "appearsIn": ["infrastructure.neocloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.neocloud" },
+      { "id": "lambda-labs", "name": "Lambda Labs", "aliases": ["Lambda", "Lambda Cloud"], "appearsIn": ["infrastructure.neocloud", "chips.merchant-gpu"], "primaryCategory": "infrastructure.neocloud" }
     ]
   },
   "layers": [

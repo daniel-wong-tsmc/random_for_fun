@@ -7,9 +7,10 @@ def test_wiki_ingest_phase1_only_populates_entity_pages(tmp_path, capsys):
     rc = main(["wiki-ingest", "--findings", "fixtures/golden/findings.json",
                "--store", str(tmp_path), "--as-of", "2026-06"])
     assert rc == 0
-    # golden findings are NVDA/AMD/INTC -> three entity pages (NVDA resolves to nvidia, F24)
+    # golden findings are NVDA/AMD/INTC -> three entity pages, each routed to its
+    # canonical id (F24: NVDA->nvidia; stage 2 registers intel, so INTC->intel)
     pages = sorted(p.stem for p in (tmp_path / "wiki" / "entity").glob("*.md"))
-    assert pages == ["amd", "intc", "nvidia"]  # F24: NVDA routes to the canonical page
+    assert pages == ["amd", "intel", "nvidia"]
 
 
 def test_wiki_ingest_emit_prompt_prints_bundle(tmp_path, capsys):
@@ -18,7 +19,7 @@ def test_wiki_ingest_emit_prompt_prints_bundle(tmp_path, capsys):
     assert rc == 0
     bundle = json.loads(capsys.readouterr().out)
     assert "system" in bundle and "schema" in bundle
-    assert {p["pageId"] for p in bundle["pages"]} == {"entity:nvidia", "entity:amd", "entity:intc"}
+    assert {p["pageId"] for p in bundle["pages"]} == {"entity:nvidia", "entity:amd", "entity:intel"}
 
 
 def test_wiki_ingest_recorded_applies_enrichment(tmp_path):

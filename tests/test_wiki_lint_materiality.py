@@ -117,5 +117,6 @@ def test_score_moves_threshold_split_and_sorted(tmp_path):
     drop_ids = [m.pageId for m in dropped]
     assert "entity:nvidia" in mat_ids
     assert "entity:amd" in mat_ids     # F34: recalibrated - no longer structurally folded
-    assert "entity:intc" in drop_ids   # low-magnitude price-only thread still folds
+    assert "entity:intel" in drop_ids  # low-magnitude price-only thread still folds
+    # (F24 stage 2: INTC routes to the canonical entity:intel page)
     assert material == sorted(material, key=lambda m: m.score, reverse=True)

@@ -8,7 +8,7 @@ Eval deviations from live, both deliberate:
 from __future__ import annotations
 import json
 import pathlib
-from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput
+from gpu_agent.evals.cases import ExtractInput, JudgeInput, ThesisInput, ImplicationInput
 from gpu_agent.extraction.extractor import ExtractionResult
 from gpu_agent.extraction.prompt import (
     build_system as build_extract_system, build_user_prompt as build_extract_user_prompt)
@@ -17,6 +17,9 @@ from gpu_agent.judgment.judge import JudgmentResult
 from gpu_agent.judgment.prompt import (
     SYSTEM as JUDGE_SYSTEM, build_user_prompt as build_judge_user_prompt)
 from gpu_agent.thesis import THESIS_SYSTEM, ThesisAnswer, build_thesis_user_prompt
+from gpu_agent.implication import (
+    IMPLICATION_SYSTEM, ImplicationAnswer, ImplicationRegistry, build_implication_user_prompt)
+from gpu_agent.config import IMPLICATIONS_REGISTRY_PATH
 
 
 def _extract_vocab(registry, taxonomy) -> dict:
@@ -63,6 +66,18 @@ def emit_brain_bundle(seam: str, seam_input, registry, taxonomy) -> dict:
             "user": build_thesis_user_prompt(seam_input.book, seam_input.findings,
                                              seam_input.memoryText),
         }
+    if seam == "implication":
+        assert isinstance(seam_input, ImplicationInput)
+        # Registry-driven, exactly like the live CLI: variables come from the committed
+        # implications registry by category, so a registry edit re-emits a different prompt.
+        variables = ImplicationRegistry.load(IMPLICATIONS_REGISTRY_PATH).variables_for(
+            seam_input.category)
+        return {
+            "system": IMPLICATION_SYSTEM,
+            "schema": ImplicationAnswer.model_json_schema(),
+            "user": build_implication_user_prompt(variables, seam_input.scorecard,
+                                                  seam_input.book, seam_input.memoryText),
+        }
     raise ValueError(f"unknown seam '{seam}'")
 
 
@@ -72,4 +87,5 @@ def load_hash_input(path: pathlib.Path) -> dict:
         "extract": ExtractInput.model_validate(raw["extract"]),
         "judge": JudgeInput.model_validate(raw["judge"]),
         "thesis": ThesisInput.model_validate(raw["thesis"]),
+        "implication": ImplicationInput.model_validate(raw["implication"]),
     }

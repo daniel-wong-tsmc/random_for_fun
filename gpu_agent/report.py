@@ -43,6 +43,10 @@ _VERSION_RE = re.compile(r"^(\d{4}-\d{2}(?:-\d{2})?)-v(\d+)\.json$")
 _CHANGE_LINE_CAP = 4   # F77: bound per-horizon lead width; overflow folds to "+N more moved"
 _ABOVE_FOLD_BUDGET = 88   # F77: hard line budget above reader.APPENDIX_DIVIDER (80 + the
                           # 2026-07-11 exec top band: <=6 band lines + section separator)
+# F65: sentinel distinguishing "caller passed no implications" (legacy — section omitted,
+# byte-identical output) from "caller passed the artifact or None" (section rendered, with an
+# honest empty state when there is nothing this cycle).
+_UNSET = object()
 
 
 # ── I/O helpers ──────────────────────────────────────────────────────────────
@@ -905,6 +909,23 @@ def render_top_band(sc, state, alert, change) -> str:
     return "\n".join(lines)
 
 
+def render_for_tsmc(implications) -> str:
+    """FOR TSMC (F65) — the "so what" implications, a pure projection of the stored artifact.
+    Honest empty state when there is no artifact / no lines this cycle. The watchItems are
+    already exec-plain (the implication gate voice-lints them), so nothing off the acronym
+    allowlist reaches above the fold. `implications` is an ImplicationArtifact (duck-typed on
+    `.lines`) or None."""
+    lines = ["FOR TSMC"]
+    art_lines = getattr(implications, "lines", None) if implications is not None else None
+    if not art_lines:
+        lines.append("  (no implication recorded this cycle)")
+        return "\n".join(lines)
+    for line in art_lines:
+        n_cite = len(line.dimensions) + len(line.thesisIds) + len(line.findingIds)
+        lines.append(f"  - {line.watchItem}  (cites {n_cite} signal{'s' if n_cite != 1 else ''})")
+    return "\n".join(lines)
+
+
 def render_report(
     sc: Scorecard,
     prior: Optional[Scorecard],
@@ -921,6 +942,7 @@ def render_report(
     state=None,           # F78 Stage 6: a change.StateVector for the quick-glance tiers
     alert=None,           # AMENDED 2026-07-11: a change.AlertState -> exec top band leads
     top_k: int = 5,       # F78 Stage 6: ranked-calls detail cap (F77)
+    implications=_UNSET,  # F65: an ImplicationArtifact (or None) -> render the FOR TSMC section
 ) -> str:
     """Compose the full board-ready report from a scorecard + optional prior.
 
@@ -989,6 +1011,12 @@ def render_report(
 
     track = compute_price_track(sc, prior)   # F49 — computed once, shared by brief + report
 
+    # F65: the FOR TSMC section renders only when the caller passes `implications` (the CLI
+    # always does). It slots in right after THE CALLS / ranked calls — "below the top band,
+    # above the appendix" — and is appended (never spliced before an existing index) so ranked
+    # calls stays at top[4] and the change-first budget loop below is untouched.
+    for_tsmc = None if implications is _UNSET else render_for_tsmc(implications)
+
     if change is not None:
         # F78 Stage 6 change-first lead (F64 + F77, AMENDED 2026-07-11): TOP BAND ->
         # WHAT CHANGED -> QUICK GLANCE -> ranked calls, then the rest of the above-the-fold
@@ -1001,6 +1029,10 @@ def render_report(
             render_quick_glance(state, change, registry) if state is not None else "",
             render_ranked_calls(thesis_book, sc, change, thesis_last_findings,
                                 registry=registry, top_k=top_k),
+        ]
+        if for_tsmc is not None:
+            top.append(for_tsmc)
+        top += [
             brief.render_state_of_market(sc, prior, track),
             brief.render_why(thesis_book, thesis_last_findings),
             brief.render_demand_supply_board(sc, horizons, registry=registry),
@@ -1013,13 +1045,17 @@ def render_report(
             brief.render_state_of_market(sc, prior, track),       # words-first BLUF
             brief.render_what_moved(movement),
             brief.render_the_calls(thesis_book, sc, thesis_last_findings, registry=registry),
+        ]
+        if daily:   # F67 §4: the daily's headline is the diff (swap targets top[1]/top[2] only)
+            top[1], top[2] = top[2], top[1]
+        if for_tsmc is not None:
+            top.append(for_tsmc)
+        top += [
             brief.render_why(thesis_book, thesis_last_findings),  # drivers -> constraints
             brief.render_demand_supply_board(sc, horizons, registry=registry),
             brief.render_storylines(movement),
             render_trust_footer(sc, gate_waivers=gate_waivers),   # the one honest caveat (+F75 waivers)
         ]
-        if daily:   # F67 §4: the daily's headline is the diff
-            top[1], top[2] = top[2], top[1]
 
     appendix = [
         reader.APPENDIX_DIVIDER,

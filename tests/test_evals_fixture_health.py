@@ -26,14 +26,16 @@ def _reg():
 
 def test_census_floors():
     cases = _cases()
-    by_seam = {s: [c for c in cases if c.seam == s] for s in ("extract", "judge", "thesis")}
+    by_seam = {s: [c for c in cases if c.seam == s]
+               for s in ("extract", "judge", "thesis", "implication")}
     assert len(by_seam["extract"]) >= 5
     assert len(by_seam["judge"]) >= 4
     assert len(by_seam["thesis"]) >= 4
+    assert len(by_seam["implication"]) >= 2   # F65: 1 positive + 1 negative at the re-gate
     negatives = [c for c in cases if c.kind == "negative"]
-    assert len(negatives) >= 3
-    assert {c.seam for c in negatives} == {"extract", "judge", "thesis"}
-    assert len(cases) >= 15
+    assert len(negatives) >= 4
+    assert {c.seam for c in negatives} == {"extract", "judge", "thesis", "implication"}
+    assert len(cases) >= 17
 
 def test_every_case_reemits():
     registry, taxonomy = _reg()

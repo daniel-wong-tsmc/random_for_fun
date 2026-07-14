@@ -177,3 +177,47 @@ def test_doc_documents_auto_bootstrap():
 def test_charter_reflects_ensure_doctrine():
     text = CHARTER.read_text(encoding="utf-8")
     assert "ensure-installed" in text or "ensure installed" in text.lower()
+
+
+# --- Task 5: registry pins + versionCmd (supply-chain freeze) ---
+
+
+def test_enabled_tools_have_non_empty_pin():
+    for t in _load()["tools"]:
+        if not t.get("enabled"):
+            continue
+        assert isinstance(t.get("pin"), str) and t["pin"], f"{t['id']} missing non-empty pin"
+
+
+def test_agent_reach_and_crawl4ai_have_versioncmd_all_os():
+    for tid in ("agent-reach", "crawl4ai"):
+        t = next(x for x in _load()["tools"] if x["id"] == tid)
+        vc = t.get("versionCmd")
+        assert isinstance(vc, dict), f"{tid} missing versionCmd"
+        for os_key in OSES:
+            assert isinstance(vc.get(os_key), str) and vc[os_key], \
+                f"{tid} versionCmd.{os_key} empty"
+
+
+def test_last30days_has_no_versioncmd_but_has_pin():
+    t = next(x for x in _load()["tools"] if x["id"] == "last30days")
+    assert "versionCmd" not in t
+    assert t.get("pin") == "skill-present"
+
+
+def test_crawl4ai_install_no_longer_bare_pip_install():
+    t = next(x for x in _load()["tools"] if x["id"] == "crawl4ai")
+    for os_key in OSES:
+        cmds = t["install"][os_key]
+        assert "pipx install crawl4ai" not in cmds, \
+            f"{os_key} still has an unpinned 'pipx install crawl4ai' line"
+        assert any("crawl4ai==0.9.0" in c for c in cmds), \
+            f"{os_key} missing pinned crawl4ai==0.9.0 install line"
+
+
+def test_agent_reach_install_still_uses_archive_main_zip_and_has_pinnote():
+    t = next(x for x in _load()["tools"] if x["id"] == "agent-reach")
+    for os_key in OSES:
+        assert any("archive/main.zip" in c for c in t["install"][os_key]), \
+            f"{os_key} agent-reach install should still use archive/main.zip (unchanged this task)"
+    assert isinstance(t.get("pinNote"), str) and t["pinNote"], "agent-reach missing pinNote"

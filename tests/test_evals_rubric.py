@@ -10,7 +10,10 @@ def _grade(seam="judge", **overrides):
     return GradeResult(caseId="x", grades=grades)
 
 def test_rubrics_shape():
-    assert set(RUBRICS) == {"extract", "judge", "thesis"}
+    # F65 adds the implication rubric (4 criteria, like the others). This is the rubric set,
+    # NOT the F6 prompt-hash pin — the pin's seam set stays {extract,judge,thesis} until the
+    # implication eval re-gate.
+    assert set(RUBRICS) == {"extract", "judge", "thesis", "implication"}
     for seam, criteria in RUBRICS.items():
         assert len(criteria) == 4, seam
         for c in criteria:

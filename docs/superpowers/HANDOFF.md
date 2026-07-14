@@ -1,4 +1,29 @@
-# HANDOFF — GPU Category Agent (resume point: **F78 CLOSED + F56 MERGED** 2026-07-13 — stage 6 `77708f3` (user-directed) then F56 `0c49d6a` (clean rebase, zero conflicts); `main == origin/main == 0c49d6a` after the close-out doc commit, suite **1346/5**, eval pin green. The change-first daily brief + exec top band + alert ladder + dashboard parity are live (`gpu-agent report --change-first`); all 10 `--as-of` CLI seams validate loud. Every wave-1/wave-2 lane is now MERGED (F23/F24-s1/F25/F56/F72-v1.4.1/F80/F87 + F78 closing F64/F77). Next: the **F79 interactive brainstorm** — user + orchestrator, per the standing rule — then F65, F66, F24 stage 2, the F81–F86 wave. Housekeeping open: retire ~9 merged worktrees/branches (user's call), skipped-days decision, repo rename, F23-A4 label.)
+# HANDOFF — GPU Category Agent (resume point: **F65 + F24-STAGE-2 MERGED** 2026-07-14 — `a01d840` (F65 TSMC implication brain + seam-scoped eval verdicts) + `3b712fa` (F24-s2 entity registrations + user-signed nvda→nvidia consolidation); `main == origin/main == 3b712fa`, suite **1532/5**, F6 pin green (now 4 seams incl. implication). F65's eval re-gate PASSED under the new SEAM-SCOPED verdict rule (bars bind only to prompt-changed seams — dissolved a byte-identical-judge false fail; honest judge ε 0.50 from 3 replicates). F83 conformance pin regenerated in lockstep for F65's new implication step. **F79 (scoring v2.0) is UNBLOCKED and mid-build: G1 (backfill) + G2 (backtest PASS under the signed Option-B amendment) done, shadow wiring done; next = merge main into its branch, then Stage 7 (registry promotion + prompt vocab + F73 canary) ending at G3, then G4 cutover.** Next after F79: F66, the F81–F86 wave. Housekeeping open: retire ~11 merged worktrees/branches, skipped-days decision, repo rename, F23-A4 label, F73 survivorship-bias residual (noted in the seam-scoped design note).)
+
+- **Date: 2026-07-14 — DAILY CYCLE RAN (scheduled headless) `category:chips.merchant-gpu`.**
+  Scorecard `store/chips.merchant-gpu/2026-07-v7.json` — **Strong / steady, DMI 1.287 · SMI 0.287**
+  (SDGI 1.000; binding constraint HBM3E/HBM4 memory supply; 6/6 dimensions grounded; momentum Very
+  strong, unitEconomics Strong, rest Mixed; supply track notched ACCELERATING→FIRM; WHAT-MOVED empty,
+  same-asOf prior v6). Live daily sweep: 10 docs, corpus merged 76 (fresh 7 new / 5 update / 5 duplicate,
+  L1 droppedKnown 0); extract 17 findings 0 dropped; 3 tool-less Opus judge samples; thesis 19/19
+  applied + 2 provisional proposed. Committed+pushed **`2013d87`** (store artifacts + cycle log);
+  `main == origin/main`, suite **1420/5**, F6 pin + F83 conformance green. Full journal + AFK-defaults
+  in `store/cycle-log.json`.
+  **AFK-defaults (scheduled headless — re-surface for the user):** (1) reconciled an orphaned
+  uncommitted 2026-07-13 `seen_docs` delta forward as its own recovery commit **`d3fb9f3`** before
+  starting — verified NOT another instance mid-run (no lock, no store/ writes today, isolated f65
+  worktree lane already DONE) and `git pull --ff-only` clean, so proceeded rather than STOP; (2) this
+  harness exposes no per-dispatch tool allowlist and no tools-restricted gatherer/brain agent type, so
+  the F88 gatherer no-Bash injection wall and the tool-less extract/judge/thesis brains were enforced
+  BEHAVIOURALLY via explicit no-tool-use prompts (every brain returned `tool_uses=0`; deterministic
+  gate remained the backstop; `model: opus` pinned on all brain dispatches); (3) a `route_findings`
+  same-asOf re-fetch finding-id collision (F52 class — lambda.ai/pricing + BIS notice re-fetched within
+  asOf 2026-07) was resolved via the F52-precedent LOGGED wiki-ingest exclusion of the 2 colliders
+  (`work/daily-2026-07-14/ingest-exclusions.json`) after rolling back a half-applied write-back — no
+  committed finding edited/deleted, collision check not weakened; (4) discovery-role `last30days` pass
+  and the formal `compute_coverage_gaps` step were not separately run (bounded daily top-up; gatherer
+  WebSearch covered recency discovery; manifest paywalled TrendForce/SemiAnalysis logged as gaps, never
+  fetched).
 
 - **Date: 2026-07-13 — F78 STAGE 6 MERGED (`77708f3`, pushed).** User-directed interactively
   ("merge into main"). No rebase needed on the post-merge-train main: ONE conflict
@@ -359,6 +384,52 @@ User gave **"go"** 2026-07-06. Actioned:
 
 ## ⚠ CONCURRENT-INSTANCE COORDINATION (still live)
 
+- **F95 lane DONE — READY TO MERGE (2026-07-13, orchestrator session; only the user merges).**
+  Branch `f95-market-site`, worktree `.worktrees/f95-site`. Category page static site (E2
+  tiles + dynamic featured metric + WHY block + evidence drill-down), `site` CLI verb
+  (cli.py append-only), first committed `site/` build, run-cycle step-7 site-rebuild prose,
+  `docs/cloudflare-pages.md`. Suite on the branch **1399/6** pre-rebase, F6 pin green. Built
+  subagent-driven under the question-stop rule; per-task reviews + fresh-context opus
+  whole-branch review — round 1 "With fixes" (2 Important), fix pass, round 2 **Ready to
+  merge: YES** (reviewer independently re-ran the suite). ONE user-approved design call
+  mid-review: drill-down reconciliation = "label honestly" (interactive 2026-07-13, not AFK).
+  Full record: `.superpowers/handoffs/f95-site-DONE.md` (sanctioned deviations incl. spec
+  §7.2 gitignore step unnecessary; deferred-minor list for a follow-up batch).
+  **Rebase-over-F88 DONE (roles flipped):** F88 merged to main FIRST, so F95 — not F88 —
+  became the last prose-toucher and was rebased over the F88 merge by the orchestrator
+  session: ONE conflict (cli.py, both lanes' appended verb helpers — resolved keep-both;
+  run-cycle prose and the F83 step fingerprint merged clean), plus an F76 vocabulary fix
+  the handoff-integrity tripwire caught (`4e0214d`). **Post-rebase head `21cf7c7`
+  (force-pushed with lease), suite 1463/6, F6 pin + F83 conformance green.** **Launch gates still open (user):** repo-rename/TSMC-exposure decision +
+  pages.dev subdomain BEFORE the first Cloudflare deploy (docs/cloudflare-pages.md has the
+  checklist; building and committing site/ is fine meanwhile).
+- **F88 lane MERGED to main (2026-07-13, F88 session) — user-authorized interactively ("merge
+  to main now").** Merge commit on THIS push; base `48c4c39`, 13 commits, suite 1419/6, F6 pin
+  + F83 conformance 12/12 green, frozen core + brain prompts untouched. Whole-branch review
+  (fable): Ready to merge; three real bugs caught+fixed en route (userinfo paywall bypass,
+  batch-abort, robustness gaps). **Merged onto PUBLISHED `origin/main` (067448c), NOT local
+  main, so the concurrent session's unpushed F95 commits (`0df6945`/`fae5faa`) are NOT
+  republished** — that session reconciles its F95 work against this merge on its next push.
+  Branch `f88-orchestrator-hardening` + worktree `.worktrees/f88-hardening` RETAINED (hold the
+  gitignored `.superpowers/sdd/` build ledger + the `f88-hardening-DONE.md` sentinel). D6
+  (licensed sources allow-but-flag) + D7 (version-pin achievability) were mid-build user/
+  orchestrator decisions. **Deferred follow-ups (next free F-numbers, user to assign):**
+  agent-reach exact-ref install pin; per-finding licensed trust-footer tag (schema migration);
+  in-memory capture streaming cap; receipt sha256 code-verification; charter Part 22/37 edit;
+  + doc-drift sweep (market-state-reference "never fetched", stale "16 verbs" count). Spec D5
+  was user-approved interactively (against the assistant lean; not AFK). Spec
+  `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`
+  (+ D5 amendment `3c27774`), plan
+  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md` (9 tasks). OWNS: NEW `gpu_agent/gathering/{webreach,assemble}.py` + `registry/paywalled-domains.json`;
+  `cli.py` append-only verbs (`webreach-fetch`, `gather-assemble`);
+  `gpu_agent/web_reach_ensure.py`; `registry/web-reach-tools.json` (`pin` + `fetchVerbs`);
+  `gather-category` + `run-cycle` SKILL prose INCLUDING the F83 fingerprint/constant
+  re-record. **F65 also touches run-cycle prose — F88 goes LAST of the prose-touchers and
+  rebases over whatever merged.** Context: F88–F94 minted in the 2026-07-13 gap-review
+  backlog wave (`0f1b076`). **Flag for the user (recorded, not adjudicated):** v6 cycle's
+  DMI 1.127 / SDGI 0.707 is a large jump vs v5 (SDGI 0.127) with two first-seen publishers
+  in the corpus (`siliconanalysts.com`, `compute.exchange`) — exactly F85's not-yet-built
+  tripwire territory; user eyeball of the v6 brief recommended.
 - **WAVE-3 LANES CLAIMED + DISPATCHED (2026-07-13, orchestrator session).** All design forks
   answered INTERACTIVELY by the user (user-approved provenance in each spec, incl. the F79
   full-six series choice against the assistant's lean); question-stop rule in force; F79

@@ -133,9 +133,16 @@
   user-approved interactively): `gpu_agent/entities.py` resolver over taxonomy seedEntities;
   canonical ids at the new-finding seams (extractor + wiki ingest); unregistered names pass
   byte-unchanged, flagged stderr + cycle log; 10 test files migrated (review: all FAITHFUL).
-  **STAYS OPEN for stage 2:** historical split-page/store consolidation (nvda.md vs nvidia.md
-  — a sacred-store repair with its own sign-off) + registering more entities in seedEntities
-  (only nvidia/tsmc registered today) + full multi-category counting at desk #2.
+  **STATUS 2026-07-14: STAGE 2 MERGED `3b712fa`** (spec
+  `docs/superpowers/specs/2026-07-13-f24-stage2-design.md`, forks user-approved interactively):
+  13 entity registrations (amd/intel/broadcom own merchant-gpu; 5 hyperscalers, 3 memory makers,
+  2 neoclouds appear-in only); the user-signed nvda→nvidia consolidation (5 observations moved
+  with original vintages, nvda retired + pointer, NVIDIA retitle) executed in-session under the
+  user's direct signature; the append-vs-append wiki-log conflict with the 2026-07-14 daily v7
+  cycle was reconciled (disjoint pages, consolidation events renumbered seq 115-124). **STAYS
+  OPEN:** the 5 server ODMs stay UNREGISTERED by user decision (no honest category — creating one
+  is a Part-16 human gate; revisit when an ODM-adjacent desk onboards) + full multi-category
+  counting at desk #2.
 - [x] **F25 — Wiki store performance + concurrency. DONE — merged `bf8ad6c` (2026-07-13, user
   "merge them all").** Incremental byte-cursor log cache (every read revalidates via stat;
   truncation detected), Aho-Corasick health scan, lockfile-guarded seq mint (Windows-safe
@@ -435,12 +442,21 @@
   research report §5):** log every thesis judgment as a probabilistic call and Brier-score it
   as triggers resolve — conviction language earns a track record instead of assuming the
   judgment is calibrated.
-- [ ] **F65 — "So what for TSMC" section.** The charter's north star is a prioritized
-  recommendation, but the brief states everything market-facing and draws no implication even
-  where it concludes TSMC is the binding constraint of the category. Add a judgment step +
-  render section translating category state into TSMC decision variables (wafer starts by
-  node, CoWoS/SoIC allocation, N2 customer mix, pricing leverage, foundry-competitive events —
-  e.g. Anthropic–Samsung 2nm). Per-category now; becomes the Main-tier roll-up input later.
+- [x] **F65 — "So what for TSMC" section. DONE — merged `a01d840` (2026-07-14, user-directed).**
+  Dedicated registry-driven implication brain (`gpu_agent/implication.py` + `registry/
+  implications.json` — decision variables as DATA, so new issues are data edits; category-
+  agnostic for desk #2), runs after judgment reading the final gated scorecard + thesis book +
+  memory bundle (one author, no sampling); deterministic gate (citations resolve, voice lint,
+  length cap, hard no-recommendation-verb rule — lane discipline); `store/implications/` carve-
+  out; a "FOR TSMC" section in the brief below the exec top band. Spec
+  `docs/superpowers/specs/2026-07-13-f65-tsmc-implication-design.md`. **Eval re-gate: the first
+  two runs FAILED the judge seam on a byte-identical prompt (grader noise, ε at its 3-run
+  quantum floor); resolved by the user-chosen SEAM-SCOPED VERDICT rule (bars bind only to seams
+  whose emitted prompt actually changed — spec
+  `docs/superpowers/specs/2026-07-13-eval-seam-scoped-verdicts-design.md`); run 3 scored judge
+  7.50; 3-run rebaseline gave an honest judge ε 0.50.** The charter's north star is a prioritized
+  recommendation; this is the implication (never a recommendation — Layer/Main altitude), now
+  a Main-tier roll-up input later.
 - [ ] **F66 — Post-hoc citation audit pass (low priority).** Adopted from the research report
   §1: citation integrity is enforced at write time (the gate checks findingIds/excerpts), but
   nothing re-verifies the *finished* brief's claims against the findings they cite — the
@@ -1005,8 +1021,27 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 > the two unnumbered F78-stage-6 follow-ups (section above) keep their user-assigned-number
 > reservation; this wave took the next free numbers at mint time (F88–F94).
 
-- [ ] **F88 — Unattended-orchestrator threat model (the injection boundary, one level up — and
-  the exposure went live 2026-07-13).** The F16/Part-8 boundary protects the *brains*: tool-less
+- [x] **F88 — DONE (on branch `f88-orchestrator-hardening`, awaiting user merge; spec
+  `docs/superpowers/specs/2026-07-13-f88-unattended-orchestrator-hardening-design.md`, plan
+  `docs/superpowers/plans/2026-07-13-f88-orchestrator-hardening.md`, sentinel
+  `.superpowers/handoffs/f88-hardening-DONE.md`).** Four sub-parts delivered: **(1)** the written
+  threat model (`docs/threat-model-unattended.md`, T1); **(2)** the injection wall — a
+  registry-templated, shell=False argv fetch runner with scheme/tool/verb validation
+  (`gpu_agent/gathering/webreach.py`) plus no-Bash-reader / receipts-not-content skill prose; **(3)**
+  the third-party web-reach supply-chain pin (`registry/web-reach-tools.json` version pins +
+  `gpu_agent/web_reach_ensure.py`, which never installs unattended); **(4)** D6's licensed-source
+  allow-but-flag rework (mid-build, user-decided 2026-07-13) — the fetch tool now identifies and
+  flags licensed/inventoried sources instead of hard-blocking them. **F88 follow-ups (logged not
+  lost, next free F-number — user to assign):** agent-reach's exact-ref install pin (D7 needs an
+  upstream tag/commit; interactive install still pulls `main`); a per-finding licensed-source
+  trust-footer tag (needs a `RawDocument` schema field — a frozen-core Part 33 migration); the
+  web-reach runner's in-memory capture has no streaming cap (only the on-disk result is capped,
+  bounded today only by the request timeout); the fetch manifest's `sha256` is gatherer-agent-
+  reported, not code-computed/verified (make the coordinator or assembler compute/verify it); and
+  a charter Part 22/37 edit to match the D6 doctrine (this lane only put the doctrine note in
+  `docs/web-reach.md`).
+  Original entry: Unattended-orchestrator threat model (the injection boundary, one level up — and
+  the exposure went live 2026-07-13). The F16/Part-8 boundary protects the *brains*: tool-less
   dispatches, fetched text fenced as data-not-instructions. Nothing protects the *orchestrating
   session* — and since 2026-07-13 that session runs headless on a schedule with
   `--dangerously-skip-permissions` (F83 flip): full tools (file writes, git push, arbitrary
@@ -1105,3 +1140,22 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
   **Forward pointer:** the 2026-07-12 wave (above) consumes F79's outputs — F84 scores its
   range forecasts against realized prints; F86 model-scopes the eval baselines its re-gate
   produces.
+
+## From the 2026-07-13 three-tier site brainstorm (F95)
+
+- [ ] **F95 — Three-tier market site on Cloudflare Pages (category page build-now; layer/market
+  rollup contract pinned).** Public static site rendering the exec page per tier: E2 word tiles
+  + alert dot PLUS one dynamic numerical "featured metric" (library-backed,
+  `registry/featured-metrics.json`, deterministic selector — rule-hit → biggest-move →
+  priority, selection reason always rendered); bottom "WHY IT READS THIS WAY" explanation
+  block; full drill-down trail on every KPI (components/weights → findings → evidence
+  publisher/date/tier/link). Layer + market pages = computed rollups (worst-color-wins,
+  disagreement shown not averaged, mandatory coverage chip — real layer/market brains
+  explicitly rejected for now), **contract-only until ≥2 categories run**. Architecture:
+  extend `gpu_agent/dashboard/` to emit a committed `site/` folder; Cloudflare Pages serves it
+  with no build step (commit-then-serve). Renderer-only — F6 pin green, frozen core untouched.
+  **Launch gates (user): repo-rename/TSMC-exposure decision + Pages subdomain naming before
+  FIRST deploy** (build/commit may proceed). Sequencing: F95's run-cycle prose step lands
+  before F88 merges (F88 goes last of the prose-touchers, per its own rule). Spec:
+  `docs/superpowers/specs/2026-07-13-f95-market-site-design.md` (decisions S1–S8, all
+  user-approved interactive 2026-07-13). *(Feature — spec done; next is writing-plans.)*

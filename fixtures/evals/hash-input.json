@@ -11,6 +11,113 @@
       "url": "http://sec/nvda"
     }
   },
+  "implication": {
+    "book": {
+      "categoryId": "chips.merchant-gpu",
+      "entries": [
+        {
+          "conviction": "medium",
+          "createdAsOf": "2026-06",
+          "falsifiableTrigger": "Backlog growth falls below shipment growth for 2 consecutive quarters.",
+          "id": "nvda-demand-durability",
+          "lastChangedAsOf": "2026-06",
+          "lastDirection": 0,
+          "lastJudgedAsOf": "",
+          "lastVerdict": null,
+          "lens": "demand",
+          "mechanism": "Backlog grows faster than shipments.",
+          "pendingChallenge": null,
+          "provenance": "seeded",
+          "sensitivity": "Hyperscaler capex plans.",
+          "statement": "Datacenter GPU demand continues to outrun NVIDIA's ability to serve it.",
+          "status": "registered",
+          "streak": 0,
+          "title": "NVDA demand durability"
+        }
+      ]
+    },
+    "category": "chips.merchant-gpu",
+    "memoryText": null,
+    "scorecard": {
+      "asOf": "2026-06",
+      "categoryId": "chips.merchant-gpu",
+      "categoryStatus": {
+        "bottleneck": "advanced packaging",
+        "direction": "improving",
+        "rating": "Strong",
+        "reason": "Demand momentum outruns the supply ramp."
+      },
+      "confidence": {
+        "basis": "3 votes",
+        "level": "medium"
+      },
+      "demandSupply": {
+        "dmiContribution": 0.5,
+        "smiContribution": 0.3
+      },
+      "dimensionRatings": {
+        "momentum": {
+          "confidence": {
+            "basis": "3 votes",
+            "level": "medium"
+          },
+          "direction": "improving",
+          "findingIds": [
+            "doc-nvda-1"
+          ],
+          "rating": "Strong",
+          "rationale": "Datacenter revenue keeps rising."
+        }
+      },
+      "findings": [
+        {
+          "asOf": "2026-06",
+          "capturedAt": "2026-06-12",
+          "confidence": {
+            "basis": "primary filing",
+            "level": "high"
+          },
+          "dispersion": null,
+          "entity": "NVDA",
+          "evidence": [
+            {
+              "date": "2026-05-01",
+              "excerpt": "...",
+              "source": "NVIDIA 10-Q",
+              "tier": "primary",
+              "url": "http://sec/nvda"
+            }
+          ],
+          "extractionModel": "claude-opus-4-8",
+          "id": "doc-nvda-1",
+          "impact": {
+            "direction": "positive",
+            "mechanism": "Rising datacenter revenue lifts merchant-GPU demand.",
+            "targets": [
+              "chips.merchant-gpu"
+            ]
+          },
+          "indicatorId": "D2",
+          "kind": "measured",
+          "magnitude": 2,
+          "observedAt": "2026-05-01",
+          "polarityDemand": 1,
+          "polaritySupply": 0,
+          "reasoning": null,
+          "schemaVersion": "1.2",
+          "side": "demand",
+          "statement": "Data center revenue grew 8% sequentially on the Blackwell ramp.",
+          "trend": "rising",
+          "value": {
+            "number": 8.0,
+            "unit": "percent"
+          },
+          "why": "Sequential growth shows demand pull."
+        }
+      ],
+      "narrative": "Demand outruns supply."
+    }
+  },
   "judge": {
     "category": "chips.merchant-gpu",
     "findings": [

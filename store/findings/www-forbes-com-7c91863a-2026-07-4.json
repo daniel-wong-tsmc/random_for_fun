@@ -1,0 +1,41 @@
+{
+  "id": "www-forbes-com-7c91863a-2026-07-4",
+  "statement": "Meta reportedly plans to deploy up to 6 gigawatts of AMD Instinct GPUs, a large demand and share-shift signal for AMD accelerators.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "A hyperscaler committing to up to 6 GW of AMD Instinct is a major design win that shifts AI-accelerator demand and share toward AMD and away from Nvidia.",
+  "impact": {
+    "targets": [
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "A multi-gigawatt AMD Instinct deployment plan at a top hyperscaler is a large forward-demand and market-share signal for AMD merchant GPU."
+  },
+  "evidence": [
+    {
+      "source": "Forbes",
+      "url": "https://www.forbes.com/sites/greatspeculations/2026/07/13/will-tsmcs-capacity-crunch-derail-the-amd-stock-rally/",
+      "date": "2026-07-13",
+      "excerpt": "Meta reportedly plans to deploy 'up to 6 gigawatts of AMD Instinct GPUs.'",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Forbes); reported plan, no primary filing."
+  },
+  "dispersion": "conflicting same-key reports: magnitude 1 -> 2; sources: Forbes, Yahoo Finance",
+  "asOf": "2026-07",
+  "indicatorId": "designWins",
+  "side": "structural",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "amd",
+  "observedAt": "2026-07-13",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

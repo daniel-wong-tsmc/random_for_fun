@@ -1,0 +1,46 @@
+{
+  "id": "www-fool-com-1f532293-2026-07-1",
+  "statement": "CoreWeave FY revenue grew about 168% year-over-year from $1.9 billion to $5.1 billion, while net loss widened from $937 million to $1.2 billion.",
+  "kind": "measured",
+  "value": {
+    "number": 5.1,
+    "unit": "USD_B"
+  },
+  "trend": "rising",
+  "why": "Rapid neocloud revenue growth reflects strong GPU-compute demand, though the widening loss underscores the capital intensity of the buildout.",
+  "impact": {
+    "targets": [
+      "infrastructure.neocloud",
+      "chips.merchant-gpu",
+      "infrastructure.hyperscale-cloud"
+    ],
+    "direction": "mixed",
+    "mechanism": "CoreWeave's revenue is a proxy for rented GPU-compute demand; growth signals strong demand while losses signal buildout cost."
+  },
+  "evidence": [
+    {
+      "source": "The Motley Fool",
+      "url": "https://www.fool.com/investing/2026/07/07/whats-wrong-with-coreweave-stock/",
+      "date": "2026-07-07",
+      "excerpt": "Last year, while the company reported $5.1 billion in revenue, more than doubling the $1.9 billion it posted in the previous year...",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Motley Fool); no primary filing."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "D2",
+  "side": "demand",
+  "polarityDemand": 1,
+  "polaritySupply": 0,
+  "magnitude": 2,
+  "entity": "coreweave",
+  "observedAt": "2026-07-07",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

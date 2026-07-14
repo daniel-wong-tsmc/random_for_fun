@@ -1,0 +1,31 @@
+{
+  "chips.merchant-gpu": {
+    "variables": [
+      {
+        "id": "waferStartsByNode",
+        "label": "Wafer starts by node",
+        "description": "How merchant-GPU demand and supply momentum bear on wafer-start planning across leading-edge nodes."
+      },
+      {
+        "id": "cowosSoicAllocation",
+        "label": "Advanced-packaging (CoWoS / SoIC) allocation",
+        "description": "Whether advanced-packaging capacity is the binding constraint on realizable GPU revenue, and how tight allocation is."
+      },
+      {
+        "id": "n2CustomerMix",
+        "label": "Leading-node customer mix",
+        "description": "How the balance among merchant-GPU vendors and hyperscaler custom silicon shapes the leading-node customer base."
+      },
+      {
+        "id": "pricingLeverage",
+        "label": "Pricing leverage",
+        "description": "How firm end-market GPU pricing and demand-supply balance affect pricing leverage across the value chain."
+      },
+      {
+        "id": "foundryCompetitiveEvents",
+        "label": "Foundry competitive events",
+        "description": "Competitive, policy, or second-source developments that could shift foundry demand or the exposure around it."
+      }
+    ]
+  }
+}

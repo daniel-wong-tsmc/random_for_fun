@@ -1,0 +1,146 @@
+{
+  "asOf": "2026-07",
+  "docsDroppedKnown": [],
+  "findingsNew": [
+    {
+      "findingId": "www-forbes-com-7c91863a-2026-07-3",
+      "entity": "amd",
+      "indicatorId": "S10",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-fool-com-1f532293-2026-07-1",
+      "entity": "coreweave",
+      "indicatorId": "D2",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-fool-com-1f532293-2026-07-2",
+      "entity": "coreweave",
+      "indicatorId": "rpoBacklog",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "newsroom-intel-com-297a8b5b-2026-07-1",
+      "entity": "intc",
+      "indicatorId": "S9",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "lambda-ai-1252bbe3-2026-07-1",
+      "entity": "lambda",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "intuitionlabs-ai-f3e1fa32-2026-07-1",
+      "entity": "multi",
+      "indicatorId": "D6",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    },
+    {
+      "findingId": "www-forbes-com-7c91863a-2026-07-2",
+      "entity": "multi",
+      "indicatorId": "customerConcentration",
+      "verdict": "new",
+      "priorFindingId": null,
+      "detail": ""
+    }
+  ],
+  "findingsUpdate": [
+    {
+      "findingId": "www-forbes-com-7c91863a-2026-07-4",
+      "entity": "amd",
+      "indicatorId": "designWins",
+      "verdict": "update",
+      "priorFindingId": "www-sec-gov-76c06b12-2026-07-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-forbes-com-335e62f0-2026-07-1",
+      "entity": "multi",
+      "indicatorId": "S10",
+      "verdict": "update",
+      "priorFindingId": "www-trendforce-com-368d8402-2026-07-2",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-digitimes-com-8f3d0347-2026-07-1",
+      "entity": "multi",
+      "indicatorId": "S9",
+      "verdict": "update",
+      "priorFindingId": "www-spheron-network-f3e3c0bd-2026-07-1",
+      "detail": "statement/trend changed (trend rising -> rising)"
+    },
+    {
+      "findingId": "www-bis-gov-dbeede91-2026-07-1",
+      "entity": "multi",
+      "indicatorId": "exportControlExposure",
+      "verdict": "update",
+      "priorFindingId": "www-bis-gov-dbeede91-2026-07-1",
+      "detail": "statement/trend changed (trend falling -> rising)"
+    },
+    {
+      "findingId": "www-forbes-com-7c91863a-2026-07-1",
+      "entity": "multi",
+      "indicatorId": "leadTimes",
+      "verdict": "update",
+      "priorFindingId": "www-trendforce-com-368d8402-2026-07-1",
+      "detail": "magnitude 2 -> 3"
+    }
+  ],
+  "findingsDuplicate": [
+    {
+      "findingId": "finance-yahoo-com-db841ea0-2026-07-1",
+      "entity": "amd",
+      "indicatorId": "designWins",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "www-forbes-com-335e62f0-2026-07-2",
+      "entity": "multi",
+      "indicatorId": "customerConcentration",
+      "verdict": "duplicate",
+      "priorFindingId": null,
+      "detail": "superseded by intra-batch latest vintage"
+    },
+    {
+      "findingId": "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+      "entity": "nvidia",
+      "indicatorId": "D2",
+      "verdict": "duplicate",
+      "priorFindingId": "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+      "detail": "unchanged within tolerance"
+    },
+    {
+      "findingId": "nvidianews-nvidia-com-7b7a02ff-2026-07-3",
+      "entity": "nvidia",
+      "indicatorId": "grossMargin",
+      "verdict": "duplicate",
+      "priorFindingId": "investor-nvidia-com-c649ac13-2026-07-3",
+      "detail": "unchanged within tolerance"
+    },
+    {
+      "findingId": "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+      "entity": "nvidia",
+      "indicatorId": "vendorRevenueGuidance",
+      "verdict": "duplicate",
+      "priorFindingId": "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+      "detail": "unchanged within tolerance"
+    }
+  ]
+}

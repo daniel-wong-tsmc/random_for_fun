@@ -3,9 +3,9 @@ import argparse, json, pathlib, re, sys
 from datetime import datetime, timezone
 from pydantic import ValidationError
 from gpu_agent.assignment import load_assignment
-from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH
+from gpu_agent.config import REGISTRY_PATH, TAXONOMY_PATH, IMPLICATIONS_REGISTRY_PATH
 from gpu_agent.schema.finding import Finding, Confidence
-from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus
+from gpu_agent.schema.scorecard import DimensionRating, CategoryStatus, DIMENSIONS
 from gpu_agent.schema.raw_document import RawDocument
 from gpu_agent.extraction.extractor import extract_findings
 from gpu_agent.extraction.extractor import ExtractionResult
@@ -30,11 +30,15 @@ from gpu_agent.judgment.prompt import (
     build_user_prompt as build_judge_user_prompt)
 from gpu_agent.judgment.briefing import build_briefing
 from gpu_agent.thesis import (
-    ThesisAnswer, ThesisStore, apply_answer, gate_answer, seed_book,
+    ThesisAnswer, ThesisBook, ThesisStore, apply_answer, gate_answer, seed_book,
     THESIS_SYSTEM, build_thesis_system, build_thesis_user_prompt)
+from gpu_agent.implication import (
+    ImplicationAnswer, ImplicationArtifact, ImplicationRegistry, ImplicationStore,
+    ImplicationError, build_implication_system, build_implication_user_prompt, gate_implication)
 from gpu_agent.memory import build_memory_bundle, render_memory_text
 from gpu_agent.sufficiency import check_sufficiency
 from gpu_agent.gathering.ingest import normalize_documents
+from gpu_agent.gathering.assemble import assemble as assemble_blobs
 from gpu_agent.gathering.dedup import (
     SeenDocIndex, filter_seen_documents, record_documents, classify_findings, DedupReport)
 from gpu_agent.registry.indicators import IndicatorRegistry, RegistryError
@@ -596,6 +600,70 @@ def _thesis(args) -> int:
           file=sys.stderr)
     return 2
 
+def _implication(args) -> int:
+    """Handler for `gpu-agent implication` (F65): emit the canonical "so what for TSMC" prompt
+    (decision variables + FINAL gated scorecard + standing thesis book + prior-cycle MEMORY),
+    or gate + store a recorded answer. Mirrors thesis's emit->recorded pattern; ONE author,
+    no sampling. A parse or gate failure exits 1 and never writes (the store stays unchanged).
+
+    Steps: load the scorecard; require --category to match its categoryId; load the registry
+    decision variables, the standing thesis book (empty when unseeded), and the memory bundle.
+    --emit-prompt prints system/schema/user, exit 0. --recorded parses -> gates -> writes the
+    artifact -> prints a summary, exit 0. Neither flag exits 2.
+    """
+    try:
+        sc = load_scorecard(pathlib.Path(args.scorecard))
+    except (ValueError, FileNotFoundError) as e:
+        print(f"gpu-agent implication: error: {e}", file=sys.stderr)
+        return 1
+    if sc.categoryId != args.category:
+        print(f"gpu-agent implication: error: --category {args.category!r} does not match "
+              f"scorecard categoryId {sc.categoryId!r}", file=sys.stderr)
+        return 2
+
+    variables = ImplicationRegistry.load(IMPLICATIONS_REGISTRY_PATH).variables_for(args.category)
+
+    tstore = ThesisStore(pathlib.Path(args.store) / "theses" / args.category)
+    book = tstore.load() if tstore.exists() else ThesisBook(categoryId=args.category)
+
+    registry, _ = _load_registry()
+    horizons = IndicatorHorizons.load(REGISTRY_PATH)
+    memory = build_memory_bundle(args.store, args.category, args.as_of, registry, horizons)
+    memory_text = render_memory_text(memory) if memory is not None else None
+
+    if args.emit_prompt:
+        bundle = {
+            "system": build_implication_system(),
+            "schema": ImplicationAnswer.model_json_schema(),
+            "user": build_implication_user_prompt(variables, sc, book, memory_text),
+        }
+        print(json.dumps(bundle, indent=2))
+        return 0
+
+    if args.recorded:
+        try:
+            answer = ImplicationAnswer.model_validate_json(
+                pathlib.Path(args.recorded).read_text("utf-8"))
+        except ValidationError as e:
+            print(f"gpu-agent implication: error: invalid recorded answer: {e}", file=sys.stderr)
+            return 1
+        violations = gate_implication(
+            answer, findings_by_id={f.id: f for f in sc.findings},
+            thesis_ids={e.id for e in book.standing()}, dimensions=set(DIMENSIONS))
+        if violations:
+            print("IMPLICATION GATE FAILED:", *violations, sep="\n  ", file=sys.stderr)
+            return 1
+        store = ImplicationStore(pathlib.Path(args.store) / "implications" / args.category)
+        artifact = ImplicationArtifact(categoryId=sc.categoryId, asOf=args.as_of,
+                                       lines=answer.lines)
+        path = store.write(artifact)
+        print(f"wrote {path}  {len(artifact.lines)} implication line(s)")
+        return 0
+
+    print("gpu-agent implication: error: exactly one of --emit-prompt or --recorded is required",
+          file=sys.stderr)
+    return 2
+
 def _eval(args) -> int:
     """F6 eval harness driver. Emit/record cycle mirrors extract/judge/thesis; run-dir files
     (brain-prompts/brain-answers/brain-gates/grade-prompts/grade-answers/report.json) are the
@@ -623,6 +691,15 @@ def _eval(args) -> int:
         vp = pathlib.Path(args.runs[-1]) / "verdict.json"
         vp.write_text(json.dumps(v, indent=2, sort_keys=True), "utf-8")
         print(f"{v['decision'].upper()}  -> {vp}")
+        # F65g seam-scoped verdicts: show each seam's standing so an informational
+        # (hash-identical) or new seam is never mistaken for a gated one.
+        for seam, info in sorted(v.get("seams", {}).items()):
+            if info.get("new"):
+                print(f"  {seam}: {info['value']:.3f}  "
+                      "[new seam - no bar; gated at first rebaseline]")
+            else:
+                tag = "gated" if info.get("gated") else "informational (hash-identical)"
+                print(f"  {seam}: {info['value']:.3f} vs bar {info['bar']:.3f}  [{tag}]")
         for r in v["reasons"]:
             print(f"  - {r}")
         return 0 if v["pass"] else 1
@@ -952,6 +1029,17 @@ def _report(args) -> int:
         thesis_book = tstore.load()
         thesis_last_findings = _latest_thesis_findings(tstore.history_path)
 
+    # F65: the FOR TSMC section is a pure projection of this cycle's stored implication
+    # artifact. Absent artifact -> None -> honest empty state ("no implication recorded this
+    # cycle"). A malformed/missing file raises ImplicationError from load(); we degrade to the
+    # empty state rather than sink the whole brief on it.
+    istore = ImplicationStore(pathlib.Path(args.store) / "implications" / sc.categoryId)
+    implications = None
+    try:
+        implications = istore.load(sc.asOf)
+    except ImplicationError:
+        implications = None
+
     prior = None
     if not args.no_prior:
         if args.prior:
@@ -1031,7 +1119,7 @@ def _report(args) -> int:
                          horizons=horizons, movement=movement,
                          thesis_book=thesis_book, thesis_last_findings=thesis_last_findings,
                          daily=getattr(args, "daily", False), gate_waivers=gate_waivers,
-                         change=change, state=state, alert=alert)
+                         change=change, state=state, alert=alert, implications=implications)
     # The report emits non-ASCII glyphs (↑↓→ — Δ). A default Windows cp1252
     # terminal would crash on print(); force stdout to UTF-8 so the CLI runs
     # on the user's own platform (covers both the report and the "wrote" line).
@@ -1051,7 +1139,8 @@ def _web_reach_ensure(args) -> int:
     # monkeypatch wre.REGISTRY_PATH are honored (see Task 2 review note).
     registry = wre.load_registry(wre.REGISTRY_PATH)
     log = (lambda m: None) if args.json else print
-    results = wre.ensure_all(registry, check_only=args.check_only, timeout=args.timeout, log=log)
+    results = wre.ensure_all(registry, check_only=args.check_only, unattended=args.unattended,
+                              timeout=args.timeout, log=log)
     if args.json:
         print(json.dumps({"webReach": {r["tool"]: r for r in results}}, indent=2))
     return 0 if all(r["status"] in ("ok", "installed-ok") for r in results) else 1
@@ -1097,6 +1186,56 @@ def _v2_shadow(args) -> int:
         print(f"v2 shadow stamped: {args.scorecard}")
     else:
         print(f"v2 shadow no-op (series store empty at this vintage): {args.scorecard}")
+    return 0
+
+
+def _webreach_fetch(args) -> int:
+    """Runner half of the F88 wall: reader agents (no shell access) write a JSON
+    array of FetchRequest objects; this executes ONLY the requests that pass
+    validate_request, as argv arrays (shell=False), and writes a result manifest.
+    Individual request failures/refusals are data (exit 0); a malformed/missing
+    requests file, or a syntactically-valid-but-structurally-malformed registry/licensed
+    file (e.g. missing an expected key -> KeyError), is a usage error (exit 2) caught
+    here before anything runs. D6: licensed/inventoried domains are no longer refused --
+    they execute like any other request and are flagged per-row via `licensedSource`."""
+    from gpu_agent.gathering import webreach
+    try:
+        registry = json.loads(pathlib.Path(args.registry).read_text(encoding="utf-8"))
+        licensed = webreach.load_licensed_domains(pathlib.Path(args.licensed))
+        manifest = webreach.run_requests(args.requests, args.out_dir, registry, licensed)
+    except (OSError, json.JSONDecodeError, ValueError, KeyError, ValidationError) as e:
+        print(f"gpu-agent webreach-fetch: error: {e}", file=sys.stderr)
+        return 2
+    results = manifest["results"]
+    n_refused = sum(1 for r in results if r["refused"] is not None)
+    n_failed = sum(1 for r in results if r["refused"] is None and r["error"] is not None)
+    print(f"webreach-fetch: {len(results)} request(s) -> {args.out_dir}/fetch-manifest.json "
+          f"({n_refused} refused, {n_failed} failed, "
+          f"{len(results) - n_refused - n_failed} ok)")
+    return 0
+
+
+def _gather_assemble(args) -> int:
+    """Handler for `gpu-agent gather-assemble`: the F88 hand-off seam between reader-gatherer
+    subagents (which write each fetched page's blob to its own JSON file and never return
+    content in their replies) and `ingest --blobs` (which needs the single blobs.json
+    envelope). The coordinating session never opens a blob file or hand-assembles the
+    envelope -- this command does both deterministically. A missing/non-directory
+    --blob-dir is a usage error (exit 2); an all-skipped or empty directory is still a
+    valid result (exit 0, loud in the envelope's `skipped` list -- cap/skip doctrine, not
+    a crash)."""
+    blob_dir = pathlib.Path(args.blob_dir)
+    if not blob_dir.is_dir():
+        print(f"gpu-agent gather-assemble: error: --blob-dir {blob_dir} does not exist "
+              f"or is not a directory", file=sys.stderr)
+        return 2
+    envelope = assemble_blobs(blob_dir)
+    out = pathlib.Path(args.out)
+    out.write_text(json.dumps(envelope, indent=2), encoding="utf-8", newline="\n")
+    for row in envelope["skipped"]:
+        print(f"SKIPPED {row['path']}: {row['reason']}", file=sys.stderr)
+    print(f"assembled {len(envelope['blobs'])} blob(s), {len(envelope['skipped'])} skipped "
+          f"-> {out}")
     return 0
 
 
@@ -1202,6 +1341,14 @@ def main(argv=None) -> int:
                     help="seed file path for a first run (default: registry/theses.<category>.json)")
     th.add_argument("--persona", default=None,
                     help="analyst persona for the emitted system prompt (default: GPU market)")
+    im = sub.add_parser("implication")
+    im.add_argument("--scorecard", required=True, help="path to the FINAL gated scorecard JSON")
+    im.add_argument("--store", default="store", help="store root (holds theses/, implications/)")
+    im.add_argument("--category", required=True, help="indicator category id (e.g. chips.merchant-gpu)")
+    im.add_argument("--as-of", required=True, type=_as_of)
+    im.add_argument("--emit-prompt", action="store_true",
+                    help="print the canonical implication prompt + schema (no LLM) and exit")
+    im.add_argument("--recorded", default=None, help="path to a recorded ImplicationAnswer JSON")
     ev = sub.add_parser("eval", help="F6 eval harness: golden-set emit/record + rebaseline")
     ev.add_argument("action", choices=["emit-brain", "record-brain", "emit-grade",
                                        "record-grade", "verdict", "rebaseline"])
@@ -1271,6 +1418,9 @@ def main(argv=None) -> int:
     wre = sub.add_parser("web-reach-ensure",
                          help="idempotently ensure web-reach tools are installed")
     wre.add_argument("--check-only", action="store_true")
+    wre.add_argument("--unattended", action="store_true",
+                     help="scheduled/unwatched run: never install or upgrade (supply-chain "
+                          "freeze); report version/pin/drift instead")
     wre.add_argument("--json", action="store_true")
     wre.add_argument("--timeout", type=int, default=600)
     # F79 (append-only verb): replay the series store by publication vintage and score
@@ -1289,6 +1439,24 @@ def main(argv=None) -> int:
     v2s.add_argument("--scorecard", required=True, help="path to the stored <asOf>-v<N>.json")
     v2s.add_argument("--series-root", default="store/series")
     v2s.add_argument("--series-registry", default="registry/series-indicators.json")
+    wf = sub.add_parser("webreach-fetch",
+                        help="execute validated web-reach fetch requests (argv-exec, "
+                             "sanitized result paths) and write a result manifest")
+    wf.add_argument("--requests", required=True,
+                    help="JSON array of FetchRequest objects (toolId, verb, target, outName?)")
+    wf.add_argument("--out-dir", required=True,
+                    help="dir for per-request result files + fetch-manifest.json")
+    wf.add_argument("--registry", default="registry/web-reach-tools.json")
+    wf.add_argument("--licensed", default="registry/licensed-sources.json",
+                    help="licensed/inventoried source domains (TrendForce, SemiAnalysis, "
+                         "...); fetches to these are executed and flagged via the "
+                         "manifest's licensedSource field, not refused (D6)")
+    ga = sub.add_parser("gather-assemble",
+                        help="assemble a directory of reader-gatherer blob files into the "
+                             "single blobs.json envelope `ingest --blobs` accepts")
+    ga.add_argument("--blob-dir", required=True,
+                    help="dir of per-page blob JSON files (+ optional rounds.txt)")
+    ga.add_argument("--out", required=True, help="write the assembled envelope JSON here")
     args = p.parse_args(argv)
     if args.cmd == "backtest":
         return _backtest(args)
@@ -1324,6 +1492,15 @@ def main(argv=None) -> int:
         except RegistryError as e:
             print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
             return 1
+    if args.cmd == "implication":
+        try:
+            return _implication(args)
+        except RegistryError as e:
+            print("REGISTRY GATE FAILED:", *e.violations, sep="\n  ", file=sys.stderr)
+            return 1
+        except ImplicationError as e:
+            print(f"IMPLICATION ERROR: {e}", file=sys.stderr)
+            return 1
     if args.cmd == "eval":
         try:
             return _eval(args)
@@ -1344,6 +1521,10 @@ def main(argv=None) -> int:
             return 1
     if args.cmd == "web-reach-ensure":
         return _web_reach_ensure(args)
+    if args.cmd == "webreach-fetch":
+        return _webreach_fetch(args)
+    if args.cmd == "gather-assemble":
+        return _gather_assemble(args)
     if args.cmd == "report":
         return _report(args)
     try:

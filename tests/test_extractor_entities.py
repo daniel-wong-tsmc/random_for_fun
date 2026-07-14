@@ -50,13 +50,15 @@ def test_unregistered_passes_through_unchanged_and_flagged():  # acceptance 4 (o
 
 
 def test_unregistered_names_are_distinct_and_sorted():
+    # F24 stage 2: AMD is registered now; the server ODMs stay unregistered by user
+    # decision (Option A, 2026-07-13) and are the honest unregistered specimens.
     out = _extract(_draft(entity="Super Micro"),
-                   _draft(entity="AMD", statement="MI400 ramps"),
-                   _draft(entity="AMD", statement="MI400 pricing"))
-    assert out.unregisteredEntities == ["AMD", "Super Micro"]
+                   _draft(entity="Quanta", statement="rack ramps"),
+                   _draft(entity="Quanta", statement="rack pricing"))
+    assert out.unregisteredEntities == ["Quanta", "Super Micro"]
 
 
 def test_registered_mixed_with_unregistered():
-    out = _extract(_draft(entity="NVDA"), _draft(entity="AMD", statement="MI400 ramps"))
-    assert [f.entity for f in out.findings] == ["nvidia", "AMD"]
-    assert out.unregisteredEntities == ["AMD"]
+    out = _extract(_draft(entity="NVDA"), _draft(entity="Quanta", statement="rack ramps"))
+    assert [f.entity for f in out.findings] == ["nvidia", "Quanta"]
+    assert out.unregisteredEntities == ["Quanta"]

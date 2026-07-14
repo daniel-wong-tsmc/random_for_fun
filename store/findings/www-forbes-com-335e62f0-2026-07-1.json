@@ -1,0 +1,43 @@
+{
+  "id": "www-forbes-com-335e62f0-2026-07-1",
+  "statement": "TSMC is ramping CoWoS advanced-packaging capacity (CAGR target above 80% for 2022-2027), narrowing the CoWoS supply-demand gap from roughly 20% earlier in 2026 to roughly 10% by end-2026.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Added CoWoS capacity eases the binding advanced-packaging bottleneck for AI accelerators, gradually improving accelerator supply even as demand stays strong.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.hbm-memory",
+      "chips.merchant-gpu"
+    ],
+    "direction": "positive",
+    "mechanism": "CoWoS is the key advanced-packaging constraint for GPUs and HBM; capacity growth narrows the supply-demand gap and increases accelerator output."
+  },
+  "evidence": [
+    {
+      "source": "Forbes",
+      "url": "https://www.forbes.com/sites/drewbernstein/2026/07/09/tsmcs-second-quarter-will-test-whether-the-ai-buildout-has-a-ceiling",
+      "date": "2026-07-09",
+      "excerpt": "the CoWoS packaging supply-demand gap is estimated to narrow from roughly 20% earlier in 2026 to roughly 10% by end-2026, with a company CoWoS-capacity CAGR target 'above 80%' between 2022 and 2027.",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Secondary sources (Forbes with biyapay.com corroboration on guidance); two outlets, not filing-grade."
+  },
+  "dispersion": null,
+  "asOf": "2026-07",
+  "indicatorId": "S10",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": 1,
+  "magnitude": 2,
+  "entity": "multi",
+  "observedAt": "2026-07-09",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

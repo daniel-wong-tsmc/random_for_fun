@@ -14,6 +14,11 @@ TAXONOMY_PATH = os.environ.get("GPU_AGENT_TAXONOMY", "docs/taxonomy.json")
 # number and tests/test_corroboration_config.py guards the coupling.
 CORROBORATION_PATH = os.environ.get("GPU_AGENT_CORROBORATION", "registry/corroboration.json")
 
+# F65: per-category decision-variable registry for the "so what for TSMC" implication brain.
+# DATA — adding a variable or a new category here changes the emitted implication prompt with
+# zero code edits (registry-driven, F26/F27; prompt-affecting -> the F6 gate).
+IMPLICATIONS_REGISTRY_PATH = os.environ.get("GPU_AGENT_IMPLICATIONS", "registry/implications.json")
+
 
 @lru_cache(maxsize=1)
 def min_distinct_publishers() -> int:

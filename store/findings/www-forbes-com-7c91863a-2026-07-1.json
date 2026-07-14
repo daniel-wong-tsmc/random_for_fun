@@ -1,0 +1,43 @@
+{
+  "id": "www-forbes-com-7c91863a-2026-07-1",
+  "statement": "TSMC's CoWoS advanced packaging is fully booked through 2026 with lead times of 52 to 78 weeks, described by TSMC's CEO as exceptionally limited.",
+  "kind": "observed",
+  "value": null,
+  "trend": "rising",
+  "why": "Fully-booked packaging with 52-78 week lead times confirms a hard advanced-packaging supply ceiling constraining AI-accelerator output through 2026.",
+  "impact": {
+    "targets": [
+      "chips.foundry-packaging",
+      "chips.merchant-gpu",
+      "chips.hbm-memory"
+    ],
+    "direction": "negative",
+    "mechanism": "Long CoWoS lead times cap how quickly GPU and accelerator supply can grow regardless of demand."
+  },
+  "evidence": [
+    {
+      "source": "Forbes",
+      "url": "https://www.forbes.com/sites/greatspeculations/2026/07/13/will-tsmcs-capacity-crunch-derail-the-amd-stock-rally/",
+      "date": "2026-07-13",
+      "excerpt": "fully booked through 2026, with lead times varying from 52 to 78 weeks",
+      "tier": "secondary"
+    }
+  ],
+  "reasoning": null,
+  "confidence": {
+    "level": "medium",
+    "basis": "Single secondary source (Forbes); no primary filing."
+  },
+  "dispersion": "52 to 78 weeks",
+  "asOf": "2026-07",
+  "indicatorId": "leadTimes",
+  "side": "supply",
+  "polarityDemand": 0,
+  "polaritySupply": -1,
+  "magnitude": 3,
+  "entity": "multi",
+  "observedAt": "2026-07-13",
+  "capturedAt": "2026-07-14T01:29:33Z",
+  "extractionModel": "claude-opus-4-8",
+  "schemaVersion": "1.2"
+}

@@ -34,10 +34,27 @@ User picks, interactive 2026-07-13 (none are AFK-defaults):
 - **D3 — Disarm the readers:** no agent that reads web content holds Bash; CLI fetches move
   behind a deterministic runner.
 - **D4 — Design approved as presented** (7 sections), build authorized, SDD execution.
+- **D5 — Sequencing vs the F83 conformance pin (user-decided 2026-07-13, interactive,
+  against the assistant's recommendation):** the F83 pin lane (concurrent orchestrator
+  session) lands FIRST. F88's build starts only after that merge, builds over the pinned
+  prose, and **re-records the pin** as part of T6. Consequence accepted: the injection
+  holes stay open until then; the F88 spec + plan are parked ready.
+- **D6 — Licensed-source handling: ALLOW-BUT-FLAG, not hard-block (user-decided 2026-07-13,
+  interactive, mid-build).** Task 1 originally REFUSED the inventoried subscription domains
+  (TrendForce, SemiAnalysis, Dell'Oro, Omdia, IDC) outright. The user rejected the hard block —
+  "sometimes some websites offer free articles; I don't want to hardblock certain websites."
+  New behavior: those domains are **fetched like any other page** and each fetch is **flagged**
+  as a licensed source so the licensing risk is never silent. Flag lands in the fetch manifest
+  + cycle-log now; the **per-finding trust-footer tag is DEFERRED** (it needs a `RawDocument`
+  schema field = frozen-core Part 33 migration, out of F88 scope — logged as a follow-up).
+  This **softens charter Part 22** ("inventoried but never fetched") **and the Part 37 crawl
+  doctrine** to "fetch openly, flag loudly" — recorded as a doctrine change in T1/T6; a full
+  charter edit may follow. Non-http(s)-scheme and unknown-tool/verb refusals are UNCHANGED
+  (D6 only removes the *domain* refusal). Supersedes the "paywall refusal" language in T4/§9.
 
 Assistant leans (marked, to challenge in review): receipt schema fields; runner/assembler as
 `gpu-agent` CLI subcommands; assembler skip-and-log on malformed blob files; rounds cap = 3;
-no charter amendment in v1.
+no charter amendment in v1 (D6 now requires at least a doctrine note).
 
 ## 3. Threat model (summary — full doc is deliverable T1)
 
@@ -75,8 +92,10 @@ scheduled job flips to an explicit allowlist generated from F83's conformance-te
   executes fetch requests `{toolId, verb/args, url}` written by reader-gatherers. Commands
   built as argv arrays from `registry/web-reach-tools.json` templates (page-supplied text
   never becomes command syntax; no shell string pass-through); http/https URLs only;
-  paywalled/licensed domains refused from inventory data (**P22's first code seam**); results
-  saved to files; per-request result manifest `{path, bytes, exitCode, error?}`. Flow:
+  licensed-source domains from inventory data are **flagged, not refused** (D6 — the manifest
+  row carries `licensedSource: <domain|null>`; **P22's first code seam**, now a flag rather
+  than a block); results saved to files under a sanitized in-`out_dir` path; per-request
+  result manifest `{path, bytes, exitCode, error?, licensedSource?}`. Flow:
   gatherer round 1 (built-in web tools + writes `fetch-requests.json`) → coordinator runs the
   runner → gatherer round 2 reads result files, writes blobs, returns receipts. Rounds ≤ 3.
 - **T5 — Supply-chain pin:** registry gains `pin` per tool (tag or commit; agent-reach pinned
@@ -143,6 +162,8 @@ visibility.
 6. T1 doc committed; compliance rows updated.
 7. Live shakedown: the next daily (attended or scheduled) completes a gather through
    runner + assembler with the cap/skip log showing any degradation loudly.
+8. The F83 orchestration-conformance pin re-recorded over the changed prose (the pin exists
+   by build time — sequencing D5) and green at merge.
 
 ## 10. Risks
 

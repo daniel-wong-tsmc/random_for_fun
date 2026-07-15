@@ -61,11 +61,30 @@
   merged, no gitignored data worth keeping; see registry); (3) repo rename before TSMC-branded
   exposure; (4) F23's A4 label call (P19.budget DEFERRED vs NOT-ENFORCED — reviewer leans
   DEFERRED, in the F23 sentinel).
-- **NEXT:** (1) user merges F78 stage 6 (closes F78, ticks F64/F77) → (2) F56 rebase+merge →
-  (3) **F79 SDEWS scoring v2.0 — INTERACTIVE brainstorm with the user BEFORE any lane
-  dispatch** (standing rule) → F65, F66, F24 stage 2 (historical page consolidation) → the
-  **F81–F86 gap wave** (F87 already done, pulled forward), beside what remains of the
-  standing track (F23 ✅, F25 ✅, F24 partial).
+- **NEXT (as of 2026-07-15; wave-1/2/3 all merged — F23/F24-s1+s2/F25/F56/F65/F72-v1.4.1/F79-shadow/
+  F80/F83/F87 + F78):**
+  1. **FINISH F79 — the one thing in flight.** It is shadow-merged but NOT live. The shadow soak
+     (≥5 live daily cycles accumulating v2 indices) is the gate before G4 cutover, BUT the per-cycle
+     `v2-shadow` computation needs MANUAL invocation — the auto-hook was deferred. **So the soak
+     will NOT happen on its own.** Immediate task: wire the shadow auto-invocation into the daily
+     run-cycle (shadow-only, safe, additive), so ≥5 cycles accumulate hands-free → then the
+     **G4 CUTOVER (user-signed; flips v1→v2 rendering)** — the last gate. Assistant recommended
+     doing the hook next; awaiting user go.
+  2. **Housekeeping (cheap, piling up):** retire the ~12 merged worktrees/branches (F65/F24-s2/F79/
+     F83/F56 + the wave-1/2 set — all merged; keep only rows the RETAINED WORKTREES REGISTRY marks
+     for gitignored data). Parked user decisions: skipped scheduled days (07-09/11/12 — 07-07
+     precedent is skip), repo rename before TSMC exposure, F23-A4 label (P19.budget DEFERRED vs
+     NOT-ENFORCED, reviewer leans DEFERRED).
+  3. **F96 (logged this session):** monthly-grain write-back collision — same-month price re-gather
+     mints a stable id over changed content (F52-class residual); found in the live v8 cycle; corpus
+     rolled back safely. Small gather/dedup-seam fix.
+  4. **Remaining feature backlog (not urgent):** F66 citation audit; the **F81–F86 gap wave** (brain
+     diversity / corrections pathway / scheduled-daily-event-wake / external scoreboard /
+     manipulation-resistance / model-swap recalibration); F24 stage-2 leftovers (5 ODMs stay
+     unregistered by user decision; multi-category counting at desk #2). The **F88 session** is
+     separately working F88–F95 (unattended-orchestrator hardening + the three-tier site).
+  - **Standing rule reminder:** design-weight items (the F81–F86 wave) get an INTERACTIVE brainstorm
+     with the user before any lane dispatch; dispatched lanes obey the question-stop rule.
 
 ## HISTORICAL — 2026-07-12 F78-stages-1–5 state (superseded 2026-07-13 by the block above)
 

@@ -280,11 +280,17 @@ def test_gate_order_in_prescription():
 
 
 def test_journal_records_each_gate_outcome():
-    """Every finalized (`done`) entry in the REAL committed journal records a
-    per-gate outcome - Step 6's 'each gate's outcome recorded' prescription asserted
-    against actual run output, not against a journal this suite authored (the
-    review-caught tautology). Same working-tree read as the F74 tripwire; a journal
-    with zero done entries (all failed/skipped) has nothing to demand and passes."""
+    """Every finalized (`done`) entry in the REAL committed journal records its
+    gate/stage outcomes in an accepted form - Step 6's 'each gate's outcome recorded'
+    prescription asserted against actual run output, not a journal this suite authored.
+    The journal is session-authored free-form: `gates` is OPTIONAL (F74 does not require
+    it; brief.py treats absent gates as a clean cycle), so an entry may record its
+    outcomes either as a `gates` object OR as `stageStatuses` (the form the live
+    full-cycle finalization uses) - what it may NOT be is a bare skeleton with no outcome
+    map at all. Same working-tree read as the F74 tripwire; a journal with zero done
+    entries passes. (History: an earlier form over-specified a rigid four-key `gates`
+    schema; the 2026-07-15 v8 live cycle correctly recorded outcomes under `stageStatuses`,
+    exposing the over-strictness - relaxed to the real contract, user-approved 2026-07-15.)"""
     log = ROOT / "store" / "cycle-log.json"
     if not log.exists():
         return  # nothing to check yet (fresh category store) - F74 tripwire precedent
@@ -292,11 +298,14 @@ def test_journal_records_each_gate_outcome():
     for entry in journal.get("entries", []):
         if entry.get("status") != "done":
             continue
-        gates = entry.get("gates") or {}
-        for gate in ("extract", "sufficiency", "voiceLint", "thesis"):
-            assert gates.get(gate), (
-                f"{entry.get('category_id')}: gate {gate!r} outcome not recorded in "
-                f"the finalized journal (run-cycle Step 6)")
+        gates = entry.get("gates")
+        stage_statuses = entry.get("stageStatuses")
+        recorded = (isinstance(gates, dict) and gates) or \
+                   (isinstance(stage_statuses, dict) and stage_statuses)
+        assert recorded, (
+            f"{entry.get('category_id')}: a finalized `done` entry records no gate/stage "
+            f"outcome map (neither `gates` nor `stageStatuses`) - run-cycle Step 6 requires "
+            f"outcomes recorded, never a bare skeleton")
 
 
 # --------------------------------------------------------------------------- #

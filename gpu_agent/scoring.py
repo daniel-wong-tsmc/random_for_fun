@@ -1,6 +1,23 @@
 from __future__ import annotations
 from gpu_agent.schema.finding import Finding
 
+# F79 — scoring v2.0 (Part 33 versioned migration). The v1.x path below
+# (dmi_smi_contribution) is FROZEN and byte-identical — its replay fidelity over every
+# stored scorecard is pinned by tests/test_scoring_v1_replay_pin.py. v2 is an ADDITIVE
+# entry point (score_v2) delegating to the series engine; nothing user-facing renders
+# v2 before the G4 cutover. Absorbs the deferred F60 scoring half; supersedes the
+# reserved v1.5 side-semantics slot.
+SCORING_VERSION = "2.0"
+
+
+def score_v2(series_registry, series_root, *, as_of: str,
+             impulses=()) -> tuple[float, float]:
+    """The v2.0 index: (DMI, SMI) as weighted z-sums with freshness decay + event
+    impulses over the vintage-stamped series store. See gpu_agent/series.py."""
+    from gpu_agent.series import compose_index   # local: keeps the v1 import graph intact
+    return compose_index(series_registry, series_root, as_of=as_of, impulses=impulses)
+
+
 def _latest(findings: list[Finding]) -> Finding:
     return max(findings, key=lambda f: (f.capturedAt, f.observedAt, f.magnitude))
 

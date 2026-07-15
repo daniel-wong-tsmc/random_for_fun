@@ -23,6 +23,15 @@ class IndicatorSpec(BaseModel):
     readsLevelOrSlope: Optional[Literal["level", "slope"]] = None
     decayLambda: float = 0.0
     leadMonths: str = ""
+    # F79 (scoring v2.0): dual polarity + indicator lifecycle land here as REGISTRY data
+    # (the spec forbids Finding-schema/* changes). polarityDemand/polaritySupply let one
+    # signal read on both tracks (e.g. an HBM price spike = supply tightness AND cost
+    # pressure). lifecycle drives the v2 engine's source-dark/retirement weighting. Inert
+    # to the emitted prompt (the extract vocab reads only id/label/side/unit); default
+    # values keep every pre-F79 indicator's spec byte-identical.
+    polarityDemand: int = 0
+    polaritySupply: int = 0
+    lifecycle: Literal["active", "degraded", "retired"] = "active"
 
 class IndicatorRegistry:
     def __init__(self, indicators: dict[str, dict], overrides: dict[str, dict] | None = None):

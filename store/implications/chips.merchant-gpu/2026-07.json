@@ -1,0 +1,107 @@
+{
+  "asOf": "2026-07",
+  "categoryId": "chips.merchant-gpu",
+  "lines": [
+    {
+      "dimensions": [
+        "momentum"
+      ],
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-1",
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-2",
+        "www-stocktitan-net-fe36e810-2026-07-1",
+        "www-digitimes-com-f88ca4e6-2"
+      ],
+      "thesisIds": [
+        "nvda-demand-durability",
+        "multi-vendor-accelerator-supply-wave-in-second-half-2026"
+      ],
+      "watchItem": "Merchant-GPU demand is running far ahead of supply, with NVIDIA data-center revenue at a record $75.2 billion and its next-quarter guide stepping to $91 billion while AMD, AWS and Google accelerators all ramp into production at once. Wafer-start planning across leading-edge nodes is exposed to how long this demand pull holds and to more vendors competing for the same node capacity."
+    },
+    {
+      "dimensions": [
+        "bottleneck"
+      ],
+      "findingIds": [
+        "www-forbes-com-7c91863a-2026-07-1",
+        "www-forbes-com-7c91863a-2026-07-2",
+        "www-forbes-com-335e62f0-2026-07-1",
+        "www-trendforce-com-368d8402-2026-07-1",
+        "finance-yahoo-com-ea29a8bf-2026-07-1"
+      ],
+      "thesisIds": [
+        "supply-constraint-binding",
+        "ai-packaging-supply-is-concentrated-in-a-few-buyers"
+      ],
+      "watchItem": "CoWoS packaging stays fully booked through 2026 with 52-to-78-week lead times, yet the supply-demand gap is narrowing from about 20% to 10% by year-end as TSMC and outsourced packaging houses add capacity, so high-bandwidth memory has overtaken packaging as the tighter limit on shippable GPUs. Advanced-packaging allocation is exposed to that shift and to the top three clients taking over 85% of output."
+    },
+    {
+      "dimensions": [
+        "competitiveStructure",
+        "moat"
+      ],
+      "findingIds": [
+        "www-tomshardware-com-f77e9757-2026-07-1",
+        "www-tomshardware-com-f77e9757-2026-07-2",
+        "www-amd-com-49475e6c-2026-07-2",
+        "www-spheron-network-f3e3c0bd-2026-07-1",
+        "www-fool-com-e11bac5f-2026-07-2"
+      ],
+      "thesisIds": [
+        "custom-asic-substitution",
+        "amd-credible-second-source"
+      ],
+      "watchItem": "Hyperscaler custom silicon is growing faster than merchant GPUs, with custom ASIC shipments projected at 27.8% of the market and up 44.6% a year versus 16.1% for GPUs, while AMD wins large Instinct deployments and Broadcom carries a $73 billion ASIC backlog. The leading-node customer mix is exposed to weight shifting from a single dominant GPU customer toward a broader set of ASIC and second-source vendors."
+    },
+    {
+      "dimensions": [
+        "unitEconomics"
+      ],
+      "findingIds": [
+        "nvidianews-nvidia-com-7b7a02ff-2026-07-3",
+        "www-stocktitan-net-fe36e810-2026-07-2",
+        "www-digitimes-com-e48a6e49-2026-07-05-1"
+      ],
+      "thesisIds": [
+        "nvidia-holds-a-premium-gross-margin-as-it-ramps-new-chips",
+        "broadening-ai-demand-tightens-tsmc-capacity-and-pricing",
+        "pricing-power-persistence"
+      ],
+      "watchItem": "End-market GPU pricing stays firm, with NVIDIA holding a 75% gross margin and AMD guiding to about 56%, and broadening AI demand across GPUs, ASICs and networking is tightening TSMC capacity, which the trade press ties to foundry pricing power. The ability to hold firm prices across the value chain is exposed to how long these premium margins and the capacity crunch last as more supply arrives."
+    },
+    {
+      "dimensions": [
+        "strategicRisk",
+        "competitiveStructure"
+      ],
+      "findingIds": [
+        "www-bis-gov-dbeede91-2026-07-1",
+        "finance-yahoo-com-acf60faa-2026-07-1",
+        "techcrunch-com-6b79ddb7-1",
+        "newsroom-intel-com-297a8b5b-2026-07-1"
+      ],
+      "thesisIds": [
+        "export-control-exposure",
+        "conditional-china-re-opening-with-a-capped-ceiling"
+      ],
+      "watchItem": "Policy and second-source developments are moving at once: US export rules shifted H200- and MI325-class China sales to case-by-case review with a 25% tariff, China signaled Alibaba, ByteDance and DeepSeek may soon gain permission to purchase some H200 chips, and Anthropic opened 2nm custom-chip talks with Samsung while Intel expands Intel-3 capacity in Ireland. Foundry demand and the exposure around it are sensitive to whether China access reopens and whether these alternative-silicon and rival-foundry moves gain traction."
+    },
+    {
+      "dimensions": [
+        "strategicRisk"
+      ],
+      "findingIds": [
+        "www-sec-gov-bdd91a43-2026-07-1",
+        "www-datacenterdynamics-com-45864e2a-2026-07-06-1",
+        "www-datacenterdynamics-com-45864e2a-2026-07-06-2",
+        "www-forbes-com-9a1166d5-2026-07-1"
+      ],
+      "thesisIds": [
+        "customer-concentration-risk",
+        "vendor-financed-demand-circularity",
+        "hyperscaler-ai-spending-may-outrun-near-term-returns"
+      ],
+      "watchItem": "The demand behind the buildout is concentrating and partly self-funded, with NVIDIA's four largest direct customers now more than half its revenue, roughly 210,000 GPUs backstopped through its vendor-financing program, and analysts warning hyperscalers' 67% capex jump to $650 billion may not hold. Foundry demand tied to these orders is exposed if a single large customer slows or the circular financing unwinds."
+    }
+  ]
+}

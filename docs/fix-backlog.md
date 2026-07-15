@@ -1122,7 +1122,38 @@ sub-project (the repo's existing sp1–sp4 pattern). Do not let a lane agent imp
 
 ## From the 2026-07-11 executive-format session (F79)
 
-- [ ] **F79 — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**
+- [~] **F79 — SDEWS-style index rebuild (scoring v2.0). SHADOW-ONLY MERGED `b6db80a`
+  (2026-07-15, user-directed); NOT YET LIVE — G4 cutover pending.** Full build: spec
+  `docs/superpowers/specs/2026-07-13-f79-scoring-v2-design.md` (all forks user-approved
+  interactively), plan `docs/superpowers/plans/2026-07-13-f79-scoring-v2.md`. Delivered: 6
+  vintage-stamped series (S1 pkgCapacityOrderSpread / S2 hbmSupplyCapex / D1
+  hyperscalerCapexRevision / D9 odmMonthlyAiRevenue / D4 tokenEconomics / X5
+  marginalBuyerFinancing) backfilled 2023→now with per-point provenance; z-score engine as the
+  versioned v2.0 migration (v1.x replay fidelity pinned byte-for-byte); σ-band alert engine
+  (shadow); shadow wiring (v2 computes into scorecard.provenance, NOTHING user-facing renders it).
+  **Gates: G1 backfill SIGNED; G2 backtest PASSED under the user-signed Option-B event-list
+  amendment (detection-only, frozen run, original 3-turn FAIL still reproducible); G3 eval
+  re-gate PASSED under seam-scoped verdicts (only extract bound; honest baseline; canary
+  captured).** Final whole-branch review: READY TO MERGE, 0 critical (replay fidelity + shadow
+  isolation both airtight). **REMAINING: shadow soak ≥5 live cycles (needs manual `v2-shadow`
+  CLI invocation per cycle — the auto-hook is deferred to G4) → G4 CUTOVER (user-signed; flips
+  v1→v2 rendering).** Absorbs F60's deferred scoring half. Original scope below.
+- [ ] **F96 — Monthly-grain write-back collision: same-period price re-gather mints a stable id
+  over changed content (F52-class residual).** Found in the live 2026-07-15 v8 daily cycle
+  (`store/cycle-log.json` stageStatuses.writeBack = "failed (finding-id collision on
+  lambda-ai-1252bbe3-2026-07-1 — same-month live-price re-gather, id stable but content moved;
+  partial write rolled back to keep store consistent)"). F52 vintage-scoped finding ids by asOf
+  (`{slug}-{digest}-{asOf}`), which fixes cross-DAY collisions — but a MONTHLY cycle's asOf is
+  `2026-07`, so re-gathering the same price URL within the same month yields the SAME id with
+  DIFFERENT content → the append-only FindingStore's collision check trips and the corpus
+  write-back rolls back (the scorecard still published; the corpus just didn't absorb the
+  re-gather). Not data-corrupting (rollback kept the store consistent), but the flagship's corpus
+  silently misses same-month price refreshes. Fix direction: digest-in-id already exists
+  (`{slug}-{digest}-{asOf}`) — verify why the digest didn't differentiate (the id may derive from
+  URL not content for price rows), or scope price-row ids by capture time within the month. Small,
+  gather/dedup-seam. *(Concurrent-mint caveat: F96 chosen against a backlog max of F95 on
+  2026-07-15; if the F88 session also minted F96, renumber this one.)*
+- [ ] **F79 (original scope) — SDEWS-style index rebuild (scoring v2.0 migration; the backtest becomes real).**
   Re-architect the index layer per the SDEWS spec (`docs/2026-07-11-sdews-metric-extraction.md`
   maps it): every scoring indicator becomes a monthly, vintage-stamped time series (2023→now
   backfilled from dated archives — EDGAR, TWSE monthly revenue); values z-scored vs the series'
